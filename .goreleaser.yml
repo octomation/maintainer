@@ -1,8 +1,8 @@
 ---
-project_name: %template%
+project_name: maintainer
 
 archives:
-  - id: %template%
+  - id: maintainer
     files:
       - LICENSE
     format: tar.gz
@@ -14,36 +14,36 @@ archives:
       linux: Linux
 
 brews:
-  - name: %template%
-    caveats: %template%
+  - name: maintainer
+    caveats:
     commit_author:
       name: Kamil Samigullin
       email: kamil@samigullin.info
-    description: %template%
+    description: Maintainer is an indispensable assistant to Open Source contribution.
     folder: Formula
-    homepage: %template%
+    homepage: https://github.com/octomation/maintainer
     github:
-      owner: %template%
-      name: %template%
+      owner: octolab
+      name: homebrew-tap
     install: |
-      bin.install "%template%"
+      bin.install "maintainer"
 
-      output = Utils.popen_read("#{bin}/%template% completion bash")
-      (bash_completion/"%template%").write output
+      output = Utils.popen_read("#{bin}/maintainer completion bash")
+      (bash_completion/"maintainer").write output
 
-      output = Utils.popen_read("#{bin}/%template% completion fish")
+      output = Utils.popen_read("#{bin}/maintainer completion fish")
       (fish_completion/"eksctl.fish").write output
 
-      output = Utils.popen_read("#{bin}/%template% completion zsh")
-      (zsh_completion/"_%template%").write output
+      output = Utils.popen_read("#{bin}/maintainer completion zsh")
+      (zsh_completion/"_maintainer").write output
 
       prefix.install_metafiles
     test: |
-      system "#{bin}/%template% version"
+      system "#{bin}/maintainer version"
 
 builds:
-  - id: %template%
-    binary: %template%
+  - id: maintainer
+    binary: maintainer
     env:
       - CGO_ENABLED=0
     flags:
@@ -62,5 +62,5 @@ checksum: { name_template: checksums.txt }
 
 release:
   github:
-    owner: %template%
-    name: %template%
+    owner: octomation
+    name: maintainer
