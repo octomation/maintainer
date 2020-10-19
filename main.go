@@ -38,7 +38,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	root := cmd.New(os.Getenv("GITHUB_TOKEN"))
+	root := cmd.New()
 	root.SetErr(stderr)
 	root.SetOut(stdout)
 	root.AddCommand(

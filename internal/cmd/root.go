@@ -1,21 +1,19 @@
 package cmd
 
 import (
-	"context"
+	"os"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/oauth2"
 
-	"go.octolab.org/toolset/maintainer/internal/cmd/labels"
-	"go.octolab.org/toolset/maintainer/internal/github"
+	"go.octolab.org/toolset/maintainer/internal/cmd/github"
 )
 
 // New returns the new root command.
-func New(token string) *cobra.Command {
+func New() *cobra.Command {
 	command := cobra.Command{
-		Use:   "github",
-		Short: "GitHub manager",
-		Long:  "GitHub manager for all OctoLab's projects.",
+		Use:   "maintainer",
+		Short: "maintainer is an indispensable assistant to Open Source contribution",
+		Long:  "Maintainer is an indispensable assistant to Open Source contribution.",
 
 		Args: cobra.NoArgs,
 
@@ -23,11 +21,8 @@ func New(token string) *cobra.Command {
 		SilenceUsage:  true,
 	}
 
-	source := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-	client := oauth2.NewClient(context.TODO(), source)
-
 	command.AddCommand(
-		labels.New(github.New(client)),
+		github.New(os.Getenv("GITHUB_TOKEN")),
 	)
 
 	return &command

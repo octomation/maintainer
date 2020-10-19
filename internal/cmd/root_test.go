@@ -10,7 +10,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	root := New("secret")
+	root := New()
 	require.NotNil(t, root)
 	assert.NotEmpty(t, root.Use)
 	assert.NotEmpty(t, root.Short)
