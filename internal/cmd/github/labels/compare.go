@@ -11,8 +11,10 @@ import (
 
 func NewCompareCommand(provider Provider) *cobra.Command {
 	command := cobra.Command{
-		Use:  "compare",
-		Args: cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(2),
+		Use:   "compare",
+		Short: "",
+		Long:  "",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.TODO())
 			defer cancel()

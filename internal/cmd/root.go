@@ -12,11 +12,11 @@ import (
 // New returns the new root command.
 func New() *cobra.Command {
 	command := cobra.Command{
+		Args: cobra.NoArgs,
+
 		Use:   "maintainer",
 		Short: "maintainer is an indispensable assistant to Open Source contribution",
 		Long:  "Maintainer is an indispensable assistant to Open Source contribution.",
-
-		Args: cobra.NoArgs,
 
 		SilenceErrors: false,
 		SilenceUsage:  true,

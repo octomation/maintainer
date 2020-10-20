@@ -13,8 +13,10 @@ import (
 
 func NewListCommand(provider Provider) *cobra.Command {
 	command := cobra.Command{
-		Use:  "list",
-		Args: cobra.MinimumNArgs(1),
+		Args:  cobra.MinimumNArgs(1),
+		Use:   "list",
+		Short: "",
+		Long:  "",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ctx, cancel := context.WithCancel(context.TODO())
 			defer cancel()

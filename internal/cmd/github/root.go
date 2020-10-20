@@ -12,14 +12,10 @@ import (
 
 func New(token string) *cobra.Command {
 	command := cobra.Command{
+		Args:  cobra.NoArgs,
 		Use:   "github",
 		Short: "GitHub manager",
 		Long:  "GitHub manager for all OctoLab's projects.",
-
-		Args: cobra.NoArgs,
-
-		SilenceErrors: false,
-		SilenceUsage:  true,
 	}
 
 	source := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
