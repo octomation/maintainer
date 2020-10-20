@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"go.octolab.org/toolset/maintainer/internal/cmd/github"
+	"go.octolab.org/toolset/maintainer/internal/cmd/makefile"
 )
 
 // New returns the new root command.
@@ -23,6 +24,7 @@ func New() *cobra.Command {
 
 	command.AddCommand(
 		github.New(os.Getenv("GITHUB_TOKEN")),
+		makefile.New(),
 	)
 
 	return &command
