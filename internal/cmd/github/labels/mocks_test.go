@@ -10,7 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 
-	entity "go.octolab.org/toolset/maintainer/internal/entity"
+	github "go.octolab.org/toolset/maintainer/internal/entity/github"
 )
 
 // MockProvider is a mock of Provider interface
@@ -37,14 +37,14 @@ func (m *MockProvider) EXPECT() *MockProviderMockRecorder {
 }
 
 // RepositoryWithLabels mocks base method
-func (m *MockProvider) RepositoryWithLabels(arg0 context.Context, arg1 ...entity.RepositoryURN) ([]entity.Repository, error) {
+func (m *MockProvider) RepositoryWithLabels(arg0 context.Context, arg1 ...github.RepositoryURN) ([]github.Repository, error) {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {
 		varargs = append(varargs, a)
 	}
 	ret := m.ctrl.Call(m, "RepositoryWithLabels", varargs...)
-	ret0, _ := ret[0].([]entity.Repository)
+	ret0, _ := ret[0].([]github.Repository)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

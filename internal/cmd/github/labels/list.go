@@ -8,7 +8,7 @@ import (
 	"github.com/alexeyco/simpletable"
 	"github.com/spf13/cobra"
 
-	"go.octolab.org/toolset/maintainer/internal/entity"
+	"go.octolab.org/toolset/maintainer/internal/entity/github"
 )
 
 func NewListCommand(provider Provider) *cobra.Command {
@@ -21,7 +21,7 @@ func NewListCommand(provider Provider) *cobra.Command {
 			ctx, cancel := context.WithCancel(context.TODO())
 			defer cancel()
 
-			list := entity.ConvertStringsToRepositoryURNs(args)
+			list := github.ConvertStringsToRepositoryURNs(args)
 			repositories, err := provider.RepositoryWithLabels(ctx, list...)
 			if err != nil {
 				return err

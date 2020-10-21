@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-github/v33/github"
 	"golang.org/x/sync/errgroup"
 
-	"go.octolab.org/toolset/maintainer/internal/entity"
+	entity "go.octolab.org/toolset/maintainer/internal/entity/github"
 	"go.octolab.org/toolset/maintainer/internal/errors"
 )
 

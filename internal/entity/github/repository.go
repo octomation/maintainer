@@ -1,4 +1,4 @@
-package entity
+package github
 
 // Repository represents a GitHub repository.
 type Repository struct {

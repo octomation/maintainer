@@ -1,4 +1,4 @@
-package entity
+package github
 
 // Label represents a GitHub label.
 type Label struct {
