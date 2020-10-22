@@ -29,9 +29,9 @@ func NewVanityCommand() *cobra.Command {
 	command.AddCommand(
 		&cobra.Command{
 			Args:  cobra.NoArgs,
-			Use:   "dump",
-			Short: "dump vanity URLs",
-			Long:  "Dump vanity URLs",
+			Use:   "build",
+			Short: "build vanity URLs",
+			Long:  "Build vanity URLs",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				file, err := os.Open(file)
 				if err != nil {
