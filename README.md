@@ -73,19 +73,19 @@ $ source <(:binary completion)
 
 made with ❤️ for everyone
 
-[build.page]:       https://travis-ci.com/:owner/:repository
-[build.icon]:       https://travis-ci.com/:owner/:repository.svg?branch=master
-[coverage.page]:    https://codeclimate.com/github/:owner/:repository/test_coverage
-[coverage.icon]:    https://api.codeclimate.com/v1/badges/c570179a9335c747e77c/test_coverage
-[design.page]:      https://www.notion.so/33715348cc114ea79dd350a25d16e0b0?r=0b753cbf767346f5a6fd51194829a2f3
-[docs.page]:        https://pkg.go.dev/:module/:version
+[build.page]:       https://travis-ci.com/octomation/maintainer
+[build.icon]:       https://travis-ci.com/octomation/maintainer.svg?branch=master
+[coverage.page]:    https://codeclimate.com/github/octomation/maintainer/test_coverage
+[coverage.icon]:    https://api.codeclimate.com/v1/badges/6687c945bf44772d3131/test_coverage
+[design.page]:      https://www.notion.so/octolab/maintainer-76d7f532a13244b5ac71708990f340ed?r=0b753cbf767346f5a6fd51194829a2f3
+[docs.page]:        https://pkg.go.dev/go.octolab.org/toolset/maintainer
 [docs.icon]:        https://img.shields.io/badge/docs-pkg.go.dev-blue
-[promo.page]:       https://github.com/:owner/:repository
-[quality.page]:     https://goreportcard.com/report/:module
-[quality.icon]:     https://goreportcard.com/badge/go.octolab.org
+[promo.page]:       https://github.com/octomation/maintainer
+[quality.page]:     https://goreportcard.com/report/go.octolab.org/toolset/maintainer
+[quality.icon]:     https://goreportcard.com/badge/go.octolab.org/toolset/maintainer
 [template.page]:    https://github.com/octomation/go-tool
 [template.icon]:    https://img.shields.io/badge/template-go--tool-blue
-[mirror.page]:      https://bitbucket.org/kamilsk/go-tool
+[mirror.page]:      https://bitbucket.org/kamilsk/maintainer
 [mirror.icon]:      https://img.shields.io/badge/mirror-bitbucket-blue
 
 [egg]:              https://github.com/kamilsk/egg
