@@ -25,7 +25,7 @@ func (publisher *publisher) PublishAt(root string, modules []golang.Module) erro
 			continue
 		}
 
-		for _, pkg := range module.Packages {
+		for _, pkg := range fill(module.Name, module.Packages) {
 			dir := filepath.Join(append(
 				[]string{root},
 				strings.Split(strings.TrimPrefix(pkg, publisher.host), "/")...,
