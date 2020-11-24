@@ -22,7 +22,7 @@ brews:
     description: Maintainer is an indispensable assistant to Open Source contribution.
     folder: Formula
     homepage: https://github.com/octomation/maintainer
-    github:
+    tap:
       owner: octolab
       name: homebrew-tap
     install: |
