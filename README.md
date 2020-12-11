@@ -1,6 +1,6 @@
-> # 🧩 Tool
+> # 👨‍🔧 maintainer
 >
-> Template for typical Go tool.
+> Toolset for Open Source contribution.
 
 [![Build][build.icon]][build.page]
 [![Documentation][docs.icon]][docs.page]
@@ -12,7 +12,7 @@
 ## 💡 Idea
 
 ```bash
-$ tool do action
+$ maintainer go vanity build
 ```
 
 A full description of the idea is available [here][design.page].
@@ -30,15 +30,15 @@ A full description of the idea is available [here][design.page].
 ### Homebrew
 
 ```bash
-$ brew install :owner/tap/:binary
+$ brew install octolab/tap/maintainer
 ```
 
 ### Binary
 
 ```bash
-$ curl -sSfL https://raw.githubusercontent.com/:owner/:repository/master/bin/install | sh
+$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/master/bin/install | sh
 # or
-$ wget -qO-  https://raw.githubusercontent.com/:owner/:repository/master/bin/install | sh
+$ wget -qO-  https://raw.githubusercontent.com/octomation/maintainer/master/bin/install | sh
 ```
 
 > Don't forget about [security](https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/).
@@ -47,31 +47,22 @@ $ wget -qO-  https://raw.githubusercontent.com/:owner/:repository/master/bin/ins
 
 ```bash
 # use standard go tools
-$ go get github.com/:owner/:repository@:version
+$ go get go.octolab.org/toolset/maintainer@latest
 # or use egg tool
-$ egg tools add github.com/:owner/:repository@:version
+$ egg tools add go.octolab.org/toolset/maintainer@latest
 ```
 
 > [egg][] is an `extended go get`.
 
-### Bash and Zsh completions
+### Shell completions
 
 ```bash
-$ :binary completion bash > /path/to/bash_completion.d/:binary.sh
-$ :binary completion zsh  > /path/to/zsh-completions/_:binary.zsh
-# or autodetect
-$ source <(:binary completion)
+$ maintainer completion bash|fish|powershell|zsh > /path/to/completions/...
 ```
 
 > See `kubectl` [documentation](https://kubernetes.io/docs/tasks/tools/install-kubectl/#enabling-shell-autocompletion).
 
-## 🤲 Outcomes
-
-...
-
----
-
-made with ❤️ for everyone
+<p align="right">made with ❤️ for everyone</p>
 
 [build.page]:       https://travis-ci.com/octomation/maintainer
 [build.icon]:       https://travis-ci.com/octomation/maintainer.svg?branch=master
