@@ -58,9 +58,9 @@ $ egg tools add go.octolab.org/toolset/maintainer@latest
 
 ```bash
 $ maintainer completion bash|fish|powershell|zsh > /path/to/completions/...
+# or
+$ source <(maintainer completion bash|fish|powershell|zsh)
 ```
-
-> See `kubectl` [documentation](https://kubernetes.io/docs/tasks/tools/install-kubectl/#enabling-shell-autocompletion).
 
 <p align="right">made with ❤️ for everyone</p>
 
