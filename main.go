@@ -12,8 +12,8 @@ import (
 	"go.octolab.org/toolkit/cli/cobra"
 	"go.octolab.org/unsafe"
 
-	"tool/internal/cmd"
-	"tool/internal/cnf"
+	"go.octolab.org/toolset/maintainer/internal/cmd"
+	"go.octolab.org/toolset/maintainer/internal/cnf"
 )
 
 const unknown = "unknown"
@@ -38,7 +38,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	root := cmd.New()
+	root := cmd.New(os.Getenv("GITHUB_TOKEN"))
 	root.SetErr(stderr)
 	root.SetOut(stdout)
 	root.AddCommand(

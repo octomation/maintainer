@@ -1,0 +1,36 @@
+obtained
+
++--------+------------------+-----+------------------+--------+
+|  Color |             Name | <-> | Name             | Color  |
++--------+------------------+-----+------------------+--------+
+| 5319e7 | help wanted      |     | status:blocked   | b60205 |
+| b60205 | status:blocked   |     | status:research  | 1d76db |
+| b60205 | status:declined  |     | status:support   | c5def5 |
+| b7c1f4 | status:pending   |     | type:bug         | f7c6c7 |
+| 1d76db | status:research  |     | type:critical    | e11d21 |
+| f7c6c7 | type:bug         |     | type:docs        | bfdadc |
+| e11d21 | type:critical    |     | type:feature     | 006b75 |
+| bfdadc | type:docs        |     | type:refactoring | bfe5bf |
+| 006b75 | type:feature     |     | type:task        | 009800 |
+| bfe5bf | type:refactoring |     |                  |        |
+| 009800 | type:task        |     |                  |        |
++--------+------------------+-----+------------------+--------+
+
+expected
+
++--------+------------------+-----+------------------+--------+
+|  Color |             Name | <-> | Name             | Color  |
++--------+------------------+-----+------------------+--------+
+| 5319e7 | help wanted      | --> |                  |        |
+| b60205 | status:blocked   |     | status:blocked   | b60205 |
+| b60205 | status:declined  | --> |                  |        |
+| b7c1f4 | status:pending   | --> |                  |        |
+| 1d76db | status:research  |     | status:research  | 1d76db |
+|        |                  |  x  | status:support   | c5def5 |
+| f7c6c7 | type:bug         |     | type:bug         | f7c6c7 |
+| e11d21 | type:critical    |     | type:critical    | e11d21 |
+| bfdadc | type:docs        |     | type:docs        | bfdadc |
+| 006b75 | type:feature     |     | type:feature     | 006b75 |
+| bfe5bf | type:refactoring |     | type:refactoring | bfe5bf |
+| 009800 | type:task        |     | type:task        | 009800 |
++--------+------------------+-----+------------------+--------+

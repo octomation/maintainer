@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	. "tool/internal/cmd"
+	. "go.octolab.org/toolset/maintainer/internal/cmd"
 )
 
-func TestRoot(t *testing.T) {
-	root := New()
+func TestNew(t *testing.T) {
+	root := New("secret")
 	require.NotNil(t, root)
 	assert.NotEmpty(t, root.Use)
 	assert.NotEmpty(t, root.Short)
