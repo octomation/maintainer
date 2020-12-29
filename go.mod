@@ -12,6 +12,6 @@ require (
 	go.octolab.org v0.7.2
 	go.octolab.org/toolkit/cli v0.3.1
 	go.octolab.org/toolkit/config v0.0.4
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58
+	golang.org/x/oauth2 v0.0.0-20201208152858-08078c50e5b5
+	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 )
