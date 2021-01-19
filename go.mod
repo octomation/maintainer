@@ -11,7 +11,7 @@ require (
 	github.com/spf13/cobra v1.1.1
 	github.com/stretchr/testify v1.7.0
 	go.octolab.org v0.7.2
-	go.octolab.org/toolkit/cli v0.4.0
+	go.octolab.org/toolkit/cli v0.4.1
 	go.octolab.org/toolkit/config v0.0.4
 	golang.org/x/oauth2 v0.0.0-20210113205817-d3ed898aa8a3
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
