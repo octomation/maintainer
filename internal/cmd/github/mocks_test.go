@@ -7,6 +7,7 @@ package github_test
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 
@@ -73,6 +74,21 @@ func NewMockGitHub(ctrl *gomock.Controller) *MockGitHub {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockGitHub) EXPECT() *MockGitHubMockRecorder {
 	return m.recorder
+}
+
+// ContributionHeatMap mocks base method.
+func (m *MockGitHub) ContributionHeatMap(arg0 context.Context, arg1 time.Time) (map[time.Time]int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ContributionHeatMap", arg0, arg1)
+	ret0, _ := ret[0].(map[time.Time]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ContributionHeatMap indicates an expected call of ContributionHeatMap.
+func (mr *MockGitHubMockRecorder) ContributionHeatMap(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ContributionHeatMap", reflect.TypeOf((*MockGitHub)(nil).ContributionHeatMap), arg0, arg1)
 }
 
 // Labels mocks base method.

@@ -2,7 +2,6 @@ package github
 
 import (
 	"context"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	"strconv"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"go.octolab.org/safe"
 	"go.octolab.org/unsafe"
 
+	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	"go.octolab.org/toolset/maintainer/internal/pkg/url"
 )
 
