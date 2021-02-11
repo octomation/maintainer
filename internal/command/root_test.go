@@ -1,4 +1,4 @@
-package cmd_test
+package command_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	. "go.octolab.org/toolset/maintainer/internal/cmd"
+	. "go.octolab.org/toolset/maintainer/internal/command"
 )
 
 func TestNew(t *testing.T) {

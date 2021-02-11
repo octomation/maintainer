@@ -1,4 +1,4 @@
-package cmd
+package command
 
 import (
 	"os"
@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/cobra"
 	"go.octolab.org/unsafe"
 
-	"go.octolab.org/toolset/maintainer/internal/cmd/github"
-	"go.octolab.org/toolset/maintainer/internal/cmd/golang"
-	"go.octolab.org/toolset/maintainer/internal/cmd/hub"
-	"go.octolab.org/toolset/maintainer/internal/cmd/makefile"
+	"go.octolab.org/toolset/maintainer/internal/command/github"
+	"go.octolab.org/toolset/maintainer/internal/command/golang"
+	"go.octolab.org/toolset/maintainer/internal/command/hub"
+	"go.octolab.org/toolset/maintainer/internal/command/makefile"
 )
 
 // New returns the new root command.
