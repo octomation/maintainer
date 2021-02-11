@@ -43,8 +43,9 @@ func TestContributionHeatMap(t *testing.T) {
 		assert.Equal(t, 365, doc.Find(selector).Length())
 	}
 
+	ts := time.Date(2013, 11, 13, 0, 0, 0, 0, time.UTC)
 	chm := contributionHeatMap(doc)
-	assert.Equal(t, 1, chm[time.Date(2013, 11, 13, 0, 0, 0, 0, time.UTC)])
-	assert.Equal(t, 0, chm[time.Date(2013, 12, 13, 0, 0, 0, 0, time.UTC)])
-	assert.Equal(t, 2, chm[time.Date(2013, 12, 27, 0, 0, 0, 0, time.UTC)])
+	assert.Equal(t, 1, chm.Count(ts))                   // 2013-11-13
+	assert.Equal(t, 0, chm.Count(ts.AddDate(0, 1, 0)))  // 2013-12-13
+	assert.Equal(t, 2, chm.Count(ts.AddDate(0, 1, 14))) // 2013-12-27
 }

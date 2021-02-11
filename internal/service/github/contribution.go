@@ -11,6 +11,7 @@ import (
 	"go.octolab.org/safe"
 	"go.octolab.org/unsafe"
 
+	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	"go.octolab.org/toolset/maintainer/internal/pkg/url"
 )
@@ -20,7 +21,7 @@ var overview = url.MustParse("https://github.com?tab=overview")
 func (srv *service) ContributionHeatMap(
 	ctx context.Context,
 	since time.Time,
-) (map[time.Time]int, error) {
+) (contribution.HeatMap, error) {
 	u, _, err := srv.client.Users.Get(ctx, "")
 	if err != nil {
 		return nil, err
@@ -72,13 +73,13 @@ func contributionRange(doc *goquery.Document) (int, int) {
 	}
 }
 
-func contributionHeatMap(doc *goquery.Document) map[time.Time]int {
-	chm := make(map[time.Time]int)
+func contributionHeatMap(doc *goquery.Document) contribution.HeatMap {
+	chm := make(contribution.HeatMap)
 	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
 		Each(func(_ int, node *goquery.Selection) {
 			d, _ := time.Parse("2006-01-02", node.AttrOr("data-date", ""))
 			c, _ := strconv.Atoi(node.AttrOr("data-level", ""))
-			chm[d] = c
+			chm.Set(d, c)
 		})
 	return chm
 }
