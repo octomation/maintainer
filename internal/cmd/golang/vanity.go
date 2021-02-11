@@ -9,8 +9,8 @@ import (
 	"go.octolab.org/unsafe"
 	"gopkg.in/yaml.v2"
 
-	"go.octolab.org/toolset/maintainer/internal/entity/golang"
-	"go.octolab.org/toolset/maintainer/internal/entity/golang/vanity"
+	"go.octolab.org/toolset/maintainer/internal/model/golang"
+	"go.octolab.org/toolset/maintainer/internal/model/golang/vanity"
 )
 
 func NewVanityCommand() *cobra.Command {

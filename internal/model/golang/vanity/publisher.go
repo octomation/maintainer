@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/afero"
 	xstrings "go.octolab.org/strings"
 
-	"go.octolab.org/toolset/maintainer/internal/entity/golang"
+	"go.octolab.org/toolset/maintainer/internal/model/golang"
 )
 
 func New(host string, fs afero.Fs) *publisher {
