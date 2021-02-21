@@ -10,41 +10,77 @@ type HeatMap map[time.Time]int
 
 // Count returns how many contributions were in the specific time.
 func (chm HeatMap) Count(ts time.Time) int {
-	if chm == nil {
-		return 0
-	}
-
 	return chm[ts]
 }
 
-// Set sets how many contributions were to the specific time.
-func (chm HeatMap) Set(ts time.Time, count int) {
-	if chm == nil {
-		return
-	}
-
+// SetCount sets how many contributions were to the specific time.
+func (chm HeatMap) SetCount(ts time.Time, count int) {
 	chm[ts] = count
 }
 
-// Histogram returns distribution of amount of contributions.
-// The first value is the amount, and the second is frequency.
+type histogramByCountRow struct {
+	Count, Frequency int
+}
+
+// HistogramByCount returns the distribution of amount contributions.
+// The first value is an amount, and the second is a frequency.
 // The result is sorted by the first value.
-func (chm HeatMap) Histogram() [][2]int {
-	if chm == nil {
-		return nil
+//
+//  1 #
+//  3 #####
+//  4 ##
+//  7 ###
+//
+func HistogramByCount(chm HeatMap) []histogramByCountRow {
+	h := make([]histogramByCountRow, 0, 8)
+	m := make(map[int]int)
+
+	for _, count := range chm {
+		idx, found := m[count]
+		if !found {
+			idx = len(h)
+			h = append(h, histogramByCountRow{Count: count})
+			m[count] = idx
+		}
+		h[idx].Frequency++
 	}
 
-	histogram := make([][2]int, 0, 8)
-	calc := make(map[int]int)
-	for _, count := range chm {
-		idx, found := calc[count]
+	sort.Slice(h, func(i, j int) bool { return h[i].Count < h[j].Count })
+	return h
+}
+
+type histogramByDateRow struct {
+	Date string
+	Sum  int
+}
+
+// HistogramByDate returns the sum of the number of contributions grouped by date.
+// The first value is a date in the specified format, and the second is a sum.
+// The result is sorted by the first value.
+//
+//  2006-01-02 #
+//  2006-01-04 ###
+//  2006-01-05 ##
+//  2006-02-01 #
+//
+//  2006-01    ######
+//  2006-02    #
+//
+func HistogramByDate(chm HeatMap, format string) []histogramByDateRow {
+	h := make([]histogramByDateRow, 0, 8)
+	m := make(map[string]int)
+
+	for ts, count := range chm {
+		date := ts.Format(format)
+		idx, found := m[date]
 		if !found {
-			idx = len(histogram)
-			histogram = append(histogram, [2]int{count, 0})
-			calc[count] = idx
+			idx = len(h)
+			h = append(h, histogramByDateRow{Date: date})
+			m[date] = idx
 		}
-		histogram[idx][1]++
+		h[idx].Sum += count
 	}
-	sort.Slice(histogram, func(i, j int) bool { return histogram[i][0] < histogram[j][0] })
-	return histogram
+
+	sort.Slice(h, func(i, j int) bool { return h[i].Date < h[j].Date })
+	return h
 }

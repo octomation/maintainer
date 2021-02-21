@@ -79,7 +79,7 @@ func contributionHeatMap(doc *goquery.Document) contribution.HeatMap {
 		Each(func(_ int, node *goquery.Selection) {
 			d, _ := time.Parse("2006-01-02", node.AttrOr("data-date", ""))
 			c, _ := strconv.Atoi(node.AttrOr("data-level", ""))
-			chm.Set(d, c)
+			chm.SetCount(d, c)
 		})
 	return chm
 }
