@@ -1,6 +1,7 @@
 package contribution_test
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 
@@ -29,7 +30,7 @@ func TestHistogramByCount(t *testing.T) {
 	}
 
 	histogram := HistogramByCount(chm)
-	assert.Len(t, histogram, len(expected))
+	require.Len(t, histogram, len(expected))
 	for i, row := range histogram {
 		assert.Equal(t, expected[row.Count], row.Frequency, i)
 	}
@@ -59,7 +60,7 @@ func TestHistogramByDate(t *testing.T) {
 		}
 
 		histogram := HistogramByDate(chm, "2006-01-02")
-		assert.Len(t, histogram, len(expected))
+		require.Len(t, histogram, len(expected))
 		for i, row := range histogram {
 			assert.Equal(t, expected[row.Date], row.Sum, i)
 		}
@@ -71,9 +72,63 @@ func TestHistogramByDate(t *testing.T) {
 		}
 
 		histogram := HistogramByDate(chm, "2006-01")
-		assert.Len(t, histogram, len(expected))
+		require.Len(t, histogram, len(expected))
 		for i, row := range histogram {
 			assert.Equal(t, expected[row.Date], row.Sum, i)
+		}
+	})
+}
+
+func TestHistogramByWeekday(t *testing.T) {
+	chm := make(HeatMap)
+	chm.SetCount(time.Date(2013, 11, 13, 0, 0, 0, 0, time.UTC), 1) // Wednesday
+	chm.SetCount(time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC), 1) // Wednesday
+	chm.SetCount(time.Date(2013, 11, 21, 0, 0, 0, 0, time.UTC), 3) // Thursday
+	chm.SetCount(time.Date(2013, 11, 24, 0, 0, 0, 0, time.UTC), 1) // Sunday
+	chm.SetCount(time.Date(2013, 11, 25, 0, 0, 0, 0, time.UTC), 2) // Monday
+	chm.SetCount(time.Date(2013, 11, 26, 0, 0, 0, 0, time.UTC), 8) // Tuesday
+	chm.SetCount(time.Date(2013, 11, 28, 0, 0, 0, 0, time.UTC), 7) // Thursday
+	chm.SetCount(time.Date(2013, 11, 29, 0, 0, 0, 0, time.UTC), 1) // Friday
+
+	t.Run("grouped", func(t *testing.T) {
+		expected := map[time.Weekday]int{
+			time.Sunday:    1,
+			time.Monday:    2,
+			time.Tuesday:   8,
+			time.Wednesday: 2,
+			time.Thursday:  10,
+			time.Friday:    1,
+		}
+
+		histogram := HistogramByWeekday(chm, true)
+		require.Len(t, histogram, len(expected))
+		for i, row := range histogram {
+			assert.Equal(t, expected[row.Day], row.Sum, i)
+		}
+	})
+
+	t.Run("ungrouped", func(t *testing.T) {
+		expected := map[time.Weekday][]int{
+			time.Sunday:    {1},
+			time.Monday:    {2},
+			time.Tuesday:   {8},
+			time.Wednesday: {1, 1},
+			time.Thursday:  {3, 7},
+			time.Friday:    {1},
+		}
+
+		total := 0
+		for _, s := range expected {
+			total += len(s)
+		}
+
+		histogram := HistogramByWeekday(chm, false)
+		require.Len(t, histogram, total)
+		for i, row := range histogram {
+			shift := expected[row.Day][0]
+			expected[row.Day] = expected[row.Day][1:]
+
+			assert.Equal(t, shift, row.Sum, i)
 		}
 	})
 }

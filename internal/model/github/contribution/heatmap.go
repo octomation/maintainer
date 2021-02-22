@@ -18,7 +18,7 @@ func (chm HeatMap) SetCount(ts time.Time, count int) {
 	chm[ts] = count
 }
 
-type histogramByCountRow struct {
+type hbc struct {
 	Count, Frequency int
 }
 
@@ -31,15 +31,15 @@ type histogramByCountRow struct {
 //  4 ##
 //  7 ###
 //
-func HistogramByCount(chm HeatMap) []histogramByCountRow {
-	h := make([]histogramByCountRow, 0, 8)
+func HistogramByCount(chm HeatMap) []hbc {
+	h := make([]hbc, 0, 8)
 	m := make(map[int]int)
 
 	for _, count := range chm {
 		idx, found := m[count]
 		if !found {
 			idx = len(h)
-			h = append(h, histogramByCountRow{Count: count})
+			h = append(h, hbc{Count: count})
 			m[count] = idx
 		}
 		h[idx].Frequency++
@@ -49,7 +49,7 @@ func HistogramByCount(chm HeatMap) []histogramByCountRow {
 	return h
 }
 
-type histogramByDateRow struct {
+type hbd struct {
 	Date string
 	Sum  int
 }
@@ -58,16 +58,18 @@ type histogramByDateRow struct {
 // The first value is a date in the specified format, and the second is a sum.
 // The result is sorted by the first value.
 //
-//  2006-01-02 #
-//  2006-01-04 ###
-//  2006-01-05 ##
-//  2006-02-01 #
+//  format: "2006-01-02"
+//  	2006-01-02 #
+//  	2006-01-04 ###
+//  	2006-01-05 ##
+//  	2006-02-01 #
 //
-//  2006-01    ######
-//  2006-02    #
+//  format: "2006-01"
+//  	2006-01    ######
+//  	2006-02    #
 //
-func HistogramByDate(chm HeatMap, format string) []histogramByDateRow {
-	h := make([]histogramByDateRow, 0, 8)
+func HistogramByDate(chm HeatMap, format string) []hbd {
+	h := make([]hbd, 0, 8)
 	m := make(map[string]int)
 
 	for ts, count := range chm {
@@ -75,12 +77,61 @@ func HistogramByDate(chm HeatMap, format string) []histogramByDateRow {
 		idx, found := m[date]
 		if !found {
 			idx = len(h)
-			h = append(h, histogramByDateRow{Date: date})
+			h = append(h, hbd{Date: date})
 			m[date] = idx
 		}
 		h[idx].Sum += count
 	}
 
 	sort.Slice(h, func(i, j int) bool { return h[i].Date < h[j].Date })
+	return h
+}
+
+type hbw struct {
+	Day time.Weekday
+	Sum int
+}
+
+// HistogramByWeekday returns the sum of the number of contributions grouped by day of week.
+// The first value is a date in the specified format, and the second is a sum.
+// The result is sorted by the first value.
+//
+//  grouped: false
+//  	Monday  #
+//  	Tuesday ###
+//  	Friday  ##
+//  	Monday  #
+//
+//  grouped: true
+//  	Monday  ##
+//  	Tuesday ###
+//  	Friday  ##
+//
+func HistogramByWeekday(chm HeatMap, grouped bool) []hbw {
+	h := make([]hbw, 0, 8)
+	m := make(map[time.Weekday]int)
+
+	f := make([]time.Time, 0, len(chm))
+	for ts := range chm {
+		f = append(f, ts)
+	}
+	sort.Slice(f, func(i, j int) bool { return f[i].Before(f[j]) })
+
+	var pd, py int
+	for _, ts := range f {
+		day := ts.Weekday()
+		cd, cy := ts.YearDay(), ts.Year()
+		idx, found := m[day]
+		if !found || (!grouped && (pd != cd || py != cy)) {
+			idx = len(h)
+			h = append(h, hbw{Day: day})
+			m[day] = idx
+
+			pd, py = cd, cy
+		}
+		h[idx].Sum += chm[ts]
+	}
+
+	sort.Slice(h, func(i, j int) bool { return h[i].Day < h[j].Day })
 	return h
 }
