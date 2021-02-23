@@ -10,6 +10,33 @@ import (
 	. "go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 )
 
+func TestHeatMap_Subset(t *testing.T) {
+	chm := make(HeatMap)
+	chm.SetCount(time.Date(2013, 11, 13, 0, 0, 0, 0, time.UTC), 1)
+	chm.SetCount(time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC), 1)
+	chm.SetCount(time.Date(2013, 11, 21, 0, 0, 0, 0, time.UTC), 3)
+	chm.SetCount(time.Date(2013, 11, 24, 0, 0, 0, 0, time.UTC), 1)
+	chm.SetCount(time.Date(2013, 11, 25, 0, 0, 0, 0, time.UTC), 2)
+	chm.SetCount(time.Date(2013, 11, 26, 0, 0, 0, 0, time.UTC), 8)
+	chm.SetCount(time.Date(2013, 11, 28, 0, 0, 0, 0, time.UTC), 7)
+	chm.SetCount(time.Date(2013, 11, 29, 0, 0, 0, 0, time.UTC), 1)
+
+	t.Run("one day", func(t *testing.T) {
+		subset := chm.Subset(time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC), 0)
+		assert.Len(t, subset, 1)
+	})
+
+	t.Run("one week", func(t *testing.T) {
+		subset := chm.Subset(time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC), 1)
+		assert.Len(t, subset, 2)
+	})
+
+	t.Run("three weeks", func(t *testing.T) {
+		subset := chm.Subset(time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC), 3)
+		assert.Len(t, subset, 8)
+	})
+}
+
 func TestHistogramByCount(t *testing.T) {
 	chm := make(HeatMap)
 	chm.SetCount(time.Date(2013, 11, 13, 0, 0, 0, 0, time.UTC), 1)

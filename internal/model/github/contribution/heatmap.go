@@ -3,19 +3,44 @@ package contribution
 import (
 	"sort"
 	"time"
+
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
-// HeatMap contains how many contributions were in a specific time.
+// HeatMap contains how many contributions have been made in a time.
 type HeatMap map[time.Time]int
 
-// Count returns how many contributions were in the specific time.
+// Count returns how many contributions have been made in the specified time.
 func (chm HeatMap) Count(ts time.Time) int {
 	return chm[ts]
 }
 
-// SetCount sets how many contributions were to the specific time.
+// SetCount sets how many contributions have been made to the specified time.
 func (chm HeatMap) SetCount(ts time.Time, count int) {
 	chm[ts] = count
+}
+
+// Subset returns a subset of contribution heatmap of the specified time
+// with provided range by weeks.
+func (chm HeatMap) Subset(ts time.Time, weeks int) HeatMap {
+	subset := make(HeatMap)
+
+	d, m, y := ts.Day(), ts.Month(), ts.Year()
+	min := time.Date(y, m, d, 0, 0, 0, 0, ts.Location())
+	max := time.Date(y, m, d, 23, 59, 59, 0, ts.Location())
+	if weeks > 0 {
+		day, days := ts.Weekday(), 7*(weeks/2)
+		min = min.AddDate(0, 0, -1*(int(day-time.Sunday)+days))
+		max = max.AddDate(0, 0, int(time.Saturday-day)+days)
+	}
+
+	for ts, count := range chm {
+		if xtime.Between(ts, min, max) {
+			subset[ts] = count
+		}
+	}
+
+	return subset
 }
 
 type hbc struct {
