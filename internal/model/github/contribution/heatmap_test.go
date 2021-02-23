@@ -1,13 +1,14 @@
 package contribution_test
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	. "go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 func TestHeatMap_Subset(t *testing.T) {
@@ -86,7 +87,7 @@ func TestHistogramByDate(t *testing.T) {
 			"2013-11-29": 1,
 		}
 
-		histogram := HistogramByDate(chm, "2006-01-02")
+		histogram := HistogramByDate(chm, xtime.RFC3339Day)
 		require.Len(t, histogram, len(expected))
 		for i, row := range histogram {
 			assert.Equal(t, expected[row.Date], row.Sum, i)
@@ -98,7 +99,7 @@ func TestHistogramByDate(t *testing.T) {
 			"2013-11": 24,
 		}
 
-		histogram := HistogramByDate(chm, "2006-01")
+		histogram := HistogramByDate(chm, xtime.RFC3339Month)
 		require.Len(t, histogram, len(expected))
 		for i, row := range histogram {
 			assert.Equal(t, expected[row.Date], row.Sum, i)

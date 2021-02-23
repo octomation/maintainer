@@ -83,15 +83,15 @@ type hbd struct {
 // The first value is a date in the specified format, and the second is a sum.
 // The result is sorted by the first value.
 //
-//  format: "2006-01-02"
-//  	2006-01-02 #
-//  	2006-01-04 ###
-//  	2006-01-05 ##
-//  	2006-02-01 #
+//  format: time.RFC3339Day
+//  	2022-01-02 #
+//  	2022-01-04 ###
+//  	2022-01-05 ##
+//  	2022-02-01 #
 //
-//  format: "2006-01"
-//  	2006-01    ######
-//  	2006-02    #
+//  format: time.RFC3339Month
+//  	2022-01    ######
+//  	2022-02    #
 //
 func HistogramByDate(chm HeatMap, format string) []hbd {
 	h := make([]hbd, 0, 8)

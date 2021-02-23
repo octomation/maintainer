@@ -10,6 +10,6 @@ func BeforeOrEqual(t, u time.Time) bool {
 	return t.Before(u) || t.Equal(u)
 }
 
-func Between(ts, min, max time.Time) bool {
-	return BeforeOrEqual(min, ts) && AfterOrEqual(max, ts)
+func Between(u, min, max time.Time) bool {
+	return BeforeOrEqual(min, u) && AfterOrEqual(max, u)
 }

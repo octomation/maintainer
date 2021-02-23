@@ -13,6 +13,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/url"
 )
 
@@ -27,7 +28,7 @@ func (srv *service) ContributionHeatMap(
 		return nil, err
 	}
 
-	src := overview.SetPath(u.GetLogin()).AddQueryParam("from", since.Format("2006-01-02")).String()
+	src := overview.SetPath(u.GetLogin()).AddQueryParam("from", since.Format(xtime.RFC3339Day)).String()
 	req, err := http.NewGetRequestWithContext(ctx, src)
 	if err != nil {
 		return nil, err
@@ -77,7 +78,7 @@ func contributionHeatMap(doc *goquery.Document) contribution.HeatMap {
 	chm := make(contribution.HeatMap)
 	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
 		Each(func(_ int, node *goquery.Selection) {
-			d, _ := time.Parse("2006-01-02", node.AttrOr("data-date", ""))
+			d, _ := time.Parse(xtime.RFC3339Day, node.AttrOr("data-date", ""))
 			c, _ := strconv.Atoi(node.AttrOr("data-level", ""))
 			chm.SetCount(d, c)
 		})
