@@ -23,17 +23,23 @@ func TestHeatMap_Subset(t *testing.T) {
 	chm.SetCount(time.Date(2013, 11, 29, 0, 0, 0, 0, time.UTC), 1)
 
 	t.Run("one day", func(t *testing.T) {
-		subset := chm.Subset(time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC), 0)
+		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
+		from, to := xtime.RangeByWeeks(ts, 0)
+		subset := chm.Subset(from, to)
 		assert.Len(t, subset, 1)
 	})
 
 	t.Run("one week", func(t *testing.T) {
-		subset := chm.Subset(time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC), 1)
+		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
+		from, to := xtime.RangeByWeeks(ts, 1)
+		subset := chm.Subset(from, to)
 		assert.Len(t, subset, 2)
 	})
 
 	t.Run("three weeks", func(t *testing.T) {
-		subset := chm.Subset(time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC), 3)
+		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
+		from, to := xtime.RangeByWeeks(ts, 3)
+		subset := chm.Subset(from, to)
 		assert.Len(t, subset, 8)
 	})
 }
@@ -131,7 +137,7 @@ func TestHistogramByWeekday(t *testing.T) {
 		histogram := HistogramByWeekday(chm, true)
 		require.Len(t, histogram, len(expected))
 		for i, row := range histogram {
-			assert.Equal(t, expected[row.Day], row.Sum, i)
+			assert.Equal(t, expected[row.Day.Weekday()], row.Sum, i)
 		}
 	})
 
@@ -153,10 +159,9 @@ func TestHistogramByWeekday(t *testing.T) {
 		histogram := HistogramByWeekday(chm, false)
 		require.Len(t, histogram, total)
 		for i, row := range histogram {
-			shift := expected[row.Day][0]
-			expected[row.Day] = expected[row.Day][1:]
-
-			assert.Equal(t, shift, row.Sum, i)
+			sum, weekday := 0, row.Day.Weekday()
+			sum, expected[weekday] = expected[weekday][0], expected[weekday][1:]
+			assert.Equal(t, sum, row.Sum, i)
 		}
 	})
 }

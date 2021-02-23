@@ -79,7 +79,7 @@ func contributionHeatMap(doc *goquery.Document) contribution.HeatMap {
 	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
 		Each(func(_ int, node *goquery.Selection) {
 			d, _ := time.Parse(xtime.RFC3339Day, node.AttrOr("data-date", ""))
-			c, _ := strconv.Atoi(node.AttrOr("data-level", ""))
+			c, _ := strconv.Atoi(node.AttrOr("data-count", ""))
 			chm.SetCount(d, c)
 		})
 	return chm

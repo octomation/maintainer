@@ -4,6 +4,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+
+	"go.octolab.org/toolset/maintainer/internal/command/github/view"
+	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 //
@@ -34,6 +38,67 @@ func Contribution(github GitHub) *cobra.Command {
 		},
 	}
 	cmd.AddCommand(&suggest)
+
+	lookup := cobra.Command{
+		Use: "lookup",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			weeks := 3
+			date, err := time.Parse(xtime.RFC3339Day, "2021-02-24")
+			if err != nil {
+				return err
+			}
+
+			chm, err := github.ContributionHeatMap(cmd.Context(), date)
+			if err != nil {
+				return err
+			}
+
+			// TODO:vendor generalize and move to time package
+			from, to := xtime.RangeByWeeks(date, weeks)
+			if date.Year() != from.Year() {
+				from = xtime.TruncateToYear(date)
+			} else if date.Year() != to.Year() {
+				to = xtime.TruncateToYear(to).Add(-time.Nanosecond)
+			}
+
+			histogram := contribution.HistogramByWeekday(chm.Subset(from, to), false)
+			report := make([]view.WeekReport, 0, 4)
+
+			// TODO:refactoring normalize for Sunday as a first day of week and ISO week
+			_, start := from.ISOWeek()
+			if from.Weekday() == time.Sunday {
+				start++
+			}
+			for i := from; i.Before(to); i = i.Add(xtime.Day) {
+				weekday := i.Weekday()
+				_, current := i.ISOWeek()
+				if weekday == time.Sunday {
+					current++
+				}
+
+				idx := current % start
+				if len(report) < idx+1 {
+					report = append(report, view.WeekReport{
+						Number: current,
+						Report: make(map[time.Weekday]int),
+					})
+				}
+
+				var count int
+				if len(histogram) > 0 {
+					row := histogram[0]
+					if row.Day.Equal(i) {
+						histogram = histogram[1:]
+						count = row.Sum
+					}
+				}
+				report[idx].Report[weekday] = count
+			}
+
+			return view.Lookup(cmd, report)
+		},
+	}
+	cmd.AddCommand(&lookup)
 
 	return &cmd
 }

@@ -20,19 +20,9 @@ func (chm HeatMap) SetCount(ts time.Time, count int) {
 	chm[ts] = count
 }
 
-// Subset returns a subset of contribution heatmap of the specified time
-// with provided range by weeks.
-func (chm HeatMap) Subset(ts time.Time, weeks int) HeatMap {
+// Subset returns a subset of contribution heatmap in the provided time range.
+func (chm HeatMap) Subset(min, max time.Time) HeatMap {
 	subset := make(HeatMap)
-
-	d, m, y := ts.Day(), ts.Month(), ts.Year()
-	min := time.Date(y, m, d, 0, 0, 0, 0, ts.Location())
-	max := time.Date(y, m, d, 23, 59, 59, 0, ts.Location())
-	if weeks > 0 {
-		day, days := ts.Weekday(), 7*(weeks/2)
-		min = min.AddDate(0, 0, -1*(int(day-time.Sunday)+days))
-		max = max.AddDate(0, 0, int(time.Saturday-day)+days)
-	}
 
 	for ts, count := range chm {
 		if xtime.Between(ts, min, max) {
@@ -113,7 +103,7 @@ func HistogramByDate(chm HeatMap, format string) []hbd {
 }
 
 type hbw struct {
-	Day time.Weekday
+	Day time.Time
 	Sum int
 }
 
@@ -133,30 +123,29 @@ type hbw struct {
 //  	Friday  ##
 //
 func HistogramByWeekday(chm HeatMap, grouped bool) []hbw {
-	h := make([]hbw, 0, 8)
-	m := make(map[time.Weekday]int)
-
 	f := make([]time.Time, 0, len(chm))
 	for ts := range chm {
 		f = append(f, ts)
 	}
 	sort.Slice(f, func(i, j int) bool { return f[i].Before(f[j]) })
+	h := make([]hbw, 0, 8)
+	m := make(map[time.Weekday]int)
 
-	var pd, py int
+	var prev time.Time
 	for _, ts := range f {
-		day := ts.Weekday()
-		cd, cy := ts.YearDay(), ts.Year()
-		idx, found := m[day]
-		if !found || (!grouped && (pd != cd || py != cy)) {
-			idx = len(h)
-			h = append(h, hbw{Day: day})
-			m[day] = idx
+		weekday := ts.Weekday()
+		current := xtime.TruncateToDay(ts)
 
-			pd, py = cd, cy
+		idx, found := m[weekday]
+		if !found || (!grouped && !prev.Equal(current)) {
+			idx = len(h)
+			h = append(h, hbw{Day: current})
+			m[weekday] = idx
+
+			prev = current
 		}
 		h[idx].Sum += chm[ts]
 	}
 
-	sort.Slice(h, func(i, j int) bool { return h[i].Day < h[j].Day })
 	return h
 }
