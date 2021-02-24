@@ -42,7 +42,7 @@ func Contribution(github GitHub) *cobra.Command {
 	lookup := cobra.Command{
 		Use: "lookup",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			weeks := 3
+			weeks := 7
 			date, err := time.Parse(xtime.RFC3339Day, "2021-02-24")
 			if err != nil {
 				return err
@@ -89,7 +89,7 @@ func Contribution(github GitHub) *cobra.Command {
 				report[idx].Report[weekday] = count
 			}
 
-			return view.Lookup(cmd, report)
+			return view.Lookup(r, report, cmd)
 		},
 	}
 	cmd.AddCommand(&lookup)
