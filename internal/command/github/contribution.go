@@ -42,7 +42,7 @@ func Contribution(github GitHub) *cobra.Command {
 	lookup := cobra.Command{
 		Use: "lookup",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			weeks := 7
+			weeks := 17
 			date, err := time.Parse(xtime.RFC3339Day, "2021-02-24")
 			if err != nil {
 				return err
@@ -53,27 +53,21 @@ func Contribution(github GitHub) *cobra.Command {
 				return err
 			}
 
-			r := xtime.RangeByWeeks(date, weeks).TrimByYear(date.Year())
-
-			histogram := contribution.HistogramByWeekday(chm.Subset(r.From(), r.To()), false)
+			scope := xtime.RangeByWeeks(date, weeks).TrimByYear(date.Year())
+			histogram := contribution.HistogramByWeekday(chm.Subset(scope.From(), scope.To()), false)
 			report := make([]view.WeekReport, 0, 4)
 
-			// TODO:refactoring normalize for Sunday as a first day of week and ISO week
-			_, start := r.From().ISOWeek()
-			if r.From().Weekday() == time.Sunday {
-				start++
-			}
-			for i := r.From(); i.Before(r.To()); i = i.Add(xtime.Day) {
-				weekday := i.Weekday()
-				_, current := i.ISOWeek()
-				if weekday == time.Sunday {
-					current++
+			prev, idx := 0, -1
+			for i := scope.From(); i.Before(scope.To()); i = i.Add(xtime.Day) {
+				_, week := i.ISOWeek()
+				if week != prev {
+					prev = week
+					idx++
 				}
 
-				idx := current % start
 				if len(report) < idx+1 {
 					report = append(report, view.WeekReport{
-						Number: current,
+						Number: week,
 						Report: make(map[time.Weekday]int),
 					})
 				}
@@ -86,10 +80,10 @@ func Contribution(github GitHub) *cobra.Command {
 						count = row.Sum
 					}
 				}
-				report[idx].Report[weekday] = count
+				report[idx].Report[i.Weekday()] = count
 			}
 
-			return view.Lookup(r, report, cmd)
+			return view.Lookup(scope, report, cmd)
 		},
 	}
 	cmd.AddCommand(&lookup)

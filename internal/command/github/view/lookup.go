@@ -30,14 +30,33 @@ func Lookup(r xtime.Range, data []WeekReport, printer interface{ Println(...inte
 		})
 	}
 
-	for i := time.Sunday; i <= time.Saturday; i++ {
-		row := make([]*simpletable.Cell, 0, 4)
+	// shift Sunday right
+	row := make([]*simpletable.Cell, 0, 4)
+	row = append(row, &simpletable.Cell{Text: time.Sunday.String()})
+	for i := range data {
+		if i == 0 {
+			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: "?"})
+			continue
+		}
+		txt := "-"
+		count, present := data[i-1].Report[time.Sunday]
+		if count > 0 {
+			txt = strconv.Itoa(count)
+		} else if !present {
+			txt = "?"
+		}
+		row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: txt})
+	}
+	table.Body.Cells = append(table.Body.Cells, row)
+
+	for i := time.Monday; i <= time.Saturday; i++ {
+		row = make([]*simpletable.Cell, 0, 4)
 		row = append(row, &simpletable.Cell{Text: i.String()})
 		for _, week := range data {
 			txt := "-"
 			count, present := week.Report[i]
 			if count > 0 {
-				txt = strconv.Itoa(week.Report[i])
+				txt = strconv.Itoa(count)
 			} else if !present {
 				txt = "?"
 			}
