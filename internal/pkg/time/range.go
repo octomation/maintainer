@@ -47,6 +47,12 @@ func (r Range) IsZero() bool {
 	return r.from.IsZero() || r.to.IsZero() || r.from.Equal(r.to)
 }
 
+func (r Range) Shift(shift time.Duration) Range {
+	r.from = r.from.Add(shift)
+	r.to = r.to.Add(shift)
+	return r
+}
+
 func (r Range) TrimByYear(year int) Range {
 	if r.from.Year() > year || year < r.to.Year() {
 		return Range{}
@@ -82,8 +88,8 @@ func RangeByWeeks(t time.Time, weeks int) Range {
 
 	if weeks > 0 {
 		day, days := t.Weekday(), 7*(weeks/2)
-		min = min.AddDate(0, 0, -(int(day-time.Sunday) + days))
-		max = max.AddDate(0, 0, int(time.Saturday-day)+days)
+		min = min.AddDate(0, 0, -(int(day-time.Monday) + days))
+		max = max.AddDate(0, 0, int(time.Saturday-day+1)+days)
 	}
 
 	return Range{min, max}

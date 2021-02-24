@@ -23,17 +23,23 @@ func Lookup(r xtime.Range, data []WeekReport, printer interface{ Println(...inte
 			{Align: simpletable.AlignLeft, Text: "Day / Week"},
 		},
 	}
-	for _, report := range data {
+	for i, week := range data {
+		if shiftIsNeeded(i, week.Report) {
+			continue
+		}
 		table.Header.Cells = append(table.Header.Cells, &simpletable.Cell{
 			Align: simpletable.AlignCenter,
-			Text:  fmt.Sprintf("#%d", report.Number),
+			Text:  fmt.Sprintf("#%d", week.Number),
 		})
 	}
 
-	// shift Sunday right
+	// shift Sunday to the right
 	row := make([]*simpletable.Cell, 0, 4)
 	row = append(row, &simpletable.Cell{Text: time.Sunday.String()})
 	for i := range data {
+		if shiftIsNeeded(i, data[i].Report) {
+			continue
+		}
 		if i == 0 {
 			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: "?"})
 			continue
@@ -52,7 +58,10 @@ func Lookup(r xtime.Range, data []WeekReport, printer interface{ Println(...inte
 	for i := time.Monday; i <= time.Saturday; i++ {
 		row = make([]*simpletable.Cell, 0, 4)
 		row = append(row, &simpletable.Cell{Text: i.String()})
-		for _, week := range data {
+		for j, week := range data {
+			if shiftIsNeeded(j, week.Report) {
+				continue
+			}
 			txt := "-"
 			count, present := week.Report[i]
 			if count > 0 {
@@ -80,4 +89,15 @@ func Lookup(r xtime.Range, data []WeekReport, printer interface{ Println(...inte
 	table.SetStyle(simpletable.StyleCompactLite)
 	printer.Println(table.String())
 	return nil
+}
+
+// If it's a first-week report with a single entry for Sunday,
+// we skip it completely.
+//
+// It's because GitHub shows the contribution chart started on Sunday
+// of the previous week. For that reason we have to shift it to the right
+// and compensate `.Shift(-xtime.Day)` call for the scope.
+func shiftIsNeeded(idx int, report map[time.Weekday]int) bool {
+	_, is := report[time.Sunday]
+	return idx == 0 && len(report) == 1 && is
 }

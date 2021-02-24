@@ -10,21 +10,20 @@ import (
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
-//
-// $ maintainer github contribution suggest --since=2021-01-01
-//
-// https://github.com/kamilsk?tab=overview&from=2021-12-01&to=2021-12-31
-//
-// $('.js-calendar-graph-svg rect.ContributionCalendar-day')
-//   data-date
-//   data-level
-//
-
 func Contribution(github GitHub) *cobra.Command {
 	cmd := cobra.Command{
 		Use: "contribution",
 	}
 
+	//
+	// $ maintainer github contribution suggest --since=2021-01-01
+	//
+	// https://github.com/kamilsk?tab=overview&from=2021-12-01&to=2021-12-31
+	//
+	// $('.js-calendar-graph-svg rect.ContributionCalendar-day')
+	//   data-date
+	//   data-level
+	//
 	suggest := cobra.Command{
 		Use: "suggest",
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -39,10 +38,13 @@ func Contribution(github GitHub) *cobra.Command {
 	}
 	cmd.AddCommand(&suggest)
 
+	//
+	// $ maintainer github contribution lookup 2021-02-24/15
+	//
 	lookup := cobra.Command{
 		Use: "lookup",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			weeks := 17
+			weeks := 15
 			date, err := time.Parse(xtime.RFC3339Day, "2021-02-24")
 			if err != nil {
 				return err
@@ -53,7 +55,7 @@ func Contribution(github GitHub) *cobra.Command {
 				return err
 			}
 
-			scope := xtime.RangeByWeeks(date, weeks).TrimByYear(date.Year())
+			scope := xtime.RangeByWeeks(date, weeks).Shift(-xtime.Day).TrimByYear(date.Year())
 			histogram := contribution.HistogramByWeekday(chm.Subset(scope.From(), scope.To()), false)
 			report := make([]view.WeekReport, 0, 4)
 
