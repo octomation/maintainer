@@ -24,22 +24,22 @@ func TestHeatMap_Subset(t *testing.T) {
 
 	t.Run("one day", func(t *testing.T) {
 		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
-		from, to := xtime.RangeByWeeks(ts, 0)
-		subset := chm.Subset(from, to)
+		r := xtime.RangeByWeeks(ts, 0)
+		subset := chm.Subset(r.From(), r.To())
 		assert.Len(t, subset, 1)
 	})
 
 	t.Run("one week", func(t *testing.T) {
 		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
-		from, to := xtime.RangeByWeeks(ts, 1)
-		subset := chm.Subset(from, to)
+		r := xtime.RangeByWeeks(ts, 1)
+		subset := chm.Subset(r.From(), r.To())
 		assert.Len(t, subset, 2)
 	})
 
 	t.Run("three weeks", func(t *testing.T) {
 		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
-		from, to := xtime.RangeByWeeks(ts, 3)
-		subset := chm.Subset(from, to)
+		r := xtime.RangeByWeeks(ts, 3)
+		subset := chm.Subset(r.From(), r.To())
 		assert.Len(t, subset, 8)
 	})
 }

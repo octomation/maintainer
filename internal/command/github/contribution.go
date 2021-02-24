@@ -53,23 +53,17 @@ func Contribution(github GitHub) *cobra.Command {
 				return err
 			}
 
-			// TODO:vendor generalize and move to time package
-			from, to := xtime.RangeByWeeks(date, weeks)
-			if date.Year() != from.Year() {
-				from = xtime.TruncateToYear(date)
-			} else if date.Year() != to.Year() {
-				to = xtime.TruncateToYear(to).Add(-time.Nanosecond)
-			}
+			r := xtime.RangeByWeeks(date, weeks).TrimByYear(date.Year())
 
-			histogram := contribution.HistogramByWeekday(chm.Subset(from, to), false)
+			histogram := contribution.HistogramByWeekday(chm.Subset(r.From(), r.To()), false)
 			report := make([]view.WeekReport, 0, 4)
 
 			// TODO:refactoring normalize for Sunday as a first day of week and ISO week
-			_, start := from.ISOWeek()
-			if from.Weekday() == time.Sunday {
+			_, start := r.From().ISOWeek()
+			if r.From().Weekday() == time.Sunday {
 				start++
 			}
-			for i := from; i.Before(to); i = i.Add(xtime.Day) {
+			for i := r.From(); i.Before(r.To()); i = i.Add(xtime.Day) {
 				weekday := i.Weekday()
 				_, current := i.ISOWeek()
 				if weekday == time.Sunday {
