@@ -33,7 +33,7 @@ func TestHeatMap_Subset(t *testing.T) {
 		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
 		r := xtime.RangeByWeeks(ts, 1)
 		subset := chm.Subset(r.From(), r.To())
-		assert.Len(t, subset, 2)
+		assert.Len(t, subset, 3)
 	})
 
 	t.Run("three weeks", func(t *testing.T) {
