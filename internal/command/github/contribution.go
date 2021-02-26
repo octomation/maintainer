@@ -19,6 +19,27 @@ func Contribution(github GitHub) *cobra.Command {
 	}
 
 	//
+	// $ maintainer github contribution histogram 2013
+	//
+	//  1 #######
+	//  2 ######
+	//  3 ###
+	//  4 #
+	//  7 ##
+	//  8 #
+	//
+	// $ maintainer github contribution histogram 2013-11
+	//
+	histogram := cobra.Command{
+		Use:  "histogram",
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return nil
+		},
+	}
+	cmd.AddCommand(&histogram)
+
+	//
 	// $ maintainer github contribution lookup 2013-12-03/9
 	//
 	//  Day / Week   #45   #46   #47   #48   #49   #50   #51   #52   #1
@@ -80,7 +101,7 @@ func Contribution(github GitHub) *cobra.Command {
 				Shift(-xtime.Day).
 				ExcludeFuture().
 				TrimByYear(date.Year())
-			histogram := contribution.HistogramByWeekday(chm.Subset(scope.From(), scope.To()), false)
+			data := contribution.HistogramByWeekday(chm.Subset(scope.From(), scope.To()), false)
 			report := make([]view.WeekReport, 0, 4)
 
 			prev, idx := 0, -1
@@ -99,10 +120,10 @@ func Contribution(github GitHub) *cobra.Command {
 				}
 
 				var count int
-				if len(histogram) > 0 {
-					row := histogram[0]
+				if len(data) > 0 {
+					row := data[0]
 					if row.Day.Equal(i) {
-						histogram = histogram[1:]
+						data = data[1:]
 						count = row.Sum
 					}
 				}
@@ -130,7 +151,6 @@ func Contribution(github GitHub) *cobra.Command {
 	//   Contributions for 2013-11-10: -154d, 0 -> 5
 	//
 	// $ maintainer github contribution suggest 2013-11
-	// $ maintainer github contribution suggest 2013-11-24
 	//
 	suggest := cobra.Command{
 		Use: "suggest",
