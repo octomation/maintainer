@@ -43,6 +43,13 @@ func (r Range) To() time.Time {
 	return r.to
 }
 
+func (r Range) ExcludeFuture() Range {
+	if now := time.Now(); now.Before(r.to) {
+		r.to = now
+	}
+	return r
+}
+
 func (r Range) IsZero() bool {
 	return r.from.IsZero() || r.to.IsZero() || r.from.Equal(r.to)
 }
@@ -67,6 +74,19 @@ func (r Range) TrimByYear(year int) Range {
 	return r
 }
 
+func RangeByWeeks(t time.Time, weeks int) Range {
+	min := TruncateToDay(t)
+	max := min.AddDate(0, 0, 1).Add(-time.Nanosecond)
+
+	if weeks > 0 {
+		day, days := t.Weekday(), 7*(weeks/2)
+		min = min.AddDate(0, 0, int(time.Monday-day)-days)
+		max = max.AddDate(0, 0, int(time.Saturday+1-day)+days)
+	}
+
+	return Range{min, max}
+}
+
 func TruncateToDay(t time.Time) time.Time {
 	y, m, d := t.Date()
 	return time.Date(y, m, d, 0, 0, 0, 0, t.Location())
@@ -80,17 +100,4 @@ func TruncateToMonth(t time.Time) time.Time {
 func TruncateToYear(t time.Time) time.Time {
 	y, _, _ := t.Date()
 	return time.Date(y, 1, 1, 0, 0, 0, 0, t.Location())
-}
-
-func RangeByWeeks(t time.Time, weeks int) Range {
-	min := TruncateToDay(t)
-	max := min.AddDate(0, 0, 1).Add(-time.Nanosecond)
-
-	if weeks > 0 {
-		day, days := t.Weekday(), 7*(weeks/2)
-		min = min.AddDate(0, 0, int(time.Monday-day)-days)
-		max = max.AddDate(0, 0, int(time.Saturday+1-day)+days)
-	}
-
-	return Range{min, max}
 }

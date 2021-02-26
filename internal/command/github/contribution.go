@@ -1,6 +1,9 @@
 package github
 
 import (
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -54,12 +57,33 @@ func Contribution(github GitHub) *cobra.Command {
 	//  Contributions are on the range from 2013-11-03 to 2013-12-31
 	//
 	lookup := cobra.Command{
-		Use: "lookup",
+		Use:  "lookup",
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			weeks := 9
-			date, err := time.Parse(xtime.RFC3339Day, "2013-12-03")
-			if err != nil {
-				return err
+			// defaults
+			date, weeks := time.Now().Add(-xtime.Week), 3
+
+			if len(args) == 1 {
+				var err error
+				raw := strings.Split(args[0], "/")
+				switch len(raw) {
+				case 2:
+					weeks, err = strconv.Atoi(raw[1])
+					if err != nil {
+						return err
+					}
+					fallthrough
+				case 1:
+					date, err = time.Parse(xtime.RFC3339Day, raw[0])
+					if err != nil {
+						return err
+					}
+				default:
+					return fmt.Errorf(
+						"please provide in format YYYY-mm-dd[/weeks], e.g., 2006-01-02/3: %w",
+						fmt.Errorf("invalid argument %q", args[0]),
+					)
+				}
 			}
 
 			chm, err := github.ContributionHeatMap(cmd.Context(), date)
@@ -67,7 +91,11 @@ func Contribution(github GitHub) *cobra.Command {
 				return err
 			}
 
-			scope := xtime.RangeByWeeks(date, weeks).Shift(-xtime.Day).TrimByYear(date.Year())
+			scope := xtime.
+				RangeByWeeks(date, weeks).
+				Shift(-xtime.Day).
+				ExcludeFuture().
+				TrimByYear(date.Year())
 			histogram := contribution.HistogramByWeekday(chm.Subset(scope.From(), scope.To()), false)
 			report := make([]view.WeekReport, 0, 4)
 
