@@ -19,29 +19,6 @@ func Contribution(github GitHub) *cobra.Command {
 	}
 
 	//
-	// $ maintainer github contribution suggest --since=2021-01-01
-	//
-	// https://github.com/kamilsk?tab=overview&from=2021-12-01&to=2021-12-31
-	//
-	// $('.js-calendar-graph-svg rect.ContributionCalendar-day')
-	//   data-date
-	//   data-level
-	//
-	suggest := cobra.Command{
-		Use: "suggest",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			chm, err := github.ContributionHeatMap(cmd.Context(), time.Now())
-			if err != nil {
-				return err
-			}
-
-			cmd.Println("-123d", chm)
-			return nil
-		},
-	}
-	cmd.AddCommand(&suggest)
-
-	//
 	// $ maintainer github contribution lookup 2013-12-03/9
 	//
 	//  Day / Week   #45   #46   #47   #48   #49   #50   #51   #52   #1
@@ -55,6 +32,11 @@ func Contribution(github GitHub) *cobra.Command {
 	//  Saturday      -     -     -     -     -     -     -     -    ?
 	// ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
 	//  Contributions are on the range from 2013-11-03 to 2013-12-31
+	//
+	// $ maintainer github contribution lookup            # -> now()/3
+	// $ maintainer github contribution lookup 2013-12-03 # -> 2013-12-03/3
+	// $ maintainer github contribution lookup now/3      # -> now()/3
+	// $ maintainer github contribution lookup /3         # -> now()/3
 	//
 	lookup := cobra.Command{
 		Use:  "lookup",
@@ -74,7 +56,9 @@ func Contribution(github GitHub) *cobra.Command {
 					}
 					fallthrough
 				case 1:
-					date, err = time.Parse(xtime.RFC3339Day, raw[0])
+					if raw[0] != "now" && raw[0] != "" {
+						date, err = time.Parse(xtime.RFC3339Day, raw[0])
+					}
 					if err != nil {
 						return err
 					}
@@ -129,6 +113,38 @@ func Contribution(github GitHub) *cobra.Command {
 		},
 	}
 	cmd.AddCommand(&lookup)
+
+	//
+	// $ maintainer github contribution suggest 2013
+	//
+	//   Day / Week   #45   #46   #47   #48   #49   #50
+	//  ------------ ----- ----- ----- ----- ----- -----
+	//   Sunday        -     -     -     1     -     -
+	//   Monday        -     -     -     2     1     2
+	//   Tuesday       -     -     -     8     1     -
+	//   Wednesday     -     1     1     -     3     -
+	//   Thursday      -     -     3     7     1     7
+	//   Friday        -     -     -     1     2     -
+	//   Saturday      -     -     -     -     -     -
+	//  ------------ ----- ----- ----- ----- ----- -----
+	//   Contributions for 2013-11-10: -154d, 0 -> 5
+	//
+	// $ maintainer github contribution suggest 2013-11
+	// $ maintainer github contribution suggest 2013-11-24
+	//
+	suggest := cobra.Command{
+		Use: "suggest",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			chm, err := github.ContributionHeatMap(cmd.Context(), time.Now())
+			if err != nil {
+				return err
+			}
+
+			cmd.Println("-123d", chm)
+			return nil
+		},
+	}
+	cmd.AddCommand(&suggest)
 
 	return &cmd
 }
