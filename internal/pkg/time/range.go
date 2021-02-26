@@ -54,7 +54,7 @@ func (r Range) Shift(shift time.Duration) Range {
 }
 
 func (r Range) TrimByYear(year int) Range {
-	if r.from.Year() > year || year < r.to.Year() {
+	if year < r.from.Year() || year > r.to.Year() {
 		return Range{}
 	}
 
@@ -88,8 +88,8 @@ func RangeByWeeks(t time.Time, weeks int) Range {
 
 	if weeks > 0 {
 		day, days := t.Weekday(), 7*(weeks/2)
-		min = min.AddDate(0, 0, -(int(day-time.Monday) + days))
-		max = max.AddDate(0, 0, int(time.Saturday-day+1)+days)
+		min = min.AddDate(0, 0, int(time.Monday-day)-days)
+		max = max.AddDate(0, 0, int(time.Saturday+1-day)+days)
 	}
 
 	return Range{min, max}

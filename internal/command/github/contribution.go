@@ -39,13 +39,25 @@ func Contribution(github GitHub) *cobra.Command {
 	cmd.AddCommand(&suggest)
 
 	//
-	// $ maintainer github contribution lookup 2021-02-24/15
+	// $ maintainer github contribution lookup 2013-12-03/9
+	//
+	//  Day / Week   #45   #46   #47   #48   #49   #50   #51   #52   #1
+	// ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
+	//  Sunday        -     -     -     1     -     -     -     -    -
+	//  Monday        -     -     -     2     1     2     -     -    -
+	//  Tuesday       -     -     -     8     1     -     -     2    -
+	//  Wednesday     -     1     1     -     3     -     -     2    ?
+	//  Thursday      -     -     3     7     1     7     4     -    ?
+	//  Friday        -     -     -     1     2     -     3     2    ?
+	//  Saturday      -     -     -     -     -     -     -     -    ?
+	// ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
+	//  Contributions are on the range from 2013-11-03 to 2013-12-31
 	//
 	lookup := cobra.Command{
 		Use: "lookup",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			weeks := 15
-			date, err := time.Parse(xtime.RFC3339Day, "2021-02-24")
+			weeks := 9
+			date, err := time.Parse(xtime.RFC3339Day, "2013-12-03")
 			if err != nil {
 				return err
 			}
