@@ -26,11 +26,10 @@ func TestTool_Load(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		f, err := fs.Create(".env")
 		require.NoError(t, err)
-
 		for _, v := range vars {
 			unsafe.DoSilent(f.WriteString(v.String() + "\n"))
 		}
-		unsafe.Ignore(f.Close())
+		require.NoError(t, f.Close())
 
 		var cnf Tool
 		require.NoError(t, cnf.Load(fs))
@@ -39,14 +38,12 @@ func TestTool_Load(t *testing.T) {
 	})
 
 	t.Run("load from env", func(t *testing.T) {
-		// TODO:debt improve Viper <> Config <> Env experience
-		bindings := make([]func(cnf *Tool, provider *viper.Viper) error, 0, len(vars))
+		bindings := make([]func(provider *viper.Viper) error, 0, len(vars))
 		for _, v := range vars {
-			name := v.Name()
 			t.Setenv(v.Name(), v.Value())
-			bindings = append(bindings, func(_ *Tool, provider *viper.Viper) error {
-				return provider.BindEnv(name)
-			})
+
+			name := v.Name()
+			bindings = append(bindings, func(v *viper.Viper) error { return v.BindEnv(name) })
 		}
 
 		var cnf Tool
@@ -59,14 +56,9 @@ func TestTool_Load(t *testing.T) {
 		flags := pflag.NewFlagSet("test", pflag.ContinueOnError)
 		flags.String("remote", "", "git remote url")
 		flags.String("token", "", "github access token")
-
-		bindings := []func(cnf *Tool, provider *viper.Viper) error{
-			func(cnf *Tool, provider *viper.Viper) error {
-				return provider.BindPFlag("git_remote", flags.Lookup("remote"))
-			},
-			func(cnf *Tool, provider *viper.Viper) error {
-				return provider.BindPFlag("github_token", flags.Lookup("token"))
-			},
+		bindings := []func(provider *viper.Viper) error{
+			func(v *viper.Viper) error { return v.BindPFlag("git_remote", flags.Lookup("remote")) },
+			func(v *viper.Viper) error { return v.BindPFlag("github_token", flags.Lookup("token")) },
 		}
 
 		var cnf Tool

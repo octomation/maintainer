@@ -1,57 +1,38 @@
 package command
 
 import (
-	"os"
-	"os/exec"
-
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"go.octolab.org/unsafe"
 
 	"go.octolab.org/toolset/maintainer/internal/command/github"
 	"go.octolab.org/toolset/maintainer/internal/command/golang"
-	"go.octolab.org/toolset/maintainer/internal/command/hub"
 	"go.octolab.org/toolset/maintainer/internal/command/makefile"
+	"go.octolab.org/toolset/maintainer/internal/config"
 )
 
 // New returns the new root command.
 func New() *cobra.Command {
+	var cnf config.Tool
+
 	command := cobra.Command{
 		Args: cobra.NoArgs,
 
 		Use:   "maintainer",
-		Short: "maintainer is an indispensable assistant to Open Source contribution",
-		Long:  "Maintainer is an indispensable assistant to Open Source contribution.",
+		Short: "assists with Open Source contribution",
+		Long:  "An indispensable assistant for Open Source contribution.",
+
+		PersistentPreRunE: func(*cobra.Command, []string) error {
+			// TODO:feature home dir and specific config
+			return cnf.Load(afero.NewMemMapFs())
+		},
 
 		SilenceErrors: false,
 		SilenceUsage:  true,
 	}
 
-	diff := cobra.Command{
-		Use:   "diff",
-		Short: "compare files line by line",
-		Long:  "Compare files line by line.",
-
-		RunE: func(cmd *cobra.Command, args []string) error {
-			proxy := exec.Command("diff", args...)
-			proxy.Env = os.Environ()
-			proxy.Stdin = cmd.InOrStdin()
-			proxy.Stdout = cmd.OutOrStdout()
-			proxy.Stderr = cmd.ErrOrStderr()
-
-			unsafe.Ignore(proxy.Run())
-			return nil
-		},
-
-		DisableFlagParsing: true,
-	}
-
-	githubToken := os.Getenv("GITHUB_TOKEN")
-
 	command.AddCommand(
-		&diff,
-		github.New(githubToken),
+		github.New(&cnf),
 		golang.New(),
-		hub.New(githubToken),
 		makefile.New(),
 	)
 

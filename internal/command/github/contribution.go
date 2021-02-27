@@ -9,11 +9,14 @@ import (
 	"github.com/spf13/cobra"
 
 	"go.octolab.org/toolset/maintainer/internal/command/github/view"
+	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
+	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
-func Contribution(github GitHub) *cobra.Command {
+func Contribution(cnf *config.Tool) *cobra.Command {
 	cmd := cobra.Command{
 		Use: "contribution",
 	}
@@ -34,6 +37,8 @@ func Contribution(github GitHub) *cobra.Command {
 		Use:  "histogram",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			_ = github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+
 			return nil
 		},
 	}
@@ -63,6 +68,8 @@ func Contribution(github GitHub) *cobra.Command {
 		Use:  "lookup",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+
 			// defaults
 			date, weeks := time.Now().Add(-xtime.Week), 3
 
@@ -91,7 +98,7 @@ func Contribution(github GitHub) *cobra.Command {
 				}
 			}
 
-			chm, err := github.ContributionHeatMap(cmd.Context(), date)
+			chm, err := service.ContributionHeatMap(cmd.Context(), date)
 			if err != nil {
 				return err
 			}
@@ -155,7 +162,9 @@ func Contribution(github GitHub) *cobra.Command {
 	suggest := cobra.Command{
 		Use: "suggest",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			chm, err := github.ContributionHeatMap(cmd.Context(), time.Now())
+			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+
+			chm, err := service.ContributionHeatMap(cmd.Context(), time.Now())
 			if err != nil {
 				return err
 			}

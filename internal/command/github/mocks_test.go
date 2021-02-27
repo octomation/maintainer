@@ -13,6 +13,7 @@ import (
 
 	git "go.octolab.org/toolset/maintainer/internal/model/git"
 	github "go.octolab.org/toolset/maintainer/internal/model/github"
+	contribution "go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 )
 
 // MockGit is a mock of Git interface.
@@ -77,10 +78,10 @@ func (m *MockGitHub) EXPECT() *MockGitHubMockRecorder {
 }
 
 // ContributionHeatMap mocks base method.
-func (m *MockGitHub) ContributionHeatMap(arg0 context.Context, arg1 time.Time) (map[time.Time]int, error) {
+func (m *MockGitHub) ContributionHeatMap(arg0 context.Context, arg1 time.Time) (contribution.HeatMap, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ContributionHeatMap", arg0, arg1)
-	ret0, _ := ret[0].(map[time.Time]int)
+	ret0, _ := ret[0].(contribution.HeatMap)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

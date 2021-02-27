@@ -1,45 +1,51 @@
 package github
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
-	"golang.org/x/oauth2"
+	"github.com/spf13/viper"
+	"go.octolab.org/fn"
 
-	"go.octolab.org/toolset/maintainer/internal/service/git"
-	"go.octolab.org/toolset/maintainer/internal/service/git/provider"
-	"go.octolab.org/toolset/maintainer/internal/service/github"
+	"go.octolab.org/toolset/maintainer/internal/config"
 )
 
-// New returns a command to work with GitHub.
-func New(token string) *cobra.Command {
-	var (
-		source = oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token})
-		client = oauth2.NewClient(context.TODO(), source)
-
-		remote string
-	)
-
+// New returns a command set to work with GitHub.
+func New(cnf *config.Tool) *cobra.Command {
 	command := cobra.Command{
 		Args:  cobra.NoArgs,
 		Use:   "github",
 		Short: "GitHub manager",
-		Long:  "GitHub manager for all OctoLab's projects.",
+		Long:  "Allows to work with GitHub repositories and automate routine.",
 	}
 
 	set := command.PersistentFlags()
-	set.StringVar(&remote, "remote", "", "a connection to a remote repository")
+	set.String("remote", "", "a connection to a remote repository")
+	set.String("token", "", "personal access token")
 
-	gitService := git.New(
-		provider.
-			FallbackTo(&remote). // TODO:naive delay init git by sync.Once
-			Apply(provider.Default()),
+	fn.Must(
+		func() error {
+			return cnf.Bind(func(v *viper.Viper) error {
+				return v.BindEnv("GIT_REMOTE")
+			})
+		},
+		func() error {
+			return cnf.Bind(func(v *viper.Viper) error {
+				return v.BindPFlag("git_remote", set.Lookup("remote"))
+			})
+		},
+		func() error {
+			return cnf.Bind(func(v *viper.Viper) error {
+				return v.BindEnv("GITHUB_TOKEN")
+			})
+		},
+		func() error {
+			return cnf.Bind(func(v *viper.Viper) error {
+				return v.BindPFlag("github_token", set.Lookup("token"))
+			})
+		},
 	)
-	githubService := github.New(client)
 
 	command.AddCommand(
-		Contribution(githubService),
-		Labels(gitService, githubService),
+		Contribution(cnf),
 	)
 
 	return &command

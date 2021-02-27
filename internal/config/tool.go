@@ -2,6 +2,7 @@ package config
 
 import (
 	"strings"
+	"sync"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
@@ -20,17 +21,33 @@ type GitHub struct {
 type Tool struct {
 	Git    `mapstructure:"git,prefix"`
 	GitHub `mapstructure:"github,prefix"`
+
+	lazy   sync.Once
+	config *viper.Viper
 }
 
-func (cnf *Tool) Load(fs afero.Fs, bindings ...func(*Tool, *viper.Viper) error) error {
-	v := viper.New()
+func (cnf *Tool) init() *Tool {
+	cnf.lazy.Do(func() {
+		v := viper.New()
+		v.SetConfigFile(".env")
+		cnf.config = v
+	})
+	return cnf
+}
+
+func (cnf *Tool) Bind(bind func(*viper.Viper) error) error {
+	return bind(cnf.init().config)
+}
+
+func (cnf *Tool) Load(fs afero.Fs, bindings ...func(*viper.Viper) error) error {
+	v := cnf.init().config
+
+	v.SetFs(fs)
 	for _, bind := range bindings {
-		if err := bind(cnf, v); err != nil {
+		if err := bind(v); err != nil {
 			return err
 		}
 	}
-	v.SetFs(fs)
-	v.SetConfigFile(".env")
 	unsafe.Ignore(v.ReadInConfig())
 
 	// workaround for nested structs and prefixes
