@@ -18,13 +18,13 @@ func BeforeOrEqual(t, u time.Time) bool {
 // Between returns true if min <= u, u <= max.
 // If you want to exclude some border, please use built-in Before or After methods:
 //
-//  - [min, max]: Between(u, min, max)
-//  - (min, max): min.Before(u) && max.After(u)
-//  - [min, max): BeforeOrEqual(min, u) && max.After(u)
-//  - (min, max]: min.Before(u) && AfterOrEqual(max, u)
+//  - [from, to]: Between(u, from, to)
+//  - (from, to): from.Before(u) && to.After(u)
+//  - [from, to): BeforeOrEqual(from, u) && to.After(u)
+//  - (from, to]: from.Before(u) && AfterOrEqual(to, u)
 //
-func Between(u, min, max time.Time) bool {
-	return BeforeOrEqual(min, u) && AfterOrEqual(max, u)
+func Between(from, to, u time.Time) bool {
+	return BeforeOrEqual(from, u) && AfterOrEqual(to, u)
 }
 
 type Range struct {
@@ -33,6 +33,10 @@ type Range struct {
 	//  - from and to are zero only both, Range is zero in this case
 	//  - from and to could be equal, Range is zero in this case
 	from, to time.Time
+}
+
+func (r Range) Contains(t time.Time) bool {
+	return Between(r.from, r.to, t)
 }
 
 func (r Range) From() time.Time {

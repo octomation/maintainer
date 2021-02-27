@@ -21,11 +21,11 @@ func (chm HeatMap) SetCount(ts time.Time, count int) {
 }
 
 // Subset returns a subset of contribution heatmap in the provided time range.
-func (chm HeatMap) Subset(min, max time.Time) HeatMap {
+func (chm HeatMap) Subset(scope xtime.Range) HeatMap {
 	subset := make(HeatMap)
 
 	for ts, count := range chm {
-		if xtime.Between(ts, min, max) {
+		if scope.Contains(ts) {
 			subset[ts] = count
 		}
 	}

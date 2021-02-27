@@ -101,7 +101,7 @@ func Contribution(github GitHub) *cobra.Command {
 				Shift(-xtime.Day).
 				ExcludeFuture().
 				TrimByYear(date.Year())
-			data := contribution.HistogramByWeekday(chm.Subset(scope.From(), scope.To()), false)
+			data := contribution.HistogramByWeekday(chm.Subset(scope), false)
 			report := make([]view.WeekReport, 0, 4)
 
 			prev, idx := 0, -1
