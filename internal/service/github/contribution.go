@@ -13,6 +13,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
+	"go.octolab.org/toolset/maintainer/internal/pkg/http/header"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/url"
 )
@@ -33,6 +34,7 @@ func (srv *service) ContributionHeatMap(
 	if err != nil {
 		return nil, err
 	}
+	req.Header.Set(header.TimeZone, time.UTC.String())
 
 	resp, err := srv.client.Client().Do(req)
 	if err != nil {
