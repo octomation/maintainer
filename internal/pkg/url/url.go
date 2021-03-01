@@ -27,6 +27,10 @@ type URL struct {
 	query  url.Values
 }
 
+func (u URL) Host() string {
+	return u.origin.Hostname()
+}
+
 func (u URL) AddPath(p string) URL {
 	u.origin.Path = path.Join(u.origin.Path, p)
 	return u

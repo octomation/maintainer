@@ -3,6 +3,7 @@ package github
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"strconv"
 	"time"
@@ -12,8 +13,7 @@ import (
 	"go.octolab.org/unsafe"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http/header"
+	xhttp "go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/url"
 )
@@ -30,11 +30,21 @@ func (srv *service) ContributionHeatMap(
 	}
 
 	src := overview.SetPath(u.GetLogin()).AddQueryParam("from", since.Format(xtime.RFC3339Day)).String()
-	req, err := http.NewGetRequestWithContext(ctx, src)
+	req, err := xhttp.NewGetRequestWithContext(ctx, src)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set(header.TimeZone, time.UTC.String())
+	req.AddCookie(&http.Cookie{
+		Name:     "tz",
+		Value:    time.UTC.String(),
+		Path:     "/",
+		Domain:   overview.Host(),
+		Expires:  time.Now().Add(xtime.Week),
+		MaxAge:   0,
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	resp, err := srv.client.Client().Do(req)
 	if err != nil {
