@@ -1,7 +1,6 @@
 package hub
 
 import (
-	"context"
 	"encoding/json"
 	"os"
 	"sync"
@@ -10,26 +9,20 @@ import (
 	"github.com/spf13/cobra"
 	"go.octolab.org/async"
 	"go.octolab.org/safe"
-	"golang.org/x/oauth2"
+
+	"go.octolab.org/toolset/maintainer/internal/config"
+	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 )
 
-func New(token string) *cobra.Command {
-	var (
-		client = github.NewClient(
-			oauth2.NewClient(
-				context.TODO(),
-				oauth2.StaticTokenSource(&oauth2.Token{AccessToken: token}),
-			),
-		)
-	)
-
+func New(cnf *config.Tool) *cobra.Command {
 	command := cobra.Command{
 		Args:  cobra.NoArgs,
 		Use:   "hub",
-		Short: "fetch data from Airtable, GitHub, and Trello to manage it",
-		Long:  "Fetch data from Airtable, GitHub, and Trello to manage it.",
+		Short: "fetch data from GitHub and Trello to manage it",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
+			client := github.NewClient(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+
 			opt := new(github.IssueListOptions)
 			opt.ListOptions.PerPage = 100
 
