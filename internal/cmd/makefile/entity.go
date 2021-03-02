@@ -8,6 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"go.octolab.org/safe"
+	"go.octolab.org/unsafe"
 )
 
 const (
@@ -49,22 +52,26 @@ func (makefile Makefile) AppendTo(output io.Writer) error {
 	if err != nil {
 		return err
 	}
-	defer func() { _ = file.Close() }()
+	defer safe.Close(file, unsafe.Ignore)
 
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		text := scanner.Text()
-		if !strings.HasPrefix(text, includeDirective) && !strings.HasPrefix(text, sincludeDirective) {
+
+		isInclude := strings.HasPrefix(text, includeDirective)
+		isSafeInclude := strings.HasPrefix(text, sincludeDirective)
+
+		if !isInclude && !isSafeInclude {
 			if _, err := fmt.Fprintln(output, text); err != nil {
 				return err
 			}
 			continue
 		}
-		if strings.HasPrefix(text, sincludeDirective) {
+		if isSafeInclude {
 			name := strings.TrimSpace(strings.TrimPrefix(text, sincludeDirective))
 			if err := Makefile(name).AppendTo(output); err == nil {
-				_, _ = fmt.Fprintln(output)
+				unsafe.DoSilent(fmt.Fprintln(output))
 			}
 			continue
 		}
@@ -91,8 +98,8 @@ func (makefile Makefile) CompileTo(dir string) error {
 	if err != nil {
 		return err
 	}
-	defer func() { _ = output.Close() }()
-	return makefile.AppendTo(output)
+	defer safe.Close(output, unsafe.Ignore)
+	return makefile.AppendTo(DeduplicateNewLines(output))
 }
 
 type Makefiles []Makefile
