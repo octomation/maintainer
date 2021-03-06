@@ -10,12 +10,17 @@ import (
 	"go.octolab.org/unsafe"
 	"gopkg.in/yaml.v2"
 
+	"go.octolab.org/toolset/maintainer/internal/config"
 	model "go.octolab.org/toolset/maintainer/internal/model/github"
 	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
+	"go.octolab.org/toolset/maintainer/internal/pkg/http"
+	"go.octolab.org/toolset/maintainer/internal/service/git"
+	"go.octolab.org/toolset/maintainer/internal/service/git/provider"
+	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
 // Labels returns a command to work with GitHub labels.
-func Labels(git Git, github GitHub) *cobra.Command {
+func Labels(cnf *config.Tool) *cobra.Command {
 	const (
 		rootCommand  = "labels"
 		patchCommand = "patch"
@@ -43,6 +48,8 @@ func Labels(git Git, github GitHub) *cobra.Command {
 			Short: "patch repository labels",
 			Long:  "Patch repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
+				service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+
 				var current model.LabelSet
 
 				in := cmd.InOrStdin()
@@ -70,7 +77,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				}
 
 				assert.True(func() bool { return len(args) == 1 })
-				patched, err := github.PatchLabels(cmd.Context(), current, args[0])
+				patched, err := service.PatchLabels(cmd.Context(), current, args[0])
 				if err != nil {
 					return err
 				}
@@ -79,9 +86,11 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				return yaml.NewEncoder(out).Encode(patched)
 			},
 		}
+
 		flags := patch.Flags()
 		flags.StringVar(&input, "input", "", "input file with labels [stdin]")
 		flags.StringVar(&output, "output", "", "output file to store labels [stdout]")
+
 		command.AddCommand(&patch)
 	}
 
@@ -92,7 +101,10 @@ func Labels(git Git, github GitHub) *cobra.Command {
 			Short: "pull repository labels",
 			Long:  "Pull repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				remotes, err := git.Remotes()
+				service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+				source := git.New(provider.FallbackTo(cnf.Remote).Apply(provider.Default()))
+
+				remotes, err := source.Remotes()
 				if err != nil {
 					return fmt.Errorf("cannot specify repository: %w", err)
 				}
@@ -103,7 +115,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				}
 				src := model.Remote(remote)
 
-				labels, err := github.Labels(cmd.Context(), src)
+				labels, err := service.Labels(cmd.Context(), src)
 				if err != nil {
 					return fmt.Errorf("cannot fetch repository labels: %w", err)
 				}
@@ -122,8 +134,10 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				return yaml.NewEncoder(out).Encode(labels)
 			},
 		}
+
 		flags := pull.Flags()
 		flags.StringVar(&output, "output", "", "output file to store labels [stdout]")
+
 		command.AddCommand(&pull)
 	}
 
@@ -134,6 +148,9 @@ func Labels(git Git, github GitHub) *cobra.Command {
 			Short: "push repository labels",
 			Long:  "Push repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
+				service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+				source := git.New(provider.FallbackTo(cnf.Remote).Apply(provider.Default()))
+
 				var patched model.LabelSet
 
 				in := cmd.InOrStdin()
@@ -150,7 +167,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 					return err
 				}
 
-				remotes, err := git.Remotes()
+				remotes, err := source.Remotes()
 				if err != nil {
 					return fmt.Errorf("cannot specify repository: %w", err)
 				}
@@ -161,11 +178,13 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				}
 				src := model.Remote(remote)
 
-				return github.UpdateLabels(cmd.Context(), src, patched)
+				return service.UpdateLabels(cmd.Context(), src, patched)
 			},
 		}
+
 		flags := push.Flags()
 		flags.StringVar(&input, "input", "", "input file with labels [stdin]")
+
 		command.AddCommand(&push)
 	}
 
@@ -191,9 +210,11 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				return pull.RunE(cmd, args)
 			},
 		}
+
 		flags := sync.Flags()
 		flags.StringVar(&input, "input", "", "input file with patched labels [stdin]")
 		flags.StringVar(&output, "output", "", "output file to store labels [stdout]")
+
 		command.AddCommand(&sync)
 	}
 
