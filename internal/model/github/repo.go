@@ -24,10 +24,10 @@ type Repository struct {
 func (repo *Repository) OwnerAndName() (string, string) {
 	parts := strings.Split(
 		strings.TrimSuffix(
-			repo.Remote.URL.Path,
+			repo.Remote.URL.Path, // TODO:unsafe
 			suf,
 		),
 		sep,
 	)
-	return parts[0], parts[1]
+	return parts[0], parts[1] // TODO:unsafe
 }

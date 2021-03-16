@@ -21,6 +21,7 @@ type Remotes []*Remote
 // The naive implementation to proof of concept.
 func (list Remotes) GitHub() (*Remote, bool) {
 	for _, remote := range list {
+		// TODO:naive:unsafe
 		if remote.Name == origin && remote.URL.Host == github {
 			return remote, true
 		}
