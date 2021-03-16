@@ -10,8 +10,8 @@ import (
 
 // FallbackTo returns a fallback mechanism to handle
 // case when git.ErrRepositoryNotExists is occurred.
-// If it happens it returns a stub to emulate a Repository
-// behavior. If it impossible it raises a panic.
+// If it happens it returns a stub of git.Repository.
+// If it impossible it raises a panic.
 func FallbackTo(remote *string) interface {
 	Apply(*git.Repository, error) *git.Repository
 } {
@@ -29,6 +29,7 @@ func FallbackTo(remote *string) interface {
 			panic(err)
 		}
 
+		// TODO:naive
 		_, err = repo.CreateRemote(&config.RemoteConfig{
 			Name:  "origin",
 			URLs:  []string{*remote},
