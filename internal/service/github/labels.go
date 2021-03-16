@@ -11,8 +11,9 @@ import (
 // Labels lists all labels for a repository.
 func (srv *service) Labels(
 	ctx context.Context,
-	owner, repo string,
+	src model.GitHub,
 ) ([]model.Label, error) {
+	owner, repo := src.OwnerAndName()
 	opt := new(github.ListOptions)
 	list, _, err := srv.client.Issues.ListLabels(ctx, owner, repo, opt)
 	if err != nil {

@@ -13,7 +13,7 @@ func (srv *service) Remotes() (git.Remotes, error) {
 		return nil, err
 	}
 
-	result := make([]*git.Remote, 0, len(list))
+	result := make([]git.Remote, 0, len(list))
 	for _, remote := range list {
 		config := remote.Config()
 		link, err := giturls.Parse(config.URLs[0]) // TODO:unsafe
@@ -21,7 +21,7 @@ func (srv *service) Remotes() (git.Remotes, error) {
 			return nil, err
 		}
 
-		result = append(result, &git.Remote{
+		result = append(result, git.Remote{
 			Name: config.Name,
 			URL:  link,
 		})
