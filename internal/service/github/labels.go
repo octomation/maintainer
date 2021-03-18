@@ -2,11 +2,22 @@ package github
 
 import (
 	"context"
+	"embed"
+	"regexp"
 
 	"github.com/google/go-github/v33/github"
 
 	model "go.octolab.org/toolset/maintainer/internal/model/github"
 )
+
+var (
+	skipOp    = regexp.MustCompile(`^skip$`)
+	deleteOp  = regexp.MustCompile(`^delete$`)
+	replaceOp = regexp.MustCompile(`^replace\([^()]+\)$`)
+)
+
+//go:embed preset/*.yml
+var presets embed.FS
 
 // Labels lists all labels for a repository.
 func (srv *service) Labels(
