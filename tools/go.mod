@@ -3,6 +3,7 @@ module go.octolab.org/toolset/maintainer/tools
 go 1.15
 
 require (
+	github.com/cube2222/octosql v0.3.0
 	github.com/golang/mock v1.5.0
 	github.com/golangci/golangci-lint v1.38.0
 	github.com/kyoh86/looppointer v0.1.7

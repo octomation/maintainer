@@ -5,6 +5,7 @@
 package tools
 
 import (
+	_ "github.com/cube2222/octosql/cmd/octosql"
 	_ "github.com/golang/mock/mockgen"
 	_ "github.com/golangci/golangci-lint/cmd/golangci-lint"
 	_ "github.com/kyoh86/looppointer/cmd/looppointer"
@@ -12,6 +13,7 @@ import (
 	_ "golang.org/x/tools/cmd/goimports"
 )
 
+//go:generate go install github.com/cube2222/octosql/cmd/octosql
 //go:generate go install github.com/golang/mock/mockgen
 //go:generate go install github.com/golangci/golangci-lint/cmd/golangci-lint
 //go:generate go install github.com/kyoh86/looppointer/cmd/looppointer

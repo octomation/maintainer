@@ -7,6 +7,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/cmd/github"
 	"go.octolab.org/toolset/maintainer/internal/cmd/golang"
+	"go.octolab.org/toolset/maintainer/internal/cmd/hub"
 	"go.octolab.org/toolset/maintainer/internal/cmd/makefile"
 )
 
@@ -23,9 +24,12 @@ func New() *cobra.Command {
 		SilenceUsage:  true,
 	}
 
+	githubToken := os.Getenv("GITHUB_TOKEN")
+
 	command.AddCommand(
-		github.New(os.Getenv("GITHUB_TOKEN")),
+		github.New(githubToken),
 		golang.New(),
+		hub.New(githubToken),
 		makefile.New(),
 	)
 
