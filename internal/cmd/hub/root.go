@@ -33,7 +33,7 @@ func New(token string) *cobra.Command {
 			opt := new(github.IssueListOptions)
 			opt.ListOptions.PerPage = 100
 
-			f, err := os.Create("bin/issues.json")
+			f, err := os.Create("bin/github.issues.json")
 			if err != nil {
 				return err
 			}

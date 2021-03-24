@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"go.octolab.org/toolset/maintainer/internal/model/git"
+	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
 )
 
 const (
@@ -11,29 +12,26 @@ const (
 	sep = "/"
 )
 
-type (
-	Bitbucket git.Remote
-	GitHub    git.Remote
-	GitLab    git.Remote
-)
+// Remote represents a connection to a remote GitHub repository.
+type Remote git.Remote
+
+// ID returns "{owner}/{repo}" as a remote identifier.
+func (remote Remote) ID() string {
+	assert.True(func() bool { return remote.URL != nil })
+	return strings.TrimSuffix(remote.URL.Path, suf)
+}
 
 // OwnerAndName returns an owner and repository name.
-//
-// The naive implementation to proof of concept.
-func (remote GitHub) OwnerAndName() (string, string) {
-	parts := strings.Split(
-		strings.TrimSuffix(
-			remote.URL.Path, // TODO:unsafe
-			suf,
-		),
-		sep,
-	)
-	return parts[0], parts[1] // TODO:unsafe
+func (remote Remote) OwnerAndName() (string, string) {
+	parts := strings.Split(remote.ID(), sep)
+
+	assert.True(func() bool { return len(parts) == 2 })
+	return parts[0], parts[1]
 }
 
 // Repository represents a GitHub repository.
 type Repository struct {
-	git.Remote
+	Remote
 	ID     int64
 	Labels []Label
 }

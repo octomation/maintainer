@@ -76,10 +76,10 @@ func (m *MockGitHub) EXPECT() *MockGitHubMockRecorder {
 }
 
 // Labels mocks base method.
-func (m *MockGitHub) Labels(arg0 context.Context, arg1 github.GitHub) ([]github.Label, error) {
+func (m *MockGitHub) Labels(arg0 context.Context, arg1 github.Remote) (*github.LabelSet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Labels", arg0, arg1)
-	ret0, _ := ret[0].([]github.Label)
+	ret0, _ := ret[0].(*github.LabelSet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
