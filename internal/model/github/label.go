@@ -44,3 +44,19 @@ func (set LabelSet) Less(i, j int) bool {
 func (set LabelSet) Swap(i, j int) {
 	set.Labels[i], set.Labels[j] = set.Labels[j], set.Labels[i]
 }
+
+// SortLabelsByName allows to sort labels by name
+// instead of ID by default.
+type SortLabelsByName LabelSet
+
+func (set SortLabelsByName) Len() int {
+	return len(set.Labels)
+}
+
+func (set SortLabelsByName) Less(i, j int) bool {
+	return set.Labels[i].Name < set.Labels[j].Name
+}
+
+func (set SortLabelsByName) Swap(i, j int) {
+	set.Labels[i], set.Labels[j] = set.Labels[j], set.Labels[i]
+}

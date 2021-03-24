@@ -2,6 +2,7 @@ package github
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -50,6 +51,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				return fmt.Errorf("cannot fetch repository labels: %w", err)
 			}
 
+			sort.Sort((*model.SortLabelsByName)(labels))
 			return yaml.NewEncoder(cmd.OutOrStdout()).Encode(labels)
 		},
 	}
@@ -75,7 +77,20 @@ func Labels(git Git, github GitHub) *cobra.Command {
 		},
 	}
 
-	command.AddCommand(&pull, &patch, &push)
+	sync := cobra.Command{
+		Args:  cobra.NoArgs,
+		Use:   "sync",
+		Short: "sync repository labels",
+		Long:  "Sync repository labels.",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := push.RunE(cmd, args); err != nil {
+				return err
+			}
+			return pull.RunE(cmd, args)
+		},
+	}
+
+	command.AddCommand(&pull, &patch, &push, &sync)
 
 	return &command
 }
