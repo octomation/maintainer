@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/google/go-github/v33/github"
+	"go.octolab.org/pointer"
 	"gopkg.in/yaml.v2"
 
 	model "go.octolab.org/toolset/maintainer/internal/model/github"
@@ -78,5 +79,54 @@ func (srv *service) UpdateLabels(
 	src model.Remote,
 	set model.LabelSet,
 ) error {
+	current, err := srv.Labels(ctx, src)
+	if err != nil {
+		return err
+	}
+
+	owner, repo := src.OwnerAndName()
+
+	for _, label := range set.Labels {
+		if label.IsNew() {
+			_, _, err := srv.client.Issues.CreateLabel(ctx, owner, repo, &github.Label{
+				Name:        pointer.ToString(label.Name),
+				Color:       pointer.ToString(label.Color),
+				Description: pointer.ToString(label.Desc),
+			})
+			if err != nil {
+				return err // TODO:accumulate
+			}
+			continue
+		}
+
+		// TODO:refactor abstraction leak
+		prev := current.FindByID(label.ID)
+		if prev == nil {
+			continue
+		}
+
+		if label.IsEmpty() {
+			_, err := srv.client.Issues.DeleteLabel(ctx, owner, repo, prev.Name)
+			if err != nil {
+				return err // TODO:accumulate
+			}
+			continue
+		}
+
+		if label.IsChanged(*prev) {
+			dto := new(github.Label)
+			dto.ID = pointer.ToInt64(label.ID)
+			dto.Name = pointer.ToString(label.Name)
+			dto.Color = pointer.ToString(label.Color)
+			dto.Description = pointer.ToString(label.Desc)
+
+			_, _, err := srv.client.Issues.EditLabel(ctx, owner, repo, prev.Name, dto)
+			if err != nil {
+				return err // TODO:accumulate
+			}
+			continue
+		}
+	}
+
 	return nil
 }

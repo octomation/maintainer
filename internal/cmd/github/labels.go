@@ -134,6 +134,22 @@ func Labels(git Git, github GitHub) *cobra.Command {
 			Short: "push repository labels",
 			Long:  "Push repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
+				var patched model.LabelSet
+
+				in := cmd.InOrStdin()
+				if input != "" {
+					f, err := os.Open(input)
+					if err != nil {
+						return err
+					}
+					defer safe.Close(f, unsafe.Ignore)
+					in = f
+				}
+
+				if err := yaml.NewDecoder(in).Decode(&patched); err != nil {
+					return err
+				}
+
 				remotes, err := git.Remotes()
 				if err != nil {
 					return fmt.Errorf("cannot specify repository: %w", err)
@@ -143,9 +159,9 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				if !found {
 					return fmt.Errorf("cannot find GitHub repository")
 				}
+				src := model.Remote(remote)
 
-				_ = remote
-				return nil
+				return github.UpdateLabels(cmd.Context(), src, patched)
 			},
 		}
 		flags := push.Flags()

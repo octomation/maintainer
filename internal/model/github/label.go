@@ -97,6 +97,16 @@ type LabelSet struct {
 	Labels []Label `yaml:",omitempty"`
 }
 
+// FindByID finds a Label by id or returns nil.
+func (set LabelSet) FindByID(id int64) *Label {
+	for _, label := range set.Labels {
+		if label.ID == id {
+			return &label
+		}
+	}
+	return nil
+}
+
 func (set LabelSet) Len() int {
 	return len(set.Labels)
 }
