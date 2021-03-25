@@ -180,7 +180,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				if err := push.RunE(push, args); err != nil {
+				if err := push.RunE(cmd, args); err != nil {
 					return err
 				}
 

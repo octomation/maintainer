@@ -71,7 +71,7 @@ type LabelPreset struct {
 
 // ExtractMatched founds the most appropriate LabelPatch
 // for the specified Label.
-func (set LabelPreset) ExtractMatched(target Label) LabelPatch {
+func (set *LabelPreset) ExtractMatched(target Label) LabelPatch {
 	idx, max := -1, 0
 
 	for i, label := range set.Labels {
