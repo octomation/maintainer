@@ -16,5 +16,6 @@ type Git interface {
 
 // GitHub represents a GitHub service.
 type GitHub interface {
-	Labels(context.Context, github.Remote) (*github.LabelSet, error)
+	Labels(context.Context, github.Remote) (github.LabelSet, error)
+	PatchLabels(context.Context, github.LabelSet, string) (github.LabelSet, error)
 }

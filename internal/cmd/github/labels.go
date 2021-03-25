@@ -2,16 +2,25 @@ package github
 
 import (
 	"fmt"
+	"os"
 	"sort"
 
 	"github.com/spf13/cobra"
+	"go.octolab.org/safe"
+	"go.octolab.org/unsafe"
 	"gopkg.in/yaml.v2"
 
 	model "go.octolab.org/toolset/maintainer/internal/model/github"
+	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
 )
 
 // Labels returns a command to work with GitHub labels.
 func Labels(git Git, github GitHub) *cobra.Command {
+	var (
+		input  string
+		output string
+	)
+
 	command := cobra.Command{
 		Args:  cobra.NoArgs,
 		Use:   "labels",
@@ -25,9 +34,45 @@ func Labels(git Git, github GitHub) *cobra.Command {
 		Short: "patch repository labels",
 		Long:  "Patch repository labels.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
+			var current model.LabelSet
+
+			in := cmd.InOrStdin()
+			if input != "" {
+				f, err := os.Open(input)
+				if err != nil {
+					return err
+				}
+				defer safe.Close(f, unsafe.Ignore)
+				in = f
+			}
+
+			if err := yaml.NewDecoder(in).Decode(&current); err != nil {
+				return err
+			}
+
+			out := cmd.OutOrStdout()
+			if output != "" {
+				f, err := os.Open(output)
+				if err != nil {
+					return err
+				}
+				defer safe.Close(f, unsafe.Ignore)
+				out = f
+			}
+
+			assert.True(func() bool { return len(args) == 1 })
+			patched, err := github.PatchLabels(cmd.Context(), current, args[0])
+			if err != nil {
+				return err
+			}
+
+			sort.Sort(model.SortLabelsByName(patched))
+			return yaml.NewEncoder(out).Encode(patched)
 		},
 	}
+	flags := patch.Flags()
+	flags.StringVar(&input, "input", "", "input file with labels [stdin]")
+	flags.StringVar(&output, "output", "", "output file to store labels [stdout]")
 
 	pull := cobra.Command{
 		Args:  cobra.NoArgs,
@@ -51,7 +96,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				return fmt.Errorf("cannot fetch repository labels: %w", err)
 			}
 
-			sort.Sort((*model.SortLabelsByName)(labels))
+			sort.Sort(model.SortLabelsByName(labels))
 			return yaml.NewEncoder(cmd.OutOrStdout()).Encode(labels)
 		},
 	}
