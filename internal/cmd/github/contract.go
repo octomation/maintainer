@@ -18,4 +18,5 @@ type Git interface {
 type GitHub interface {
 	Labels(context.Context, github.Remote) (github.LabelSet, error)
 	PatchLabels(context.Context, github.LabelSet, string) (github.LabelSet, error)
+	UpdateLabels(context.Context, github.Remote, github.LabelSet) error
 }

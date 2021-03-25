@@ -16,6 +16,14 @@ import (
 
 // Labels returns a command to work with GitHub labels.
 func Labels(git Git, github GitHub) *cobra.Command {
+	const (
+		rootCommand  = "labels"
+		patchCommand = "patch"
+		pullCommand  = "pull"
+		pushCommand  = "push"
+		syncCommand  = "sync"
+	)
+
 	var (
 		input  string
 		output string
@@ -23,7 +31,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 
 	command := cobra.Command{
 		Args:  cobra.NoArgs,
-		Use:   "labels",
+		Use:   rootCommand,
 		Short: "manage repository labels",
 		Long:  "Manage repository labels.",
 	}
@@ -31,7 +39,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 	{
 		patch := cobra.Command{
 			Args:  cobra.ExactArgs(1),
-			Use:   "patch",
+			Use:   patchCommand,
 			Short: "patch repository labels",
 			Long:  "Patch repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -80,7 +88,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 	{
 		pull := cobra.Command{
 			Args:  cobra.NoArgs,
-			Use:   "pull",
+			Use:   pullCommand,
 			Short: "pull repository labels",
 			Long:  "Pull repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -100,17 +108,29 @@ func Labels(git Git, github GitHub) *cobra.Command {
 					return fmt.Errorf("cannot fetch repository labels: %w", err)
 				}
 
+				out := cmd.OutOrStdout()
+				if output != "" {
+					f, err := os.Open(output)
+					if err != nil {
+						return err
+					}
+					defer safe.Close(f, unsafe.Ignore)
+					out = f
+				}
+
 				sort.Sort(model.SortLabelsByName(labels))
-				return yaml.NewEncoder(cmd.OutOrStdout()).Encode(labels)
+				return yaml.NewEncoder(out).Encode(labels)
 			},
 		}
+		flags := pull.Flags()
+		flags.StringVar(&output, "output", "", "output file to store labels [stdout]")
 		command.AddCommand(&pull)
 	}
 
 	{
 		push := cobra.Command{
 			Args:  cobra.NoArgs,
-			Use:   "push",
+			Use:   pushCommand,
 			Short: "push repository labels",
 			Long:  "Push repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -128,17 +148,19 @@ func Labels(git Git, github GitHub) *cobra.Command {
 				return nil
 			},
 		}
+		flags := push.Flags()
+		flags.StringVar(&input, "input", "", "input file with labels [stdin]")
 		command.AddCommand(&push)
 	}
 
 	{
 		sync := cobra.Command{
 			Args:  cobra.NoArgs,
-			Use:   "sync",
+			Use:   syncCommand,
 			Short: "sync repository labels",
 			Long:  "Sync repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
-				push, args, err := cmd.Parent().Find([]string{"push"})
+				push, args, err := cmd.Parent().Find([]string{pushCommand})
 				if err != nil {
 					return err
 				}
@@ -146,13 +168,16 @@ func Labels(git Git, github GitHub) *cobra.Command {
 					return err
 				}
 
-				pull, args, err := cmd.Parent().Find([]string{"pull"})
+				pull, args, err := cmd.Parent().Find([]string{pullCommand})
 				if err != nil {
 					return err
 				}
 				return pull.RunE(cmd, args)
 			},
 		}
+		flags := sync.Flags()
+		flags.StringVar(&input, "input", "", "input file with patched labels [stdin]")
+		flags.StringVar(&output, "output", "", "output file to store labels [stdout]")
 		command.AddCommand(&sync)
 	}
 

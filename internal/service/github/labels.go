@@ -71,3 +71,12 @@ func (srv *service) PatchLabels(
 
 	return current, nil
 }
+
+// UpdateLabels updates labels in GitHub.
+func (srv *service) UpdateLabels(
+	ctx context.Context,
+	src model.Remote,
+	set model.LabelSet,
+) error {
+	return nil
+}
