@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/go-git/go-git/v5 v5.2.0
 	github.com/golang/mock v1.5.0
-	github.com/google/go-github/v33 v33.0.0
+	github.com/google/go-github/v34 v34.0.0
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.3
 	github.com/stretchr/testify v1.7.0
