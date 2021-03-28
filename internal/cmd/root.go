@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"os"
+	"os/exec"
 
 	"github.com/spf13/cobra"
+	"go.octolab.org/unsafe"
 
 	"go.octolab.org/toolset/maintainer/internal/cmd/github"
 	"go.octolab.org/toolset/maintainer/internal/cmd/golang"
@@ -24,9 +26,29 @@ func New() *cobra.Command {
 		SilenceUsage:  true,
 	}
 
+	diff := cobra.Command{
+		Use:   "diff",
+		Short: "compare files line by line",
+		Long:  "Compare files line by line.",
+
+		RunE: func(cmd *cobra.Command, args []string) error {
+			proxy := exec.Command("diff", args...)
+			proxy.Env = os.Environ()
+			proxy.Stdin = cmd.InOrStdin()
+			proxy.Stdout = cmd.OutOrStdout()
+			proxy.Stderr = cmd.ErrOrStderr()
+
+			unsafe.Ignore(proxy.Run())
+			return nil
+		},
+
+		DisableFlagParsing: true,
+	}
+
 	githubToken := os.Getenv("GITHUB_TOKEN")
 
 	command.AddCommand(
+		&diff,
 		github.New(githubToken),
 		golang.New(),
 		hub.New(githubToken),
