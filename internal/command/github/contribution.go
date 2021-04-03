@@ -71,7 +71,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 
 			// defaults
-			date, weeks := time.Now().In(time.UTC).Add(-xtime.Week), 3
+			date, weeks := time.Now().In(time.UTC), 1
 
 			if len(args) == 1 {
 				var err error
