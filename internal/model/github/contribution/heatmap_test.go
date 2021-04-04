@@ -22,10 +22,10 @@ func TestHeatMap_Subset(t *testing.T) {
 	chm.SetCount(time.Date(2013, 11, 28, 0, 0, 0, 0, time.UTC), 7)
 	chm.SetCount(time.Date(2013, 11, 29, 0, 0, 0, 0, time.UTC), 1)
 
-	t.Run("one day", func(t *testing.T) {
+	t.Run("one week", func(t *testing.T) {
 		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
 		subset := chm.Subset(xtime.RangeByWeeks(ts, 0, false))
-		assert.Len(t, subset, 1)
+		assert.Len(t, subset, 3)
 	})
 
 	t.Run("one week behind", func(t *testing.T) {

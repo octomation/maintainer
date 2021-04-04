@@ -37,8 +37,50 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		Use:  "histogram",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			_ = github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+			// dependencies and defaults
+			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+			construct, date := xtime.RangeByWeeks, time.Now().In(time.UTC)
 
+			// validation step
+			// input: date(year,+month,+week{day})
+			if len(args) == 1 {
+				var err error
+				wrap := func(err error) error {
+					return fmt.Errorf(
+						"please provide argument in format YYYY[-mm[-dd]], e.g., 2006-01: %w",
+						fmt.Errorf("invalid argument %q: %w", args[0], err),
+					)
+				}
+				switch len(args[0]) {
+				case len(xtime.RFC3339Year):
+					date, err = time.Parse(xtime.RFC3339Year, args[0])
+					construct = xtime.RangeByYears
+				case len(xtime.RFC3339Month):
+					date, err = time.Parse(xtime.RFC3339Month, args[0])
+					construct = xtime.RangeByMonths
+				case len(xtime.RFC3339Day):
+					date, err = time.Parse(xtime.RFC3339Day, args[0])
+				default:
+					err = fmt.Errorf("unsupported format")
+				}
+				if err != nil {
+					return wrap(err)
+				}
+			}
+
+			// main logic
+			chm, err := service.ContributionHeatMap(cmd.Context(), date)
+			if err != nil {
+				return err
+			}
+
+			scope := construct(date, 0, false).Shift(-xtime.Day).ExcludeFuture()
+			data := contribution.HistogramByCount(chm.Subset(scope))
+
+			// view step
+			for _, row := range data {
+				fmt.Printf("%3d %s\n", row.Count, strings.Repeat("#", row.Frequency))
+			}
 			return nil
 		},
 	}
@@ -59,10 +101,10 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	// ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
 	//  Contributions are on the range from 2013-11-03 to 2013-12-31
 	//
-	// $ maintainer github contribution lookup            # -> now()/3
-	// $ maintainer github contribution lookup 2013-12-03 # -> 2013-12-03/3
-	// $ maintainer github contribution lookup now/3      # -> now()/3
-	// $ maintainer github contribution lookup /3         # -> now()/3
+	// $ maintainer github contribution lookup            # -> now()/-1
+	// $ maintainer github contribution lookup 2013-12-03 # -> 2013-12-03/-1
+	// $ maintainer github contribution lookup now/3      # -> now()/3 == now()/-1
+	// $ maintainer github contribution lookup /3         # -> now()/3 == now()/-1
 	//
 	lookup := cobra.Command{
 		Use:  "lookup",
@@ -73,6 +115,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			date, weeks, half := time.Now().In(time.UTC), -1, false
 
 			// validation step
+			// input: date/{+-}weeks
 			if len(args) == 1 {
 				var err error
 				wrap := func(err error) error {
@@ -119,9 +162,9 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				ExcludeFuture().
 				TrimByYear(date.Year())
 			data := contribution.HistogramByWeekday(chm.Subset(scope), false)
-			report := make([]view.WeekReport, 0, 4)
 
 			// view step
+			report := make([]view.WeekReport, 0, 4)
 			prev, idx := 0, -1
 			for i := scope.From(); i.Before(scope.To()); i = i.Add(xtime.Day) {
 				_, week := i.ISOWeek()

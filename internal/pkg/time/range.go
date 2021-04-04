@@ -88,10 +88,6 @@ func RangeByWeeks(t time.Time, weeks int, half bool) Range {
 	min := TruncateToDay(t)
 	max := min.Add(Day - time.Nanosecond)
 
-	if weeks == 0 {
-		return Range{min, max}
-	}
-
 	day, week := t.Weekday(), 7                                      // days in week
 	monday, sunday := int(time.Monday-day), int(time.Saturday-day+1) // compensate Sunday
 
@@ -110,6 +106,46 @@ func RangeByWeeks(t time.Time, weeks int, half bool) Range {
 	} else {
 		min = min.AddDate(0, 0, monday)
 		max = max.AddDate(0, 0, sunday+days)
+	}
+	return Range{min, max}
+}
+
+func RangeByMonths(t time.Time, months int, half bool) Range {
+	assert.True(func() bool { return !half || (half && months > 0) })
+
+	min := TruncateToMonth(t)
+	max := min.AddDate(0, 1, 0).Add(-time.Nanosecond)
+
+	if months < 0 {
+		min = min.AddDate(0, months, 0)
+		return Range{min, max}
+	}
+
+	if half {
+		min = min.AddDate(0, -months/2, 0)
+		max = max.AddDate(0, months/2, 0)
+	} else {
+		max = max.AddDate(0, months, 0)
+	}
+	return Range{min, max}
+}
+
+func RangeByYears(t time.Time, years int, half bool) Range {
+	assert.True(func() bool { return !half || (half && years > 0) })
+
+	min := TruncateToYear(t)
+	max := min.AddDate(1, 0, 0).Add(-time.Nanosecond)
+
+	if years < 0 {
+		min = min.AddDate(years, 0, 0)
+		return Range{min, max}
+	}
+
+	if half {
+		min = min.AddDate(-years/2, 0, 0)
+		max = max.AddDate(years/2, 0, 0)
+	} else {
+		max = max.AddDate(years, 0, 0)
 	}
 	return Range{min, max}
 }
