@@ -68,19 +68,26 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		Use:  "lookup",
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-
-			// defaults
 			date, weeks, half := time.Now().In(time.UTC), -1, false
 
+			// validation step
 			if len(args) == 1 {
 				var err error
+				wrap := func(err error) error {
+					return fmt.Errorf(
+						"please provide argument in format YYYY-mm-dd[/[+|-]weeks], e.g., 2006-01-02/3: %w",
+						fmt.Errorf("invalid argument %q: %w", args[0], err),
+					)
+				}
+
 				raw := strings.Split(args[0], "/")
 				switch len(raw) {
 				case 2:
 					weeks, err = strconv.Atoi(raw[1])
 					if err != nil {
-						return err
+						return wrap(err)
 					}
 					// +%d and positive %d have the same value, but different semantic
 					// invariant: len(raw[1]) > 0, because weeks > 0 and invariant(time.RangeByWeeks)
@@ -93,16 +100,14 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 						date, err = time.Parse(xtime.RFC3339Day, raw[0])
 					}
 					if err != nil {
-						return err
+						return wrap(err)
 					}
 				default:
-					return fmt.Errorf(
-						"please provide argument in format YYYY-mm-dd[/[+|-]weeks], e.g., 2006-01-02/3: %w",
-						fmt.Errorf("invalid argument %q", args[0]),
-					)
+					return wrap(fmt.Errorf("too many parts"))
 				}
 			}
 
+			// main logic
 			chm, err := service.ContributionHeatMap(cmd.Context(), date)
 			if err != nil {
 				return err
@@ -116,6 +121,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			data := contribution.HistogramByWeekday(chm.Subset(scope), false)
 			report := make([]view.WeekReport, 0, 4)
 
+			// view step
 			prev, idx := 0, -1
 			for i := scope.From(); i.Before(scope.To()); i = i.Add(xtime.Day) {
 				_, week := i.ISOWeek()
@@ -141,7 +147,6 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				}
 				report[idx].Report[i.Weekday()] = count
 			}
-
 			return view.Lookup(scope, report, cmd)
 		},
 	}
