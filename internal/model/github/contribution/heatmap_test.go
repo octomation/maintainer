@@ -24,19 +24,31 @@ func TestHeatMap_Subset(t *testing.T) {
 
 	t.Run("one day", func(t *testing.T) {
 		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
-		subset := chm.Subset(xtime.RangeByWeeks(ts, 0))
+		subset := chm.Subset(xtime.RangeByWeeks(ts, 0, false))
 		assert.Len(t, subset, 1)
 	})
 
-	t.Run("one week", func(t *testing.T) {
+	t.Run("one week behind", func(t *testing.T) {
 		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
-		subset := chm.Subset(xtime.RangeByWeeks(ts, 1))
+		subset := chm.Subset(xtime.RangeByWeeks(ts, -1, false))
+		assert.Len(t, subset, 4)
+	})
+
+	t.Run("one week ahead", func(t *testing.T) {
+		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
+		subset := chm.Subset(xtime.RangeByWeeks(ts, 1, false))
+		assert.Len(t, subset, 7)
+	})
+
+	t.Run("one week around", func(t *testing.T) {
+		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
+		subset := chm.Subset(xtime.RangeByWeeks(ts, 1, true))
 		assert.Len(t, subset, 3)
 	})
 
-	t.Run("three weeks", func(t *testing.T) {
+	t.Run("three weeks around", func(t *testing.T) {
 		ts := time.Date(2013, 11, 20, 0, 0, 0, 0, time.UTC)
-		subset := chm.Subset(xtime.RangeByWeeks(ts, 3))
+		subset := chm.Subset(xtime.RangeByWeeks(ts, 3, true))
 		assert.Len(t, subset, 8)
 	})
 }

@@ -71,7 +71,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 
 			// defaults
-			date, weeks := time.Now().In(time.UTC), 1
+			date, weeks, half := time.Now().In(time.UTC), -1, false
 
 			if len(args) == 1 {
 				var err error
@@ -81,6 +81,11 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 					weeks, err = strconv.Atoi(raw[1])
 					if err != nil {
 						return err
+					}
+					// +%d and positive %d have the same value, but different semantic
+					// invariant: len(raw[1]) > 0, because weeks > 0 and invariant(time.RangeByWeeks)
+					if weeks > 0 && raw[1][0] != '+' {
+						half = true
 					}
 					fallthrough
 				case 1:
@@ -92,7 +97,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 					}
 				default:
 					return fmt.Errorf(
-						"please provide in format YYYY-mm-dd[/weeks], e.g., 2006-01-02/3: %w",
+						"please provide argument in format YYYY-mm-dd[/[+|-]weeks], e.g., 2006-01-02/3: %w",
 						fmt.Errorf("invalid argument %q", args[0]),
 					)
 				}
@@ -104,7 +109,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			scope := xtime.
-				RangeByWeeks(date, weeks).
+				RangeByWeeks(date, weeks, half).
 				Shift(-xtime.Day).
 				ExcludeFuture().
 				TrimByYear(date.Year())

@@ -1,6 +1,10 @@
 package time
 
-import "time"
+import (
+	"time"
+
+	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
+)
 
 const (
 	Day  = 24 * time.Hour
@@ -78,16 +82,35 @@ func (r Range) TrimByYear(year int) Range {
 	return r
 }
 
-func RangeByWeeks(t time.Time, weeks int) Range {
-	min := TruncateToDay(t)
-	max := min.AddDate(0, 0, 1).Add(-time.Nanosecond)
+func RangeByWeeks(t time.Time, weeks int, half bool) Range {
+	assert.True(func() bool { return !half || (half && weeks > 0) })
 
-	if weeks > 0 {
-		day, days := t.Weekday(), 7*(weeks/2)
-		min = min.AddDate(0, 0, int(time.Monday-day)-days)
-		max = max.AddDate(0, 0, int(time.Saturday+1-day)+days)
+	min := TruncateToDay(t)
+	max := min.Add(Day - time.Nanosecond)
+
+	if weeks == 0 {
+		return Range{min, max}
 	}
 
+	day, week := t.Weekday(), 7                                      // days in week
+	monday, sunday := int(time.Monday-day), int(time.Saturday-day+1) // compensate Sunday
+
+	if weeks < 0 {
+		weeks *= -1 // semantic
+		min = min.AddDate(0, 0, monday-week*weeks)
+		max = max.AddDate(0, 0, sunday)
+		return Range{min, max}
+	}
+
+	days := week * weeks
+	if half {
+		days = week * (weeks / 2)
+		min = min.AddDate(0, 0, monday-days)
+		max = max.AddDate(0, 0, sunday+days)
+	} else {
+		min = min.AddDate(0, 0, monday)
+		max = max.AddDate(0, 0, sunday+days)
+	}
 	return Range{min, max}
 }
 
