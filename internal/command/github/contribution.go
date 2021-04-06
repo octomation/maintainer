@@ -33,6 +33,17 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	//
 	// $ maintainer github contribution histogram 2013-11
 	//
+	//  1 ####
+	//  2 #
+	//  3 #
+	//  7 #
+	//  8 #
+	//
+	// $ maintainer github contribution histogram 2013-11-20
+	//
+	//  1 #
+	//  3 #
+	//
 	histogram := cobra.Command{
 		Use:  "histogram",
 		Args: cobra.MaximumNArgs(1),
@@ -51,6 +62,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 						fmt.Errorf("invalid argument %q: %w", args[0], err),
 					)
 				}
+
 				switch len(args[0]) {
 				case len(xtime.RFC3339Year):
 					date, err = time.Parse(xtime.RFC3339Year, args[0])
@@ -73,7 +85,6 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			scope := construct(date, 0, false).Shift(-xtime.Day).ExcludeFuture()
 			data := contribution.HistogramByCount(chm.Subset(scope))
 
@@ -155,7 +166,6 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			scope := xtime.
 				RangeByWeeks(date, weeks, half).
 				Shift(-xtime.Day).
