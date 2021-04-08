@@ -9,7 +9,6 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/golang/mock v1.6.0
 	github.com/google/go-github/v44 v44.1.0
-	github.com/mitchellh/mapstructure v1.4.3
 	github.com/spf13/afero v1.8.1
 	github.com/spf13/cobra v1.3.0
 	github.com/spf13/pflag v1.0.5
@@ -45,6 +44,7 @@ require (
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.12 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
@@ -64,3 +64,7 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
+
+// https://github.com/mitchellh/mapstructure/issues/288
+// https://github.com/mitchellh/mapstructure/pull/291
+replace github.com/mitchellh/mapstructure v1.5.0 => github.com/kamilsk/mapstructure v1.5.1-0.20220531052913-46503656eb6d

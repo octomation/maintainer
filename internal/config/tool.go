@@ -1,7 +1,6 @@
 package config
 
 import (
-	"strings"
 	"sync"
 
 	"github.com/spf13/afero"
@@ -19,8 +18,8 @@ type GitHub struct {
 }
 
 type Tool struct {
-	Git    `mapstructure:"git,prefix"`
-	GitHub `mapstructure:"github,prefix"`
+	Git    `mapstructure:"git,squash"`
+	GitHub `mapstructure:"github,squash"`
 
 	lazy   sync.Once
 	config *viper.Viper
@@ -49,19 +48,6 @@ func (cnf *Tool) Load(fs afero.Fs, bindings ...func(*viper.Viper) error) error {
 		}
 	}
 	unsafe.Ignore(v.ReadInConfig())
-
-	// workaround for nested structs and prefixes
-	keys := v.AllKeys()
-	for _, prefix := range []string{"git", "github"} {
-		for _, key := range keys {
-			if !strings.HasPrefix(key, prefix) {
-				continue
-			}
-			oldPrefix, newPrefix := prefix+"_", prefix+"."
-			newKey := strings.Replace(key, oldPrefix, newPrefix, 1)
-			v.Set(newKey, v.Get(key))
-		}
-	}
 
 	return v.Unmarshal(cnf)
 }

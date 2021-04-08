@@ -1,9 +1,9 @@
 package config_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/mitchellh/mapstructure"
 	"github.com/spf13/afero"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -16,10 +16,25 @@ import (
 	. "go.octolab.org/toolset/maintainer/internal/config"
 )
 
+// TODO:replace https://github.com/octolab/pkg/issues/65
+func Get(src env.Environment, key string) string {
+	for _, v := range src {
+		if v.Name() == key {
+			return v.Value()
+		}
+	}
+	return ""
+}
+
 func TestTool_Load(t *testing.T) {
+	const (
+		envGitRemote   = "GIT_REMOTE"
+		envGithubToken = "GITHUB_TOKEN"
+	)
+
 	vars := env.Environment{
-		env.Must("GIT_REMOTE", "git@github.com:octomation/maintainer.git"),
-		env.Must("GITHUB_TOKEN", "secret"),
+		env.Must(envGitRemote, "git@github.com:octomation/maintainer.git"),
+		env.Must(envGithubToken, "secret"),
 	}
 
 	t.Run("load from file", func(t *testing.T) {
@@ -33,8 +48,8 @@ func TestTool_Load(t *testing.T) {
 
 		var cnf Tool
 		require.NoError(t, cnf.Load(fs))
-		assert.Equal(t, "git@github.com:octomation/maintainer.git", cnf.Git.Remote)
-		assert.Equal(t, config.Secret("secret"), cnf.GitHub.Token)
+		assert.Equal(t, Get(vars, envGitRemote), cnf.Git.Remote)
+		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.GitHub.Token)
 	})
 
 	t.Run("load from env", func(t *testing.T) {
@@ -48,8 +63,8 @@ func TestTool_Load(t *testing.T) {
 
 		var cnf Tool
 		require.NoError(t, cnf.Load(afero.NewMemMapFs(), bindings...))
-		assert.Equal(t, "git@github.com:octomation/maintainer.git", cnf.Git.Remote)
-		assert.Equal(t, config.Secret("secret"), cnf.GitHub.Token)
+		assert.Equal(t, Get(vars, envGitRemote), cnf.Git.Remote)
+		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.GitHub.Token)
 	})
 
 	t.Run("load from flags", func(t *testing.T) {
@@ -57,57 +72,17 @@ func TestTool_Load(t *testing.T) {
 		flags.String("remote", "", "git remote url")
 		flags.String("token", "", "github access token")
 		bindings := []func(provider *viper.Viper) error{
-			func(v *viper.Viper) error { return v.BindPFlag("git_remote", flags.Lookup("remote")) },
-			func(v *viper.Viper) error { return v.BindPFlag("github_token", flags.Lookup("token")) },
+			func(v *viper.Viper) error { return v.BindPFlag(envGitRemote, flags.Lookup("remote")) },
+			func(v *viper.Viper) error { return v.BindPFlag(envGithubToken, flags.Lookup("token")) },
 		}
 
 		var cnf Tool
 		require.NoError(t, flags.Parse([]string{
-			"--remote=git@github.com:octomation/maintainer.git",
-			"--token=secret",
+			fmt.Sprintf("--remote=%s", Get(vars, envGitRemote)),
+			fmt.Sprintf("--token=%s", Get(vars, envGithubToken)),
 		}))
 		require.NoError(t, cnf.Load(afero.NewMemMapFs(), bindings...))
-		assert.Equal(t, "git@github.com:octomation/maintainer.git", cnf.Git.Remote)
-		assert.Equal(t, config.Secret("secret"), cnf.GitHub.Token)
-	})
-
-	t.Run("squash with prefix", func(t *testing.T) {
-		t.SkipNow()
-
-		type Git struct {
-			Remote string `mapstructure:"remote"`
-		}
-
-		type GitHub struct {
-			Token config.Secret `mapstructure:"token"`
-		}
-
-		type Tool struct {
-			Git    `mapstructure:"git,squash"`
-			GitHub `mapstructure:"github,squash"`
-		}
-
-		var cnf Tool
-		decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
-			DecodeHook:       nil,
-			ErrorUnused:      false,
-			ZeroFields:       false,
-			WeaklyTypedInput: false,
-			Squash:           false,
-			Metadata:         nil,
-			Result:           &cnf,
-			TagName:          "",
-			MatchName:        nil,
-		})
-		require.NoError(t, err)
-
-		input := map[string]interface{}{
-			"GIT_REMOTE":   "git@github.com:octomation/maintainer.git",
-			"GITHUB_TOKEN": "secret",
-		}
-
-		require.NoError(t, decoder.Decode(input))
-		assert.Equal(t, "git@github.com:octomation/maintainer.git", cnf.Git.Remote)
-		assert.Equal(t, config.Secret("secret"), cnf.GitHub.Token)
+		assert.Equal(t, Get(vars, envGitRemote), cnf.Git.Remote)
+		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.GitHub.Token)
 	})
 }
