@@ -2,15 +2,16 @@ package github
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"go.octolab.org/safe"
 	"go.octolab.org/unsafe"
+	"golang.org/x/sync/errgroup"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	xhttp "go.octolab.org/toolset/maintainer/internal/pkg/http"
@@ -22,14 +23,46 @@ var overview = url.MustParse("https://github.com?tab=overview")
 
 func (srv *service) ContributionHeatMap(
 	ctx context.Context,
-	since time.Time,
+	scope xtime.Range,
 ) (contribution.HeatMap, error) {
 	u, _, err := srv.client.Users.Get(ctx, "")
 	if err != nil {
 		return nil, err
 	}
 
-	src := overview.SetPath(u.GetLogin()).AddQueryParam("from", since.Format(xtime.RFC3339Day)).String()
+	chm := make(contribution.HeatMap)
+	merge := func() func(*goquery.Document, error) error {
+		var mu sync.Mutex
+		return func(doc *goquery.Document, err error) error {
+			if err != nil {
+				return err
+			}
+
+			mu.Lock()
+			for ts, count := range contributionHeatMap(doc) {
+				chm[ts] = count
+			}
+			mu.Unlock()
+			return nil
+		}
+	}()
+
+	group, cascade := errgroup.WithContext(ctx)
+	min, max := scope.From().Year(), scope.To().Year()
+	for i, user := min, u.GetLogin(); i <= max; i++ {
+		year := i
+		group.Go(func() error { return merge(fetchContributions(cascade, user, year)) })
+	}
+
+	err = group.Wait()
+	return chm.Subset(scope), err
+}
+
+func fetchContributions(ctx context.Context, user string, year int) (*goquery.Document, error) {
+	src := overview.
+		SetPath(user).
+		AddQueryParam("from", time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC).Format(xtime.RFC3339Day)).
+		String()
 	req, err := xhttp.NewGetRequestWithContext(ctx, src)
 	if err != nil {
 		return nil, err
@@ -46,23 +79,14 @@ func (srv *service) ContributionHeatMap(
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	resp, err := srv.client.Client().Do(req)
+	// TODO:debt use srv.client.Client() instead
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer safe.Close(resp.Body, unsafe.Ignore)
 
-	doc, err := goquery.NewDocumentFromReader(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	min, max := contributionRange(doc)
-	if expected := since.Year(); expected < min || max < expected {
-		return nil, fmt.Errorf("no contribution in the %d year", expected)
-	}
-	chm := contributionHeatMap(doc)
-	return chm, nil
+	return goquery.NewDocumentFromReader(resp.Body)
 }
 
 func contributionRange(doc *goquery.Document) (int, int) {

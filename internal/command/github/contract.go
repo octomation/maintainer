@@ -2,11 +2,11 @@ package github
 
 import (
 	"context"
-	"time"
 
 	"go.octolab.org/toolset/maintainer/internal/model/git"
 	"go.octolab.org/toolset/maintainer/internal/model/github"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 //go:generate mockgen -source $GOFILE -destination mocks_test.go -package ${GOPACKAGE}_test
@@ -18,7 +18,7 @@ type Git interface {
 
 // GitHub represents a GitHub service.
 type GitHub interface {
-	ContributionHeatMap(context.Context, time.Time) (contribution.HeatMap, error)
+	ContributionHeatMap(context.Context, time.Range) (contribution.HeatMap, error)
 
 	Labels(context.Context, github.Remote) (github.LabelSet, error)
 	PatchLabels(context.Context, github.LabelSet, string) (github.LabelSet, error)

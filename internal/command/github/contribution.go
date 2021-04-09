@@ -20,6 +20,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	cmd := cobra.Command{
 		Use: "contribution",
 	}
+	now := func() time.Time { return time.Now().In(time.UTC) }
 
 	//
 	// $ maintainer github contribution histogram 2013
@@ -31,18 +32,8 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	//  7 ##
 	//  8 #
 	//
-	// $ maintainer github contribution histogram 2013-11
-	//
-	//  1 ####
-	//  2 #
-	//  3 #
-	//  7 #
-	//  8 #
-	//
-	// $ maintainer github contribution histogram 2013-11-20
-	//
-	//  1 #
-	//  3 #
+	// $ maintainer github contribution histogram 2013-11    # month
+	// $ maintainer github contribution histogram 2013-11-20 # week
 	//
 	histogram := cobra.Command{
 		Use:  "histogram",
@@ -50,7 +41,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			construct, date := xtime.RangeByWeeks, time.Now().In(time.UTC)
+			construct, date := xtime.RangeByWeeks, now()
 
 			// validation step
 			// input: date(year,+month,+week{day})
@@ -63,15 +54,15 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 					)
 				}
 
-				switch len(args[0]) {
+				switch input := args[0]; len(input) {
 				case len(xtime.RFC3339Year):
-					date, err = time.Parse(xtime.RFC3339Year, args[0])
+					date, err = time.Parse(xtime.RFC3339Year, input)
 					construct = xtime.RangeByYears
 				case len(xtime.RFC3339Month):
-					date, err = time.Parse(xtime.RFC3339Month, args[0])
+					date, err = time.Parse(xtime.RFC3339Month, input)
 					construct = xtime.RangeByMonths
 				case len(xtime.RFC3339Day):
-					date, err = time.Parse(xtime.RFC3339Day, args[0])
+					date, err = time.Parse(xtime.RFC3339Day, input)
 				default:
 					err = fmt.Errorf("unsupported format")
 				}
@@ -81,12 +72,12 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// main logic
-			chm, err := service.ContributionHeatMap(cmd.Context(), date)
+			scope := construct(date, 0, false).Shift(-xtime.Day).ExcludeFuture()
+			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
 			}
-			scope := construct(date, 0, false).Shift(-xtime.Day).ExcludeFuture()
-			data := contribution.HistogramByCount(chm.Subset(scope))
+			data := contribution.HistogramByCount(chm)
 
 			// view step
 			for _, row := range data {
@@ -123,7 +114,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date, weeks, half := time.Now().In(time.UTC), -1, false
+			date, weeks, half := now(), -1, false
 
 			// validation step
 			// input: date/{+-}weeks
@@ -162,16 +153,15 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// main logic
-			chm, err := service.ContributionHeatMap(cmd.Context(), date)
-			if err != nil {
-				return err
-			}
 			scope := xtime.
 				RangeByWeeks(date, weeks, half).
 				Shift(-xtime.Day).
-				ExcludeFuture().
-				TrimByYear(date.Year())
-			data := contribution.HistogramByWeekday(chm.Subset(scope), false)
+				ExcludeFuture()
+			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
+			if err != nil {
+				return err
+			}
+			data := contribution.HistogramByWeekday(chm, false)
 
 			// view step
 			report := make([]view.WeekReport, 0, 4)
@@ -225,14 +215,6 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	suggest := cobra.Command{
 		Use: "suggest",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-
-			chm, err := service.ContributionHeatMap(cmd.Context(), time.Now())
-			if err != nil {
-				return err
-			}
-
-			cmd.Println("-123d", chm)
 			return nil
 		},
 	}

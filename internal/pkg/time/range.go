@@ -88,8 +88,10 @@ func RangeByWeeks(t time.Time, weeks int, half bool) Range {
 	min := TruncateToDay(t)
 	max := min.Add(Day - time.Nanosecond)
 
-	day, week := t.Weekday(), 7                                      // days in week
-	monday, sunday := int(time.Monday-day), int(time.Saturday-day+1) // compensate Sunday
+	const week = 7 // days in week
+	day := t.Weekday()
+	monday := int(time.Monday - day)
+	sunday := int(time.Saturday - day + 1 /* compensate Sunday */)
 
 	if weeks < 0 {
 		weeks *= -1 // semantic
