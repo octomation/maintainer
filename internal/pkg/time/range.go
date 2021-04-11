@@ -152,9 +152,19 @@ func RangeByYears(t time.Time, years int, half bool) Range {
 	return Range{min, max}
 }
 
+func NewRange(from time.Time, to time.Time) Range {
+	assert.True(func() bool { return from.Before(to) })
+
+	return Range{from, to}
+}
+
 func TruncateToDay(t time.Time) time.Time {
 	y, m, d := t.Date()
 	return time.Date(y, m, d, 0, 0, 0, 0, t.Location())
+}
+
+func TruncateToWeek(t time.Time) time.Time {
+	return TruncateToDay(t).Add(Day * time.Duration(time.Monday-t.Weekday()))
 }
 
 func TruncateToMonth(t time.Time) time.Time {

@@ -11,15 +11,12 @@ import (
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
-type WeekReport struct {
-	Number int
-	Report map[time.Weekday]int
-}
-
-func Lookup(
+func Suggest(
 	printer interface{ Println(...interface{}) },
 	scope xtime.Range,
 	histogram []contribution.HistogramByWeekdayRow,
+	suggest contribution.HistogramByWeekdayRow,
+	current int,
 ) error {
 	data := convert(scope, histogram)
 	table := simpletable.New()
@@ -84,9 +81,11 @@ func Lookup(
 		Cells: []*simpletable.Cell{
 			{
 				Span: len(table.Header.Cells),
-				Text: fmt.Sprintf("Contributions are on the range from %s to %s",
-					scope.From().Format(xtime.RFC3339Day),
-					scope.To().Format(xtime.RFC3339Day),
+				Text: fmt.Sprintf("Contributions for %s: %dd, %[4]d -> %[3]d",
+					suggest.Day.Format(xtime.RFC3339Day),
+					suggest.Day.Sub(time.Now().UTC())/xtime.Day,
+					suggest.Sum,
+					current,
 				),
 			},
 		},
@@ -95,15 +94,4 @@ func Lookup(
 	table.SetStyle(simpletable.StyleCompactLite)
 	printer.Println(table.String())
 	return nil
-}
-
-// If it's a first-week report with a single entry for Sunday,
-// we skip it completely.
-//
-// It's because GitHub shows the contribution chart started on Sunday
-// of the previous week. For that reason we have to shift it to the right
-// and compensate `.Shift(-xtime.Day)` call for the scope.
-func shiftIsNeeded(idx int, report map[time.Weekday]int) bool {
-	_, is := report[time.Sunday]
-	return idx == 0 && len(report) == 1 && is
 }

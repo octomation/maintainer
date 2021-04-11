@@ -33,9 +33,27 @@ func (chm HeatMap) Subset(scope xtime.Range) HeatMap {
 	return subset
 }
 
-type hbc struct {
+type HistogramByCountRow struct {
 	Count, Frequency int
 }
+
+type hbc = HistogramByCountRow
+
+type orderByCount []HistogramByCountRow
+
+func (list orderByCount) Len() int           { return len(list) }
+func (list orderByCount) Less(i, j int) bool { return list[i].Count < list[j].Count }
+func (list orderByCount) Swap(i, j int)      { list[i], list[j] = list[j], list[i] }
+
+func OrderByCount(in []HistogramByCountRow) sort.Interface { return orderByCount(in) }
+
+type orderByFrequency []HistogramByCountRow
+
+func (list orderByFrequency) Len() int           { return len(list) }
+func (list orderByFrequency) Less(i, j int) bool { return list[i].Frequency < list[j].Frequency }
+func (list orderByFrequency) Swap(i, j int)      { list[i], list[j] = list[j], list[i] }
+
+func OrderByFrequency(in []HistogramByCountRow) sort.Interface { return orderByFrequency(in) }
 
 // HistogramByCount returns the distribution of amount contributions.
 // The first value is an amount, and the second is a frequency.
@@ -46,7 +64,7 @@ type hbc struct {
 //  4 ##
 //  7 ###
 //
-func HistogramByCount(chm HeatMap) []hbc {
+func HistogramByCount(chm HeatMap, order ...func([]hbc) sort.Interface) []HistogramByCountRow {
 	h := make([]hbc, 0, 8)
 	m := make(map[int]int)
 
@@ -60,14 +78,18 @@ func HistogramByCount(chm HeatMap) []hbc {
 		h[idx].Frequency++
 	}
 
-	sort.Slice(h, func(i, j int) bool { return h[i].Count < h[j].Count })
+	for _, fn := range order {
+		sort.Sort(fn(h))
+	}
 	return h
 }
 
-type hbd struct {
+type HistogramByDateRow struct {
 	Date string
 	Sum  int
 }
+
+type hbd = HistogramByDateRow
 
 // HistogramByDate returns the sum of the number of contributions grouped by date.
 // The first value is a date in the specified format, and the second is a sum.
@@ -83,7 +105,7 @@ type hbd struct {
 //  	2022-01    ######
 //  	2022-02    #
 //
-func HistogramByDate(chm HeatMap, format string) []hbd {
+func HistogramByDate(chm HeatMap, format string) []HistogramByDateRow {
 	h := make([]hbd, 0, 8)
 	m := make(map[string]int)
 
@@ -102,10 +124,12 @@ func HistogramByDate(chm HeatMap, format string) []hbd {
 	return h
 }
 
-type hbw struct {
+type HistogramByWeekdayRow struct {
 	Day time.Time
 	Sum int
 }
+
+type hbw = HistogramByWeekdayRow
 
 // HistogramByWeekday returns the sum of the number of contributions grouped by day of week.
 // The first value is a date in the specified format, and the second is a sum.
@@ -122,7 +146,7 @@ type hbw struct {
 //  	Tuesday ###
 //  	Friday  ##
 //
-func HistogramByWeekday(chm HeatMap, grouped bool) []hbw {
+func HistogramByWeekday(chm HeatMap, grouped bool) []HistogramByWeekdayRow {
 	f := make([]time.Time, 0, len(chm))
 	for ts := range chm {
 		f = append(f, ts)

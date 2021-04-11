@@ -20,7 +20,6 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	cmd := cobra.Command{
 		Use: "contribution",
 	}
-	now := func() time.Time { return time.Now().In(time.UTC) }
 
 	//
 	// $ maintainer github contribution histogram 2013
@@ -41,10 +40,9 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			construct, date := xtime.RangeByWeeks, now()
+			construct, date := xtime.RangeByWeeks, time.Now().UTC()
 
-			// validation step
-			// input: date(year,+month,+week{day})
+			// input validation: date(year,+month,+week{day})
 			if len(args) == 1 {
 				var err error
 				wrap := func(err error) error {
@@ -71,15 +69,15 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				}
 			}
 
-			// main logic
+			// data provisioning
 			scope := construct(date, 0, false).Shift(-xtime.Day).ExcludeFuture()
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
 			}
-			data := contribution.HistogramByCount(chm)
 
-			// view step
+			// data presentation
+			data := contribution.HistogramByCount(chm, contribution.OrderByCount)
 			for _, row := range data {
 				fmt.Printf("%3d %s\n", row.Count, strings.Repeat("#", row.Frequency))
 			}
@@ -114,10 +112,9 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date, weeks, half := now(), -1, false
+			date, weeks, half := time.Now().UTC(), -1, false
 
-			// validation step
-			// input: date/{+-}weeks
+			// input validation: date/{+-}weeks
 			if len(args) == 1 {
 				var err error
 				wrap := func(err error) error {
@@ -152,45 +149,16 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				}
 			}
 
-			// main logic
-			scope := xtime.
-				RangeByWeeks(date, weeks, half).
-				Shift(-xtime.Day).
-				ExcludeFuture()
+			// data provisioning
+			scope := xtime.RangeByWeeks(date, weeks, half).Shift(-xtime.Day).ExcludeFuture()
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
 			}
+
+			// data presentation
 			data := contribution.HistogramByWeekday(chm, false)
-
-			// view step
-			report := make([]view.WeekReport, 0, 4)
-			prev, idx := 0, -1
-			for i := scope.From(); i.Before(scope.To()); i = i.Add(xtime.Day) {
-				_, week := i.ISOWeek()
-				if week != prev {
-					prev = week
-					idx++
-				}
-
-				if len(report) < idx+1 {
-					report = append(report, view.WeekReport{
-						Number: week,
-						Report: make(map[time.Weekday]int),
-					})
-				}
-
-				var count int
-				if len(data) > 0 {
-					row := data[0]
-					if row.Day.Equal(i) {
-						data = data[1:]
-						count = row.Sum
-					}
-				}
-				report[idx].Report[i.Weekday()] = count
-			}
-			return view.Lookup(scope, report, cmd)
+			return view.Lookup(cmd, scope, data)
 		},
 	}
 	cmd.AddCommand(&lookup)
@@ -211,11 +179,100 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	//   Contributions for 2013-11-10: -154d, 0 -> 5
 	//
 	// $ maintainer github contribution suggest 2013-11
+	// $ maintainer github contribution suggest 2013-11-20
 	//
 	suggest := cobra.Command{
-		Use: "suggest",
+		Use:  "suggest",
+		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return nil
+			// dependencies and defaults
+			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+			date := xtime.TruncateToYear(time.Now().UTC())
+			weeks, target := 5, 5 // TODO:magic replace by params
+
+			// input validation: date(year,+month,+week{day})
+			if len(args) == 1 {
+				var err error
+				wrap := func(err error) error {
+					return fmt.Errorf(
+						"please provide argument in format YYYY[-mm[-dd]], e.g., 2006-01: %w",
+						fmt.Errorf("invalid argument %q: %w", args[0], err),
+					)
+				}
+
+				switch input := args[0]; len(input) {
+				case len(xtime.RFC3339Year):
+					date, err = time.Parse(xtime.RFC3339Year, input)
+				case len(xtime.RFC3339Month):
+					date, err = time.Parse(xtime.RFC3339Month, input)
+				case len(xtime.RFC3339Day):
+					date, err = time.Parse(xtime.RFC3339Day, input)
+					date = xtime.TruncateToWeek(date)
+				default:
+					err = fmt.Errorf("unsupported format")
+				}
+				if err != nil {
+					return wrap(err)
+				}
+			}
+
+			// data provisioning
+			start := xtime.TruncateToWeek(date) // Monday
+			scope := xtime.NewRange(
+				start.Add(-2*xtime.Week-xtime.Day), // buffer from left side with Sunday
+				time.Now().UTC(),
+			)
+			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
+			if err != nil {
+				return err
+			}
+
+			var suggest contribution.HistogramByWeekdayRow
+			standard := contribution.HistogramByWeekdayRow{
+				Day: start,
+				Sum: target,
+			}
+			for week, end := start, scope.To(); week.Before(end); week = week.Add(xtime.Week) {
+				data := contribution.HistogramByCount(
+					chm.Subset(xtime.RangeByWeeks(week, 0, false).Shift(-xtime.Day)), // Sunday
+					contribution.OrderByCount,
+				)
+
+				// good week
+				if len(data) == 1 && data[0].Count >= standard.Sum {
+					continue
+				}
+
+				// Sunday
+				day := week.Add(-xtime.Day)
+
+				// bad week
+				if len(data) == 0 {
+					suggest.Day = day
+					suggest.Sum = standard.Sum
+					break
+				}
+
+				// otherwise
+				target := data[len(data)-1].Count // because it's sorted by frequency
+				if target < standard.Sum {
+					target = standard.Sum
+				}
+				suggest.Sum = target
+				for i := time.Sunday; i <= time.Saturday; i++ {
+					if chm[day] != target {
+						suggest.Day = day
+						break
+					}
+					day = day.Add(xtime.Day)
+				}
+				break
+			}
+
+			// data presentation
+			area := xtime.RangeByWeeks(suggest.Day, weeks, true).Shift(-xtime.Day) // Sunday
+			data := contribution.HistogramByWeekday(chm.Subset(area), false)
+			return view.Suggest(cmd, area, data, suggest, chm[suggest.Day])
 		},
 	}
 	cmd.AddCommand(&suggest)
