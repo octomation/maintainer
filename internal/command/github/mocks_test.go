@@ -7,13 +7,13 @@ package github_test
 import (
 	context "context"
 	reflect "reflect"
-	time "time"
 
 	gomock "github.com/golang/mock/gomock"
 
 	git "go.octolab.org/toolset/maintainer/internal/model/git"
 	github "go.octolab.org/toolset/maintainer/internal/model/github"
 	contribution "go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	time "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 // MockGit is a mock of Git interface.
@@ -78,7 +78,7 @@ func (m *MockGitHub) EXPECT() *MockGitHubMockRecorder {
 }
 
 // ContributionHeatMap mocks base method.
-func (m *MockGitHub) ContributionHeatMap(arg0 context.Context, arg1 time.Time) (contribution.HeatMap, error) {
+func (m *MockGitHub) ContributionHeatMap(arg0 context.Context, arg1 time.Range) (contribution.HeatMap, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ContributionHeatMap", arg0, arg1)
 	ret0, _ := ret[0].(contribution.HeatMap)
