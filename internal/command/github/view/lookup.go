@@ -3,12 +3,11 @@ package view
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/alexeyco/simpletable"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
+	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 type WeekReport struct {
@@ -18,7 +17,7 @@ type WeekReport struct {
 
 func Lookup(
 	printer interface{ Println(...interface{}) },
-	scope xtime.Range,
+	scope time.Range,
 	histogram []contribution.HistogramByWeekdayRow,
 ) error {
 	data := convert(scope, histogram)
@@ -85,8 +84,8 @@ func Lookup(
 			{
 				Span: len(table.Header.Cells),
 				Text: fmt.Sprintf("Contributions are on the range from %s to %s",
-					scope.From().Format(xtime.RFC3339Day),
-					scope.To().Format(xtime.RFC3339Day),
+					scope.From().Format(time.RFC3339Day),
+					scope.To().Format(time.RFC3339Day),
 				),
 			},
 		},
@@ -102,7 +101,7 @@ func Lookup(
 //
 // It's because GitHub shows the contribution chart started on Sunday
 // of the previous week. For that reason we have to shift it to the right
-// and compensate `.Shift(-xtime.Day)` call for the scope.
+// and compensate `.Shift(-time.Day)` call for the scope.
 func shiftIsNeeded(idx int, report map[time.Weekday]int) bool {
 	_, is := report[time.Sunday]
 	return idx == 0 && len(report) == 1 && is

@@ -2,9 +2,8 @@ package contribution
 
 import (
 	"sort"
-	"time"
 
-	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
+	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 // HeatMap contains how many contributions have been made in a time.
@@ -21,7 +20,7 @@ func (chm HeatMap) SetCount(ts time.Time, count int) {
 }
 
 // Subset returns a subset of contribution heatmap in the provided time range.
-func (chm HeatMap) Subset(scope xtime.Range) HeatMap {
+func (chm HeatMap) Subset(scope time.Range) HeatMap {
 	subset := make(HeatMap)
 
 	for ts, count := range chm {
@@ -158,7 +157,7 @@ func HistogramByWeekday(chm HeatMap, grouped bool) []HistogramByWeekdayRow {
 	var prev time.Time
 	for _, ts := range f {
 		weekday := ts.Weekday()
-		current := xtime.TruncateToDay(ts)
+		current := time.TruncateToDay(ts)
 
 		idx, found := m[weekday]
 		if !found || (!grouped && !prev.Equal(current)) {

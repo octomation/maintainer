@@ -3,17 +3,16 @@ package view
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/alexeyco/simpletable"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
+	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 func Suggest(
 	printer interface{ Println(...interface{}) },
-	scope xtime.Range,
+	scope time.Range,
 	histogram []contribution.HistogramByWeekdayRow,
 	suggest contribution.HistogramByWeekdayRow,
 	current int,
@@ -82,8 +81,8 @@ func Suggest(
 			{
 				Span: len(table.Header.Cells),
 				Text: fmt.Sprintf("Contributions for %s: %dd, %[4]d -> %[3]d",
-					suggest.Day.Format(xtime.RFC3339Day),
-					suggest.Day.Sub(time.Now().UTC())/xtime.Day,
+					suggest.Day.Format(time.RFC3339Day),
+					suggest.Day.Sub(time.Now().UTC())/time.Day,
 					suggest.Sum,
 					current,
 				),

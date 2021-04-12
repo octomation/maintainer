@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 
@@ -12,7 +11,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
-	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
+	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
@@ -40,7 +39,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			construct, date := xtime.RangeByWeeks, time.Now().UTC()
+			construct, date := time.RangeByWeeks, time.Now().UTC()
 
 			// input validation: date(year,+month,+week{day})
 			if len(args) == 1 {
@@ -53,14 +52,14 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				}
 
 				switch input := args[0]; len(input) {
-				case len(xtime.RFC3339Year):
-					date, err = time.Parse(xtime.RFC3339Year, input)
-					construct = xtime.RangeByYears
-				case len(xtime.RFC3339Month):
-					date, err = time.Parse(xtime.RFC3339Month, input)
-					construct = xtime.RangeByMonths
-				case len(xtime.RFC3339Day):
-					date, err = time.Parse(xtime.RFC3339Day, input)
+				case len(time.RFC3339Year):
+					date, err = time.Parse(time.RFC3339Year, input)
+					construct = time.RangeByYears
+				case len(time.RFC3339Month):
+					date, err = time.Parse(time.RFC3339Month, input)
+					construct = time.RangeByMonths
+				case len(time.RFC3339Day):
+					date, err = time.Parse(time.RFC3339Day, input)
 				default:
 					err = fmt.Errorf("unsupported format")
 				}
@@ -70,7 +69,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// data provisioning
-			scope := construct(date, 0, false).Shift(-xtime.Day).ExcludeFuture()
+			scope := construct(date, 0, false).Shift(-time.Day).ExcludeFuture()
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
@@ -139,7 +138,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 					fallthrough
 				case 1:
 					if raw[0] != "now" && raw[0] != "" {
-						date, err = time.Parse(xtime.RFC3339Day, raw[0])
+						date, err = time.Parse(time.RFC3339Day, raw[0])
 					}
 					if err != nil {
 						return wrap(err)
@@ -150,7 +149,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// data provisioning
-			scope := xtime.RangeByWeeks(date, weeks, half).Shift(-xtime.Day).ExcludeFuture()
+			scope := time.RangeByWeeks(date, weeks, half).Shift(-time.Day).ExcludeFuture()
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
@@ -164,22 +163,22 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	cmd.AddCommand(&lookup)
 
 	//
-	// $ maintainer github contribution suggest 2013
+	// $ maintainer github contribution suggest 2013-11-20
 	//
-	//   Day / Week   #45   #46   #47   #48   #49   #50
-	//  ------------ ----- ----- ----- ----- ----- -----
-	//   Sunday        -     -     -     1     -     -
-	//   Monday        -     -     -     2     1     2
-	//   Tuesday       -     -     -     8     1     -
-	//   Wednesday     -     1     1     -     3     -
-	//   Thursday      -     -     3     7     1     7
-	//   Friday        -     -     -     1     2     -
-	//   Saturday      -     -     -     -     -     -
-	//  ------------ ----- ----- ----- ----- ----- -----
-	//   Contributions for 2013-11-10: -154d, 0 -> 5
+	//  Day / Week    #45    #46    #47    #48   #49
+	// ------------- ------ ------ ------ ----- -----
+	//  Sunday         -      -      -      1     -
+	//  Monday         -      -      -      2     1
+	//  Tuesday        -      -      -      8     1
+	//  Wednesday      -      1      1      -     3
+	//  Thursday       -      -      3      7     1
+	//  Friday         -      -      -      1     2
+	//  Saturday       -      -      -      -     -
+	// ------------- ------ ------ ------ ----- -----
+	//  Contributions for 2013-11-17: -3119d, 0 -> 5
 	//
 	// $ maintainer github contribution suggest 2013-11
-	// $ maintainer github contribution suggest 2013-11-20
+	// $ maintainer github contribution suggest 2013
 	//
 	suggest := cobra.Command{
 		Use:  "suggest",
@@ -187,7 +186,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date := xtime.TruncateToYear(time.Now().UTC())
+			date := time.TruncateToYear(time.Now().UTC())
 			weeks, target := 5, 5 // TODO:magic replace by params
 
 			// input validation: date(year,+month,+week{day})
@@ -201,13 +200,13 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				}
 
 				switch input := args[0]; len(input) {
-				case len(xtime.RFC3339Year):
-					date, err = time.Parse(xtime.RFC3339Year, input)
-				case len(xtime.RFC3339Month):
-					date, err = time.Parse(xtime.RFC3339Month, input)
-				case len(xtime.RFC3339Day):
-					date, err = time.Parse(xtime.RFC3339Day, input)
-					date = xtime.TruncateToWeek(date)
+				case len(time.RFC3339Year):
+					date, err = time.Parse(time.RFC3339Year, input)
+				case len(time.RFC3339Month):
+					date, err = time.Parse(time.RFC3339Month, input)
+				case len(time.RFC3339Day):
+					date, err = time.Parse(time.RFC3339Day, input)
+					date = time.TruncateToWeek(date)
 				default:
 					err = fmt.Errorf("unsupported format")
 				}
@@ -217,9 +216,9 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// data provisioning
-			start := xtime.TruncateToWeek(date) // Monday
-			scope := xtime.NewRange(
-				start.Add(-2*xtime.Week-xtime.Day), // buffer from left side with Sunday
+			start := time.TruncateToWeek(date) // Monday
+			scope := time.NewRange(
+				start.Add(-2*time.Week-time.Day), // buffer from left side with Sunday
 				time.Now().UTC(),
 			)
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
@@ -232,9 +231,9 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				Day: start,
 				Sum: target,
 			}
-			for week, end := start, scope.To(); week.Before(end); week = week.Add(xtime.Week) {
+			for week, end := start, scope.To(); week.Before(end); week = week.Add(time.Week) {
 				data := contribution.HistogramByCount(
-					chm.Subset(xtime.RangeByWeeks(week, 0, false).Shift(-xtime.Day)), // Sunday
+					chm.Subset(time.RangeByWeeks(week, 0, false).Shift(-time.Day)), // Sunday
 					contribution.OrderByCount,
 				)
 
@@ -244,7 +243,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				}
 
 				// Sunday
-				day := week.Add(-xtime.Day)
+				day := week.Add(-time.Day)
 
 				// bad week
 				if len(data) == 0 {
@@ -264,13 +263,13 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 						suggest.Day = day
 						break
 					}
-					day = day.Add(xtime.Day)
+					day = day.Add(time.Day)
 				}
 				break
 			}
 
 			// data presentation
-			area := xtime.RangeByWeeks(suggest.Day, weeks, true).Shift(-xtime.Day) // Sunday
+			area := time.RangeByWeeks(suggest.Day, weeks, true).Shift(-time.Day) // Sunday
 			data := contribution.HistogramByWeekday(chm.Subset(area), false)
 			return view.Suggest(cmd, area, data, suggest, chm[suggest.Day])
 		},
