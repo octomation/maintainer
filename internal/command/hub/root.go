@@ -5,7 +5,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/google/go-github/v44/github"
+	"github.com/google/go-github/v45/github"
 	"github.com/spf13/cobra"
 	"go.octolab.org/async"
 	"go.octolab.org/safe"
