@@ -32,6 +32,33 @@ func (chm HeatMap) Subset(scope time.Range) HeatMap {
 	return subset
 }
 
+// From returns minimum time of the heat map, otherwise the zero time instant.
+func (chm HeatMap) From() time.Time {
+	var min time.Time
+	for ts := range chm {
+		if ts.Before(min) || min.IsZero() {
+			min = ts
+		}
+	}
+	return min
+}
+
+// To returns maximum time of the heat map, otherwise the zero time instant.
+func (chm HeatMap) To() time.Time {
+	var max time.Time
+	for ts := range chm {
+		if ts.After(max) {
+			max = ts
+		}
+	}
+	return max
+}
+
+// Range returns time range of the heat map, otherwise the zero time range instant.
+func (chm HeatMap) Range() time.Range {
+	return time.NewRange(chm.From(), chm.To())
+}
+
 type HistogramByCountRow struct {
 	Count, Frequency int
 }
