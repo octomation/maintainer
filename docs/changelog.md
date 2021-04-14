@@ -1,8 +1,8 @@
 > # 👨‍🔧 maintainer
 >
-> Upcoming changes. Full changelog is [here](changelog.md).
+> Changelog.
 
-## [GitHub Contributions Calendar][calendar]
+## Unreleased, [GitHub Contributions Calendar][calendar]
 
 - Add support GitHub Access Token by parameter
 
