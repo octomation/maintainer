@@ -1,6 +1,7 @@
 package github
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -69,7 +70,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// data provisioning
-			scope := construct(date, 0, false).Shift(-time.Day).ExcludeFuture()
+			scope := construct(date, 0, false).ExcludeFuture()
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
@@ -275,6 +276,48 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		},
 	}
 	cmd.AddCommand(&suggest)
+
+	snapshot := cobra.Command{
+		Use:  "snapshot",
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// dependencies and defaults
+			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+			date := time.TruncateToYear(time.Now().UTC())
+
+			// input validation: date(year)
+			if len(args) == 1 {
+				var err error
+				wrap := func(err error) error {
+					return fmt.Errorf(
+						"please provide argument in format YYYY, e.g., 2006: %w",
+						fmt.Errorf("invalid argument %q: %w", args[0], err),
+					)
+				}
+
+				switch input := args[0]; len(input) {
+				case len(time.RFC3339Year):
+					date, err = time.Parse(time.RFC3339Year, input)
+				default:
+					err = fmt.Errorf("unsupported format")
+				}
+				if err != nil {
+					return wrap(err)
+				}
+			}
+
+			// data provisioning
+			scope := time.RangeByYears(date, 0, false).ExcludeFuture()
+			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
+			if err != nil {
+				return err
+			}
+
+			// data presentation
+			return json.NewEncoder(cmd.OutOrStdout()).Encode(chm)
+		},
+	}
+	cmd.AddCommand(&snapshot)
 
 	return &cmd
 }
