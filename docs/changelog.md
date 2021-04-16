@@ -6,18 +6,18 @@
 
 - Add support GitHub Access Token by parameter
 
-You could still provide it by the environment variable
+  You could still provide it by the environment variable
 
-```bash
-$ export GITHUB_TOKEN=secret
-$ maintainer github ...
-```
+  ```bash
+  $ export GITHUB_TOKEN=secret
+  $ maintainer github ...
+  ```
 
-But now, you also could choose the parameter for its provisioning
+  But now, you also could choose the parameter for its provisioning
 
-```bash
-$ maintainer github --token=secret ...
-```
+  ```bash
+  $ maintainer github --token=secret ...
+  ```
 
 - Add commands to work with GitHub Contributions Calendar
 
@@ -61,7 +61,7 @@ $ maintainer github --token=secret ...
   * Makes a snapshot of contributions for a specified year
 
     ```bash
-    $ maintainer github contribution snapshot 2013 | tee snap.2013.json | jq
+    $ maintainer github contribution snapshot 2013 | tee /tmp/snap.01.2013.json | jq
     {
       "2013-11-13T00:00:00Z": 1,
       ...

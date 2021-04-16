@@ -10,6 +10,9 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
+// TODO:refactoring combine with Lookup, use HeatMap as input
+// TODO:refactoring extract "table builder", compare with others views
+
 func Suggest(
 	printer interface{ Println(...interface{}) },
 	scope time.Range,
@@ -42,6 +45,7 @@ func Suggest(
 		if shiftIsNeeded(i, data[i].Report) {
 			continue
 		}
+		// TODO:unclear explain
 		if i == 0 {
 			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: "?"})
 			continue

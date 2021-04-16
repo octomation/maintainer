@@ -32,7 +32,27 @@ func (chm HeatMap) Subset(scope time.Range) HeatMap {
 	return subset
 }
 
-// From returns minimum time of the heat map, otherwise the zero time instant.
+// Diff calculates the difference between two heatmaps.
+func (chm HeatMap) Diff(src HeatMap) HeatMap {
+	diff := make(HeatMap)
+
+	keys := make(map[time.Time]struct{}, len(chm)+len(src))
+	for ts := range chm {
+		keys[ts] = struct{}{}
+	}
+	for ts := range src {
+		keys[ts] = struct{}{}
+	}
+	for ts := range keys {
+		if delta := src[ts] - chm[ts]; delta != 0 {
+			diff[ts] = delta
+		}
+	}
+
+	return diff
+}
+
+// From returns minimum time of the heatmap, otherwise the zero time instant.
 func (chm HeatMap) From() time.Time {
 	var min time.Time
 	for ts := range chm {
@@ -43,7 +63,7 @@ func (chm HeatMap) From() time.Time {
 	return min
 }
 
-// To returns maximum time of the heat map, otherwise the zero time instant.
+// To returns maximum time of the heatmap, otherwise the zero time instant.
 func (chm HeatMap) To() time.Time {
 	var max time.Time
 	for ts := range chm {
@@ -54,7 +74,7 @@ func (chm HeatMap) To() time.Time {
 	return max
 }
 
-// Range returns time range of the heat map, otherwise the zero time range instant.
+// Range returns time range of the heatmap, otherwise the zero time range instant.
 func (chm HeatMap) Range() time.Range {
 	return time.NewRange(chm.From(), chm.To())
 }

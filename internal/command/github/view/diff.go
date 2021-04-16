@@ -2,21 +2,24 @@ package view
 
 import (
 	"fmt"
-	"strconv"
-
 	"github.com/alexeyco/simpletable"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
-func Lookup(
+func Diff(
 	printer interface{ Println(...interface{}) },
-	scope time.Range,
-	histogram []contribution.HistogramByWeekdayRow,
+	heatmap contribution.HeatMap,
+	base, head string,
 ) error {
-	data := convert(scope, histogram)
+	data := prepare(heatmap)
 	table := simpletable.New()
+
+	if len(data) == 0 {
+		printer.Println(fmt.Sprintf("There is no diff between head{%q} → base{%q}", head, base))
+		return nil
+	}
 
 	table.Header = &simpletable.Header{
 		Cells: []*simpletable.Cell{
@@ -42,15 +45,12 @@ func Lookup(
 		}
 		// TODO:unclear explain
 		if i == 0 {
-			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: "?"})
+			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: "-"})
 			continue
 		}
 		txt := "-"
-		count, present := data[i-1].Report[time.Sunday]
-		if count > 0 {
-			txt = strconv.Itoa(count)
-		} else if !present {
-			txt = "?"
+		if count := data[i-1].Report[time.Sunday]; count != 0 {
+			txt = fmt.Sprintf("%+d", count)
 		}
 		row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: txt})
 	}
@@ -64,11 +64,8 @@ func Lookup(
 				continue
 			}
 			txt := "-"
-			count, present := week.Report[i]
-			if count > 0 {
-				txt = strconv.Itoa(count)
-			} else if !present {
-				txt = "?"
+			if count := week.Report[i]; count != 0 {
+				txt = fmt.Sprintf("%+d", count)
 			}
 			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: txt})
 		}
@@ -79,10 +76,7 @@ func Lookup(
 		Cells: []*simpletable.Cell{
 			{
 				Span: len(table.Header.Cells),
-				Text: fmt.Sprintf("Contributions are on the range from %s to %s",
-					scope.From().Format(time.RFC3339Day),
-					scope.To().Format(time.RFC3339Day),
-				),
+				Text: fmt.Sprintf("The diff between head{%q} → base{%q}", head, base),
 			},
 		},
 	}

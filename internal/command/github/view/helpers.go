@@ -5,6 +5,11 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
+type WeekReport struct {
+	Number int
+	Report map[time.Weekday]int
+}
+
 func convert(
 	scope time.Range,
 	histogram []contribution.HistogramByWeekdayRow,
@@ -36,4 +41,39 @@ func convert(
 		report[idx].Report[day.Weekday()] = count
 	}
 	return report
+}
+
+func prepare(heatmap contribution.HeatMap) []WeekReport {
+	report := make([]WeekReport, 0, 8)
+
+	start := time.TruncateToWeek(heatmap.From())
+	for week, end := start, heatmap.To(); week.Before(end); week = week.Add(time.Week) {
+		subset := heatmap.Subset(time.RangeByWeeks(week, 0, false).Shift(-time.Day))
+		if len(subset) == 0 {
+			continue
+		}
+
+		_, num := week.ISOWeek()
+		row := WeekReport{
+			Number: num,
+			Report: make(map[time.Weekday]int, len(subset)),
+		}
+		for ts, count := range subset {
+			row.Report[ts.Weekday()] = count
+		}
+		report = append(report, row)
+	}
+
+	return report
+}
+
+// If it's a first-week report with a single entry for Sunday,
+// we skip it completely.
+//
+// It's because GitHub shows the contribution chart started on Sunday
+// of the previous week. For that reason we have to shift it to the right
+// and compensate `.Shift(-time.Day)` call for the scope.
+func shiftIsNeeded(idx int, report map[time.Weekday]int) bool {
+	_, is := report[time.Sunday]
+	return idx == 0 && len(report) == 1 && is
 }

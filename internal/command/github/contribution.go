@@ -11,6 +11,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/command/github/view"
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/config/flag"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
@@ -20,6 +21,103 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	cmd := cobra.Command{
 		Use: "contribution",
 	}
+
+	//
+	// $ maintainer github contribution diff --base=/tmp/snap.01.2013.json --head=/tmp/snap.02.2013.json
+	//
+	//  Day / Week                  #46             #48             #49           #50
+	// ---------------------- --------------- --------------- --------------- -----------
+	//  Sunday                       -               -               -             -
+	//  Monday                       -               -               -             -
+	//  Tuesday                      -               -               -             -
+	//  Wednesday                   +4               -              +1             -
+	//  Thursday                     -               -               -            +1
+	//  Friday                       -              +2               -             -
+	//  Saturday                     -               -               -             -
+	// ---------------------- --------------- --------------- --------------- -----------
+	//  The diff between head{"/tmp/snap.02.2013.json"} → base{"/tmp/snap.01.2013.json"}
+	//
+	// $ maintainer github contribution diff --base=/tmp/snap.01.2013.json 2013
+	//
+	diff := cobra.Command{
+		Use:  "diff",
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// dependencies and defaults
+			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+			date := time.TruncateToYear(time.Now().UTC())
+
+			// input validation: files{params}, date(year){args}
+			var baseSource, headSource string
+			dst, err := flag.Adopt(cmd.Flags()).GetFile("base")
+			if err != nil {
+				return err
+			}
+			if dst == nil {
+				return fmt.Errorf("please provide a base file by `--base` parameter")
+			}
+			baseSource = dst.Name()
+
+			src, err := flag.Adopt(cmd.Flags()).GetFile("head")
+			if err != nil {
+				return err
+			}
+			if src == nil && len(args) == 0 {
+				return fmt.Errorf("please provide a compared file by `--head` parameter or year in args")
+			}
+			if src != nil && len(args) > 0 {
+				return fmt.Errorf("please omit `--head` or argument, only one of them is allowed")
+			}
+			if len(args) == 1 {
+				var err error
+				wrap := func(err error) error {
+					return fmt.Errorf(
+						"please provide argument in format YYYY, e.g., 2006: %w",
+						fmt.Errorf("invalid argument %q: %w", args[0], err),
+					)
+				}
+
+				switch input := args[0]; len(input) {
+				case len(time.RFC3339Year):
+					date, err = time.Parse(time.RFC3339Year, input)
+				default:
+					err = fmt.Errorf("unsupported format")
+				}
+				if err != nil {
+					return wrap(err)
+				}
+				headSource = fmt.Sprintf("upstream:year(%s)", date.Format(time.RFC3339Year))
+			} else {
+				headSource = src.Name()
+			}
+
+			// data provisioning
+			var (
+				base contribution.HeatMap
+				head contribution.HeatMap
+			)
+			if err := json.NewDecoder(dst).Decode(&base); err != nil {
+				return err
+			}
+			if src != nil {
+				if err := json.NewDecoder(src).Decode(&head); err != nil {
+					return err
+				}
+			} else {
+				scope := time.RangeByYears(date, 0, false).ExcludeFuture()
+				head, err = service.ContributionHeatMap(cmd.Context(), scope)
+				if err != nil {
+					return err
+				}
+			}
+
+			// data presentation
+			return view.Diff(cmd, base.Diff(head), baseSource, headSource)
+		},
+	}
+	flag.Adopt(diff.Flags()).File("base", "", "path to a base file")
+	flag.Adopt(diff.Flags()).File("head", "", "path to a head file")
+	cmd.AddCommand(&diff)
 
 	//
 	// $ maintainer github contribution histogram 2013
@@ -164,6 +262,57 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	cmd.AddCommand(&lookup)
 
 	//
+	// $ maintainer github contribution snapshot 2013 | tee /tmp/snap.01.2013.json | jq
+	//
+	// {
+	//   "2013-11-13T00:00:00Z": 1,
+	//   ...
+	//   "2013-12-27T00:00:00Z": 2
+	// }
+	//
+	snapshot := cobra.Command{
+		Use:  "snapshot",
+		Args: cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			// dependencies and defaults
+			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+			date := time.TruncateToYear(time.Now().UTC())
+
+			// input validation: date(year)
+			if len(args) == 1 {
+				var err error
+				wrap := func(err error) error {
+					return fmt.Errorf(
+						"please provide argument in format YYYY, e.g., 2006: %w",
+						fmt.Errorf("invalid argument %q: %w", args[0], err),
+					)
+				}
+
+				switch input := args[0]; len(input) {
+				case len(time.RFC3339Year):
+					date, err = time.Parse(time.RFC3339Year, input)
+				default:
+					err = fmt.Errorf("unsupported format")
+				}
+				if err != nil {
+					return wrap(err)
+				}
+			}
+
+			// data provisioning
+			scope := time.RangeByYears(date, 0, false).ExcludeFuture()
+			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
+			if err != nil {
+				return err
+			}
+
+			// data presentation
+			return json.NewEncoder(cmd.OutOrStdout()).Encode(chm)
+		},
+	}
+	cmd.AddCommand(&snapshot)
+
+	//
 	// $ maintainer github contribution suggest 2013-11-20
 	//
 	//  Day / Week    #45    #46    #47    #48   #49
@@ -276,48 +425,6 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		},
 	}
 	cmd.AddCommand(&suggest)
-
-	snapshot := cobra.Command{
-		Use:  "snapshot",
-		Args: cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// dependencies and defaults
-			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date := time.TruncateToYear(time.Now().UTC())
-
-			// input validation: date(year)
-			if len(args) == 1 {
-				var err error
-				wrap := func(err error) error {
-					return fmt.Errorf(
-						"please provide argument in format YYYY, e.g., 2006: %w",
-						fmt.Errorf("invalid argument %q: %w", args[0], err),
-					)
-				}
-
-				switch input := args[0]; len(input) {
-				case len(time.RFC3339Year):
-					date, err = time.Parse(time.RFC3339Year, input)
-				default:
-					err = fmt.Errorf("unsupported format")
-				}
-				if err != nil {
-					return wrap(err)
-				}
-			}
-
-			// data provisioning
-			scope := time.RangeByYears(date, 0, false).ExcludeFuture()
-			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
-			if err != nil {
-				return err
-			}
-
-			// data presentation
-			return json.NewEncoder(cmd.OutOrStdout()).Encode(chm)
-		},
-	}
-	cmd.AddCommand(&snapshot)
 
 	return &cmd
 }
