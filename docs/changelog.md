@@ -58,7 +58,7 @@
     $ maintainer github contribution lookup /3         # -> now()/3 == now()/-1
     ```
 
-  * Makes a snapshot of contributions for a specified year
+  * Makes a snapshot of contributions for a specified year or shows changes
 
     ```bash
     $ maintainer github contribution snapshot 2013 | tee /tmp/snap.01.2013.json | jq
@@ -67,6 +67,21 @@
       ...
       "2013-12-27T00:00:00Z": 2
     }
+
+    $ maintainer github contribution diff --base=/tmp/snap.01.2013.json 2013
+     Day / Week                  #46             #48             #49           #50
+    ---------------------- --------------- --------------- --------------- -----------
+     Sunday                       -               -               -             -
+     Monday                       -               -               -             -
+     Tuesday                      -               -               -             -
+     Wednesday                   +4               -              +1             -
+     Thursday                     -               -               -            +1
+     Friday                       -              +2               -             -
+     Saturday                     -               -               -             -
+    ---------------------- --------------- --------------- --------------- -----------
+     The diff between head{"/tmp/snap.02.2013.json"} → base{"/tmp/snap.01.2013.json"}
+
+    $ maintainer github contribution diff --base=/tmp/snap.01.2013.json --head=/tmp/snap.02.2013.json
     ```
 
   * Suggests a reasonable date to contribute

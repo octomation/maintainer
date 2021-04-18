@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+
 	"github.com/alexeyco/simpletable"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
