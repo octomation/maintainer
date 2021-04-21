@@ -8,7 +8,7 @@ permissions:
   contents: write
 
 jobs:
-  goreleaser:
+  publish:
     runs-on: ubuntu-18.04
 
     steps:
@@ -35,7 +35,7 @@ jobs:
           args: release --rm-dist
 
   notify:
-    needs: [ test ]
+    needs: [ publish ]
     if: ${{ failure() || success() }}
     runs-on: ubuntu-18.04
 
