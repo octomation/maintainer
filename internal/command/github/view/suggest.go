@@ -19,7 +19,14 @@ func Suggest(
 	histogram []contribution.HistogramByWeekdayRow,
 	suggest contribution.HistogramByWeekdayRow,
 	current int,
+	short bool,
 ) error {
+	delta := fmt.Sprintf("%dd", suggest.Day.Sub(time.Now().UTC())/time.Day)
+	if short {
+		printer.Println(delta)
+		return nil
+	}
+
 	data := convert(scope, histogram)
 	table := simpletable.New()
 
@@ -84,9 +91,9 @@ func Suggest(
 		Cells: []*simpletable.Cell{
 			{
 				Span: len(table.Header.Cells),
-				Text: fmt.Sprintf("Contributions for %s: %dd, %[4]d -> %[3]d",
+				Text: fmt.Sprintf("Contributions for %s: %s, %[4]d -> %[3]d",
 					suggest.Day.Format(time.RFC3339Day),
-					suggest.Day.Sub(time.Now().UTC())/time.Day,
+					delta,
 					suggest.Sum,
 					current,
 				),

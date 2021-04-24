@@ -102,6 +102,7 @@
 
     $ maintainer github contribution suggest 2013-11
     $ maintainer github contribution suggest 2013
+    $ maintainer github contribution suggest --short 2013
     ```
 
 [calendar]: https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-graphs-on-your-profile/viewing-contributions-on-your-profile#contributions-calendar

@@ -337,6 +337,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 			date := time.TruncateToYear(time.Now().UTC())
+			short, _ := cmd.Flags().GetBool("short")
 			weeks, target := 5, 5 // TODO:magic replace by params
 
 			// input validation: date(year,+month,+week{day})
@@ -421,9 +422,10 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			// data presentation
 			area := time.RangeByWeeks(suggest.Day, weeks, true).Shift(-time.Day) // Sunday
 			data := contribution.HistogramByWeekday(chm.Subset(area), false)
-			return view.Suggest(cmd, area, data, suggest, chm[suggest.Day])
+			return view.Suggest(cmd, area, data, suggest, chm[suggest.Day], short)
 		},
 	}
+	suggest.Flags().Bool("short", false, "returns only a suggested delta, e.g. -3119d")
 	cmd.AddCommand(&suggest)
 
 	return &cmd
