@@ -87,7 +87,7 @@
   * Suggests a reasonable date to contribute
 
     ```bash
-    $ maintainer github contribution suggest 2013-11-20
+    $ maintainer github contribution suggest --delta 2013-11-20
      Day / Week    #45    #46    #47    #48   #49
     ------------- ------ ------ ------ ----- -----
      Sunday         -      -      -      1     -

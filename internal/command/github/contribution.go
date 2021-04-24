@@ -313,7 +313,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	cmd.AddCommand(&snapshot)
 
 	//
-	// $ maintainer github contribution suggest 2013-11-20
+	// $ maintainer github contribution suggest --delta 2013-11-20
 	//
 	//  Day / Week    #45    #46    #47    #48   #49
 	// ------------- ------ ------ ------ ----- -----
@@ -329,6 +329,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	//
 	// $ maintainer github contribution suggest 2013-11
 	// $ maintainer github contribution suggest 2013
+	// $ maintainer github contribution suggest --short 2013
 	//
 	suggest := cobra.Command{
 		Use:  "suggest",
@@ -337,8 +338,10 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 			date := time.TruncateToYear(time.Now().UTC())
+			delta, _ := cmd.Flags().GetBool("delta")
 			short, _ := cmd.Flags().GetBool("short")
-			weeks, target := 5, 5 // TODO:magic replace by params
+			target, _ := cmd.Flags().GetInt("target")
+			weeks, _ := cmd.Flags().GetInt("weeks")
 
 			// input validation: date(year,+month,+week{day})
 			if len(args) == 1 {
@@ -422,10 +425,18 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			// data presentation
 			area := time.RangeByWeeks(suggest.Day, weeks, true).Shift(-time.Day) // Sunday
 			data := contribution.HistogramByWeekday(chm.Subset(area), false)
-			return view.Suggest(cmd, area, data, suggest, chm[suggest.Day], short)
+			return view.Suggest(cmd, area, data, view.SuggestOption{
+				Suggest: suggest,
+				Current: chm[suggest.Day],
+				Delta:   delta,
+				Short:   short,
+			})
 		},
 	}
-	suggest.Flags().Bool("short", false, "returns only a suggested delta, e.g. -3119d")
+	suggest.Flags().Bool("delta", false, "shows relatively")
+	suggest.Flags().Bool("short", false, "shows only date")
+	suggest.Flags().Int("target", 5, "minimum contributions")
+	suggest.Flags().Int("weeks", 5, "how many weeks to show")
 	cmd.AddCommand(&suggest)
 
 	return &cmd

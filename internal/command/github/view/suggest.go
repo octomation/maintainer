@@ -3,28 +3,49 @@ package view
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/alexeyco/simpletable"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	"go.octolab.org/toolset/maintainer/internal/pkg/time"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
+
+type SuggestOption struct {
+	Suggest contribution.HistogramByWeekdayRow
+	Current int
+	Delta   bool
+	Short   bool
+}
 
 // TODO:refactoring combine with Lookup, use HeatMap as input
 // TODO:refactoring extract "table builder", compare with others views
 
 func Suggest(
 	printer interface{ Println(...interface{}) },
-	scope time.Range,
+
+	scope xtime.Range,
 	histogram []contribution.HistogramByWeekdayRow,
-	suggest contribution.HistogramByWeekdayRow,
-	current int,
-	short bool,
+
+	option SuggestOption,
 ) error {
-	delta := fmt.Sprintf("%dd", suggest.Day.Sub(time.Now().UTC())/time.Day)
-	if short {
-		printer.Println(delta)
+	now := xtime.Now().UTC()
+
+	var suggestion string
+	if option.Delta {
+		suggestion = fmt.Sprintf("%dd", option.Suggest.Day.Sub(now)/xtime.Day)
+	} else {
+		day := xtime.CopyClock(now, option.Suggest.Day).In(time.Local)
+		suggestion = fmt.Sprintf("%s", day.Format(time.RFC3339))
+	}
+	if option.Short {
+		printer.Println(suggestion)
 		return nil
+	} else if option.Delta {
+		suggestion = fmt.Sprintf("%s: %s",
+			option.Suggest.Day.Format(xtime.RFC3339Day),
+			suggestion,
+		)
 	}
 
 	data := convert(scope, histogram)
@@ -91,11 +112,10 @@ func Suggest(
 		Cells: []*simpletable.Cell{
 			{
 				Span: len(table.Header.Cells),
-				Text: fmt.Sprintf("Contributions for %s: %s, %[4]d -> %[3]d",
-					suggest.Day.Format(time.RFC3339Day),
-					delta,
-					suggest.Sum,
-					current,
+				Text: fmt.Sprintf("Suggestion is %s, %d -> %d",
+					suggestion,
+					option.Current,
+					option.Suggest.Sum,
 				),
 			},
 		},
