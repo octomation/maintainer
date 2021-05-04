@@ -10,6 +10,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"go.octolab.org/safe"
+	"go.octolab.org/toolkit/protocol/http/header"
 	"go.octolab.org/unsafe"
 	"golang.org/x/sync/errgroup"
 
@@ -78,6 +79,7 @@ func fetchContributions(ctx context.Context, user string, year int) (*goquery.Do
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	})
+	req.Header.Set(header.CacheControl, "no-cache")
 
 	// TODO:debt use srv.client.Client() instead
 	resp, err := http.DefaultClient.Do(req)

@@ -102,6 +102,7 @@ github.com/fsnotify/fsnotify v1.5.4/go.mod h1:OVB6XrOHzAwXMpEM7uPOzcehqUV2UqJxmV
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/gliderlabs/ssh v0.2.2 h1:6zsha5zo/TWhRhwqCD3+EarCAgZ2yN28ipRnGPnwkI0=
 github.com/gliderlabs/ssh v0.2.2/go.mod h1:U7qILu1NlMHj9FlMhZLlkCdDnU1DBEAqr0aevW3Awn0=
+github.com/go-chi/chi v1.5.4/go.mod h1:uaf8YgoFazUOkPBG7fxPftUylNumIev9awIWOENIuEg=
 github.com/go-git/gcfg v1.5.0 h1:Q5ViNfGF8zFgyJWPqYwA7qGFoMTEiBmdlkcfRmpIMa4=
 github.com/go-git/gcfg v1.5.0/go.mod h1:5m20vg6GwYabIxaOonVkTdrILxQMpEShl1xiMF4ua+E=
 github.com/go-git/go-billy/v5 v5.2.0/go.mod h1:pmpqyWchKfYfrkb/UVH4otLvyi/5gJlGI4Hb3ZqZ3W0=
@@ -226,6 +227,7 @@ github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/X
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/kamilsk/mapstructure v1.5.1-0.20220531052913-46503656eb6d h1:BiHdCffOx7eltI603f6xeSh04JjCZI29DlRfZG9oSCo=
 github.com/kamilsk/mapstructure v1.5.1-0.20220531052913-46503656eb6d/go.mod h1:bFUtVrKA4DC2yAKiSyO/QUcy7e+RRV2QTWOzhPopBRo=
+github.com/kamilsk/tracer v1.0.1/go.mod h1:pSCUONu6eIsQLOMvtGf+W12DxpU7RVfEGgkHyJQ5e6c=
 github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351 h1:DowS9hvgyYSX4TO5NpyC606/Z4SxnNYbT+WX27or6Ck=
 github.com/kevinburke/ssh_config v0.0.0-20201106050909-4977a11b4351/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
@@ -346,6 +348,8 @@ go.octolab.org/toolkit/cli v0.6.3 h1:PXQ5FTolES3g61n402MWV2KTYSFUUWCnn/5Npl/bmGs
 go.octolab.org/toolkit/cli v0.6.3/go.mod h1:bfeQzJzBzEBXeU8JJZu0WfffuUriAqwJEg1hf2vhfeY=
 go.octolab.org/toolkit/config v0.0.4 h1:Q/MnSuRf4ttHCuAaq7PqpD8xQhEtmfK8mO9NX1IxvlA=
 go.octolab.org/toolkit/config v0.0.4/go.mod h1:dI3TlD3b4t0ilP7T+q0BYs6mhYBXm8i4TCLqCabykBA=
+go.octolab.org/toolkit/protocol v0.1.0 h1:pCt544tVSiXliXGTu3iWTv/ilgFr5VkVUrjlr5nx27s=
+go.octolab.org/toolkit/protocol v0.1.0/go.mod h1:MImbVvzIKM1gE/S8WeEGaXFYkdAG1z8o3diXacFgarE=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.opencensus.io v0.22.0/go.mod h1:+kGneAE2xo2IficOXnaByMWTGM9T73dGwxeWcUqIpI8=
 go.opencensus.io v0.22.2/go.mod h1:yxeiOL68Rb0Xd1ddK5vPZ/oVn4vY4Ynel7k9FzqtOIw=
