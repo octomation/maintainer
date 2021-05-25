@@ -1,7 +1,8 @@
 package golang
 
 type Module struct {
-	Name     string   `yaml:"prefix"`
+	Name     string   `yaml:"name"`
+	Prefix   string   `yaml:"prefix"`
 	Import   []Import `yaml:"import"`
 	Packages []string `yaml:"packages"`
 	Tags     []string `yaml:"tags"`

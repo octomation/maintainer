@@ -24,6 +24,29 @@ func Test_fill(t *testing.T) {
 				"go.octolab.org/toolkit/cli/debugger",
 			},
 		},
+		"issue#6 infinite loop": {
+			prefix: "",
+			packages: []string{
+				"go.octolab.org",
+			},
+			expected: []string{
+				"go.octolab.org",
+			},
+		},
+		"issue#6 deep dive": {
+			prefix: "go.octolab.org",
+			packages: []string{
+				"go.octolab.org/toolkit/cli/cobra",
+				"go.octolab.org/toolkit/cli/debugger",
+			},
+			expected: []string{
+				"go.octolab.org",
+				"go.octolab.org/toolkit",
+				"go.octolab.org/toolkit/cli",
+				"go.octolab.org/toolkit/cli/cobra",
+				"go.octolab.org/toolkit/cli/debugger",
+			},
+		},
 	}
 
 	for name, test := range tests {

@@ -5,8 +5,12 @@ import (
 	"sort"
 )
 
-// temporary solution for issue#6
+// temporary solution for https://github.com/octomation/maintainer/issues/6
 func fill(prefix string, packages []string) []string {
+	if prefix == "" {
+		return packages
+	}
+
 	index := map[string]struct{}{}
 	for _, pkg := range packages {
 		index[pkg] = struct{}{}

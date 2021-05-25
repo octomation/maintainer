@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
+	xstrings "go.octolab.org/strings"
 
 	"go.octolab.org/toolset/maintainer/internal/entity/golang"
 )
@@ -25,7 +26,8 @@ func (publisher *publisher) PublishAt(root string, modules []golang.Module) erro
 			continue
 		}
 
-		for _, pkg := range fill(module.Name, module.Packages) {
+		prefix := xstrings.FirstNotEmpty(module.Prefix, module.Name)
+		for _, pkg := range fill(prefix, module.Packages) {
 			dir := filepath.Join(append(
 				[]string{root},
 				strings.Split(strings.TrimPrefix(pkg, publisher.host), "/")...,
@@ -43,7 +45,7 @@ func (publisher *publisher) PublishAt(root string, modules []golang.Module) erro
 				if err := tpl.Execute(file, Meta{
 					Package: pkg,
 					Import: MetaImport{
-						Prefix:   module.Name,
+						Prefix:   prefix,
 						VCS:      imports.VCS,
 						RepoRoot: imports.URL,
 					},

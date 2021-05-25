@@ -57,6 +57,7 @@ func NewVanityCommand() *cobra.Command {
 					}
 					dir = wd
 				}
+
 				return vanity.New(host, afero.NewOsFs()).PublishAt(dir, modules)
 			},
 		},
