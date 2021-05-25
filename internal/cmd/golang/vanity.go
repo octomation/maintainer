@@ -14,17 +14,20 @@ import (
 )
 
 func NewVanityCommand() *cobra.Command {
-	const (
-		file = "modules.yml"
-		host = "go.octolab.org"
-	)
-
 	command := cobra.Command{
 		Args:  cobra.NoArgs,
 		Use:   "vanity",
 		Short: "vanity URL manager",
 		Long:  "Vanity URL manager.",
 	}
+
+	var (
+		file string
+		host string
+	)
+	flags := command.PersistentFlags()
+	flags.StringVarP(&file, "file", "f", "modules.yml", "file with modules")
+	flags.StringVar(&host, "host", "go.octolab.org", "host for vanity url")
 
 	command.AddCommand(
 		&cobra.Command{
@@ -44,11 +47,11 @@ func NewVanityCommand() *cobra.Command {
 					return err
 				}
 
-				wd, err := os.Getwd()
+				dir, err := os.Getwd()
 				if err != nil {
 					return err
 				}
-				return vanity.New(host, afero.NewOsFs()).PublishAt(wd, modules)
+				return vanity.New(host, afero.NewOsFs()).PublishAt(dir, modules)
 			},
 		},
 	)
