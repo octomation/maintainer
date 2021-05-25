@@ -31,7 +31,7 @@ func NewVanityCommand() *cobra.Command {
 
 	command.AddCommand(
 		&cobra.Command{
-			Args:  cobra.NoArgs,
+			Args:  cobra.MaximumNArgs(1),
 			Use:   "build",
 			Short: "build vanity URLs",
 			Long:  "Build vanity URLs",
@@ -47,9 +47,15 @@ func NewVanityCommand() *cobra.Command {
 					return err
 				}
 
-				dir, err := os.Getwd()
-				if err != nil {
-					return err
+				var dir string
+				if len(args) == 1 {
+					dir = args[0]
+				} else {
+					wd, err := os.Getwd()
+					if err != nil {
+						return err
+					}
+					dir = wd
 				}
 				return vanity.New(host, afero.NewOsFs()).PublishAt(dir, modules)
 			},
