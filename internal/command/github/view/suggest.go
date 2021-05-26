@@ -112,7 +112,7 @@ func Suggest(
 		Cells: []*simpletable.Cell{
 			{
 				Span: len(table.Header.Cells),
-				Text: fmt.Sprintf("Suggestion is %s, %d -> %d",
+				Text: fmt.Sprintf("Suggestion is %s, %d → %d",
 					suggestion,
 					option.Current,
 					option.Suggest.Sum,

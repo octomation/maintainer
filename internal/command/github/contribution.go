@@ -199,10 +199,10 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	// ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
 	//  Contributions are on the range from 2013-11-03 to 2013-12-31
 	//
-	// $ maintainer github contribution lookup            # -> now()/-1
-	// $ maintainer github contribution lookup 2013-12-03 # -> 2013-12-03/-1
-	// $ maintainer github contribution lookup now/3      # -> now()/3 == now()/-1
-	// $ maintainer github contribution lookup /3         # -> now()/3 == now()/-1
+	// $ maintainer github contribution lookup            # → now()/-1
+	// $ maintainer github contribution lookup 2013-12-03 # → 2013-12-03/-1
+	// $ maintainer github contribution lookup now/3      # → now()/3 == now()/-1
+	// $ maintainer github contribution lookup /3         # → now()/3 == now()/-1
 	//
 	lookup := cobra.Command{
 		Use:  "lookup",
@@ -325,7 +325,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	//  Friday         -      -      -      1     2
 	//  Saturday       -      -      -      -     -
 	// ------------- ------ ------ ------ ----- -----
-	//  Contributions for 2013-11-17: -3119d, 0 -> 5
+	//  Contributions for 2013-11-17: -3119d, 0 → 5
 	//
 	// $ maintainer github contribution suggest 2013-11
 	// $ maintainer github contribution suggest 2013
