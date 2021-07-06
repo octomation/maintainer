@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"sort"
 	"strconv"
@@ -68,17 +69,6 @@ func fetchContributions(ctx context.Context, user string, year int) (*goquery.Do
 	if err != nil {
 		return nil, err
 	}
-	req.AddCookie(&http.Cookie{
-		Name:     "tz",
-		Value:    time.UTC.String(),
-		Path:     "/",
-		Domain:   overview.Host(),
-		Expires:  time.Now().Add(xtime.Week),
-		MaxAge:   0,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
 	req.Header.Set(header.CacheControl, "no-cache")
 
 	// TODO:debt use srv.client.Client() instead
@@ -116,11 +106,21 @@ func contributionHeatMap(doc *goquery.Document) contribution.HeatMap {
 	chm := make(contribution.HeatMap)
 	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
 		Each(func(_ int, node *goquery.Selection) {
-			c, _ := strconv.Atoi(node.AttrOr("data-count", ""))
+			count := node.AttrOr("data-count", "")
+			c, err := strconv.Atoi(count)
+			if err != nil {
+				panic(fmt.Errorf("invalid count value: %s", count))
+			}
 			if c == 0 {
 				return
 			}
-			d, _ := time.Parse(xtime.RFC3339Day, node.AttrOr("data-date", ""))
+
+			date := node.AttrOr("data-date", "")
+			d, err := time.Parse(xtime.RFC3339Day, date)
+			if err != nil {
+				panic(fmt.Errorf("invalid date value: %s", date))
+			}
+
 			chm.SetCount(d, c)
 		})
 	return chm
