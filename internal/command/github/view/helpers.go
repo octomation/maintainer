@@ -88,16 +88,28 @@ func prepare(heatmap contribution.HeatMap) []WeekReport {
 		report = append(report, row)
 	}
 
-	return report
-}
+	// shift Sunday to the right and cleanup empty weeks
+	last := len(report) - 1
+	if last > -1 {
+		_, week := heatmap.To().Add(time.Week).ISOWeek()
+		report = append(report, WeekReport{
+			Number: week,
+			Report: make(map[time.Weekday]int),
+		})
+		for i := last + 1; i > 0; i-- {
+			if count, present := report[i-1].Report[time.Sunday]; present {
+				report[i].Report[time.Sunday] = count
+				delete(report[i-1].Report, time.Sunday)
+			}
+		}
+	}
+	cleaned := make([]WeekReport, 0, len(report))
+	for _, row := range report {
+		if len(row.Report) > 0 {
+			cleaned = append(cleaned, row)
+		}
+	}
+	report = cleaned
 
-// If it's a first-week report with a single entry for Sunday,
-// we skip it completely.
-//
-// It's because GitHub shows the contribution chart started on Sunday
-// of the previous week. For that reason we have to shift it to the right
-// and compensate `.Shift(-time.Day)` call for the scope.
-func shiftIsNeeded(idx int, report map[time.Weekday]int) bool {
-	_, is := report[time.Sunday]
-	return idx == 0 && len(report) == 1 && is
+	return report
 }

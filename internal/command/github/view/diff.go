@@ -27,43 +27,17 @@ func Diff(
 			{Align: simpletable.AlignLeft, Text: "Day / Week"},
 		},
 	}
-	for i, week := range data {
-		if shiftIsNeeded(i, week.Report) {
-			continue
-		}
+	for _, week := range data {
 		table.Header.Cells = append(table.Header.Cells, &simpletable.Cell{
 			Align: simpletable.AlignCenter,
 			Text:  fmt.Sprintf("#%d", week.Number),
 		})
 	}
 
-	// shift Sunday to the right
-	row := make([]*simpletable.Cell, 0, 4)
-	row = append(row, &simpletable.Cell{Text: time.Sunday.String()})
-	for i := range data {
-		if shiftIsNeeded(i, data[i].Report) {
-			continue
-		}
-		// TODO:unclear explain
-		if i == 0 {
-			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: "-"})
-			continue
-		}
-		txt := "-"
-		if count := data[i-1].Report[time.Sunday]; count != 0 {
-			txt = fmt.Sprintf("%+d", count)
-		}
-		row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: txt})
-	}
-	table.Body.Cells = append(table.Body.Cells, row)
-
-	for i := time.Monday; i <= time.Saturday; i++ {
-		row = make([]*simpletable.Cell, 0, 4)
+	for i := time.Sunday; i <= time.Saturday; i++ {
+		row := make([]*simpletable.Cell, 0, len(data)+1)
 		row = append(row, &simpletable.Cell{Text: i.String()})
-		for j, week := range data {
-			if shiftIsNeeded(j, week.Report) {
-				continue
-			}
+		for _, week := range data {
 			txt := "-"
 			if count := week.Report[i]; count != 0 {
 				txt = fmt.Sprintf("%+d", count)

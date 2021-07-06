@@ -36,7 +36,7 @@ func Suggest(
 		suggestion = fmt.Sprintf("%dd", option.Suggest.Day.Sub(now)/xtime.Day)
 	} else {
 		day := xtime.CopyClock(now, option.Suggest.Day).In(time.Local)
-		suggestion = fmt.Sprintf("%s", day.Format(time.RFC3339))
+		suggestion = day.Format(time.RFC3339)
 	}
 	if option.Short {
 		printer.Println(suggestion)

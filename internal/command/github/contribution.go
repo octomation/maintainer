@@ -360,7 +360,6 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 					date, err = time.Parse(time.RFC3339Month, input)
 				case len(time.RFC3339Day):
 					date, err = time.Parse(time.RFC3339Day, input)
-					date = time.TruncateToWeek(date)
 				default:
 					err = fmt.Errorf("unsupported format")
 				}
@@ -370,7 +369,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// data provisioning
-			start := time.TruncateToWeek(date) // Monday
+			start := time.TruncateToWeek(date)
 			scope := time.NewRange(
 				start.Add(-2*time.Week-time.Day), // buffer from left side with Sunday
 				time.Now().UTC(),

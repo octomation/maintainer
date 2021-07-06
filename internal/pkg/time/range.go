@@ -164,7 +164,11 @@ func TruncateToDay(t time.Time) time.Time {
 }
 
 func TruncateToWeek(t time.Time) time.Time {
-	return TruncateToDay(t).Add(Day * time.Duration(time.Monday-t.Weekday()))
+	day := t.Weekday()
+	if day == time.Sunday {
+		day = 7
+	}
+	return TruncateToDay(t).Add(Day * time.Duration(time.Monday-day))
 }
 
 func TruncateToMonth(t time.Time) time.Time {
