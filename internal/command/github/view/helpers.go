@@ -40,6 +40,30 @@ func convert(
 		}
 		report[idx].Report[day.Weekday()] = count
 	}
+
+	// shift Sunday to the right and cleanup empty weeks
+	last := len(report) - 1
+	if last > -1 {
+		_, week := scope.To().Add(time.Week).ISOWeek()
+		report = append(report, WeekReport{
+			Number: week,
+			Report: make(map[time.Weekday]int),
+		})
+		for i := last + 1; i > 0; i-- {
+			if count, present := report[i-1].Report[time.Sunday]; present {
+				report[i].Report[time.Sunday] = count
+				delete(report[i-1].Report, time.Sunday)
+			}
+		}
+	}
+	cleaned := make([]WeekReport, 0, len(report))
+	for _, row := range report {
+		if len(row.Report) > 0 {
+			cleaned = append(cleaned, row)
+		}
+	}
+	report = cleaned
+
 	return report
 }
 
