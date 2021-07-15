@@ -1,2 +1,5 @@
+# goreleaser artifacts
+/dist/
+
 # code coverage and quality reports
 *.out
