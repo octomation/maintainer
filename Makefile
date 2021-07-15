@@ -27,20 +27,25 @@ todo:
 COMMIT  := $(shell git rev-parse --verify HEAD)
 RELEASE := $(shell git describe --tags 2>/dev/null | rev | cut -d - -f3- | rev)
 
-ifneq (, $(wildcard ./githooks/))
+ifneq (, $(wildcard bin/lib/git/hooks/))
 ifdef GIT_HOOKS
 
 hooks: unhook
-	$(AT) for hook in $(GIT_HOOKS); do cp githooks/$$hook .git/hooks/; done
+	$(AT) for hook in $(GIT_HOOKS); do \
+		cp bin/lib/git/hooks/$$hook .git/hooks/; \
+	done
 .PHONY: hooks
 
 unhook:
-	$(AT) ls .git/hooks | grep -v .sample | sed 's|.*|.git/hooks/&|' | xargs rm -f || true
+	$(AT) ls .git/hooks \
+	| grep -v .sample \
+	| sed 's|.*|.git/hooks/&|' \
+	| xargs rm -f || true
 .PHONY: unhook
 
 define hook_tpl
 $(1):
-	$$(AT) githooks/$(1)
+	$$(AT) bin/lib/git/hooks/$(1)
 .PHONY: $(1)
 endef
 
@@ -399,6 +404,9 @@ generate: go-generate format
 
 refresh: deps-tidy update deps generate check build
 .PHONY: refresh
+
+tools: tools-install
+.PHONY: tools
 
 update: deps-update tools-update
 .PHONY: update
