@@ -65,8 +65,8 @@ $ source <(maintainer completion)
 <p align="right">made with ❤️ for everyone</p>
 
 [awesome.icon]:     https://awesome.re/mentioned-badge.svg
-[build.page]:       https://travis-ci.com/octomation/maintainer
-[build.icon]:       https://travis-ci.com/octomation/maintainer.svg?branch=master
+[build.page]:       https://github.com/octomation/maintainer/actions/workflows/ci.yml
+[build.icon]:       https://github.com/octomation/maintainer/actions/workflows/ci.yml/badge.svg
 [coverage.page]:    https://codeclimate.com/github/octomation/maintainer/test_coverage
 [coverage.icon]:    https://api.codeclimate.com/v1/badges/6687c945bf44772d3131/test_coverage
 [design.page]:      https://www.notion.so/octolab/maintainer-76d7f532a13244b5ac71708990f340ed?r=0b753cbf767346f5a6fd51194829a2f3
@@ -80,5 +80,4 @@ $ source <(maintainer completion)
 [template.page]:    https://github.com/octomation/go-tool
 [template.icon]:    https://img.shields.io/badge/template-go--tool-blue
 
-[_]:                https://img.shields.io/sourcegraph/rrc/go.octolab.org/toolset/maintainer
 [egg]:              https://github.com/kamilsk/egg
