@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"runtime/debug"
 
+	"github.com/fatih/color"
 	"go.octolab.org/errors"
 	"go.octolab.org/safe"
 	"go.octolab.org/toolkit/cli/cobra"
@@ -23,8 +23,8 @@ var (
 	date    = unknown
 	version = "dev"
 	exit    = os.Exit
-	stderr  = io.Writer(os.Stderr)
-	stdout  = io.Writer(os.Stdout)
+	stderr  = color.Error
+	stdout  = color.Output
 )
 
 func init() {
@@ -42,7 +42,6 @@ func main() {
 	root.SetErr(stderr)
 	root.SetOut(stdout)
 	root.AddCommand(
-		cobra.NewCompletionCommand(),
 		cobra.NewVersionCommand(version, date, commit, cnf.Features...),
 	)
 
@@ -50,7 +49,8 @@ func main() {
 }
 
 func shutdown(err error) {
-	if recovered, is := errors.Unwrap(err).(errors.Recovered); is {
+	var recovered errors.Recovered
+	if errors.As(err, &recovered) {
 		unsafe.DoSilent(fmt.Fprintf(stderr, "recovered: %+v\n", recovered.Cause()))
 		unsafe.DoSilent(fmt.Fprintln(stderr, "---"))
 		unsafe.DoSilent(fmt.Fprintf(stderr, "%+v\n", err))
