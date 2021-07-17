@@ -175,7 +175,7 @@ func Labels(git Git, github GitHub) *cobra.Command {
 			Use:   syncCommand,
 			Short: "sync repository labels",
 			Long:  "Sync repository labels.",
-			RunE: func(cmd *cobra.Command, args []string) error {
+			RunE: func(cmd *cobra.Command, _ []string) error {
 				push, args, err := cmd.Parent().Find([]string{pushCommand})
 				if err != nil {
 					return err

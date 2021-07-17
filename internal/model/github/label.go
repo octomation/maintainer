@@ -101,6 +101,7 @@ type LabelSet struct {
 func (set LabelSet) FindByID(id int64) *Label {
 	for _, label := range set.Labels {
 		if label.ID == id {
+			label := label
 			return &label
 		}
 	}

@@ -76,10 +76,10 @@ func (m *MockGitHub) EXPECT() *MockGitHubMockRecorder {
 }
 
 // Labels mocks base method.
-func (m *MockGitHub) Labels(arg0 context.Context, arg1 github.Remote) (*github.LabelSet, error) {
+func (m *MockGitHub) Labels(arg0 context.Context, arg1 github.Remote) (github.LabelSet, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Labels", arg0, arg1)
-	ret0, _ := ret[0].(*github.LabelSet)
+	ret0, _ := ret[0].(github.LabelSet)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -88,4 +88,33 @@ func (m *MockGitHub) Labels(arg0 context.Context, arg1 github.Remote) (*github.L
 func (mr *MockGitHubMockRecorder) Labels(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Labels", reflect.TypeOf((*MockGitHub)(nil).Labels), arg0, arg1)
+}
+
+// PatchLabels mocks base method.
+func (m *MockGitHub) PatchLabels(arg0 context.Context, arg1 github.LabelSet, arg2 string) (github.LabelSet, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PatchLabels", arg0, arg1, arg2)
+	ret0, _ := ret[0].(github.LabelSet)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PatchLabels indicates an expected call of PatchLabels.
+func (mr *MockGitHubMockRecorder) PatchLabels(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PatchLabels", reflect.TypeOf((*MockGitHub)(nil).PatchLabels), arg0, arg1, arg2)
+}
+
+// UpdateLabels mocks base method.
+func (m *MockGitHub) UpdateLabels(arg0 context.Context, arg1 github.Remote, arg2 github.LabelSet) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLabels", arg0, arg1, arg2)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateLabels indicates an expected call of UpdateLabels.
+func (mr *MockGitHubMockRecorder) UpdateLabels(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLabels", reflect.TypeOf((*MockGitHub)(nil).UpdateLabels), arg0, arg1, arg2)
 }
