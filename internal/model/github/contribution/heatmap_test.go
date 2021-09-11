@@ -1,6 +1,7 @@
 package contribution_test
 
 import (
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	. "go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/testing/file"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
@@ -173,4 +175,96 @@ func TestHistogramByWeekday(t *testing.T) {
 			assert.Equal(t, sum, row.Sum, i)
 		}
 	})
+}
+
+func TestSuggest(t *testing.T) {
+	golden := func(name string) HeatMap {
+		var chm HeatMap
+		file.Restore(filepath.Join("testdata", name), &chm)
+		return chm
+	}
+
+	tests := map[string]struct {
+		// input
+		chm   HeatMap
+		start time.Time
+		end   time.Time
+		basis int
+
+		// output
+		expected HistogramByWeekdayRow
+	}{
+		"issue#68: missed zero": {
+			golden("issue-68.golden.json"),
+			time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
+			time.Now().UTC(),
+			5,
+
+			HistogramByWeekdayRow{
+				Day: time.Date(2021, time.September, 11, 0, 0, 0, 0, time.UTC),
+				Sum: 7,
+			},
+		},
+		"full week with some distribution": {
+			golden("issue-68.golden.json"),
+			time.Date(2021, time.September, 15, 0, 0, 0, 0, time.UTC),
+			time.Now().UTC(),
+			5,
+
+			HistogramByWeekdayRow{
+				Day: time.Date(2021, time.September, 12, 0, 0, 0, 0, time.UTC),
+				Sum: 12,
+			},
+		},
+		"week without contributions": {
+			golden("issue-68.golden.json"),
+			time.Date(2021, time.October, 7, 0, 0, 0, 0, time.UTC),
+			time.Now().UTC(),
+			5,
+
+			HistogramByWeekdayRow{
+				Day: time.Date(2021, time.October, 3, 0, 0, 0, 0, time.UTC),
+				Sum: 5,
+			},
+		},
+		"week with gaps": {
+			golden("issue-68.golden.json"),
+			time.Date(2021, time.October, 16, 0, 0, 0, 0, time.UTC),
+			time.Now().UTC(),
+			5,
+
+			HistogramByWeekdayRow{
+				Day: time.Date(2021, time.October, 11, 0, 0, 0, 0, time.UTC),
+				Sum: 8,
+			},
+		},
+		"empty contribution heatmap": {
+			make(HeatMap),
+			time.Date(2021, time.October, 5, 0, 0, 0, 0, time.UTC),
+			time.Now().UTC(),
+			5,
+
+			HistogramByWeekdayRow{
+				Day: time.Date(2021, time.October, 3, 0, 0, 0, 0, time.UTC),
+				Sum: 5,
+			},
+		},
+		"no range": {
+			make(HeatMap),
+			time.Date(2021, time.October, 5, 0, 0, 0, 0, time.UTC),
+			time.Date(2021, time.October, 5, 0, 0, 0, 0, time.UTC),
+			5,
+
+			HistogramByWeekdayRow{
+				Day: time.Date(2021, time.October, 5, 0, 0, 0, 0, time.UTC),
+				Sum: 5,
+			},
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, test.expected, Suggest(test.chm, test.start, test.end, test.basis))
+		})
+	}
 }

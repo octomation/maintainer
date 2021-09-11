@@ -111,9 +111,6 @@ func contributionHeatMap(doc *goquery.Document) contribution.HeatMap {
 			if err != nil {
 				panic(fmt.Errorf("invalid count value: %s", count))
 			}
-			if c == 0 {
-				return
-			}
 
 			date := node.AttrOr("data-date", "")
 			d, err := time.Parse(xtime.RFC3339Day, date)

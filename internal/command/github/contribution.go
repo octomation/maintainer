@@ -14,6 +14,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/pkg/config/flag"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	"go.octolab.org/toolset/maintainer/internal/pkg/time"
+	"go.octolab.org/toolset/maintainer/internal/pkg/unsafe"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
@@ -139,6 +140,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 			construct, date := time.RangeByWeeks, time.Now().UTC()
+			zero := unsafe.ReturnBool(cmd.Flags().GetBool("with-zero"))
 
 			// input validation: date(year,+month,+week{day})
 			if len(args) == 1 {
@@ -177,11 +179,15 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			// data presentation
 			data := contribution.HistogramByCount(chm, contribution.OrderByCount)
 			for _, row := range data {
+				if !zero && row.Count == 0 {
+					continue
+				}
 				fmt.Printf("%3d %s\n", row.Count, strings.Repeat("#", row.Frequency))
 			}
 			return nil
 		},
 	}
+	histogram.Flags().Bool("with-zero", false, "shows zero-counted rows")
 	cmd.AddCommand(&histogram)
 
 	//
@@ -338,10 +344,10 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 			date := time.TruncateToYear(time.Now().UTC())
-			delta, _ := cmd.Flags().GetBool("delta")
-			short, _ := cmd.Flags().GetBool("short")
-			target, _ := cmd.Flags().GetInt("target")
-			weeks, _ := cmd.Flags().GetInt("weeks")
+			delta := unsafe.ReturnBool(cmd.Flags().GetBool("delta"))
+			short := unsafe.ReturnBool(cmd.Flags().GetBool("short"))
+			target := unsafe.ReturnInt(cmd.Flags().GetInt("target"))
+			weeks := unsafe.ReturnInt(cmd.Flags().GetInt("weeks"))
 
 			// input validation: date(year,+month,+week{day})
 			if len(args) == 1 {
@@ -379,54 +385,14 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				return err
 			}
 
-			var suggest contribution.HistogramByWeekdayRow
-			standard := contribution.HistogramByWeekdayRow{
-				Day: start,
-				Sum: target,
-			}
-			for week, end := start, scope.To(); week.Before(end); week = week.Add(time.Week) {
-				data := contribution.HistogramByCount(
-					chm.Subset(time.RangeByWeeks(week, 0, false).Shift(-time.Day)), // Sunday
-					contribution.OrderByCount,
-				)
-
-				// good week
-				if len(data) == 1 && data[0].Count >= standard.Sum {
-					continue
-				}
-
-				// Sunday
-				day := week.Add(-time.Day)
-
-				// bad week
-				if len(data) == 0 {
-					suggest.Day = day
-					suggest.Sum = standard.Sum
-					break
-				}
-
-				// otherwise
-				target := data[len(data)-1].Count // because it's sorted by frequency
-				if target < standard.Sum {
-					target = standard.Sum
-				}
-				suggest.Sum = target
-				for i := time.Sunday; i <= time.Saturday; i++ {
-					if chm[day] != target {
-						suggest.Day = day
-						break
-					}
-					day = day.Add(time.Day)
-				}
-				break
-			}
+			value := contribution.Suggest(chm, start, scope.To(), target)
+			area := time.RangeByWeeks(value.Day, weeks, true).Shift(-time.Day) // Sunday
+			data := contribution.HistogramByWeekday(chm.Subset(area), false)
 
 			// data presentation
-			area := time.RangeByWeeks(suggest.Day, weeks, true).Shift(-time.Day) // Sunday
-			data := contribution.HistogramByWeekday(chm.Subset(area), false)
 			return view.Suggest(cmd, area, data, view.SuggestOption{
-				Suggest: suggest,
-				Current: chm[suggest.Day],
+				Suggest: value,
+				Current: chm[value.Day],
 				Delta:   delta,
 				Short:   short,
 			})

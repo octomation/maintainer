@@ -102,8 +102,6 @@ func (list orderByFrequency) Swap(i, j int)      { list[i], list[j] = list[j], l
 func OrderByFrequency(in []HistogramByCountRow) sort.Interface { return orderByFrequency(in) }
 
 // HistogramByCount returns the distribution of amount contributions.
-// The first value is an amount, and the second is a frequency.
-// The result is sorted by the first value.
 //
 //  1 #
 //  3 #####
@@ -218,4 +216,52 @@ func HistogramByWeekday(chm HeatMap, grouped bool) []HistogramByWeekdayRow {
 	}
 
 	return h
+}
+
+// Suggest finds a week with gaps in the contribution heatmap
+// and returns an appropriate day to contribute.
+func Suggest(
+	chm HeatMap,
+	start time.Time,
+	end time.Time,
+	basis int,
+) HistogramByWeekdayRow {
+	defaults := HistogramByWeekdayRow{
+		Day: start,
+		Sum: basis,
+	}
+
+	for t := start; t.Before(end); t = t.Add(time.Week) {
+		week := time.RangeByWeeks(t, 0, false).Shift(-time.Day) // shift Sunday
+		data := HistogramByCount(chm.Subset(week), OrderByCount)
+		sunday := week.From()
+
+		// good week: no gaps and enough contributions
+		if len(data) == 1 && data[0].Count >= defaults.Sum {
+			continue
+		}
+
+		// bad week: no contributions
+		if len(data) == 0 {
+			return HistogramByWeekdayRow{Day: sunday, Sum: defaults.Sum}
+		}
+
+		// otherwise, we choose the maximum amount of contributions
+		// it's the last element in the histogram because it's sorted by count ASC
+		count := data[len(data)-1].Count
+		if count < defaults.Sum {
+			count = defaults.Sum
+		}
+		// and try to find an appropriate day to contribute
+		day := sunday
+		for i := time.Sunday; i <= time.Saturday; i++ {
+			if chm[day] != count {
+				break
+			}
+			day = day.Add(time.Day)
+		}
+		return HistogramByWeekdayRow{Day: day, Sum: count}
+	}
+
+	return defaults
 }
