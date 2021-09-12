@@ -87,7 +87,7 @@
   * Suggests a reasonable date to contribute
 
     ```bash
-    $ maintainer github contribution suggest 2013-11-20
+    $ maintainer github contribution suggest --delta 2013-11-20
      Day / Week    #45    #46    #47    #48   #49
     ------------- ------ ------ ------ ----- -----
      Sunday         -      -      -      1     -
@@ -100,8 +100,9 @@
     ------------- ------ ------ ------ ----- -----
      Contributions for 2013-11-17: -3119d, 0 -> 5
 
-    $ maintainer github contribution suggest 2013-11
-    $ maintainer github contribution suggest 2013
+    $ maintainer github contribution suggest 2013-11/10
+    $ maintainer github contribution suggest --target=5 2013/+10
+    $ maintainer github contribution suggest --short 2013/-10
     ```
 
 [calendar]: https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-graphs-on-your-profile/viewing-contributions-on-your-profile#contributions-calendar

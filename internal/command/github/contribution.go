@@ -218,7 +218,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 			date, weeks, half := time.Now().UTC(), -1, false
 
-			// input validation: date/{+-}weeks
+			// input validation: date[/{+-}weeks]
 			if len(args) == 1 {
 				var err error
 				wrap := func(err error) error {
@@ -333,9 +333,9 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	// ------------- ------ ------ ------ ----- -----
 	//  Contributions for 2013-11-17: -3119d, 0 → 5
 	//
-	// $ maintainer github contribution suggest 2013-11
-	// $ maintainer github contribution suggest 2013
-	// $ maintainer github contribution suggest --short 2013
+	// $ maintainer github contribution suggest 2013-11/10
+	// $ maintainer github contribution suggest --target=5 2013/+10
+	// $ maintainer github contribution suggest --short 2013/-10
 	//
 	suggest := cobra.Command{
 		Use:  "suggest",
@@ -343,23 +343,42 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date := time.TruncateToYear(time.Now().UTC())
+			date, weeks, half := time.TruncateToYear(time.Now().UTC()), 5, false
 			delta := unsafe.ReturnBool(cmd.Flags().GetBool("delta"))
 			short := unsafe.ReturnBool(cmd.Flags().GetBool("short"))
 			target := unsafe.ReturnInt(cmd.Flags().GetInt("target"))
-			weeks := unsafe.ReturnInt(cmd.Flags().GetInt("weeks"))
 
-			// input validation: date(year,+month,+week{day})
+			// input validation: date(year,+month,+week{day})[/{+-}weeks]
 			if len(args) == 1 {
 				var err error
 				wrap := func(err error) error {
 					return fmt.Errorf(
-						"please provide argument in format YYYY[-mm[-dd]], e.g., 2006-01: %w",
+						"please provide argument in format YYYY[-mm[-dd]][/[+|-]weeks], e.g., 2006-01: %w",
 						fmt.Errorf("invalid argument %q: %w", args[0], err),
 					)
 				}
 
-				switch input := args[0]; len(input) {
+				input := args[0]
+				raw := strings.Split(input, "/")
+				switch len(raw) {
+				case 2:
+					weeks, err = strconv.Atoi(raw[1])
+					if err != nil {
+						return wrap(err)
+					}
+					// +%d and positive %d have the same value, but different semantic
+					// invariant: len(raw[1]) > 0, because weeks > 0 and invariant(time.RangeByWeeks)
+					if weeks > 0 && raw[1][0] != '+' {
+						half = true
+					}
+					fallthrough
+				case 1:
+					input = raw[0]
+				default:
+					return wrap(fmt.Errorf("too many parts"))
+				}
+
+				switch len(input) {
 				case len(time.RFC3339Year):
 					date, err = time.Parse(time.RFC3339Year, input)
 				case len(time.RFC3339Month):
@@ -386,7 +405,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			value := contribution.Suggest(chm, start, scope.To(), target)
-			area := time.RangeByWeeks(value.Day, weeks, true).Shift(-time.Day) // Sunday
+			area := time.RangeByWeeks(value.Day, weeks, half).Shift(-time.Day) // Sunday
 			data := contribution.HistogramByWeekday(chm.Subset(area), false)
 
 			// data presentation
@@ -401,7 +420,6 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	suggest.Flags().Bool("delta", false, "shows relatively")
 	suggest.Flags().Bool("short", false, "shows only date")
 	suggest.Flags().Int("target", 5, "minimum contributions")
-	suggest.Flags().Int("weeks", 5, "how many weeks to show")
 	cmd.AddCommand(&suggest)
 
 	return &cmd
