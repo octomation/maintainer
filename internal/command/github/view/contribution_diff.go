@@ -9,7 +9,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
-func Diff(
+func ContributionDiff(
 	printer interface{ Println(...interface{}) },
 	heatmap contribution.HeatMap,
 	base, head string,

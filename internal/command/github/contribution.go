@@ -8,6 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"go.octolab.org/toolset/maintainer/internal/command/github/exec"
 	"go.octolab.org/toolset/maintainer/internal/command/github/view"
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
@@ -43,78 +44,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	diff := cobra.Command{
 		Use:  "diff",
 		Args: cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// dependencies and defaults
-			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date := time.TruncateToYear(time.Now().UTC())
-
-			// input validation: files{params}, date(year){args}
-			var baseSource, headSource string
-			dst, err := flag.Adopt(cmd.Flags()).GetFile("base")
-			if err != nil {
-				return err
-			}
-			if dst == nil {
-				return fmt.Errorf("please provide a base file by `--base` parameter")
-			}
-			baseSource = dst.Name()
-
-			src, err := flag.Adopt(cmd.Flags()).GetFile("head")
-			if err != nil {
-				return err
-			}
-			if src == nil && len(args) == 0 {
-				return fmt.Errorf("please provide a compared file by `--head` parameter or year in args")
-			}
-			if src != nil && len(args) > 0 {
-				return fmt.Errorf("please omit `--head` or argument, only one of them is allowed")
-			}
-			if len(args) == 1 {
-				var err error
-				wrap := func(err error) error {
-					return fmt.Errorf(
-						"please provide argument in format YYYY, e.g., 2006: %w",
-						fmt.Errorf("invalid argument %q: %w", args[0], err),
-					)
-				}
-
-				switch input := args[0]; len(input) {
-				case len(time.RFC3339Year):
-					date, err = time.Parse(time.RFC3339Year, input)
-				default:
-					err = fmt.Errorf("unsupported format")
-				}
-				if err != nil {
-					return wrap(err)
-				}
-				headSource = fmt.Sprintf("upstream:year(%s)", date.Format(time.RFC3339Year))
-			} else {
-				headSource = src.Name()
-			}
-
-			// data provisioning
-			var (
-				base contribution.HeatMap
-				head contribution.HeatMap
-			)
-			if err := json.NewDecoder(dst).Decode(&base); err != nil {
-				return err
-			}
-			if src != nil {
-				if err := json.NewDecoder(src).Decode(&head); err != nil {
-					return err
-				}
-			} else {
-				scope := time.RangeByYears(date, 0, false).ExcludeFuture()
-				head, err = service.ContributionHeatMap(cmd.Context(), scope)
-				if err != nil {
-					return err
-				}
-			}
-
-			// data presentation
-			return view.Diff(cmd, base.Diff(head), baseSource, headSource)
-		},
+		RunE: exec.ContributionDiff(cnf),
 	}
 	flag.Adopt(diff.Flags()).File("base", "", "path to a base file")
 	flag.Adopt(diff.Flags()).File("head", "", "path to a head file")
