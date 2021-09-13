@@ -270,7 +270,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date, weeks, half := time.TruncateToYear(time.Now().UTC()), 5, true
+			date, weeks, half := time.TruncateToYear(time.Now().UTC()), 5, false
 			delta := unsafe.ReturnBool(cmd.Flags().GetBool("delta"))
 			short := unsafe.ReturnBool(cmd.Flags().GetBool("short"))
 			target := unsafe.ReturnInt(cmd.Flags().GetInt("target"))
