@@ -4,8 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
-	"strings"
+	"io"
 	"time"
 
 	"github.com/spf13/afero"
@@ -13,8 +12,26 @@ import (
 	"go.octolab.org/unsafe"
 	"gopkg.in/yaml.v2"
 
+	"go.octolab.org/toolset/maintainer/internal/pkg/encoding/file"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
+
+var packer file.Packer
+
+// this is internals, so, we know what we are doing
+func init() {
+	packer = file.NewPacker()
+	packer.Register(
+		func(w io.Writer) file.Encoder { return json.NewEncoder(w) },
+		func(r io.Reader) file.Decoder { return json.NewDecoder(r) },
+		".json",
+	)
+	packer.Register(
+		func(w io.Writer) file.Encoder { return yaml.NewEncoder(w) },
+		func(r io.Reader) file.Decoder { return yaml.NewDecoder(r) },
+		".yml", ".yaml",
+	)
+}
 
 type FileSource struct {
 	Provider afero.Fs
@@ -32,26 +49,16 @@ func (src *FileSource) Fetch(_ context.Context) (HeatMap, error) {
 		return src.data, nil
 	}
 
-	file, err := src.Provider.Open(src.Path)
+	f, err := src.Provider.Open(src.Path)
 	if err != nil {
 		return nil, err
 	}
-	defer safe.Close(file, unsafe.Ignore)
+	defer safe.Close(f, unsafe.Ignore)
 
-	var data HeatMap
-	format := strings.ToLower(filepath.Ext(file.Name()))
-	switch format {
-	case ".json":
-		err := json.NewDecoder(file).Decode(&data)
-		src.data = data
-		return data, err
-	case ".yml", ".yaml":
-		err := yaml.NewDecoder(file).Decode(&data)
-		src.data = data
-		return data, err
-	default:
-		return nil, fmt.Errorf("unsupported format: %s", format)
+	if err := packer.Unpack(f, &src.data); err != nil {
+		return nil, err
 	}
+	return src.data, nil
 }
 
 type UpstreamSource struct {
@@ -62,7 +69,7 @@ type UpstreamSource struct {
 }
 
 func (src UpstreamSource) Location() string {
-	return fmt.Sprintf("upstream:year(%s)", src.Year.Format(xtime.RFC3339Year))
+	return fmt.Sprintf("upstream:year(%d)", src.Year.Year())
 }
 
 func (src *UpstreamSource) Fetch(ctx context.Context) (HeatMap, error) {
