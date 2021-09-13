@@ -68,7 +68,7 @@
       "2013-12-27T00:00:00Z": 2
     }
 
-    $ maintainer github contribution diff --base=/tmp/snap.01.2013.json 2013
+    $ maintainer github contribution diff /tmp/snap.01.2013.json 2013
      Day / Week                  #46             #48             #49           #50
     ---------------------- --------------- --------------- --------------- -----------
      Sunday                       -               -               -             -
@@ -81,7 +81,7 @@
     ---------------------- --------------- --------------- --------------- -----------
      The diff between head{"/tmp/snap.02.2013.json"} → base{"/tmp/snap.01.2013.json"}
 
-    $ maintainer github contribution diff --base=/tmp/snap.01.2013.json --head=/tmp/snap.02.2013.json
+    $ maintainer github contribution diff /tmp/snap.01.2013.json /tmp/snap.02.2013.json
     ```
 
   * Suggests a reasonable date to contribute

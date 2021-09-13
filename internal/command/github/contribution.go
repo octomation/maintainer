@@ -12,7 +12,6 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/command/github/view"
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	"go.octolab.org/toolset/maintainer/internal/pkg/config/flag"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/unsafe"
@@ -25,7 +24,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	}
 
 	//
-	// $ maintainer github contribution diff --base=/tmp/snap.01.2013.json --head=/tmp/snap.02.2013.json
+	// $ maintainer github contribution diff /tmp/snap.01.2013.json /tmp/snap.02.2013.json
 	//
 	//  Day / Week                  #46             #48             #49           #50
 	// ---------------------- --------------- --------------- --------------- -----------
@@ -39,15 +38,13 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	// ---------------------- --------------- --------------- --------------- -----------
 	//  The diff between head{"/tmp/snap.02.2013.json"} → base{"/tmp/snap.01.2013.json"}
 	//
-	// $ maintainer github contribution diff --base=/tmp/snap.01.2013.json 2013
+	// $ maintainer github contribution diff /tmp/snap.01.2013.json 2013
 	//
 	diff := cobra.Command{
 		Use:  "diff",
-		Args: cobra.MaximumNArgs(1),
+		Args: cobra.ExactArgs(2),
 		RunE: exec.ContributionDiff(cnf),
 	}
-	flag.Adopt(diff.Flags()).File("base", "", "path to a base file")
-	flag.Adopt(diff.Flags()).File("head", "", "path to a head file")
 	cmd.AddCommand(&diff)
 
 	//

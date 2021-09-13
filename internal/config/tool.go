@@ -18,6 +18,7 @@ type GitHub struct {
 }
 
 type Tool struct {
+	FS     afero.Fs `mapstructure:"-"`
 	Git    `mapstructure:"git,squash"`
 	GitHub `mapstructure:"github,squash"`
 
@@ -40,8 +41,9 @@ func (cnf *Tool) Bind(bind func(*viper.Viper) error) error {
 
 func (cnf *Tool) Load(fs afero.Fs, bindings ...func(*viper.Viper) error) error {
 	v := cnf.init().config
-
 	v.SetFs(fs)
+	cnf.FS = fs
+
 	for _, bind := range bindings {
 		if err := bind(v); err != nil {
 			return err

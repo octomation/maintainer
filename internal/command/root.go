@@ -23,7 +23,7 @@ func New() *cobra.Command {
 
 		PersistentPreRunE: func(*cobra.Command, []string) error {
 			// TODO:feature home dir and specific config
-			return cnf.Load(afero.NewMemMapFs())
+			return cnf.Load(afero.NewOsFs())
 		},
 
 		SilenceErrors: false,
