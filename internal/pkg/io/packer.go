@@ -1,4 +1,4 @@
-package file
+package io
 
 import (
 	"fmt"
@@ -8,6 +8,16 @@ import (
 	"sync"
 )
 
+type (
+	Reader = io.Reader
+	Writer = io.Writer
+)
+
+type Input interface {
+	io.Reader
+	Name() string
+}
+
 type Output interface {
 	io.Writer
 	Name() string
@@ -15,11 +25,6 @@ type Output interface {
 
 type Encoder interface {
 	Encode(any) error
-}
-
-type Input interface {
-	io.Reader
-	Name() string
 }
 
 type Decoder interface {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/spf13/afero"
@@ -12,23 +11,23 @@ import (
 	"go.octolab.org/unsafe"
 	"gopkg.in/yaml.v2"
 
-	"go.octolab.org/toolset/maintainer/internal/pkg/encoding/file"
+	"go.octolab.org/toolset/maintainer/internal/pkg/io"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
-var packer file.Packer
+var packer io.Packer
 
 // this is internals, so, we know what we are doing
 func init() {
-	packer = file.NewPacker()
+	packer = io.NewPacker()
 	packer.Register(
-		func(w io.Writer) file.Encoder { return json.NewEncoder(w) },
-		func(r io.Reader) file.Decoder { return json.NewDecoder(r) },
+		func(w io.Writer) io.Encoder { return json.NewEncoder(w) },
+		func(r io.Reader) io.Decoder { return json.NewDecoder(r) },
 		".json",
 	)
 	packer.Register(
-		func(w io.Writer) file.Encoder { return yaml.NewEncoder(w) },
-		func(r io.Reader) file.Decoder { return yaml.NewDecoder(r) },
+		func(w io.Writer) io.Encoder { return yaml.NewEncoder(w) },
+		func(r io.Reader) io.Decoder { return yaml.NewDecoder(r) },
 		".yml", ".yaml",
 	)
 }

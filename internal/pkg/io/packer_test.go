@@ -1,4 +1,4 @@
-package file_test
+package io_test
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "go.octolab.org/toolset/maintainer/internal/pkg/encoding/file"
+	. "go.octolab.org/toolset/maintainer/internal/pkg/io"
 )
 
 func TestPacker(t *testing.T) {

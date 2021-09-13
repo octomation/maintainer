@@ -1,15 +1,15 @@
 package contribution_test
 
 import (
-	"path/filepath"
+	"context"
 	"testing"
 	"time"
 
+	"github.com/spf13/afero"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	. "go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	"go.octolab.org/toolset/maintainer/internal/pkg/testing/file"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
@@ -178,12 +178,6 @@ func TestHistogramByWeekday(t *testing.T) {
 }
 
 func TestSuggest(t *testing.T) {
-	golden := func(name string) HeatMap {
-		var chm HeatMap
-		file.Restore(filepath.Join("testdata", name), &chm)
-		return chm
-	}
-
 	tests := map[string]struct {
 		// input
 		chm   HeatMap
@@ -195,7 +189,7 @@ func TestSuggest(t *testing.T) {
 		expected HistogramByWeekdayRow
 	}{
 		"issue#68: missed zero": {
-			golden("issue-68.golden.json"),
+			golden(t, "issue-68.golden.json"),
 			time.Date(2021, time.January, 1, 0, 0, 0, 0, time.UTC),
 			time.Now().UTC(),
 			5,
@@ -206,7 +200,7 @@ func TestSuggest(t *testing.T) {
 			},
 		},
 		"full week with some distribution": {
-			golden("issue-68.golden.json"),
+			golden(t, "issue-68.golden.json"),
 			time.Date(2021, time.September, 15, 0, 0, 0, 0, time.UTC),
 			time.Now().UTC(),
 			5,
@@ -217,7 +211,7 @@ func TestSuggest(t *testing.T) {
 			},
 		},
 		"week without contributions": {
-			golden("issue-68.golden.json"),
+			golden(t, "issue-68.golden.json"),
 			time.Date(2021, time.October, 7, 0, 0, 0, 0, time.UTC),
 			time.Now().UTC(),
 			5,
@@ -228,7 +222,7 @@ func TestSuggest(t *testing.T) {
 			},
 		},
 		"week with gaps": {
-			golden("issue-68.golden.json"),
+			golden(t, "issue-68.golden.json"),
 			time.Date(2021, time.October, 16, 0, 0, 0, 0, time.UTC),
 			time.Now().UTC(),
 			5,
@@ -267,4 +261,14 @@ func TestSuggest(t *testing.T) {
 			assert.Equal(t, test.expected, Suggest(test.chm, test.start, test.end, test.basis))
 		})
 	}
+}
+
+func golden(t testing.TB, name string) HeatMap {
+	src := FileSource{
+		Provider: afero.NewBasePathFs(afero.NewOsFs(), "testdata"),
+		Path:     name,
+	}
+	chm, err := src.Fetch(context.TODO())
+	require.NoError(t, err)
+	return chm
 }
