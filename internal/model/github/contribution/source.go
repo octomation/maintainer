@@ -32,18 +32,25 @@ func init() {
 	)
 }
 
-type FileSource struct {
+func NewFileSource(src afero.Fs, path string) *fileSource {
+	return &fileSource{
+		Provider: src,
+		Path:     path,
+	}
+}
+
+type fileSource struct {
 	Provider afero.Fs
 	Path     string
 
 	data HeatMap
 }
 
-func (src FileSource) Location() string {
+func (src fileSource) Location() string {
 	return fmt.Sprintf("file:%s", src.Path)
 }
 
-func (src *FileSource) Fetch(_ context.Context) (HeatMap, error) {
+func (src *fileSource) Fetch(_ context.Context) (HeatMap, error) {
 	if src.data != nil {
 		return src.data, nil
 	}
@@ -60,18 +67,36 @@ func (src *FileSource) Fetch(_ context.Context) (HeatMap, error) {
 	return src.data, nil
 }
 
-type UpstreamSource struct {
+func (src *fileSource) Store(chm HeatMap) error {
+	f, err := src.Provider.Create(src.Path)
+	if err != nil {
+		return err
+	}
+	defer safe.Close(f, unsafe.Ignore)
+
+	src.data = chm
+	return packer.Pack(f, src.data)
+}
+
+func NewUpstreamSource(src Contributor, year time.Time) *upstreamSource {
+	return &upstreamSource{
+		Provider: src,
+		Year:     year,
+	}
+}
+
+type upstreamSource struct {
 	Provider Contributor
 	Year     time.Time
 
 	data HeatMap
 }
 
-func (src UpstreamSource) Location() string {
+func (src upstreamSource) Location() string {
 	return fmt.Sprintf("upstream:year(%d)", src.Year.Year())
 }
 
-func (src *UpstreamSource) Fetch(ctx context.Context) (HeatMap, error) {
+func (src *upstreamSource) Fetch(ctx context.Context) (HeatMap, error) {
 	if src.data != nil {
 		return src.data, nil
 	}

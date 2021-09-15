@@ -36,15 +36,9 @@ func ContributionDiff(cnf *config.Tool) Runner {
 				return wrap(err, input)
 			}
 
-			base = &contribution.UpstreamSource{
-				Provider: service,
-				Year:     year,
-			}
+			base = contribution.NewUpstreamSource(service, year)
 		} else {
-			base = &contribution.FileSource{
-				Provider: cnf.FS,
-				Path:     input,
-			}
+			base = contribution.NewFileSource(cnf.FS, input)
 		}
 
 		var head run.ContributionSource
@@ -54,15 +48,9 @@ func ContributionDiff(cnf *config.Tool) Runner {
 				return wrap(err, input)
 			}
 
-			head = &contribution.UpstreamSource{
-				Provider: service,
-				Year:     year,
-			}
+			head = contribution.NewUpstreamSource(service, year)
 		} else {
-			head = &contribution.FileSource{
-				Provider: cnf.FS,
-				Path:     input,
-			}
+			head = contribution.NewFileSource(cnf.FS, input)
 		}
 
 		return run.ContributionDiff(cmd.Context(), base, head, cmd)

@@ -264,10 +264,7 @@ func TestSuggest(t *testing.T) {
 }
 
 func golden(t testing.TB, name string) HeatMap {
-	src := FileSource{
-		Provider: afero.NewBasePathFs(afero.NewOsFs(), "testdata"),
-		Path:     name,
-	}
+	src := NewFileSource(afero.NewBasePathFs(afero.NewOsFs(), "testdata"), name)
 	chm, err := src.Fetch(context.TODO())
 	require.NoError(t, err)
 	return chm
