@@ -5,7 +5,7 @@ import (
 	"embed"
 	"path/filepath"
 
-	"github.com/google/go-github/v47/github"
+	"github.com/google/go-github/v48/github"
 	"go.octolab.org/pointer"
 	"gopkg.in/yaml.v2"
 
