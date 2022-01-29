@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"sort"
 	"strconv"
 	"sync"
@@ -102,20 +103,35 @@ func contributionRange(doc *goquery.Document) (int, int) {
 	}
 }
 
+var contributionCount = regexp.MustCompile(`^\d+`)
+
 func contributionHeatMap(doc *goquery.Document) contribution.HeatMap {
 	chm := make(contribution.HeatMap)
 	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
 		Each(func(_ int, node *goquery.Selection) {
-			count := node.AttrOr("data-count", "")
+			// data-count="0"
+			// data-count="2"
+			count, has := node.Attr("data-count")
+			if !has {
+				// No contributions on January 2, 2006
+				// 2 contributions on January 2, 2006
+				count = contributionCount.FindString(node.Text())
+				if count == "" {
+					count = "0"
+				}
+			}
 			c, err := strconv.Atoi(count)
 			if err != nil {
-				panic(fmt.Errorf("invalid count value: %s", count))
+				html, _ := node.Html()
+				panic(fmt.Errorf("invalid count value in `%s`: %w", html, err))
 			}
 
+			// data-date="2006-01-02"
 			date := node.AttrOr("data-date", "")
 			d, err := time.Parse(xtime.RFC3339Day, date)
 			if err != nil {
-				panic(fmt.Errorf("invalid date value: %s", date))
+				html, _ := node.Html()
+				panic(fmt.Errorf("invalid date value in `%s`: %w", html, err))
 			}
 
 			chm.SetCount(d, c)

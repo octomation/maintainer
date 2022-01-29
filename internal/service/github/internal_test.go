@@ -1,6 +1,8 @@
 package github
 
 import (
+	"context"
+	"flag"
 	"os"
 	"testing"
 	"time"
@@ -12,8 +14,23 @@ import (
 	"go.octolab.org/unsafe"
 )
 
+var update = flag.Bool("update", false, "update testdata")
+
 func TestContributionRange(t *testing.T) {
-	f, err := os.Open("testdata/github.kamilsk.1986.html")
+	const name = "testdata/github.kamilsk.1986.html"
+
+	if *update {
+		d, err := fetchContributions(context.TODO(), "kamilsk", 1986)
+		require.NoError(t, err)
+
+		h, err := d.Html()
+		require.NoError(t, err)
+
+		require.NoError(t, os.Truncate(name, 0))
+		require.NoError(t, os.WriteFile(name, []byte(h), 0666))
+	}
+
+	f, err := os.Open(name)
 	require.NoError(t, err)
 	defer safe.Close(f, unsafe.Ignore)
 
@@ -22,11 +39,24 @@ func TestContributionRange(t *testing.T) {
 
 	min, max := contributionRange(doc)
 	assert.Equal(t, 2011, min)
-	assert.Equal(t, 2022, max)
+	assert.Equal(t, 2023, max)
 }
 
 func TestContributionHeatMap(t *testing.T) {
-	f, err := os.Open("testdata/github.kamilsk.2013.html")
+	const name = "testdata/github.kamilsk.2013.html"
+
+	if *update {
+		d, err := fetchContributions(context.TODO(), "kamilsk", 2013)
+		require.NoError(t, err)
+
+		h, err := d.Html()
+		require.NoError(t, err)
+
+		require.NoError(t, os.Truncate(name, 0))
+		require.NoError(t, os.WriteFile(name, []byte(h), 0666))
+	}
+
+	f, err := os.Open(name)
 	require.NoError(t, err)
 	defer safe.Close(f, unsafe.Ignore)
 

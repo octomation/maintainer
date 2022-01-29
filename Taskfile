@@ -10,6 +10,12 @@ set -euo pipefail
 declare -A config
 config['dryrun']=false
 
+function github() {
+  _ mod upgrade -t "${1}" --mod-name=github.com/google/go-github/v"$(($1 - 1))"
+  _ go mod tidy
+  _ make format
+}
+
 _() {
   if ${config['dryrun']}; then
     echo "${@}"
