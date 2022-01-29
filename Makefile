@@ -2,7 +2,7 @@
 
 .DEFAULT_GOAL = check
 GIT_HOOKS     = post-merge pre-commit pre-push
-GO_VERSIONS   = 1.18
+GO_VERSIONS   = 1.18 1.19
 
 AT    := @
 ARCH  := $(shell uname -m | tr '[:upper:]' '[:lower:]')
@@ -81,7 +81,7 @@ GOTEST      ?= $(shell PATH=$(PATH) command -v testit)
 GOTESTFLAGS ?=
 GOTRACEBACK ?= all
 LOCAL       ?= $(MODULE)
-MODULE      ?= `go list -m $(GOFLAGS)`
+MODULE      ?= `go list $(GOFLAGS)`
 PACKAGES    ?= `go list $(GOFLAGS) ./...`
 PATHS       ?= $(shell echo $(PACKAGES) | sed -e "s|$(MODULE)/||g" | sed -e "s|$(MODULE)|$(PWD)/*.go|g")
 TIMEOUT     ?= 1s
@@ -172,11 +172,7 @@ go-docs:
 .PHONY: go-docs
 
 go-fmt:
-	$(AT) if command -v goimports >/dev/null; then \
-		goimports -local $(LOCAL) -ungroup -w $(PATHS); \
-	else \
-		gofmt -s -w $(PATHS); \
-	fi
+	$(AT) goimports -local $(LOCAL) -w $(PATHS)
 .PHONY: go-fmt
 
 go-generate:
@@ -188,11 +184,7 @@ go-pkg:
 .PHONY: go-pkg
 
 lint:
-	$(AT) if command -v golangci-lint >/dev/null; then \
-		golangci-lint run ./...; \
-	else \
-		echo have no golangci-lint binary; \
-	fi
+	$(AT) golangci-lint run --enable looppointer ./...
 .PHONY: lint
 
 test:
@@ -277,19 +269,11 @@ install-clean:
 .PHONY: install-clean
 
 dist-check:
-	$(AT) if command -v goreleaser >/dev/null; then \
-		goreleaser --snapshot --skip-publish --rm-dist; \
-	else \
-		echo have no goreleaser binary; \
-	fi
+	$(AT) goreleaser --snapshot --skip-publish --rm-dist
 .PHONY: dist-check
 
 dist-dump:
-	$(AT) if command -v godownloader >/dev/null; then \
-		godownloader .goreleaser.yml >bin/install; \
-	else \
-		echo have no godownloader binary; \
-	fi
+	$(AT) godownloader .goreleaser.yml >bin/install
 .PHONY: dist-dump
 
 TOOLFLAGS ?= -mod=
