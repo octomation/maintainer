@@ -103,11 +103,10 @@ func OrderByFrequency(in []HistogramByCountRow) sort.Interface { return orderByF
 
 // HistogramByCount returns the distribution of amount contributions.
 //
-//  1 #
-//  3 #####
-//  4 ##
-//  7 ###
-//
+//	1 #
+//	3 #####
+//	4 ##
+//	7 ###
 func HistogramByCount(chm HeatMap, order ...func([]hbc) sort.Interface) []HistogramByCountRow {
 	h := make([]hbc, 0, 8)
 	m := make(map[int]int)
@@ -139,16 +138,15 @@ type hbd = HistogramByDateRow
 // The first value is a date in the specified format, and the second is a sum.
 // The result is sorted by the first value.
 //
-//  format: time.RFC3339Day
-//  	2022-01-02 #
-//  	2022-01-04 ###
-//  	2022-01-05 ##
-//  	2022-02-01 #
+//	format: time.RFC3339Day
+//		2022-01-02 #
+//		2022-01-04 ###
+//		2022-01-05 ##
+//		2022-02-01 #
 //
-//  format: time.RFC3339Month
-//  	2022-01    ######
-//  	2022-02    #
-//
+//	format: time.RFC3339Month
+//		2022-01    ######
+//		2022-02    #
 func HistogramByDate(chm HeatMap, format string) []HistogramByDateRow {
 	h := make([]hbd, 0, 8)
 	m := make(map[string]int)
@@ -179,17 +177,16 @@ type hbw = HistogramByWeekdayRow
 // The first value is a date in the specified format, and the second is a sum.
 // The result is sorted by the first value.
 //
-//  grouped: false
-//  	Monday  #
-//  	Tuesday ###
-//  	Friday  ##
-//  	Monday  #
+//	grouped: false
+//		Monday  #
+//		Tuesday ###
+//		Friday  ##
+//		Monday  #
 //
-//  grouped: true
-//  	Monday  ##
-//  	Tuesday ###
-//  	Friday  ##
-//
+//	grouped: true
+//		Monday  ##
+//		Tuesday ###
+//		Friday  ##
 func HistogramByWeekday(chm HeatMap, grouped bool) []HistogramByWeekdayRow {
 	f := make([]time.Time, 0, len(chm))
 	for ts := range chm {

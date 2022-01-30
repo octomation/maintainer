@@ -22,11 +22,10 @@ func BeforeOrEqual(t, u time.Time) bool {
 // Between returns true if min <= u, u <= max.
 // If you want to exclude some border, please use built-in Before or After methods:
 //
-//  - [from, to]: Between(u, from, to)
-//  - (from, to): from.Before(u) && to.After(u)
-//  - [from, to): BeforeOrEqual(from, u) && to.After(u)
-//  - (from, to]: from.Before(u) && AfterOrEqual(to, u)
-//
+//   - [from, to]: Between(u, from, to)
+//   - (from, to): from.Before(u) && to.After(u)
+//   - [from, to): BeforeOrEqual(from, u) && to.After(u)
+//   - (from, to]: from.Before(u) && AfterOrEqual(to, u)
 func Between(from, to, u time.Time) bool {
 	return BeforeOrEqual(from, u) && AfterOrEqual(to, u)
 }
