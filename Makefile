@@ -77,7 +77,7 @@ GOBIN       ?= $(PWD)/bin/$(OS)/$(ARCH)
 GOFLAGS     ?= -mod=
 GOPRIVATE   ?= go.octolab.net
 GOPROXY     ?= direct
-GOTEST      ?= $(shell PATH=$(PATH) command -v testit)
+GOTEST      ?= $(shell PATH="$(PATH)" command -v testit)
 GOTESTFLAGS ?=
 GOTRACEBACK ?= all
 LOCAL       ?= $(MODULE)
@@ -123,8 +123,7 @@ go-env:
 .PHONY: go-env
 
 go-verbose:
-	$(eval GOTESTFLAGS := -v)
-	@echo >/dev/null
+	$(eval GOTESTFLAGS := -v) @true
 .PHONY: go-verbose
 
 deps-check:
@@ -256,10 +255,6 @@ build-with-race:
 	$(AT) go build -race -o $(BINARY) $(LDFLAGS) $(MAIN)
 .PHONY: build-with-race
 
-build-clean:
-	$(AT) rm -f $(BINARY)
-.PHONY: build-clean
-
 install:
 	$(AT) go install $(LDFLAGS) $(MAIN)
 .PHONY: install
@@ -272,9 +267,9 @@ dist-check:
 	$(AT) goreleaser --snapshot --skip-publish --rm-dist
 .PHONY: dist-check
 
-dist-dump:
+dist-installer:
 	$(AT) godownloader .goreleaser.yml >bin/install
-.PHONY: dist-dump
+.PHONY: dist-installer
 
 TOOLFLAGS ?= -mod=
 
@@ -327,23 +322,23 @@ tools-disabled:
 .PHONY: tools-disabled
 
 tools-fetch: tools-disabled
-	@echo >/dev/null
+	@true
 .PHONY: tools-fetch
 
 tools-tidy: tools-disabled
-	@echo >/dev/null
+	@true
 .PHONY: tools-tidy
 
 tools-install: tools-disabled
-	@echo >/dev/null
+	@true
 .PHONY: tools-install
 
 tools-update: tools-disabled
-	@echo >/dev/null
+	@true
 .PHONY: tools-update
 endif
 
-ifneq (, $(shell PATH=$(PATH) command -v docker))
+ifneq (, $(shell PATH="$(PATH)" command -v docker))
 ifdef GO_VERSIONS
 
 define go_tpl
@@ -371,7 +366,7 @@ init: deps check hooks
 check: test lint
 .PHONY: check
 
-clean: build-clean deps-clean install-clean test-clean
+clean: deps-clean install-clean test-clean
 .PHONY: clean
 
 deps: deps-fetch tools-install
