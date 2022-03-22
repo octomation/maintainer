@@ -3,7 +3,7 @@ module go.octolab.org/toolset/maintainer
 go 1.18
 
 require (
-	github.com/PuerkitoBio/goquery v1.8.0
+	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/fatih/color v1.14.1
 	github.com/go-git/go-git/v5 v5.5.2
