@@ -6,7 +6,7 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.46.2
 	github.com/kyoh86/git-vertag v1.2.0
-	github.com/marwan-at-work/mod v0.4.3
+	github.com/marwan-at-work/mod v0.5.0
 	golang.org/x/exp v0.0.0-20220602145555-4a0574d9293f
 	golang.org/x/tools v0.1.12
 )

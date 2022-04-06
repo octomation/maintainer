@@ -528,8 +528,8 @@ github.com/magiconair/properties v1.8.6 h1:5ibWZ6iY0NctNGWo87LalDlEZ6R41TqbbDamh
 github.com/magiconair/properties v1.8.6/go.mod h1:y3VJvCyxH9uVvJTWEGAELF3aiYNyPKd5NZ3oSwXrF60=
 github.com/maratori/testpackage v1.0.1 h1:QtJ5ZjqapShm0w5DosRjg0PRlSdAdlx+W6cCKoALdbQ=
 github.com/maratori/testpackage v1.0.1/go.mod h1:ddKdw+XG0Phzhx8BFDTKgpWP4i7MpApTE5fXSKAqwDU=
-github.com/marwan-at-work/mod v0.4.3 h1:ZbKmg+leAHTZ1HlJmV0vfj3oKi1chwLx+F835HlXKmM=
-github.com/marwan-at-work/mod v0.4.3/go.mod h1:uccuvDVvpjMjrEl7mwJxDEhmenvkqFpcvNTXoc1v8kc=
+github.com/marwan-at-work/mod v0.5.0 h1:/8HxZiIvglUR8DfCdGTdbgtPY2D4GZqtrS5urVvjc7Y=
+github.com/marwan-at-work/mod v0.5.0/go.mod h1:uccuvDVvpjMjrEl7mwJxDEhmenvkqFpcvNTXoc1v8kc=
 github.com/matoous/godox v0.0.0-20210227103229-6504466cf951 h1:pWxk9e//NbPwfxat7RXkts09K+dEBJWakUWwICVqYbA=
 github.com/matoous/godox v0.0.0-20210227103229-6504466cf951/go.mod h1:1BELzlh859Sh1c6+90blK8lbYy0kwQf1bYlBhBysy1s=
 github.com/matryer/is v1.4.0 h1:sosSmIWwkYITGrxZ25ULNDeKiMNzFSr4V/eqBQP0PeE=
