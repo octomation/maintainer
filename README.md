@@ -1,6 +1,6 @@
-> # 👨‍🔧 maintainer
+> # 👨‍🔧 I'm a maintainer
 >
-> Toolset for Open Source contribution.
+> Contribution assistant for open source projects.
 
 [![Build][build.icon]][build.page]
 [![Documentation][docs.icon]][docs.page]
@@ -14,8 +14,6 @@
 ```bash
 $ maintainer go vanity build
 ```
-
-A full description of the idea is available [here][design.page].
 
 ## 🏆 Motivation
 
