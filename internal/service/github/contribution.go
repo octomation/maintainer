@@ -3,34 +3,30 @@ package github
 import (
 	"context"
 	"fmt"
-	"net/http"
-	"regexp"
-	"sort"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"go.octolab.org/safe"
-	"go.octolab.org/toolkit/protocol/http/header"
 	"go.octolab.org/unsafe"
 	"golang.org/x/sync/errgroup"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	xhttp "go.octolab.org/toolset/maintainer/internal/pkg/http"
+	xheader "go.octolab.org/toolset/maintainer/internal/pkg/http/header"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/url"
 )
 
 var overview = url.MustParse("https://github.com?tab=overview")
 
-func (srv *service) ContributionHeatMap(
+func (srv *Service) ContributionHeatMap(
 	ctx context.Context,
 	scope xtime.Range,
 ) (contribution.HeatMap, error) {
 	u, _, err := srv.client.Users.Get(ctx, "")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("fetch github user: %w", err)
 	}
 
 	chm := make(contribution.HeatMap)
@@ -42,7 +38,7 @@ func (srv *service) ContributionHeatMap(
 			}
 
 			mu.Lock()
-			for ts, count := range contributionHeatMap(doc) {
+			for ts, count := range ContributionHeatMap(doc) {
 				chm[ts] = count
 			}
 			mu.Unlock()
@@ -54,87 +50,32 @@ func (srv *service) ContributionHeatMap(
 	min, max := scope.From().Year(), scope.To().Year()
 	for i, user := min, u.GetLogin(); i <= max; i++ {
 		year := i
-		group.Go(func() error { return merge(fetchContributions(cascade, user, year)) })
+		group.Go(func() error { return merge(srv.FetchContributions(cascade, user, year)) })
 	}
 
 	err = group.Wait()
 	return chm.Subset(scope), err
 }
 
-func fetchContributions(ctx context.Context, user string, year int) (*goquery.Document, error) {
+func (srv *Service) FetchContributions(
+	ctx context.Context,
+	user string, year int,
+) (*goquery.Document, error) {
 	src := overview.
 		SetPath(user).
-		AddQueryParam("from", time.Date(year, 1, 1, 0, 0, 0, 0, time.UTC).Format(xtime.RFC3339Day)).
+		AddQueryParam("from", xtime.Year(year).Location(time.UTC).Format(xtime.RFC3339Day)).
 		String()
 	req, err := xhttp.NewGetRequestWithContext(ctx, src)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("build contributions request: %w", err)
 	}
-	req.Header.Set(header.CacheControl, "no-cache")
+	xheader.Set(req.Header).NoCache()
 
-	// TODO:debt use srv.client.Client() instead
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := srv.client.Client().Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("send contributions request: %w", err)
 	}
 	defer safe.Close(resp.Body, unsafe.Ignore)
 
 	return goquery.NewDocumentFromReader(resp.Body)
-}
-
-func contributionRange(doc *goquery.Document) (int, int) {
-	cr := make([]string, 0, 4)
-	doc.Find("div.js-profile-timeline-year-list a.js-year-link").
-		Each(func(_ int, node *goquery.Selection) {
-			cr = append(cr, node.Text())
-		})
-
-	switch len(cr) {
-	case 0:
-		return 0, 0
-	case 1:
-		single, _ := strconv.Atoi(cr[0])
-		return single, single
-	default:
-		sort.Strings(cr)
-		min, _ := strconv.Atoi(cr[0])
-		max, _ := strconv.Atoi(cr[len(cr)-1])
-		return min, max
-	}
-}
-
-var contributionCount = regexp.MustCompile(`^\d+`)
-
-func contributionHeatMap(doc *goquery.Document) contribution.HeatMap {
-	chm := make(contribution.HeatMap)
-	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
-		Each(func(_ int, node *goquery.Selection) {
-			// data-count="0"
-			// data-count="2"
-			count, has := node.Attr("data-count")
-			if !has {
-				// No contributions on January 2, 2006
-				// 2 contributions on January 2, 2006
-				count = contributionCount.FindString(node.Text())
-				if count == "" {
-					count = "0"
-				}
-			}
-			c, err := strconv.Atoi(count)
-			if err != nil {
-				html, _ := node.Html()
-				panic(fmt.Errorf("invalid count value in `%s`: %w", html, err))
-			}
-
-			// data-date="2006-01-02"
-			date := node.AttrOr("data-date", "")
-			d, err := time.Parse(xtime.RFC3339Day, date)
-			if err != nil {
-				html, _ := node.Html()
-				panic(fmt.Errorf("invalid date value in `%s`: %w", html, err))
-			}
-
-			chm.SetCount(d, c)
-		})
-	return chm
 }

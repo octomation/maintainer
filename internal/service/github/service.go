@@ -7,13 +7,13 @@ import (
 )
 
 // New returns a new GitHub service.
-func New(client *http.Client) *service {
-	srv := new(service)
+func New(client *http.Client) *Service {
+	srv := new(Service)
 	srv.client = github.NewClient(client)
 
 	return srv
 }
 
-type service struct {
+type Service struct {
 	client *github.Client
 }

@@ -16,7 +16,7 @@ import (
 var presets embed.FS
 
 // Labels lists all labels for a repository.
-func (srv *service) Labels(
+func (srv *Service) Labels(
 	ctx context.Context,
 	src model.Remote,
 ) (model.LabelSet, error) {
@@ -45,7 +45,7 @@ func (srv *service) Labels(
 }
 
 // PatchLabels updates labels with the specified preset.
-func (srv *service) PatchLabels(
+func (srv *Service) PatchLabels(
 	_ context.Context,
 	current model.LabelSet,
 	name string,
@@ -74,7 +74,7 @@ func (srv *service) PatchLabels(
 }
 
 // UpdateLabels updates labels in GitHub.
-func (srv *service) UpdateLabels(
+func (srv *Service) UpdateLabels(
 	ctx context.Context,
 	src model.Remote,
 	set model.LabelSet,

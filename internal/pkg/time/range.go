@@ -73,10 +73,10 @@ func (r Range) TrimByYear(year int) Range {
 	}
 
 	if r.from.Year() < year {
-		r.from = time.Date(year, 1, 1, 0, 0, 0, 0, r.from.Location())
+		r.from = Year(year).Location(r.from.Location()).Time()
 	}
 	if r.to.Year() > year {
-		r.to = time.Date(year+1, 1, 1, 0, 0, 0, 0, r.to.Location()).Add(-time.Nanosecond)
+		r.to = Year(year + 1).Add(-time.Nanosecond).Location(r.to.Location()).Time()
 	}
 	return r
 }
@@ -177,5 +177,5 @@ func TruncateToMonth(t time.Time) time.Time {
 
 func TruncateToYear(t time.Time) time.Time {
 	y, _, _ := t.Date()
-	return time.Date(y, 1, 1, 0, 0, 0, 0, t.Location())
+	return Year(y).Location(t.Location()).Time()
 }
