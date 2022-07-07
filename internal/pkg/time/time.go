@@ -74,6 +74,10 @@ func (b Builder) Format(layout string) string {
 	return b.Time().Format(layout)
 }
 
+func UTC() Builder {
+	return Builder{mm: 1, dd: 1, l: time.UTC}
+}
+
 func Year(year int) Builder {
 	return Builder{yyyy: year, mm: 1, dd: 1}
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"go.octolab.org/safe"
@@ -38,7 +37,7 @@ func (srv *Service) ContributionHeatMap(
 			}
 
 			mu.Lock()
-			for ts, count := range ContributionHeatMap(doc) {
+			for ts, count := range contribution.BuildHeatMap(doc) {
 				chm[ts] = count
 			}
 			mu.Unlock()
@@ -63,7 +62,7 @@ func (srv *Service) FetchContributions(
 ) (*goquery.Document, error) {
 	src := overview.
 		SetPath(user).
-		AddQueryParam("from", xtime.Year(year).Location(time.UTC).Format(xtime.RFC3339Day)).
+		AddQueryParam("from", xtime.UTC().Year(year).Format(xtime.RFC3339Day)).
 		String()
 	req, err := xhttp.NewGetRequestWithContext(ctx, src)
 	if err != nil {
