@@ -60,7 +60,7 @@ func TestHeatMap_Subset(t *testing.T) {
 }
 
 func TestBuildHeatMap(t *testing.T) {
-	const name = "testdata/kamilsk.2013.html"
+	const name = "testdata/kamilsk.2019.html"
 
 	f, err := os.Open(name)
 	require.NoError(t, err)
@@ -69,9 +69,9 @@ func TestBuildHeatMap(t *testing.T) {
 	doc, err := goquery.NewDocumentFromReader(f)
 	require.NoError(t, err)
 
-	ts := xtime.UTC().Year(2013).Month(time.November).Day(13).Time()
 	chm := BuildHeatMap(doc)
-	assert.Equal(t, 1, chm.Count(ts))                   // 2013-11-13
-	assert.Equal(t, 0, chm.Count(ts.AddDate(0, 1, 0)))  // 2013-12-13
-	assert.Equal(t, 2, chm.Count(ts.AddDate(0, 1, 14))) // 2013-12-27
+	ts := xtime.UTC().Year(2019).Month(time.November).Day(13).Time()
+	assert.Equal(t, 3, chm.Count(ts))                   // 2019-11-13
+	assert.Equal(t, 2, chm.Count(ts.AddDate(0, 1, 0)))  // 2019-12-13
+	assert.Equal(t, 3, chm.Count(ts.AddDate(0, 1, 14))) // 2019-12-27
 }

@@ -19,7 +19,7 @@ function github() {
 function testdata() {
   declare -A urls
   urls['kamilsk.1986.html']='https://github.com/kamilsk?tab=overview&from=1986-01-01'
-  urls['kamilsk.2013.html']='https://github.com/kamilsk?tab=overview&from=2013-01-01'
+  urls['kamilsk.2019.html']='https://github.com/kamilsk?tab=overview&from=2019-01-01'
   urls['kamilsk.2021.html']='https://github.com/kamilsk?tab=overview&from=2021-01-01'
 
   for name in "${!urls[@]}"; do
