@@ -25,6 +25,7 @@ func (chm HeatMap) SetCount(ts time.Time, count int) {
 }
 
 // Subset returns a subset of contribution heatmap in the provided time range.
+// TODO:perf improve algorithm
 func (chm HeatMap) Subset(scope xtime.Range) HeatMap {
 	subset := make(HeatMap)
 

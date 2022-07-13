@@ -3,6 +3,7 @@ package contribution
 import (
 	"time"
 
+	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
@@ -14,42 +15,81 @@ func Suggest(
 	end time.Time,
 	basis int,
 ) HistogramByWeekdayRow {
-	defaults := HistogramByWeekdayRow{
-		Day: start,
-		Sum: basis,
+	assert.True(func() bool { return chm != nil })
+	assert.True(func() bool { return start.Before(end) })
+	assert.True(func() bool { return basis > 0 })
+
+	// handle first week
+	var dist WeekDistribution
+	week := xtime.RangeByWeeks(start, 0, false).Shift(-xtime.Day) // shift Sunday
+
+	cursor := week.From()
+	for i := time.Sunday; i <= time.Saturday; i++ {
+		dist[i] = uint(chm[cursor])
+		cursor = cursor.Add(xtime.Day)
 	}
 
-	for t := start; t.Before(end); t = t.Add(xtime.Week) {
-		week := xtime.RangeByWeeks(t, 0, false).Shift(-xtime.Day) // shift Sunday
-		data := HistogramByCount(chm.Subset(week), OrderByCount)
-		sunday := week.From()
+	weekday := start.Weekday()
+	suggestion, value := dist.Suggest(weekday, uint(basis))
+	if suggestion != -1 {
+		return HistogramByWeekdayRow{
+			Day: start.Add(xtime.Day * time.Duration(suggestion-weekday)),
+			Sum: int(value),
+		}
+	}
 
-		// good week: no gaps and enough contributions
-		if len(data) == 1 && data[0].Count >= defaults.Sum {
+	weekday = time.Sunday
+	for t := cursor; t.Before(end); t = t.Add(xtime.Week) {
+		// feel distribution
+		cursor = t
+		for i := time.Sunday; i <= time.Saturday; i++ {
+			dist[i] = uint(chm[cursor])
+			cursor = cursor.Add(xtime.Day)
+		}
+		suggestion, value = dist.Suggest(weekday, uint(basis))
+		if suggestion == -1 {
 			continue
 		}
-
-		// bad week: no contributions
-		if len(data) == 0 {
-			return HistogramByWeekdayRow{Day: sunday, Sum: defaults.Sum}
+		return HistogramByWeekdayRow{
+			Day: t.Add(xtime.Day * time.Duration(suggestion-weekday)),
+			Sum: int(value),
 		}
-
-		// otherwise, we choose the maximum amount of contributions
-		// it's the last element in the histogram because it's sorted by count ASC
-		count := data[len(data)-1].Count
-		if count < defaults.Sum {
-			count = defaults.Sum
-		}
-		// and try to find an appropriate day to contribute
-		day := sunday
-		for i := time.Sunday; i <= time.Saturday; i++ {
-			if chm[day] != count {
-				break
-			}
-			day = day.Add(xtime.Day)
-		}
-		return HistogramByWeekdayRow{Day: day, Sum: count}
 	}
 
-	return defaults
+	return HistogramByWeekdayRow{}
+}
+
+type WeekDistribution [7]uint
+
+func (week WeekDistribution) Suggest(since time.Weekday, basis uint) (time.Weekday, uint) {
+	value := week.max()
+	if value < basis {
+		value = basis
+	}
+	for i := since; i <= time.Saturday; i++ {
+		if week[i] < value {
+			return i, value
+		}
+	}
+	return -1, value
+}
+
+func (week WeekDistribution) min() uint {
+	min := week[time.Sunday]
+	for i := time.Monday; i <= time.Saturday; i++ {
+		if week[i] < min {
+			min = week[i]
+		}
+	}
+	return min
+}
+
+func (week WeekDistribution) max() uint {
+	max := week[time.Sunday]
+	for i := time.Monday; i <= time.Saturday; i++ {
+		if week[i] > max {
+			max = week[i]
+		}
+	}
+	return max
 }
