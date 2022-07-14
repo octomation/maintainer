@@ -12,15 +12,15 @@ import (
 )
 
 // HeatMap contains how many contributions have been made in a time.
-type HeatMap map[time.Time]int
+type HeatMap map[time.Time]uint
 
 // Count returns how many contributions have been made in the specified time.
-func (chm HeatMap) Count(ts time.Time) int {
+func (chm HeatMap) Count(ts time.Time) uint {
 	return chm[ts]
 }
 
 // SetCount sets how many contributions have been made to the specified time.
-func (chm HeatMap) SetCount(ts time.Time, count int) {
+func (chm HeatMap) SetCount(ts time.Time, count uint) {
 	chm[ts] = count
 }
 
@@ -102,7 +102,7 @@ func BuildHeatMap(doc *goquery.Document) HeatMap {
 					count = "0"
 				}
 			}
-			c, err := strconv.Atoi(count)
+			c, err := strconv.ParseUint(count, 10, 0)
 			if err != nil {
 				html, _ := node.Html()
 				panic(ContentError{
@@ -122,7 +122,7 @@ func BuildHeatMap(doc *goquery.Document) HeatMap {
 				})
 			}
 
-			chm.SetCount(d, c)
+			chm.SetCount(d, uint(c))
 		})
 	return chm
 }

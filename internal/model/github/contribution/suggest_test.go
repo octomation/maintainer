@@ -158,10 +158,10 @@ func TestWeekDistribution_Suggest(t *testing.T) {
 func TestSuggest(t *testing.T) {
 	tests := map[string]struct {
 		// input
-		chm   HeatMap
-		start time.Time
-		end   time.Time
-		basis int
+		chm    HeatMap
+		start  time.Time
+		end    time.Time
+		target uint
 
 		// output
 		expected HistogramByWeekdayRow
@@ -261,7 +261,7 @@ func TestSuggest(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, test.expected, Suggest(test.chm, test.start, test.end, test.basis))
+			assert.Equal(t, test.expected, Suggest(test.chm, test.start, test.end, test.target))
 		})
 	}
 }

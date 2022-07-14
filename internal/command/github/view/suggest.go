@@ -13,7 +13,7 @@ import (
 
 type SuggestOption struct {
 	Suggest contribution.HistogramByWeekdayRow
-	Current int
+	Current uint
 	Delta   bool
 	Short   bool
 }
@@ -70,7 +70,7 @@ func Suggest(
 			txt := "-"
 			count, present := week.Report[i]
 			if count > 0 {
-				txt = strconv.Itoa(count)
+				txt = strconv.FormatUint(uint64(count), 10)
 			} else if !present {
 				txt = "?"
 			}

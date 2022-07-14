@@ -109,7 +109,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				if !zero && row.Count == 0 {
 					continue
 				}
-				fmt.Printf("%3d %s\n", row.Count, strings.Repeat("#", row.Frequency))
+				fmt.Printf("%3d %s\n", row.Count, strings.Repeat("#", int(row.Frequency)))
 			}
 			return nil
 		},
@@ -273,7 +273,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			date, weeks, half := time.TruncateToYear(time.Now().UTC()), 5, false
 			delta := unsafe.ReturnBool(cmd.Flags().GetBool("delta"))
 			short := unsafe.ReturnBool(cmd.Flags().GetBool("short"))
-			target := unsafe.ReturnInt(cmd.Flags().GetInt("target"))
+			target := unsafe.ReturnUint(cmd.Flags().GetUint("target"))
 
 			// input validation: date(year,+month,+week{day})[/{+-}weeks]
 			if len(args) == 1 {

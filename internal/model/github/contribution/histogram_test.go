@@ -24,7 +24,7 @@ func TestHistogramByCount(t *testing.T) {
 	chm.SetCount(Nov2013.Day(28).Time(), 7)
 	chm.SetCount(Nov2013.Day(29).Time(), 1)
 
-	expected := map[int]int{
+	expected := map[uint]uint{
 		1: 4,
 		2: 1,
 		3: 1,
@@ -53,7 +53,7 @@ func TestHistogramByDate(t *testing.T) {
 	chm.SetCount(Nov2013.Day(29).Time(), 1)
 
 	t.Run("grouped by day", func(t *testing.T) {
-		expected := map[string]int{
+		expected := map[string]uint{
 			"2013-11-13": 1,
 			"2013-11-20": 1,
 			"2013-11-21": 3,
@@ -72,7 +72,7 @@ func TestHistogramByDate(t *testing.T) {
 	})
 
 	t.Run("grouped by month", func(t *testing.T) {
-		expected := map[string]int{
+		expected := map[string]uint{
 			"2013-11": 24,
 		}
 
@@ -98,7 +98,7 @@ func TestHistogramByWeekday(t *testing.T) {
 	chm.SetCount(Nov2013.Day(29).Time(), 1) // Friday
 
 	t.Run("grouped", func(t *testing.T) {
-		expected := map[time.Weekday]int{
+		expected := map[time.Weekday]uint{
 			time.Sunday:    1,
 			time.Monday:    2,
 			time.Tuesday:   8,
@@ -115,7 +115,7 @@ func TestHistogramByWeekday(t *testing.T) {
 	})
 
 	t.Run("ungrouped", func(t *testing.T) {
-		expected := map[time.Weekday][]int{
+		expected := map[time.Weekday][]uint{
 			time.Sunday:    {1},
 			time.Monday:    {2},
 			time.Tuesday:   {8},
@@ -132,7 +132,7 @@ func TestHistogramByWeekday(t *testing.T) {
 		histogram := HistogramByWeekday(chm, false)
 		require.Len(t, histogram, total)
 		for i, row := range histogram {
-			sum, weekday := 0, row.Day.Weekday()
+			sum, weekday := uint(0), row.Day.Weekday()
 			sum, expected[weekday] = expected[weekday][0], expected[weekday][1:]
 			assert.Equal(t, sum, row.Sum, i)
 		}

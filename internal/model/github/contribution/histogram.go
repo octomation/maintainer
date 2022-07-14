@@ -7,7 +7,7 @@ import (
 )
 
 type HistogramByCountRow struct {
-	Count, Frequency int
+	Count, Frequency uint
 }
 
 type hbc = HistogramByCountRow
@@ -36,7 +36,7 @@ func OrderByFrequency(in []HistogramByCountRow) sort.Interface { return orderByF
 //	7 ###
 func HistogramByCount(chm HeatMap, order ...func([]hbc) sort.Interface) []HistogramByCountRow {
 	h := make([]hbc, 0, 8)
-	m := make(map[int]int)
+	m := make(map[uint]int)
 
 	for _, count := range chm {
 		idx, found := m[count]
@@ -56,7 +56,7 @@ func HistogramByCount(chm HeatMap, order ...func([]hbc) sort.Interface) []Histog
 
 type HistogramByDateRow struct {
 	Date string
-	Sum  int
+	Sum  uint
 }
 
 type hbd = HistogramByDateRow
@@ -95,7 +95,7 @@ func HistogramByDate(chm HeatMap, format string) []HistogramByDateRow {
 
 type HistogramByWeekdayRow struct {
 	Day time.Time
-	Sum int
+	Sum uint
 }
 
 type hbw = HistogramByWeekdayRow

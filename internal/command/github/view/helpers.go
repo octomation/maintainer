@@ -7,7 +7,7 @@ import (
 
 type WeekReport struct {
 	Number int
-	Report map[time.Weekday]int
+	Report map[time.Weekday]uint
 }
 
 func convert(
@@ -26,11 +26,11 @@ func convert(
 		if len(report) < idx+1 {
 			report = append(report, WeekReport{
 				Number: week,
-				Report: make(map[time.Weekday]int),
+				Report: make(map[time.Weekday]uint),
 			})
 		}
 
-		var count int
+		var count uint
 		if len(histogram) > 0 {
 			row := histogram[0]
 			if row.Day.Equal(day) {
@@ -47,7 +47,7 @@ func convert(
 		_, week := scope.To().Add(time.Week).ISOWeek()
 		report = append(report, WeekReport{
 			Number: week,
-			Report: make(map[time.Weekday]int),
+			Report: make(map[time.Weekday]uint),
 		})
 		for i := last + 1; i > 0; i-- {
 			if count, present := report[i-1].Report[time.Sunday]; present {
@@ -80,7 +80,7 @@ func prepare(heatmap contribution.HeatMap) []WeekReport {
 		_, num := week.ISOWeek()
 		row := WeekReport{
 			Number: num,
-			Report: make(map[time.Weekday]int, len(subset)),
+			Report: make(map[time.Weekday]uint, len(subset)),
 		}
 		for ts, count := range subset {
 			row.Report[ts.Weekday()] = count
@@ -94,7 +94,7 @@ func prepare(heatmap contribution.HeatMap) []WeekReport {
 		_, week := heatmap.To().Add(time.Week).ISOWeek()
 		report = append(report, WeekReport{
 			Number: week,
-			Report: make(map[time.Weekday]int),
+			Report: make(map[time.Weekday]uint),
 		})
 		for i := last + 1; i > 0; i-- {
 			if count, present := report[i-1].Report[time.Sunday]; present {

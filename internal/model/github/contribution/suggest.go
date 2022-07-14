@@ -13,11 +13,10 @@ func Suggest(
 	chm HeatMap,
 	start time.Time,
 	end time.Time,
-	basis int,
+	target uint,
 ) HistogramByWeekdayRow {
 	assert.True(func() bool { return chm != nil })
 	assert.True(func() bool { return start.Before(end) })
-	assert.True(func() bool { return basis > 0 })
 
 	// handle first week
 	var dist WeekDistribution
@@ -25,16 +24,16 @@ func Suggest(
 
 	cursor := week.From()
 	for i := time.Sunday; i <= time.Saturday; i++ {
-		dist[i] = uint(chm[cursor])
+		dist[i] = chm[cursor]
 		cursor = cursor.Add(xtime.Day)
 	}
 
 	weekday := start.Weekday()
-	suggestion, value := dist.Suggest(weekday, uint(basis))
+	suggestion, value := dist.Suggest(weekday, target)
 	if suggestion != -1 {
 		return HistogramByWeekdayRow{
 			Day: start.Add(xtime.Day * time.Duration(suggestion-weekday)),
-			Sum: int(value),
+			Sum: value,
 		}
 	}
 
@@ -43,16 +42,16 @@ func Suggest(
 		// feel distribution
 		cursor = t
 		for i := time.Sunday; i <= time.Saturday; i++ {
-			dist[i] = uint(chm[cursor])
+			dist[i] = chm[cursor]
 			cursor = cursor.Add(xtime.Day)
 		}
-		suggestion, value = dist.Suggest(weekday, uint(basis))
+		suggestion, value = dist.Suggest(weekday, target)
 		if suggestion == -1 {
 			continue
 		}
 		return HistogramByWeekdayRow{
 			Day: t.Add(xtime.Day * time.Duration(suggestion-weekday)),
-			Sum: int(value),
+			Sum: value,
 		}
 	}
 
