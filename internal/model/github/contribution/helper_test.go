@@ -27,3 +27,14 @@ func TestYearRange(t *testing.T) {
 	assert.Equal(t, 2011, min)
 	assert.Equal(t, 2023, max)
 }
+
+func load(t testing.TB, name string) *goquery.Document {
+	f, err := os.Open(name)
+	require.NoError(t, err)
+	defer safe.Close(f, unsafe.Ignore)
+
+	doc, err := goquery.NewDocumentFromReader(f)
+	require.NoError(t, err)
+
+	return doc
+}

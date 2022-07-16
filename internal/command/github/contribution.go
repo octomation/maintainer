@@ -321,9 +321,8 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// data provisioning
-			start := time.TruncateToWeek(date.Add(time.Day)) // Sunday and next week
 			scope := time.NewRange(
-				start.Add(-2*time.Week), // buffer from left side
+				time.RangeByWeeks(date, weeks, half).From(),
 				time.Now().UTC(),
 			)
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
@@ -331,7 +330,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				return err
 			}
 
-			value := contribution.Suggest(chm, start, scope.To(), target)
+			value := contribution.Suggest(chm, date, scope.To(), target)
 			area := time.RangeByWeeks(value.Day, weeks, half).Shift(-time.Day) // start from prev Sunday
 			data := contribution.HistogramByWeekday(chm.Subset(area), false)
 

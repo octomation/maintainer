@@ -17,44 +17,26 @@ func Suggest(
 ) HistogramByWeekdayRow {
 	assert.True(func() bool { return chm != nil })
 	assert.True(func() bool { return start.Before(end) })
+	assert.True(func() bool { return target > 0 })
 
-	// handle first week
 	var dist WeekDistribution
 	week := xtime.RangeByWeeks(start, 0, false).Shift(-xtime.Day) // shift Sunday
-
-	cursor := week.From()
-	for i := time.Sunday; i <= time.Saturday; i++ {
-		dist[i] = chm[cursor]
-		cursor = cursor.Add(xtime.Day)
-	}
-
-	weekday := start.Weekday()
-	suggestion, value := dist.Suggest(weekday, target)
-	if suggestion != -1 {
-		return HistogramByWeekdayRow{
-			Day: start.Add(xtime.Day * time.Duration(suggestion-weekday)),
-			Sum: value,
-		}
-	}
-
-	weekday = time.Sunday
-	for t := cursor; t.Before(end); t = t.Add(xtime.Week) {
-		// feel distribution
-		cursor = t
+	day, weekday := start, start.Weekday()
+	for cursor := week.From(); cursor.Before(end); {
 		for i := time.Sunday; i <= time.Saturday; i++ {
 			dist[i] = chm[cursor]
 			cursor = cursor.Add(xtime.Day)
 		}
-		suggestion, value = dist.Suggest(weekday, target)
+		suggestion, value := dist.Suggest(weekday, target)
 		if suggestion == -1 {
+			day, weekday = cursor, time.Sunday
 			continue
 		}
 		return HistogramByWeekdayRow{
-			Day: t.Add(xtime.Day * time.Duration(suggestion-weekday)),
+			Day: day.Add(xtime.Day * time.Duration(suggestion-weekday)),
 			Sum: value,
 		}
 	}
-
 	return HistogramByWeekdayRow{}
 }
 
