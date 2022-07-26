@@ -1,8 +1,10 @@
 package view
 
 import (
+	"time"
+
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	"go.octolab.org/toolset/maintainer/internal/pkg/time"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 type WeekReport struct {
@@ -11,12 +13,12 @@ type WeekReport struct {
 }
 
 func convert(
-	scope time.Range,
+	scope xtime.Range,
 	histogram []contribution.HistogramByWeekdayRow,
 ) []WeekReport {
 	report := make([]WeekReport, 0, 4)
 	prev, idx := 0, -1
-	for day := scope.From(); day.Before(scope.To()); day = day.Add(time.Day) {
+	for day := scope.From(); day.Before(scope.To()); day = day.Add(xtime.Day) {
 		_, week := day.ISOWeek()
 		if week != prev {
 			prev = week
@@ -44,7 +46,7 @@ func convert(
 	// shift Sunday to the right and cleanup empty weeks
 	last := len(report) - 1
 	if last > -1 {
-		_, week := scope.To().Add(time.Week).ISOWeek()
+		_, week := scope.To().Add(xtime.Week).ISOWeek()
 		report = append(report, WeekReport{
 			Number: week,
 			Report: make(map[time.Weekday]uint),
@@ -70,9 +72,9 @@ func convert(
 func prepare(heatmap contribution.HeatMap) []WeekReport {
 	report := make([]WeekReport, 0, 8)
 
-	start := time.TruncateToWeek(heatmap.From())
-	for week, end := start, heatmap.To(); week.Before(end); week = week.Add(time.Week) {
-		subset := heatmap.Subset(time.RangeByWeeks(week, 0, false).Shift(-time.Day))
+	start := xtime.TruncateToWeek(heatmap.From())
+	for week, end := start, heatmap.To(); week.Before(end); week = week.Add(xtime.Week) {
+		subset := heatmap.Subset(xtime.RangeByWeeks(week, 0, false).Shift(-xtime.Day))
 		if len(subset) == 0 {
 			continue
 		}
@@ -91,7 +93,7 @@ func prepare(heatmap contribution.HeatMap) []WeekReport {
 	// shift Sunday to the right and cleanup empty weeks
 	last := len(report) - 1
 	if last > -1 {
-		_, week := heatmap.To().Add(time.Week).ISOWeek()
+		_, week := heatmap.To().Add(xtime.Week).ISOWeek()
 		report = append(report, WeekReport{
 			Number: week,
 			Report: make(map[time.Weekday]uint),

@@ -29,7 +29,7 @@ func Suggest(
 
 	option SuggestOption,
 ) error {
-	now := xtime.Now().UTC()
+	now := time.Now().UTC()
 
 	var suggestion string
 	if option.Delta {

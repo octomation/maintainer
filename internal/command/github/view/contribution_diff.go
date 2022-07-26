@@ -2,11 +2,11 @@ package view
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/alexeyco/simpletable"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 func ContributionDiff(

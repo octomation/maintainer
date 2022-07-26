@@ -3,16 +3,17 @@ package view
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/alexeyco/simpletable"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	"go.octolab.org/toolset/maintainer/internal/pkg/time"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 func Lookup(
 	printer interface{ Println(...interface{}) },
-	scope time.Range,
+	scope xtime.Range,
 	histogram []contribution.HistogramByWeekdayRow,
 ) error {
 	data := convert(scope, histogram)
@@ -51,8 +52,8 @@ func Lookup(
 			{
 				Span: len(table.Header.Cells),
 				Text: fmt.Sprintf("Contributions are on the range from %s to %s",
-					scope.From().Format(time.RFC3339Day),
-					scope.To().Format(time.RFC3339Day),
+					scope.From().Format(xtime.RFC3339Day),
+					scope.To().Format(xtime.RFC3339Day),
 				),
 			},
 		},

@@ -2,8 +2,9 @@ package contribution
 
 import (
 	"sort"
+	"time"
 
-	"go.octolab.org/toolset/maintainer/internal/pkg/time"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 type HistogramByCountRow struct {
@@ -126,7 +127,7 @@ func HistogramByWeekday(chm HeatMap, grouped bool) []HistogramByWeekdayRow {
 	var prev time.Time
 	for _, ts := range f {
 		weekday := ts.Weekday()
-		current := time.TruncateToDay(ts)
+		current := xtime.TruncateToDay(ts)
 
 		idx, found := m[weekday]
 		if !found || (!grouped && !prev.Equal(current)) {

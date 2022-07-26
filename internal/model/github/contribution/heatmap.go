@@ -11,6 +11,48 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
+var counter = regexp.MustCompile(`^\d+`)
+
+func BuildHeatMap(doc *goquery.Document) HeatMap {
+	chm := make(HeatMap)
+	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
+		Each(func(_ int, node *goquery.Selection) {
+			// data-count="0"
+			// data-count="2"
+			count, has := node.Attr("data-count")
+			if !has {
+				// No contributions on January 2, 2006
+				// 2 contributions on January 2, 2006
+				count = counter.FindString(node.Text())
+				if count == "" {
+					count = "0"
+				}
+			}
+			c, err := strconv.ParseUint(count, 10, 0)
+			if err != nil {
+				html, _ := node.Html()
+				panic(ContentError{
+					error:   fmt.Errorf("invalid count value: %w", err),
+					Content: html,
+				})
+			}
+
+			// data-date="2006-01-02"
+			date := node.AttrOr("data-date", "")
+			d, err := time.Parse(xtime.RFC3339Day, date)
+			if err != nil {
+				html, _ := node.Html()
+				panic(ContentError{
+					error:   fmt.Errorf("invalid date value: %w", err),
+					Content: html,
+				})
+			}
+
+			chm.SetCount(d, uint(c))
+		})
+	return chm
+}
+
 // HeatMap contains how many contributions have been made in a time.
 type HeatMap map[time.Time]uint
 
@@ -78,51 +120,4 @@ func (chm HeatMap) To() time.Time {
 		}
 	}
 	return max
-}
-
-// Range returns time range of the heatmap, otherwise the zero time range instant.
-func (chm HeatMap) Range() xtime.Range {
-	return xtime.NewRange(chm.From(), chm.To())
-}
-
-var counter = regexp.MustCompile(`^\d+`)
-
-func BuildHeatMap(doc *goquery.Document) HeatMap {
-	chm := make(HeatMap)
-	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
-		Each(func(_ int, node *goquery.Selection) {
-			// data-count="0"
-			// data-count="2"
-			count, has := node.Attr("data-count")
-			if !has {
-				// No contributions on January 2, 2006
-				// 2 contributions on January 2, 2006
-				count = counter.FindString(node.Text())
-				if count == "" {
-					count = "0"
-				}
-			}
-			c, err := strconv.ParseUint(count, 10, 0)
-			if err != nil {
-				html, _ := node.Html()
-				panic(ContentError{
-					error:   fmt.Errorf("invalid count value: %w", err),
-					Content: html,
-				})
-			}
-
-			// data-date="2006-01-02"
-			date := node.AttrOr("data-date", "")
-			d, err := time.Parse(xtime.RFC3339Day, date)
-			if err != nil {
-				html, _ := node.Html()
-				panic(ContentError{
-					error:   fmt.Errorf("invalid date value: %w", err),
-					Content: html,
-				})
-			}
-
-			chm.SetCount(d, uint(c))
-		})
-	return chm
 }

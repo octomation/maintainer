@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -13,7 +14,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
-	"go.octolab.org/toolset/maintainer/internal/pkg/time"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/unsafe"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
@@ -66,7 +67,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			construct, date := time.RangeByWeeks, time.Now().UTC()
+			construct, date := xtime.RangeByWeeks, time.Now().UTC()
 			zero := unsafe.ReturnBool(cmd.Flags().GetBool("with-zero"))
 
 			// input validation: date(year,+month,+week{day})
@@ -80,14 +81,14 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				}
 
 				switch input := args[0]; len(input) {
-				case len(time.RFC3339Year):
-					date, err = time.Parse(time.RFC3339Year, input)
-					construct = time.RangeByYears
-				case len(time.RFC3339Month):
-					date, err = time.Parse(time.RFC3339Month, input)
-					construct = time.RangeByMonths
-				case len(time.RFC3339Day):
-					date, err = time.Parse(time.RFC3339Day, input)
+				case len(xtime.RFC3339Year):
+					date, err = time.Parse(xtime.RFC3339Year, input)
+					construct = xtime.RangeByYears
+				case len(xtime.RFC3339Month):
+					date, err = time.Parse(xtime.RFC3339Month, input)
+					construct = xtime.RangeByMonths
+				case len(xtime.RFC3339Day):
+					date, err = time.Parse(xtime.RFC3339Day, input)
 				default:
 					err = fmt.Errorf("unsupported format")
 				}
@@ -170,7 +171,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 					fallthrough
 				case 1:
 					if raw[0] != "now" && raw[0] != "" {
-						date, err = time.Parse(time.RFC3339Day, raw[0])
+						date, err = time.Parse(xtime.RFC3339Day, raw[0])
 					}
 					if err != nil {
 						return wrap(err)
@@ -181,7 +182,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// data provisioning
-			scope := time.RangeByWeeks(date, weeks, half).Shift(-time.Day).ExcludeFuture()
+			scope := xtime.RangeByWeeks(date, weeks, half).Shift(-xtime.Day).ExcludeFuture()
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
@@ -209,7 +210,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date := time.TruncateToYear(time.Now().UTC())
+			date := xtime.TruncateToYear(time.Now().UTC())
 
 			// input validation: date(year)
 			if len(args) == 1 {
@@ -222,8 +223,8 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 				}
 
 				switch input := args[0]; len(input) {
-				case len(time.RFC3339Year):
-					date, err = time.Parse(time.RFC3339Year, input)
+				case len(xtime.RFC3339Year):
+					date, err = time.Parse(xtime.RFC3339Year, input)
 				default:
 					err = fmt.Errorf("unsupported format")
 				}
@@ -233,7 +234,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 			}
 
 			// data provisioning
-			scope := time.RangeByYears(date, 0, false).ExcludeFuture()
+			scope := xtime.RangeByYears(date, 0, false).ExcludeFuture()
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
@@ -267,85 +268,11 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	suggest := cobra.Command{
 		Use:  "suggest",
 		Args: cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// dependencies and defaults
-			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date, weeks, half := time.TruncateToYear(time.Now().UTC()), 5, false
-			delta := unsafe.ReturnBool(cmd.Flags().GetBool("delta"))
-			short := unsafe.ReturnBool(cmd.Flags().GetBool("short"))
-			target := unsafe.ReturnUint(cmd.Flags().GetUint("target"))
-
-			// input validation: date(year,+month,+week{day})[/{+-}weeks]
-			if len(args) == 1 {
-				var err error
-				wrap := func(err error) error {
-					return fmt.Errorf(
-						"please provide argument in format YYYY[-mm[-dd]][/[+|-]weeks], e.g., 2006-01: %w",
-						fmt.Errorf("invalid argument %q: %w", args[0], err),
-					)
-				}
-
-				input := args[0]
-				raw := strings.Split(input, "/")
-				switch len(raw) {
-				case 2:
-					weeks, err = strconv.Atoi(raw[1])
-					if err != nil {
-						return wrap(err)
-					}
-					// +%d and positive %d have the same value, but different semantic
-					// invariant: len(raw[1]) > 0, because weeks > 0 and invariant(time.RangeByWeeks)
-					if weeks > 0 && raw[1][0] != '+' {
-						half = true
-					}
-					fallthrough
-				case 1:
-					input = raw[0]
-				default:
-					return wrap(fmt.Errorf("too many parts"))
-				}
-
-				switch len(input) {
-				case len(time.RFC3339Year):
-					date, err = time.Parse(time.RFC3339Year, input)
-				case len(time.RFC3339Month):
-					date, err = time.Parse(time.RFC3339Month, input)
-				case len(time.RFC3339Day):
-					date, err = time.Parse(time.RFC3339Day, input)
-				default:
-					err = fmt.Errorf("unsupported format")
-				}
-				if err != nil {
-					return wrap(err)
-				}
-			}
-
-			// data provisioning
-			scope := time.NewRange(
-				time.RangeByWeeks(date, weeks, half).From(),
-				time.Now().UTC(),
-			)
-			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
-			if err != nil {
-				return err
-			}
-
-			value := contribution.Suggest(chm, date, scope.To(), target)
-			area := time.RangeByWeeks(value.Day, weeks, half).Shift(-time.Day) // start from prev Sunday
-			data := contribution.HistogramByWeekday(chm.Subset(area), false)
-
-			// data presentation
-			return view.Suggest(cmd, area, data, view.SuggestOption{
-				Suggest: value,
-				Current: chm[value.Day],
-				Delta:   delta,
-				Short:   short,
-			})
-		},
+		RunE: exec.Contribution(cnf),
 	}
 	suggest.Flags().Bool("delta", false, "shows relatively")
 	suggest.Flags().Bool("short", false, "shows only date")
-	suggest.Flags().Int("target", 5, "minimum contributions")
+	suggest.Flags().Uint("target", 5, "minimum contributions")
 	cmd.AddCommand(&suggest)
 
 	return &cmd

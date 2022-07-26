@@ -20,7 +20,7 @@ func Suggest(
 	assert.True(func() bool { return target > 0 })
 
 	var dist WeekDistribution
-	week := xtime.RangeByWeeks(start, 0, false).Shift(-xtime.Day) // shift Sunday
+	week := ShiftRange(xtime.RangeByWeeks(start, 0, false))
 	day, weekday := start, start.Weekday()
 	for cursor := week.From(); cursor.Before(end); {
 		for i := time.Sunday; i <= time.Saturday; i++ {

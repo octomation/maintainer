@@ -3,9 +3,29 @@ package contribution
 import (
 	"sort"
 	"strconv"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
+
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
+
+type DateOptions struct {
+	Value time.Time
+	Weeks int
+	Half  bool
+}
+
+func LookupRange(opts DateOptions) xtime.Range {
+	return ShiftRange(xtime.RangeByWeeks(opts.Value, opts.Weeks, opts.Half)).ExcludeFuture()
+}
+
+func ShiftRange(r xtime.Range) xtime.Range {
+	if r.Base().Weekday() == time.Sunday {
+		return r.Shift(6 * xtime.Day)
+	}
+	return r.Shift(-xtime.Day)
+}
 
 func YearRange(doc *goquery.Document) (int, int) {
 	cr := make([]string, 0, 4)

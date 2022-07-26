@@ -3,6 +3,7 @@ package exec
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -10,16 +11,16 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
-	"go.octolab.org/toolset/maintainer/internal/pkg/time"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
 func ContributionDiff(cnf *config.Tool) Runner {
 	isYear := regexp.MustCompile(`^\d{4}$`)
-	wrap := func(err error, input string) error {
+	wrap := func(err error, arg string) error {
 		return fmt.Errorf(
 			"please provide the argument in format YYYY, e.g., 2006: %w",
-			fmt.Errorf("invalid argument %q: %w", input, err),
+			fmt.Errorf("invalid argument %q: %w", arg, err),
 		)
 	}
 
@@ -31,7 +32,7 @@ func ContributionDiff(cnf *config.Tool) Runner {
 
 		var base run.ContributionSource
 		if input := args[0]; isYear.MatchString(input) {
-			year, err := time.Parse(time.RFC3339Year, input)
+			year, err := time.Parse(xtime.RFC3339Year, input)
 			if err != nil {
 				return wrap(err, input)
 			}
@@ -43,7 +44,7 @@ func ContributionDiff(cnf *config.Tool) Runner {
 
 		var head run.ContributionSource
 		if input := args[1]; isYear.MatchString(input) {
-			year, err := time.Parse(time.RFC3339Year, input)
+			year, err := time.Parse(xtime.RFC3339Year, input)
 			if err != nil {
 				return wrap(err, input)
 			}

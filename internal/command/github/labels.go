@@ -102,7 +102,7 @@ func Labels(cnf *config.Tool) *cobra.Command {
 			Long:  "Pull repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-				source := git.New(provider.FallbackTo(cnf.Remote).Apply(provider.Default()))
+				source := git.New(provider.FallbackTo(cnf.Remote).Apply(provider.Current()))
 
 				remotes, err := source.Remotes()
 				if err != nil {
@@ -149,7 +149,7 @@ func Labels(cnf *config.Tool) *cobra.Command {
 			Long:  "Push repository labels.",
 			RunE: func(cmd *cobra.Command, args []string) error {
 				service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-				source := git.New(provider.FallbackTo(cnf.Remote).Apply(provider.Default()))
+				source := git.New(provider.FallbackTo(cnf.Remote).Apply(provider.Current()))
 
 				var patched model.LabelSet
 
