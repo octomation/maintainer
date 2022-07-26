@@ -41,6 +41,7 @@ func (publisher *publisher) PublishAt(root string, modules []golang.Module) erro
 			}
 
 			// TODO:rfc:#3 add support multiple source
+			module := module
 			for _, imports := range module.Import[:1] {
 				if err := tpl.Execute(file, Meta{
 					Package: pkg,

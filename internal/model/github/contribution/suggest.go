@@ -55,16 +55,6 @@ func (week WeekDistribution) Suggest(since time.Weekday, basis uint) (time.Weekd
 	return -1, value
 }
 
-func (week WeekDistribution) min() uint {
-	min := week[time.Sunday]
-	for i := time.Monday; i <= time.Saturday; i++ {
-		if week[i] < min {
-			min = week[i]
-		}
-	}
-	return min
-}
-
 func (week WeekDistribution) max() uint {
 	max := week[time.Sunday]
 	for i := time.Monday; i <= time.Saturday; i++ {

@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
-
 	"github.com/PuerkitoBio/goquery"
+
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 var counter = regexp.MustCompile(`^\d+`)
