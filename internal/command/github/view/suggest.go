@@ -42,7 +42,7 @@ func Suggest(
 	if option.Delta {
 		days := day.Sub(now) / xtime.Day
 		tail := -day.Sub(now) % xtime.Day
-		suggestion = fmt.Sprintf("%dd%s", days, tail)
+		suggestion = fmt.Sprintf("%dd%s", days, tail.Truncate(time.Second))
 	} else {
 		suggestion = day.Format(time.RFC3339)
 	}

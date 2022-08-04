@@ -57,17 +57,19 @@ func ParseDate(
 	}
 
 	var date time.Time
-	switch len(rawDate) {
-	case 20, len(time.RFC3339):
-		date, err = time.Parse(time.RFC3339, rawDate)
-	case len(xtime.RFC3339Day):
-		date, err = time.Parse(xtime.RFC3339Day, rawDate)
-	case len(xtime.RFC3339Month):
-		date, err = time.Parse(xtime.RFC3339Month, rawDate)
-	case len(xtime.RFC3339Year):
-		date, err = time.Parse(xtime.RFC3339Year, rawDate)
-	case 0:
+	switch l := len(rawDate); true {
+	case rawDate == "":
 		date = defaultDate
+	case rawDate == "now":
+		date = time.Now()
+	case l == len(xtime.RFC3339Year):
+		date, err = time.Parse(xtime.RFC3339Year, rawDate)
+	case l == len(xtime.RFC3339Month):
+		date, err = time.Parse(xtime.RFC3339Month, rawDate)
+	case l == len(xtime.RFC3339Day):
+		date, err = time.Parse(xtime.RFC3339Day, rawDate)
+	case l == 20 || l == len(time.RFC3339):
+		date, err = time.Parse(time.RFC3339, rawDate)
 	default:
 		err = fmt.Errorf("unsupported format")
 	}

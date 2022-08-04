@@ -3,7 +3,6 @@ package github
 import (
 	"encoding/json"
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -144,45 +143,14 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// dependencies and defaults
 			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date, weeks, half := time.Now().UTC(), -1, false
-
-			// input validation: date[/{+-}weeks]
-			if len(args) == 1 {
-				var err error
-				wrap := func(err error) error {
-					return fmt.Errorf(
-						"please provide argument in format YYYY-mm-dd[/[+|-]weeks], e.g., 2006-01-02/3: %w",
-						fmt.Errorf("invalid argument %q: %w", args[0], err),
-					)
-				}
-
-				raw := strings.Split(args[0], "/")
-				switch len(raw) {
-				case 2:
-					weeks, err = strconv.Atoi(raw[1])
-					if err != nil {
-						return wrap(err)
-					}
-					// +%d and positive %d have the same value, but different semantic
-					// invariant: len(raw[1]) > 0, because weeks > 0 and invariant(time.RangeByWeeks)
-					if weeks > 0 && raw[1][0] != '+' {
-						half = true
-					}
-					fallthrough
-				case 1:
-					if raw[0] != "now" && raw[0] != "" {
-						date, err = time.Parse(xtime.RFC3339Day, raw[0])
-					}
-					if err != nil {
-						return wrap(err)
-					}
-				default:
-					return wrap(fmt.Errorf("too many parts"))
-				}
-			}
 
 			// data provisioning
-			scope := xtime.RangeByWeeks(date, weeks, half).Shift(-xtime.Day).ExcludeFuture()
+			opts, err := exec.ParseDate(args, exec.FallbackDate(args), -1)
+			if err != nil {
+				return err
+			}
+
+			scope := contribution.LookupRange(opts)
 			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 			if err != nil {
 				return err
