@@ -57,7 +57,7 @@ func ParseDate(
 	}
 
 	var date time.Time
-	switch l := len(rawDate); true {
+	switch l := len(rawDate); {
 	case rawDate == "":
 		date = defaultDate
 	case rawDate == "now":
