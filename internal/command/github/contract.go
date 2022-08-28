@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"go.octolab.org/toolset/maintainer/internal/model/git"
-	"go.octolab.org/toolset/maintainer/internal/model/github"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
@@ -19,8 +18,4 @@ type Git interface {
 // GitHub represents a GitHub service.
 type GitHub interface {
 	ContributionHeatMap(context.Context, time.Range) (contribution.HeatMap, error)
-
-	Labels(context.Context, github.Remote) (github.LabelSet, error)
-	PatchLabels(context.Context, github.LabelSet, string) (github.LabelSet, error)
-	UpdateLabels(context.Context, github.Remote, github.LabelSet) error
 }
