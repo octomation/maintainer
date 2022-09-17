@@ -52,8 +52,8 @@ func Lookup(
 			{
 				Span: len(table.Header.Cells),
 				Text: fmt.Sprintf("Contributions are on the range from %s to %s",
-					scope.From().Format(xtime.RFC3339Day),
-					scope.To().Format(xtime.RFC3339Day),
+					scope.From().Format(xtime.DateOnly),
+					scope.To().Format(xtime.DateOnly),
 				),
 			},
 		},

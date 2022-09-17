@@ -1,4 +1,4 @@
-package exec_test
+package contribution_test
 
 import (
 	"fmt"
@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.octolab.org/toolset/maintainer/internal/command/github/exec"
+	. "go.octolab.org/toolset/maintainer/internal/command/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
@@ -33,8 +33,8 @@ func TestParseDate(t *testing.T) {
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, start.Time(), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-24")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-27")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-24")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-27")
 			},
 		},
 		{
@@ -45,8 +45,8 @@ func TestParseDate(t *testing.T) {
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, start.Time(), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-31")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-20")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-31")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-20")
 			},
 		},
 		{
@@ -57,8 +57,8 @@ func TestParseDate(t *testing.T) {
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, start.Time(), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-17")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-13")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-17")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-13")
 			},
 		},
 		{
@@ -69,152 +69,152 @@ func TestParseDate(t *testing.T) {
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, start.Time(), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-02-07")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-03-06")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-02-07")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-03-06")
 			},
 		},
 		{
-			name:   "RFC3339Day with default range",
-			arg:    start.Format(xtime.RFC3339Day),
+			name:   "DateOnly with default range",
+			arg:    start.Format(xtime.DateOnly),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToDay(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-24")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-27")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-24")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-27")
 			},
 		},
 		{
-			name:   "RFC3339Day with specified range",
-			arg:    fmt.Sprintf("%s/3", start.Format(xtime.RFC3339Day)),
+			name:   "DateOnly with specified range",
+			arg:    fmt.Sprintf("%s/3", start.Format(xtime.DateOnly)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToDay(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-31")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-20")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-31")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-20")
 			},
 		},
 		{
-			name:   "RFC3339Day with specified range behind",
-			arg:    fmt.Sprintf("%s/-3", start.Format(xtime.RFC3339Day)),
+			name:   "DateOnly with specified range behind",
+			arg:    fmt.Sprintf("%s/-3", start.Format(xtime.DateOnly)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToDay(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-17")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-13")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-17")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-13")
 			},
 		},
 		{
-			name:   "RFC3339Day with specified range ahead",
-			arg:    fmt.Sprintf("%s/+3", start.Format(xtime.RFC3339Day)),
+			name:   "DateOnly with specified range ahead",
+			arg:    fmt.Sprintf("%s/+3", start.Format(xtime.DateOnly)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToDay(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-02-07")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-03-06")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-02-07")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-03-06")
 			},
 		},
 		{
-			name:   "RFC3339Month with default range",
-			arg:    start.Format(xtime.RFC3339Month),
+			name:   "YearAndMonth with default range",
+			arg:    start.Format(xtime.YearAndMonth),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToMonth(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-17")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-20")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-17")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-20")
 			},
 		},
 		{
-			name:   "RFC3339Month with specified range",
-			arg:    fmt.Sprintf("%s/3", start.Format(xtime.RFC3339Month)),
+			name:   "YearAndMonth with specified range",
+			arg:    fmt.Sprintf("%s/3", start.Format(xtime.YearAndMonth)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToMonth(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-24")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-13")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-24")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-13")
 			},
 		},
 		{
-			name:   "RFC3339Month with specified range behind",
-			arg:    fmt.Sprintf("%s/-3", start.Format(xtime.RFC3339Month)),
+			name:   "YearAndMonth with specified range behind",
+			arg:    fmt.Sprintf("%s/-3", start.Format(xtime.YearAndMonth)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToMonth(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-10")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-06")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-10")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-06")
 			},
 		},
 		{
-			name:   "RFC3339Month with specified range ahead",
-			arg:    fmt.Sprintf("%s/+3", start.Format(xtime.RFC3339Month)),
+			name:   "YearAndMonth with specified range ahead",
+			arg:    fmt.Sprintf("%s/+3", start.Format(xtime.YearAndMonth)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToMonth(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2021-01-31")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-02-27")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-31")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-27")
 			},
 		},
 		{
-			name:   "RFC3339Year with default range",
-			arg:    start.Format(xtime.RFC3339Year),
+			name:   "YearOnly with default range",
+			arg:    start.Format(xtime.YearOnly),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToYear(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2020-12-13")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-01-16")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2020-12-13")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-01-16")
 			},
 		},
 		{
-			name:   "RFC3339Year with specified range",
-			arg:    fmt.Sprintf("%s/3", start.Format(xtime.RFC3339Year)),
+			name:   "YearOnly with specified range",
+			arg:    fmt.Sprintf("%s/3", start.Format(xtime.YearOnly)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToYear(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2020-12-20")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-01-09")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2020-12-20")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-01-09")
 			},
 		},
 		{
-			name:   "RFC3339Year with specified range behind",
-			arg:    fmt.Sprintf("%s/-3", start.Format(xtime.RFC3339Year)),
+			name:   "YearOnly with specified range behind",
+			arg:    fmt.Sprintf("%s/-3", start.Format(xtime.YearOnly)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToYear(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2020-12-06")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-01-02")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2020-12-06")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-01-02")
 			},
 		},
 		{
-			name:   "RFC3339Year with specified range ahead",
-			arg:    fmt.Sprintf("%s/+3", start.Format(xtime.RFC3339Year)),
+			name:   "YearOnly with specified range ahead",
+			arg:    fmt.Sprintf("%s/+3", start.Format(xtime.YearOnly)),
 			fDate:  time.Time{},
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
 				assert.Equal(t, xtime.TruncateToYear(start.Time()), lr.Base())
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2020-12-27")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2021-01-23")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2020-12-27")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-01-23")
 			},
 		},
 		{
@@ -224,8 +224,8 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, lr.From().Format(xtime.RFC3339Day), "2022-07-03")
-				assert.Equal(t, lr.To().Format(xtime.RFC3339Day), "2022-07-30")
+				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2022-07-03")
+				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2022-07-30")
 			},
 		},
 		{
@@ -239,7 +239,7 @@ func TestParseDate(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			opts, err := exec.ParseDate([]string{test.arg}, test.fDate, test.fWeeks)
+			opts, err := ParseDate([]string{test.arg}, test.fDate, test.fWeeks)
 			test.health(t, err)
 			test.assert(t, contribution.LookupRange(opts))
 		})

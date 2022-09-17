@@ -8,12 +8,9 @@ const (
 )
 
 const (
-	RFC3339Day   = "2006-01-02"
-	DateOnly     = RFC3339Day
-	RFC3339Month = "2006-01"
-	YearAndMonth = RFC3339Month
-	RFC3339Year  = "2006"
-	YearOnly     = RFC3339Year
+	DateOnly     = "2006-01-02"
+	YearAndMonth = "2006-01"
+	YearOnly     = "2006"
 )
 
 func AfterOrEqual(t, u time.Time) bool {

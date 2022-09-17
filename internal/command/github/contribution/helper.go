@@ -1,4 +1,4 @@
-package exec
+package contribution
 
 import (
 	"fmt"
@@ -62,12 +62,12 @@ func ParseDate(
 		date = defaultDate
 	case rawDate == "now":
 		date = time.Now()
-	case l == len(xtime.RFC3339Year):
-		date, err = time.Parse(xtime.RFC3339Year, rawDate)
-	case l == len(xtime.RFC3339Month):
-		date, err = time.Parse(xtime.RFC3339Month, rawDate)
-	case l == len(xtime.RFC3339Day):
-		date, err = time.Parse(xtime.RFC3339Day, rawDate)
+	case l == len(xtime.YearOnly):
+		date, err = time.Parse(xtime.YearOnly, rawDate)
+	case l == len(xtime.YearAndMonth):
+		date, err = time.Parse(xtime.YearAndMonth, rawDate)
+	case l == len(xtime.DateOnly):
+		date, err = time.Parse(xtime.DateOnly, rawDate)
 	case l == 20 || l == len(time.RFC3339):
 		date, err = time.Parse(time.RFC3339, rawDate)
 	default:

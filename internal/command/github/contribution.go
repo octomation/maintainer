@@ -1,21 +1,10 @@
 package github
 
 import (
-	"encoding/json"
-	"fmt"
-	"strings"
-	"time"
-
 	"github.com/spf13/cobra"
 
-	"go.octolab.org/toolset/maintainer/internal/command/github/exec"
-	"go.octolab.org/toolset/maintainer/internal/command/github/view"
+	"go.octolab.org/toolset/maintainer/internal/command/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/config"
-	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http"
-	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
-	"go.octolab.org/toolset/maintainer/internal/pkg/unsafe"
-	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
 func Contribution(cnf *config.Tool) *cobra.Command {
@@ -40,12 +29,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	//
 	// $ maintainer github contribution diff /tmp/snap.01.2013.json 2013
 	//
-	diff := cobra.Command{
-		Use:  "diff",
-		Args: cobra.ExactArgs(2),
-		RunE: exec.ContributionDiff(cnf),
-	}
-	cmd.AddCommand(&diff)
+	cmd.AddCommand(contribution.Diff(&cobra.Command{Use: "diff"}, cnf))
 
 	//
 	// $ maintainer github contribution histogram 2013
@@ -60,62 +44,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	// $ maintainer github contribution histogram 2013-11    # month
 	// $ maintainer github contribution histogram 2013-11-20 # week
 	//
-	histogram := cobra.Command{
-		Use:  "histogram",
-		Args: cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// dependencies and defaults
-			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			construct, date := xtime.RangeByWeeks, time.Now().UTC()
-			zero := unsafe.ReturnBool(cmd.Flags().GetBool("with-zero"))
-
-			// input validation: date(year,+month,+week{day})
-			if len(args) == 1 {
-				var err error
-				wrap := func(err error) error {
-					return fmt.Errorf(
-						"please provide argument in format YYYY[-mm[-dd]], e.g., 2006-01: %w",
-						fmt.Errorf("invalid argument %q: %w", args[0], err),
-					)
-				}
-
-				switch input := args[0]; len(input) {
-				case len(xtime.RFC3339Year):
-					date, err = time.Parse(xtime.RFC3339Year, input)
-					construct = xtime.RangeByYears
-				case len(xtime.RFC3339Month):
-					date, err = time.Parse(xtime.RFC3339Month, input)
-					construct = xtime.RangeByMonths
-				case len(xtime.RFC3339Day):
-					date, err = time.Parse(xtime.RFC3339Day, input)
-				default:
-					err = fmt.Errorf("unsupported format")
-				}
-				if err != nil {
-					return wrap(err)
-				}
-			}
-
-			// data provisioning
-			scope := construct(date, 0, false).ExcludeFuture()
-			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
-			if err != nil {
-				return err
-			}
-
-			// data presentation
-			data := contribution.HistogramByCount(chm, contribution.OrderByCount)
-			for _, row := range data {
-				if !zero && row.Count == 0 {
-					continue
-				}
-				fmt.Printf("%3d %s\n", row.Count, strings.Repeat("#", int(row.Frequency)))
-			}
-			return nil
-		},
-	}
-	histogram.Flags().Bool("with-zero", false, "shows zero-counted rows")
-	cmd.AddCommand(&histogram)
+	cmd.AddCommand(contribution.Histogram(&cobra.Command{Use: "histogram"}, cnf))
 
 	//
 	// $ maintainer github contribution lookup 2013-12-03/9
@@ -137,31 +66,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	// $ maintainer github contribution lookup now/3      # → now()/3 == now()/-1
 	// $ maintainer github contribution lookup /3         # → now()/3 == now()/-1
 	//
-	lookup := cobra.Command{
-		Use:  "lookup",
-		Args: cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// dependencies and defaults
-			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-
-			// data provisioning
-			opts, err := exec.ParseDate(args, exec.FallbackDate(args), -1)
-			if err != nil {
-				return err
-			}
-
-			scope := contribution.LookupRange(opts)
-			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
-			if err != nil {
-				return err
-			}
-
-			// data presentation
-			data := contribution.HistogramByWeekday(chm, false)
-			return view.Lookup(cmd, scope, data)
-		},
-	}
-	cmd.AddCommand(&lookup)
+	cmd.AddCommand(contribution.Lookup(&cobra.Command{Use: "lookup"}, cnf))
 
 	//
 	// $ maintainer github contribution snapshot 2013 | tee /tmp/snap.01.2013.json | jq
@@ -172,47 +77,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	//   "2013-12-27T00:00:00Z": 2
 	// }
 	//
-	snapshot := cobra.Command{
-		Use:  "snapshot",
-		Args: cobra.MaximumNArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// dependencies and defaults
-			service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-			date := xtime.TruncateToYear(time.Now().UTC())
-
-			// input validation: date(year)
-			if len(args) == 1 {
-				var err error
-				wrap := func(err error) error {
-					return fmt.Errorf(
-						"please provide argument in format YYYY, e.g., 2006: %w",
-						fmt.Errorf("invalid argument %q: %w", args[0], err),
-					)
-				}
-
-				switch input := args[0]; len(input) {
-				case len(xtime.RFC3339Year):
-					date, err = time.Parse(xtime.RFC3339Year, input)
-				default:
-					err = fmt.Errorf("unsupported format")
-				}
-				if err != nil {
-					return wrap(err)
-				}
-			}
-
-			// data provisioning
-			scope := xtime.RangeByYears(date, 0, false).ExcludeFuture()
-			chm, err := service.ContributionHeatMap(cmd.Context(), scope)
-			if err != nil {
-				return err
-			}
-
-			// data presentation
-			return json.NewEncoder(cmd.OutOrStdout()).Encode(chm)
-		},
-	}
-	cmd.AddCommand(&snapshot)
+	cmd.AddCommand(contribution.Snapshot(&cobra.Command{Use: "snapshot"}, cnf))
 
 	//
 	// $ maintainer github contribution suggest --delta 2013-11-20
@@ -233,15 +98,7 @@ func Contribution(cnf *config.Tool) *cobra.Command {
 	// $ maintainer github contribution suggest --target=5 2013/+10
 	// $ maintainer github contribution suggest --short 2013/-10
 	//
-	suggest := cobra.Command{
-		Use:  "suggest",
-		Args: cobra.MaximumNArgs(1),
-		RunE: exec.Contribution(cnf),
-	}
-	suggest.Flags().Bool("delta", false, "shows relatively")
-	suggest.Flags().Bool("short", false, "shows only date")
-	suggest.Flags().Uint("target", 5, "minimum contributions")
-	cmd.AddCommand(&suggest)
+	cmd.AddCommand(contribution.Suggest(&cobra.Command{Use: "suggest"}, cnf))
 
 	return &cmd
 }

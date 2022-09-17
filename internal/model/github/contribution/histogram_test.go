@@ -64,7 +64,7 @@ func TestHistogramByDate(t *testing.T) {
 			"2013-11-29": 1,
 		}
 
-		histogram := HistogramByDate(chm, xtime.RFC3339Day)
+		histogram := HistogramByDate(chm, xtime.DateOnly)
 		require.Len(t, histogram, len(expected))
 		for i, row := range histogram {
 			assert.Equal(t, expected[row.Date], row.Sum, i)
@@ -76,7 +76,7 @@ func TestHistogramByDate(t *testing.T) {
 			"2013-11": 24,
 		}
 
-		histogram := HistogramByDate(chm, xtime.RFC3339Month)
+		histogram := HistogramByDate(chm, xtime.YearAndMonth)
 		require.Len(t, histogram, len(expected))
 		for i, row := range histogram {
 			assert.Equal(t, expected[row.Date], row.Sum, i)

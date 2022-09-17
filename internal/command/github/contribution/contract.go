@@ -1,4 +1,4 @@
-package run
+package contribution
 
 import (
 	"context"
@@ -9,8 +9,4 @@ import (
 type ContributionSource interface {
 	Location() string
 	Fetch(context.Context) (contribution.HeatMap, error)
-}
-
-type Printer interface {
-	Println(...interface{})
 }
