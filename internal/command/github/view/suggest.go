@@ -2,7 +2,6 @@ package view
 
 import (
 	"fmt"
-	"math/rand"
 	"strconv"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
+	"go.octolab.org/toolset/maintainer/internal/pkg/time/jitter"
 )
 
 type SuggestOption struct {
@@ -22,11 +22,6 @@ type SuggestOption struct {
 // TODO:refactoring combine with Lookup, use HeatMap as input
 // TODO:refactoring extract "table builder", compare with others views
 
-func jitter(duration time.Duration) time.Duration {
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	return time.Duration(r.Int63n(int64(duration)))
-}
-
 func Suggest(
 	printer interface{ Println(...interface{}) },
 
@@ -36,7 +31,7 @@ func Suggest(
 	option SuggestOption,
 ) error {
 	now := time.Now()
-	day := option.Suggest.Day.Add(jitter(time.Hour)).In(time.Local)
+	day := option.Suggest.Day.Add(jitter.FullRandom()(time.Hour)).In(time.Local)
 
 	var suggestion string
 	if option.Delta {
