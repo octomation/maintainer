@@ -137,7 +137,7 @@ func HistogramByWeekday(chm HeatMap, grouped bool) []HistogramByWeekdayRow {
 
 			prev = current
 		}
-		h[idx].Sum += chm[ts]
+		h[idx].Sum += chm.Count(ts)
 	}
 
 	return h

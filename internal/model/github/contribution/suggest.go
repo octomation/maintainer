@@ -7,47 +7,53 @@ import (
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
+type Suggestion struct {
+	Day    time.Time
+	Actual uint
+	Target uint
+}
+
 // Suggest finds a week with gaps in the contribution heatmap
 // and returns an appropriate day to contribute.
-func Suggest(
-	chm HeatMap,
-	start time.Time,
-	end time.Time,
-	target uint,
-) HistogramByWeekdayRow {
-	assert.True(func() bool { return chm != nil })
-	assert.True(func() bool { return start.Before(end) })
-	assert.True(func() bool { return target > 0 })
+//
+// Will normalize dates to UTC.
+func Suggest(heats HeatMap, since time.Time, until time.Time, basis uint) Suggestion {
+	assert.True(func() bool { return heats != nil })
+	assert.True(func() bool { return since.Before(until) })
+	assert.True(func() bool { return basis > 0 })
+
+	// normalize dates to UTC
+	since, until = since.UTC(), until.UTC()
 
 	var dist WeekDistribution
-	week := ShiftRange(xtime.RangeByWeeks(start, 0, false))
-	day, weekday := start, start.Weekday()
-	for cursor := week.From(); cursor.Before(end); {
+	day, weekday := xtime.TruncateToDay(since), since.Weekday()
+	week := ShiftRange(xtime.RangeByWeeks(since, 0, false))
+	for cursor := week.From(); cursor.Before(until); {
 		for i := time.Sunday; i <= time.Saturday; i++ {
-			dist[i] = chm[cursor]
+			dist[i] = heats.Count(cursor)
 			cursor = cursor.Add(xtime.Day)
 		}
-		suggestion, value := dist.Suggest(weekday, target)
+		suggestion, value := dist.Suggest(weekday, basis)
 		if suggestion == -1 {
 			day, weekday = cursor, time.Sunday
 			continue
 		}
-		return HistogramByWeekdayRow{
-			Day: day.Add(xtime.Day * time.Duration(suggestion-weekday)),
-			Sum: value,
-		}
+		day = day.Add(xtime.Day * time.Duration(suggestion-weekday))
+		return Suggestion{Day: day, Actual: heats.Count(day), Target: value}
 	}
-	return HistogramByWeekdayRow{}
+	return Suggestion{Day: day, Actual: 0, Target: basis}
 }
 
 type WeekDistribution [7]uint
 
-func (week WeekDistribution) Suggest(since time.Weekday, basis uint) (time.Weekday, uint) {
+func (week WeekDistribution) Suggest(day time.Weekday, basis uint) (time.Weekday, uint) {
+	assert.True(func() bool { return basis > 0 })
+
 	value := week.max()
 	if value < basis {
 		value = basis
 	}
-	for i := since; i <= time.Saturday; i++ {
+	for i := day; i <= time.Saturday; i++ {
 		if week[i] < value {
 			return i, value
 		}

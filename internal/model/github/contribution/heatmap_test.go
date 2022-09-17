@@ -15,50 +15,6 @@ import (
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
-func TestHeatMap_Subset(t *testing.T) {
-	Nov2013 := xtime.UTC().Year(2013).Month(time.November)
-
-	chm := make(HeatMap)
-	chm.SetCount(Nov2013.Day(13).Time(), 1)
-	chm.SetCount(Nov2013.Day(20).Time(), 1)
-	chm.SetCount(Nov2013.Day(21).Time(), 3)
-	chm.SetCount(Nov2013.Day(24).Time(), 1)
-	chm.SetCount(Nov2013.Day(25).Time(), 2)
-	chm.SetCount(Nov2013.Day(26).Time(), 8)
-	chm.SetCount(Nov2013.Day(28).Time(), 7)
-	chm.SetCount(Nov2013.Day(29).Time(), 1)
-
-	t.Run("one week", func(t *testing.T) {
-		ts := Nov2013.Day(20).Time()
-		subset := chm.Subset(xtime.RangeByWeeks(ts, 0, false))
-		assert.Len(t, subset, 3)
-	})
-
-	t.Run("one week behind", func(t *testing.T) {
-		ts := Nov2013.Day(20).Time()
-		subset := chm.Subset(xtime.RangeByWeeks(ts, -1, false))
-		assert.Len(t, subset, 4)
-	})
-
-	t.Run("one week ahead", func(t *testing.T) {
-		ts := Nov2013.Day(20).Time()
-		subset := chm.Subset(xtime.RangeByWeeks(ts, 1, false))
-		assert.Len(t, subset, 7)
-	})
-
-	t.Run("one week around", func(t *testing.T) {
-		ts := Nov2013.Day(20).Time()
-		subset := chm.Subset(xtime.RangeByWeeks(ts, 1, true))
-		assert.Len(t, subset, 3)
-	})
-
-	t.Run("three weeks around", func(t *testing.T) {
-		ts := Nov2013.Day(20).Time()
-		subset := chm.Subset(xtime.RangeByWeeks(ts, 3, true))
-		assert.Len(t, subset, 8)
-	})
-}
-
 func TestBuildHeatMap(t *testing.T) {
 	const name = "testdata/kamilsk.2019.html"
 
@@ -71,7 +27,7 @@ func TestBuildHeatMap(t *testing.T) {
 
 	chm := BuildHeatMap(doc)
 	ts := xtime.UTC().Year(2019).Month(time.November).Day(13).Time()
-	assert.Equal(t, uint(3), chm.Count(ts))                   // 2019-11-13
-	assert.Equal(t, uint(2), chm.Count(ts.AddDate(0, 1, 0)))  // 2019-12-13
-	assert.Equal(t, uint(3), chm.Count(ts.AddDate(0, 1, 14))) // 2019-12-27
+	assert.Equal(t, uint(3), chm.Count(ts), "2019-11-13")
+	assert.Equal(t, uint(2), chm.Count(ts.AddDate(0, 1, 0)), "2019-12-13")
+	assert.Equal(t, uint(3), chm.Count(ts.AddDate(0, 1, 14)), "2019-12-27")
 }

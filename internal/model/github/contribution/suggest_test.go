@@ -12,82 +12,88 @@ import (
 
 func TestSuggest(t *testing.T) {
 	tests := map[string]struct {
-		chm    HeatMap
-		start  time.Time
-		end    time.Time
-		target uint
+		heats HeatMap
+		since time.Time
+		until time.Time
+		basis uint
 
-		expected HistogramByWeekdayRow
+		expected Suggestion
 	}{
 		"empty heatmap": {
-			chm:    make(HeatMap),
-			start:  xtime.UTC().Year(2021).Month(time.October).Day(5).Time(),
-			end:    time.Now().UTC(),
-			target: 5,
-			expected: HistogramByWeekdayRow{
-				Day: xtime.UTC().Year(2021).Month(time.October).Day(5).Time(),
-				Sum: 5,
+			heats: make(HeatMap),
+			since: xtime.UTC().Year(2021).Month(time.October).Day(5).Time(),
+			until: time.Now(),
+			basis: 5,
+			expected: Suggestion{
+				Day:    xtime.UTC().Year(2021).Month(time.October).Day(5).Time(),
+				Actual: 0,
+				Target: 5,
 			},
 		},
 		"empty week": {
-			chm:    BuildHeatMap(load(t, "testdata/kamilsk.2019.html")),
-			start:  xtime.UTC().Year(2019).Month(time.October).Day(7).Time(),
-			end:    time.Now().UTC(),
-			target: 5,
-			expected: HistogramByWeekdayRow{
-				Day: xtime.UTC().Year(2019).Month(time.October).Day(7).Time(),
-				Sum: 5,
+			heats: BuildHeatMap(load(t, "testdata/kamilsk.2019.html")),
+			since: xtime.UTC().Year(2019).Month(time.October).Day(7).Time(),
+			until: time.Now(),
+			basis: 5,
+			expected: Suggestion{
+				Day:    xtime.UTC().Year(2019).Month(time.October).Day(7).Time(),
+				Actual: 0,
+				Target: 5,
 			},
 		},
 		"full week": {
-			chm:    BuildHeatMap(load(t, "testdata/kamilsk.2021.html")),
-			start:  xtime.UTC().Year(2021).Month(time.April).Day(28).Time(),
-			end:    time.Now().UTC(),
-			target: 5,
-			expected: HistogramByWeekdayRow{
-				Day: xtime.UTC().Year(2021).Month(time.April).Day(28).Time(),
-				Sum: 10,
+			heats: BuildHeatMap(load(t, "testdata/kamilsk.2021.html")),
+			since: xtime.UTC().Year(2021).Month(time.April).Day(28).Time(),
+			until: time.Now(),
+			basis: 5,
+			expected: Suggestion{
+				Day:    xtime.UTC().Year(2021).Month(time.April).Day(28).Time(),
+				Actual: 4,
+				Target: 10,
 			},
 		},
 		"week with gaps": {
-			chm:    BuildHeatMap(load(t, "testdata/kamilsk.2019.html")),
-			start:  xtime.UTC().Year(2019).Month(time.December).Day(17).Time(),
-			end:    time.Now().UTC(),
-			target: 5,
-			expected: HistogramByWeekdayRow{
-				Day: xtime.UTC().Year(2019).Month(time.December).Day(17).Time(),
-				Sum: 5,
+			heats: BuildHeatMap(load(t, "testdata/kamilsk.2019.html")),
+			since: xtime.UTC().Year(2019).Month(time.December).Day(17).Time(),
+			until: time.Now(),
+			basis: 5,
+			expected: Suggestion{
+				Day:    xtime.UTC().Year(2019).Month(time.December).Day(17).Time(),
+				Actual: 0,
+				Target: 5,
 			},
 		},
 		"issue#68: missed Saturday": {
-			chm: func() HeatMap {
+			heats: func() HeatMap {
 				chm := BuildHeatMap(load(t, "testdata/kamilsk.2021.html"))
 				delete(chm, xtime.UTC().Year(2021).Month(time.December).Day(18).Time())
 				return chm
 			}(),
-			start:  xtime.UTC().Year(2021).Month(time.December).Day(12).Time(),
-			end:    time.Now().UTC(),
-			target: 5,
-			expected: HistogramByWeekdayRow{
-				Day: xtime.UTC().Year(2021).Month(time.December).Day(18).Time(),
-				Sum: 10,
+			since: xtime.UTC().Year(2021).Month(time.December).Day(12).Time(),
+			until: time.Now(),
+			basis: 5,
+			expected: Suggestion{
+				Day:    xtime.UTC().Year(2021).Month(time.December).Day(18).Time(),
+				Actual: 0,
+				Target: 10,
 			},
 		},
 		"issue#119: max Saturday": {
-			chm:    BuildHeatMap(load(t, "testdata/kamilsk.2021.html")),
-			start:  xtime.UTC().Year(2021).Month(time.April).Day(3).Time(),
-			end:    time.Now().UTC(),
-			target: 5,
-			expected: HistogramByWeekdayRow{
-				Day: xtime.UTC().Year(2021).Month(time.April).Day(4).Time(),
-				Sum: 8,
+			heats: BuildHeatMap(load(t, "testdata/kamilsk.2021.html")),
+			since: xtime.UTC().Year(2021).Month(time.April).Day(3).Time(),
+			until: time.Now(),
+			basis: 5,
+			expected: Suggestion{
+				Day:    xtime.UTC().Year(2021).Month(time.April).Day(4).Time(),
+				Actual: 7,
+				Target: 8,
 			},
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, test.expected, Suggest(test.chm, test.start, test.end, test.target))
+			assert.Equal(t, test.expected, Suggest(test.heats, test.since, test.until, test.basis))
 		})
 	}
 }

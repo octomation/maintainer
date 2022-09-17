@@ -13,7 +13,7 @@ import (
 )
 
 func FallbackDate(args []string) time.Time {
-	fallback := time.Now().UTC()
+	fallback := time.Now()
 	if len(args) > 0 {
 		return fallback
 	}
@@ -30,7 +30,7 @@ func FallbackDate(args []string) time.Time {
 	if err != nil {
 		return fallback
 	}
-	return commit.Author.When.UTC()
+	return commit.Author.When
 }
 
 func ParseDate(

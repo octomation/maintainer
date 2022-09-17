@@ -8,6 +8,9 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
+	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
+	"go.octolab.org/toolset/maintainer/internal/pkg/assert/checks"
+	"go.octolab.org/toolset/maintainer/internal/pkg/errors"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
@@ -31,21 +34,15 @@ func BuildHeatMap(doc *goquery.Document) HeatMap {
 			c, err := strconv.ParseUint(count, 10, 0)
 			if err != nil {
 				html, _ := node.Html()
-				panic(ContentError{
-					error:   fmt.Errorf("invalid count value: %w", err),
-					Content: html,
-				})
+				panic(errors.ContentError(fmt.Errorf("invalid count value: %w", err), html))
 			}
 
 			// data-date="2006-01-02"
 			date := node.AttrOr("data-date", "")
-			d, err := time.Parse(xtime.RFC3339Day, date)
+			d, err := time.Parse(xtime.DateOnly, date)
 			if err != nil {
 				html, _ := node.Html()
-				panic(ContentError{
-					error:   fmt.Errorf("invalid date value: %w", err),
-					Content: html,
-				})
+				panic(errors.ContentError(fmt.Errorf("invalid date value: %w", err), html))
 			}
 
 			chm.SetCount(d, uint(c))
@@ -58,22 +55,27 @@ type HeatMap map[time.Time]uint
 
 // Count returns how many contributions have been made in the specified time.
 func (chm HeatMap) Count(ts time.Time) uint {
+	assert.True(func() bool { return ts.Location() == time.UTC })
+	assert.True(func() bool { return checks.ZeroClock(ts.Clock()) })
+
 	return chm[ts]
 }
 
 // SetCount sets how many contributions have been made to the specified time.
 func (chm HeatMap) SetCount(ts time.Time, count uint) {
+	assert.True(func() bool { return ts.Location() == time.UTC })
+	assert.True(func() bool { return checks.ZeroClock(ts.Clock()) })
+
 	chm[ts] = count
 }
 
 // Subset returns a subset of contribution heatmap in the provided time range.
-// TODO:perf improve algorithm
 func (chm HeatMap) Subset(scope xtime.Range) HeatMap {
 	subset := make(HeatMap)
 
 	for ts, count := range chm {
 		if scope.Contains(ts) {
-			subset[ts] = count
+			subset.SetCount(ts, count)
 		}
 	}
 
@@ -92,8 +94,8 @@ func (chm HeatMap) Diff(src HeatMap) HeatMap {
 		keys[ts] = struct{}{}
 	}
 	for ts := range keys {
-		if delta := src[ts] - chm[ts]; delta != 0 {
-			diff[ts] = delta
+		if delta := src.Count(ts) - chm.Count(ts); delta != 0 {
+			diff.SetCount(ts, delta)
 		}
 	}
 

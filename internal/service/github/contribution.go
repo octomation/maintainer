@@ -38,7 +38,7 @@ func (srv *Service) ContributionHeatMap(
 
 			mu.Lock()
 			for ts, count := range contribution.BuildHeatMap(doc) {
-				chm[ts] = count
+				chm.SetCount(ts, count)
 			}
 			mu.Unlock()
 			return nil
@@ -46,7 +46,7 @@ func (srv *Service) ContributionHeatMap(
 	}()
 
 	group, cascade := errgroup.WithContext(ctx)
-	min, max := scope.From().Year(), scope.To().Year()
+	min, max := scope.From().UTC().Year(), scope.To().UTC().Year()
 	for i, user := min, u.GetLogin(); i <= max; i++ {
 		year := i
 		group.Go(func() error { return merge(srv.FetchContributions(cascade, user, year)) })
@@ -62,7 +62,7 @@ func (srv *Service) FetchContributions(
 ) (*goquery.Document, error) {
 	src := overview.
 		SetPath(user).
-		AddQueryParam("from", xtime.UTC().Year(year).Format(xtime.RFC3339Day)).
+		AddQueryParam("from", xtime.UTC().Year(year).Format(xtime.DateOnly)).
 		String()
 	req, err := xhttp.NewGetRequestWithContext(ctx, src)
 	if err != nil {
