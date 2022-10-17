@@ -8,7 +8,7 @@ import (
 )
 
 type Suggestion struct {
-	Day    time.Time
+	Time   time.Time
 	Actual uint
 	Target uint
 }
@@ -17,31 +17,53 @@ type Suggestion struct {
 // and returns an appropriate day to contribute.
 //
 // Will normalize dates to UTC.
-func Suggest(heats HeatMap, since time.Time, until time.Time, basis uint) Suggestion {
+func Suggest(
+	heats HeatMap,
+	scope xtime.Range,
+	hours xtime.Schedule,
+	basis uint,
+) Suggestion {
 	assert.True(func() bool { return heats != nil })
-	assert.True(func() bool { return since.Before(until) })
+	assert.True(func() bool { return !scope.IsZero() })
+	assert.True(func() bool { return hours != nil })
 	assert.True(func() bool { return basis > 0 })
 
 	// normalize dates to UTC
-	since, until = since.UTC(), until.UTC()
+	since, until := scope.From().UTC(), scope.To().UTC()
+	suggestion := since
 
 	var dist WeekDistribution
-	day, weekday := xtime.TruncateToDay(since), since.Weekday()
-	week := ShiftRange(xtime.RangeByWeeks(since, 0, false))
+	day := xtime.TruncateToDay(since)
+	week := xtime.GregorianWeeks(since, 0, false)
+STEP:
 	for cursor := week.From(); cursor.Before(until); {
 		for i := time.Sunday; i <= time.Saturday; i++ {
 			dist[i] = heats.Count(cursor)
 			cursor = cursor.Add(xtime.Day)
 		}
-		suggestion, value := dist.Suggest(weekday, basis)
-		if suggestion == -1 {
-			day, weekday = cursor, time.Sunday
-			continue
+
+		for i := day.Weekday(); i <= time.Saturday; i++ {
+			suggested, value := dist.Suggest(i, basis)
+			if suggested == -1 {
+				day = cursor
+				continue STEP
+			}
+			if delta := suggested - day.Weekday(); delta > 0 {
+				day = day.Add(time.Duration(delta) * xtime.Day)
+			}
+			if day.After(suggestion) {
+				suggestion = day
+			}
+			suggestion = hours.Suggest(suggestion)
+			if suggestion.IsZero() {
+				i = suggested
+				continue
+			}
+			return Suggestion{Time: suggestion, Actual: heats.Count(day), Target: value}
 		}
-		day = day.Add(xtime.Day * time.Duration(suggestion-weekday))
-		return Suggestion{Day: day, Actual: heats.Count(day), Target: value}
+		day = cursor
 	}
-	return Suggestion{Day: day, Actual: 0, Target: basis}
+	return Suggestion{Time: suggestion, Actual: 0, Target: basis}
 }
 
 type WeekDistribution [7]uint

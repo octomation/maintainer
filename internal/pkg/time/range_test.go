@@ -25,7 +25,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 1,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Monday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(2*Week-time.Nanosecond), r.To())
@@ -37,7 +36,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: -1,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Monday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b).Add(-Week), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(Week-time.Nanosecond), r.To())
@@ -49,7 +47,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 1,
 			half:  true,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Monday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(Week-time.Nanosecond), r.To())
@@ -61,7 +58,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 1,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Wednesday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(2*Week-time.Nanosecond), r.To())
@@ -73,7 +69,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: -1,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Wednesday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b).Add(-Week), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(Week-time.Nanosecond), r.To())
@@ -85,7 +80,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 1,
 			half:  true,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Wednesday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(Week-time.Nanosecond), r.To())
@@ -97,7 +91,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 1,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Sunday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(2*Week-time.Nanosecond), r.To())
@@ -109,7 +102,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: -1,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Sunday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b).Add(-Week), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(Week-time.Nanosecond), r.To())
@@ -121,7 +113,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 1,
 			half:  true,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Sunday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(Week-time.Nanosecond), r.To())
@@ -133,7 +124,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 5,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Monday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(6*Week-time.Nanosecond), r.To())
@@ -145,7 +135,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: -5,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Wednesday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b).Add(-5*Week), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(Week-time.Nanosecond), r.To())
@@ -157,7 +146,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 5,
 			half:  true,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Sunday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b).Add(-2*Week), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(3*Week-time.Nanosecond), r.To())
@@ -169,7 +157,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 4,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Monday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(5*Week-time.Nanosecond), r.To())
@@ -181,7 +168,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: -4,
 			half:  false,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Wednesday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b).Add(-4*Week), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(Week-time.Nanosecond), r.To())
@@ -193,7 +179,6 @@ func TestRangeByWeeks(t *testing.T) {
 			weeks: 4,
 			half:  true,
 			check: func(t testing.TB, b time.Time, r Range) {
-				assert.Equal(t, b, r.Base())
 				assert.Equal(t, time.Sunday, b.Weekday())
 				assert.Equal(t, TruncateToWeek(b).Add(-2*Week), r.From())
 				assert.Equal(t, TruncateToWeek(b).Add(3*Week-time.Nanosecond), r.To())
@@ -203,6 +188,36 @@ func TestRangeByWeeks(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			test.check(t, test.date, RangeByWeeks(test.date, test.weeks, test.half))
+		})
+	}
+}
+
+func TestGregorianWeeks(t *testing.T) {
+	tests := []struct {
+		name     string
+		date     time.Time
+		expected Range
+	}{
+		{
+			name: "sunday",
+			date: UTC().Year(2021).Month(time.December).Day(12).Hour(8).Time(),
+			expected: NewRange(
+				UTC().Year(2021).Month(time.December).Day(12).Hour(0).Time(),
+				UTC().Year(2021).Month(time.December).Day(19).Add(-time.Nanosecond).Time(),
+			),
+		},
+		{
+			name: "monday",
+			date: UTC().Year(2021).Month(time.December).Day(13).Hour(8).Time(),
+			expected: NewRange(
+				UTC().Year(2021).Month(time.December).Day(12).Hour(0).Time(),
+				UTC().Year(2021).Month(time.December).Day(19).Add(-time.Nanosecond).Time(),
+			),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expected, GregorianWeeks(test.date, 0, false))
 		})
 	}
 }

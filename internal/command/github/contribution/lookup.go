@@ -3,7 +3,6 @@ package contribution
 import (
 	"github.com/spf13/cobra"
 
-	"go.octolab.org/toolset/maintainer/internal/command/github/view"
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
@@ -30,8 +29,8 @@ func Lookup(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 		}
 
 		// data presentation
-		data := contribution.HistogramByWeekday(chm, false)
-		return view.Lookup(cmd, scope, data)
+		TableView(cmd, chm, scope)
+		return nil
 	}
 
 	return cmd

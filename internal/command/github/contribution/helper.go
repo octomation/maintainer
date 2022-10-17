@@ -6,16 +6,34 @@ import (
 	"strings"
 	"time"
 
+	"github.com/alexeyco/simpletable"
 	"github.com/go-git/go-git/v5"
+	"github.com/spf13/cobra"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
+
+func Datetime(t time.Time) string {
+	now := time.Now().In(t.Location())
+	days := now.Sub(t) / xtime.Day
+	tail := now.Sub(t) % xtime.Day
+	normalized := strings.ToUpper(tail.Truncate(time.Second).String())
+	if days > 0 {
+		return fmt.Sprintf("-%dd%s", days, normalized)
+	}
+	return fmt.Sprintf("-%s", normalized)
+}
 
 func FallbackDate(args []string) time.Time {
 	fallback := time.Now()
 	if len(args) > 0 {
-		return fallback
+		raw := strings.Split(args[0], "/")
+		rawDate := raw[0]
+		if rawDate != "" && rawDate != "git" {
+			return fallback
+		}
 	}
 
 	repo, err := git.PlainOpenWithOptions("", &git.PlainOpenOptions{DetectDotGit: true})
@@ -58,7 +76,7 @@ func ParseDate(
 
 	var date time.Time
 	switch l := len(rawDate); {
-	case rawDate == "":
+	case rawDate == "" || rawDate == "git":
 		date = defaultDate
 	case rawDate == "now":
 		date = time.Now()
@@ -95,4 +113,57 @@ func ParseDate(
 	opts.Weeks = weeks
 
 	return opts, nil
+}
+
+func TableView(
+	cmd *cobra.Command,
+	heats contribution.HeatMap,
+	scope xtime.Range,
+) {
+	assert.True(func() bool { return scope.From().Weekday() == time.Sunday })
+
+	table := simpletable.New()
+	table.Header = &simpletable.Header{
+		Cells: []*simpletable.Cell{
+			{Align: simpletable.AlignLeft, Text: "Day / Week"},
+		},
+	}
+	var weeks int
+	for i := scope.From(); i.Before(scope.To()); i = i.Add(xtime.Week) {
+		_, week := i.ISOWeek()
+		table.Header.Cells = append(table.Header.Cells, &simpletable.Cell{
+			Align: simpletable.AlignCenter,
+			Text:  fmt.Sprintf("#%02d", week+1), // Gregorian correction, see LookupRange
+		})
+		weeks++
+	}
+
+	for i, cursor := time.Sunday, scope.From(); i <= time.Saturday; i++ {
+		row := append(make([]*simpletable.Cell, 0, weeks+1), &simpletable.Cell{Text: i.String()})
+		for j := 0; j < weeks; j++ {
+			cell := cursor.Add(time.Duration(j) * xtime.Week)
+			count, exists := heats[cell] // TODO:refactor interface leak
+			text := "-"
+			if count > 0 {
+				text = strconv.FormatUint(uint64(count), 10)
+			} else if !exists {
+				text = "?"
+			}
+			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: text})
+		}
+		cursor = cursor.Add(xtime.Day)
+		table.Body.Cells = append(table.Body.Cells, row)
+	}
+
+	table.Footer = &simpletable.Footer{
+		Cells: []*simpletable.Cell{
+			{
+				Align: simpletable.AlignRight,
+				Span:  len(table.Header.Cells),
+				Text:  "Stats: coming soon",
+			},
+		},
+	}
+	table.SetStyle(simpletable.StyleCompactLite)
+	cmd.PrintErrln(table.String())
 }

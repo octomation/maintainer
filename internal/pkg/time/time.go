@@ -32,7 +32,9 @@ func Between(from, to, u time.Time) bool {
 	return BeforeOrEqual(from, u) && AfterOrEqual(to, u)
 }
 
-type Transformation = func(time.Time) time.Time
+type Transformation func(time.Time) time.Time
+
+func (fn Transformation) Apply(t time.Time) time.Time { return fn(t) }
 
 func TruncateToDay(t time.Time) time.Time {
 	y, m, d := t.Date()

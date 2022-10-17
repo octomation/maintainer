@@ -13,52 +13,64 @@ import (
 func TestSuggest(t *testing.T) {
 	tests := map[string]struct {
 		heats HeatMap
-		since time.Time
-		until time.Time
+		scope xtime.Range
+		hours xtime.Schedule
 		basis uint
 
 		expected Suggestion
 	}{
 		"empty heatmap": {
 			heats: make(HeatMap),
-			since: xtime.UTC().Year(2021).Month(time.October).Day(5).Time(),
-			until: time.Now(),
+			scope: xtime.NewRange(
+				xtime.UTC().Year(2021).Month(time.October).Day(5).Time(),
+				time.Now(),
+			),
+			hours: xtime.Everyday(xtime.Hours(8, 22, 0)),
 			basis: 5,
 			expected: Suggestion{
-				Day:    xtime.UTC().Year(2021).Month(time.October).Day(5).Time(),
+				Time:   xtime.UTC().Year(2021).Month(time.October).Day(5).Hour(8).Time(),
 				Actual: 0,
 				Target: 5,
 			},
 		},
 		"empty week": {
 			heats: BuildHeatMap(load(t, "testdata/kamilsk.2019.html")),
-			since: xtime.UTC().Year(2019).Month(time.October).Day(7).Time(),
-			until: time.Now(),
+			scope: xtime.NewRange(
+				xtime.UTC().Year(2019).Month(time.October).Day(7).Time(),
+				time.Now(),
+			),
+			hours: xtime.Everyday(xtime.Hours(8, 22, 0)),
 			basis: 5,
 			expected: Suggestion{
-				Day:    xtime.UTC().Year(2019).Month(time.October).Day(7).Time(),
+				Time:   xtime.UTC().Year(2019).Month(time.October).Day(7).Hour(8).Time(),
 				Actual: 0,
 				Target: 5,
 			},
 		},
 		"full week": {
 			heats: BuildHeatMap(load(t, "testdata/kamilsk.2021.html")),
-			since: xtime.UTC().Year(2021).Month(time.April).Day(28).Time(),
-			until: time.Now(),
+			scope: xtime.NewRange(
+				xtime.UTC().Year(2021).Month(time.April).Day(28).Time(),
+				time.Now(),
+			),
+			hours: xtime.Everyday(xtime.Hours(8, 22, 0)),
 			basis: 5,
 			expected: Suggestion{
-				Day:    xtime.UTC().Year(2021).Month(time.April).Day(28).Time(),
+				Time:   xtime.UTC().Year(2021).Month(time.April).Day(28).Hour(8).Time(),
 				Actual: 4,
 				Target: 10,
 			},
 		},
 		"week with gaps": {
 			heats: BuildHeatMap(load(t, "testdata/kamilsk.2019.html")),
-			since: xtime.UTC().Year(2019).Month(time.December).Day(17).Time(),
-			until: time.Now(),
+			scope: xtime.NewRange(
+				xtime.UTC().Year(2019).Month(time.December).Day(17).Time(),
+				time.Now(),
+			),
+			hours: xtime.Everyday(xtime.Hours(8, 22, 0)),
 			basis: 5,
 			expected: Suggestion{
-				Day:    xtime.UTC().Year(2019).Month(time.December).Day(17).Time(),
+				Time:   xtime.UTC().Year(2019).Month(time.December).Day(17).Hour(8).Time(),
 				Actual: 0,
 				Target: 5,
 			},
@@ -69,31 +81,36 @@ func TestSuggest(t *testing.T) {
 				delete(chm, xtime.UTC().Year(2021).Month(time.December).Day(18).Time())
 				return chm
 			}(),
-			since: xtime.UTC().Year(2021).Month(time.December).Day(12).Time(),
-			until: time.Now(),
+			scope: xtime.NewRange(
+				xtime.UTC().Year(2021).Month(time.December).Day(12).Time(),
+				time.Now(),
+			),
+			hours: xtime.Everyday(xtime.Hours(8, 22, 0)),
 			basis: 5,
 			expected: Suggestion{
-				Day:    xtime.UTC().Year(2021).Month(time.December).Day(18).Time(),
+				Time:   xtime.UTC().Year(2021).Month(time.December).Day(18).Hour(8).Time(),
 				Actual: 0,
 				Target: 10,
 			},
 		},
 		"issue#119: max Saturday": {
 			heats: BuildHeatMap(load(t, "testdata/kamilsk.2021.html")),
-			since: xtime.UTC().Year(2021).Month(time.April).Day(3).Time(),
-			until: time.Now(),
+			scope: xtime.NewRange(
+				xtime.UTC().Year(2021).Month(time.April).Day(3).Time(),
+				time.Now(),
+			),
+			hours: xtime.Everyday(xtime.Hours(8, 22, 0)),
 			basis: 5,
 			expected: Suggestion{
-				Day:    xtime.UTC().Year(2021).Month(time.April).Day(4).Time(),
+				Time:   xtime.UTC().Year(2021).Month(time.April).Day(4).Hour(8).Time(),
 				Actual: 7,
 				Target: 8,
 			},
 		},
 	}
-
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, test.expected, Suggest(test.heats, test.since, test.until, test.basis))
+			assert.Equal(t, test.expected, Suggest(test.heats, test.scope, test.hours, test.basis))
 		})
 	}
 }
@@ -228,7 +245,6 @@ func TestWeekDistribution_Suggest(t *testing.T) {
 			val: 7,
 		},
 	}
-
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			day, val := test.week.Suggest(test.since, test.basis)

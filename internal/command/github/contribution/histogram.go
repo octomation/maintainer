@@ -24,7 +24,7 @@ func Histogram(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		// dependencies and defaults
 		service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
-		construct, date := xtime.RangeByWeeks, time.Now().UTC()
+		construct, date := xtime.GregorianWeeks, time.Now().UTC()
 
 		// input validation: date(year,+month,+week{day})
 		if len(args) == 1 {

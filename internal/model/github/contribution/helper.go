@@ -17,18 +17,11 @@ type DateOptions struct {
 	Half  bool
 }
 
-type Year = int
-
 func LookupRange(opts DateOptions) xtime.Range {
-	return ShiftRange(xtime.RangeByWeeks(opts.Value, opts.Weeks, opts.Half)).ExcludeFuture()
+	return xtime.GregorianWeeks(opts.Value.UTC(), opts.Weeks, opts.Half)
 }
 
-func ShiftRange(r xtime.Range) xtime.Range {
-	if r.Base().Weekday() == time.Sunday {
-		return r.Shift(6 * xtime.Day)
-	}
-	return r.Shift(-xtime.Day)
-}
+type Year = int
 
 func YearRange(doc *goquery.Document) (Year, Year) {
 	cr := make([]string, 0, 4)

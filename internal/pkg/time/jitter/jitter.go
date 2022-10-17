@@ -5,14 +5,16 @@ import (
 	"time"
 )
 
-type Transformation = func(time.Duration) time.Duration
+type Transformation func(time.Duration) time.Duration
 
-func Full(generator *rand.Rand) Transformation {
+func (fn Transformation) Apply(d time.Duration) time.Duration { return fn(d) }
+
+func FullCustom(generator *rand.Rand) Transformation {
 	return func(duration time.Duration) time.Duration {
 		return time.Duration(generator.Int63n(int64(duration)))
 	}
 }
 
 func FullRandom() Transformation {
-	return Full(rand.New(rand.NewSource(time.Now().UnixNano())))
+	return FullCustom(rand.New(rand.NewSource(time.Now().UnixNano())))
 }

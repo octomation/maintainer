@@ -32,7 +32,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, start.Time(), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-24")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-27")
 			},
@@ -44,7 +43,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, start.Time(), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-31")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-20")
 			},
@@ -56,7 +54,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, start.Time(), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-17")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-13")
 			},
@@ -68,7 +65,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, start.Time(), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-02-07")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-03-06")
 			},
@@ -80,7 +76,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToDay(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-24")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-27")
 			},
@@ -92,7 +87,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToDay(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-31")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-20")
 			},
@@ -104,7 +98,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToDay(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-17")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-13")
 			},
@@ -116,7 +109,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToDay(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-02-07")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-03-06")
 			},
@@ -128,7 +120,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToMonth(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-17")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-20")
 			},
@@ -140,7 +131,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToMonth(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-24")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-13")
 			},
@@ -152,7 +142,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToMonth(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-10")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-06")
 			},
@@ -164,7 +153,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToMonth(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2021-01-31")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-02-27")
 			},
@@ -176,7 +164,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToYear(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2020-12-13")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-01-16")
 			},
@@ -188,7 +175,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToYear(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2020-12-20")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-01-09")
 			},
@@ -200,7 +186,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToYear(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2020-12-06")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-01-02")
 			},
@@ -212,7 +197,6 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, xtime.TruncateToYear(start.Time()), lr.Base())
 				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2020-12-27")
 				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2021-01-23")
 			},

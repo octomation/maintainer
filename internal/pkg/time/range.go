@@ -6,12 +6,11 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
 )
 
-func NewRange(base, from, to time.Time) Range {
-	assert.True(func() bool { return Between(from, to, base) })
-	assert.True(func() bool { return from.Location() == base.Location() })
-	assert.True(func() bool { return to.Location() == base.Location() })
+func NewRange(from, to time.Time) Range {
+	assert.True(func() bool { return !from.IsZero() })
+	assert.True(func() bool { return from.Before(to) })
 
-	return Range{base, from, to}
+	return Range{from, to}
 }
 
 func RangeByWeeks(date time.Time, weeks int, half bool) Range {
@@ -20,7 +19,7 @@ func RangeByWeeks(date time.Time, weeks int, half bool) Range {
 	min := TruncateToDay(date)
 	max := min.Add(Day - time.Nanosecond)
 
-	const week = 7 // days in week
+	const week = 7
 	day := date.Weekday()
 	if day == time.Sunday {
 		day = time.Saturday + 1
@@ -33,7 +32,7 @@ func RangeByWeeks(date time.Time, weeks int, half bool) Range {
 		days *= -1 // semantic
 		min = min.AddDate(0, 0, monday-days)
 		max = max.AddDate(0, 0, sunday)
-		return NewRange(date, min, max)
+		return NewRange(min, max)
 	}
 
 	if half {
@@ -44,7 +43,15 @@ func RangeByWeeks(date time.Time, weeks int, half bool) Range {
 		min = min.AddDate(0, 0, monday)
 		max = max.AddDate(0, 0, sunday+days)
 	}
-	return NewRange(date, min, max)
+	return NewRange(min, max)
+}
+
+func GregorianWeeks(date time.Time, weeks int, half bool) Range {
+	r := RangeByWeeks(date, weeks, half)
+	if date.Weekday() == time.Sunday {
+		return r.Shift(6 * Day)
+	}
+	return r.Shift(-Day)
 }
 
 func RangeByMonths(date time.Time, months int, half bool) Range {
@@ -55,7 +62,7 @@ func RangeByMonths(date time.Time, months int, half bool) Range {
 
 	if months < 0 {
 		min = min.AddDate(0, months, 0)
-		return NewRange(date, min, max)
+		return NewRange(min, max)
 	}
 
 	if half {
@@ -64,7 +71,7 @@ func RangeByMonths(date time.Time, months int, half bool) Range {
 	} else {
 		max = max.AddDate(0, months, 0)
 	}
-	return NewRange(date, min, max)
+	return NewRange(min, max)
 }
 
 func RangeByYears(date time.Time, years int, half bool) Range {
@@ -75,7 +82,7 @@ func RangeByYears(date time.Time, years int, half bool) Range {
 
 	if years < 0 {
 		min = min.AddDate(years, 0, 0)
-		return NewRange(date, min, max)
+		return NewRange(min, max)
 	}
 
 	if half {
@@ -84,44 +91,27 @@ func RangeByYears(date time.Time, years int, half bool) Range {
 	} else {
 		max = max.AddDate(years, 0, 0)
 	}
-	return NewRange(date, min, max)
+	return NewRange(min, max)
 }
 
-type Range struct{ base, from, to time.Time }
+type Range struct{ from, to time.Time }
 
-func (r Range) Base() time.Time { return r.base }
 func (r Range) From() time.Time { return r.from }
 func (r Range) To() time.Time   { return r.to }
 
-func (r Range) Contains(t time.Time) bool {
-	return Between(r.from, r.to, t)
+func (r Range) IsZero() bool              { return r.from.IsZero() }
+func (r Range) Contains(t time.Time) bool { return Between(r.from, r.to, t) }
+
+func (r Range) Since(t time.Time) Range { return NewRange(t, r.to) }
+func (r Range) Until(t time.Time) Range { return NewRange(r.from, t) }
+
+func (r Range) Shift(shift time.Duration) Range {
+	return NewRange(r.from.Add(shift), r.to.Add(shift))
 }
 
 func (r Range) ExcludeFuture() Range {
 	if now := time.Now(); now.Before(r.to) {
-		r.to = now
+		return NewRange(r.from, now)
 	}
-	return r
-}
-
-func (r Range) ExpandLeft(t time.Time) Range {
-	assert.True(func() bool { return t.Before(r.from) })
-
-	r.from = t
-	return r
-}
-
-func (r Range) ExpandRight(t time.Time) Range {
-	assert.True(func() bool { return t.After(r.to) })
-
-	r.to = t
-	return r
-}
-
-func (r Range) Shift(shift time.Duration) Range {
-	assert.True(func() bool { return Between(r.from.Add(shift), r.to.Add(shift), r.base) })
-
-	r.from = r.from.Add(shift)
-	r.to = r.to.Add(shift)
 	return r
 }
