@@ -208,8 +208,8 @@ func TestParseDate(t *testing.T) {
 			fWeeks: 5,
 			health: require.NoError,
 			assert: func(t testing.TB, lr xtime.Range) {
-				assert.Equal(t, lr.From().Format(xtime.DateOnly), "2022-07-03")
-				assert.Equal(t, lr.To().Format(xtime.DateOnly), "2022-07-30")
+				assert.Equal(t, "2022-07-03", lr.From().Format(xtime.DateOnly))
+				assert.Equal(t, "2022-07-30", lr.To().Format(xtime.DateOnly))
 			},
 		},
 		{

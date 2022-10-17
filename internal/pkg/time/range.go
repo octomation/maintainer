@@ -102,8 +102,8 @@ func (r Range) To() time.Time   { return r.to }
 func (r Range) IsZero() bool              { return r.from.IsZero() }
 func (r Range) Contains(t time.Time) bool { return Between(r.from, r.to, t) }
 
-func (r Range) Since(t time.Time) Range { return NewRange(t, r.to) }
-func (r Range) Until(t time.Time) Range { return NewRange(r.from, t) }
+func (r Range) Since(from time.Time) Range { return NewRange(from, r.to) }
+func (r Range) Until(to time.Time) Range   { return NewRange(r.from, to) }
 
 func (r Range) Shift(shift time.Duration) Range {
 	return NewRange(r.from.Add(shift), r.to.Add(shift))
