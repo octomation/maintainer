@@ -44,8 +44,8 @@ func Suggest(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 
 		suggestion := contribution.Suggest(chm, scope.Since(opts.Value), schedule, target)
 		suggestion.Time = suggestion.Time.Add(jitter.FullRandom().Apply(time.Hour))
-		opts.Value = suggestion.Time
-		area := contribution.LookupRange(opts) // reuse options
+		opts.Value = suggestion.Time // reuse options
+		area := contribution.LookupRange(opts).ExcludeFuture()
 
 		// data presentation
 		if !short {

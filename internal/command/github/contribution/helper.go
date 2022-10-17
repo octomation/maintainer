@@ -142,11 +142,11 @@ func TableView(
 		row := append(make([]*simpletable.Cell, 0, weeks+1), &simpletable.Cell{Text: i.String()})
 		for j := 0; j < weeks; j++ {
 			cell := cursor.Add(time.Duration(j) * xtime.Week)
-			count, exists := heats[cell] // TODO:refactor interface leak
+			count := heats.Count(cell)
 			text := "-"
 			if count > 0 {
 				text = strconv.FormatUint(uint64(count), 10)
-			} else if !exists {
+			} else if cell.After(scope.To()) {
 				text = "?"
 			}
 			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: text})

@@ -22,7 +22,7 @@ func Lookup(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 			return err
 		}
 
-		scope := contribution.LookupRange(opts)
+		scope := contribution.LookupRange(opts).ExcludeFuture()
 		chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 		if err != nil {
 			return err
