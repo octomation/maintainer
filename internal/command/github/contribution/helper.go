@@ -181,5 +181,5 @@ func TableView(
 		},
 	}
 	table.SetStyle(simpletable.StyleCompactLite)
-	cmd.PrintErrln("\n", table.String(), "\n")
+	cmd.PrintErrln("\n" + table.String() + "\n")
 }
