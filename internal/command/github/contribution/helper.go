@@ -119,6 +119,7 @@ func TableView(
 	cmd *cobra.Command,
 	heats contribution.HeatMap,
 	scope xtime.Range,
+	opts ...func(time.Time, string) string,
 ) {
 	assert.True(func() bool { return scope.From().Weekday() == time.Sunday })
 
@@ -148,6 +149,9 @@ func TableView(
 				text = strconv.FormatUint(uint64(count), 10)
 			} else if cell.After(scope.To()) {
 				text = "?"
+			}
+			for _, opt := range opts {
+				text = opt(cell, text)
 			}
 			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: text})
 		}

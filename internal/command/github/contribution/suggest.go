@@ -53,7 +53,16 @@ func Suggest(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 
 		// data presentation
 		if !short {
-			TableView(cmd, chm, area)
+			accent := xtime.TruncateToDay(suggestion.Time)
+			TableView(cmd, chm, area, func(day time.Time, txt string) string {
+				if !day.Equal(accent) {
+					return txt
+				}
+				if txt == "-" {
+					return "*"
+				}
+				return txt + "*"
+			})
 		}
 		cmd.PrintErr("Suggestion is ")
 		if delta {
