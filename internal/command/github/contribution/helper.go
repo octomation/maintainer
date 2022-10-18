@@ -17,13 +17,25 @@ import (
 
 func Datetime(t time.Time) string {
 	now := time.Now().In(t.Location())
-	days := now.Sub(t) / xtime.Day
-	tail := now.Sub(t) % xtime.Day
-	normalized := strings.ToUpper(tail.Truncate(time.Second).String())
-	if days > 0 {
-		return fmt.Sprintf("-%dd%s", days, normalized)
+	sign := "-"
+	if t.After(now) {
+		sign = "+"
 	}
-	return fmt.Sprintf("-%s", normalized)
+
+	days := t.Sub(now) / xtime.Day
+	if days < 0 {
+		days = -days
+	}
+	tail := t.Sub(now) % xtime.Day
+	if tail < 0 {
+		tail = -tail
+	}
+	normalized := strings.ToUpper(tail.Truncate(time.Second).String())
+
+	if days > 0 {
+		return fmt.Sprintf("%s%dd%s", sign, days, normalized)
+	}
+	return fmt.Sprintf("%s%s", sign, normalized)
 }
 
 func FallbackDate(args []string) time.Time {

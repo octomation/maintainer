@@ -58,7 +58,7 @@ func Suggest(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 				if !day.Equal(accent) {
 					return txt
 				}
-				if txt == "-" {
+				if txt == "-" || txt == "?" {
 					return "*"
 				}
 				return txt + "*"
