@@ -8,6 +8,7 @@ const (
 )
 
 const (
+	DayStamp     = "Jan _2"
 	DateOnly     = "2006-01-02"
 	YearAndMonth = "2006-01"
 	YearOnly     = "2006"

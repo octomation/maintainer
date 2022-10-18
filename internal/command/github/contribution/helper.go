@@ -138,11 +138,16 @@ func TableView(
 		})
 		weeks++
 	}
+	table.Header.Cells = append(table.Header.Cells, &simpletable.Cell{
+		Align: simpletable.AlignCenter,
+		Text:  "Date",
+	})
 
 	for i, cursor := time.Sunday, scope.From(); i <= time.Saturday; i++ {
 		row := append(make([]*simpletable.Cell, 0, weeks+1), &simpletable.Cell{Text: i.String()})
 		for j := 0; j < weeks; j++ {
 			cell := cursor.Add(time.Duration(j) * xtime.Week)
+
 			count := heats.Count(cell)
 			text := "-"
 			if count > 0 {
@@ -153,7 +158,14 @@ func TableView(
 			for _, opt := range opts {
 				text = opt(cell, text)
 			}
+
 			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: text})
+			if j+1 == weeks {
+				row = append(row, &simpletable.Cell{
+					Align: simpletable.AlignCenter,
+					Text:  cell.Format(xtime.DayStamp),
+				})
+			}
 		}
 		cursor = cursor.Add(xtime.Day)
 		table.Body.Cells = append(table.Body.Cells, row)
@@ -169,5 +181,5 @@ func TableView(
 		},
 	}
 	table.SetStyle(simpletable.StyleCompactLite)
-	cmd.PrintErrln(table.String())
+	cmd.PrintErrln("\n", table.String(), "\n")
 }
