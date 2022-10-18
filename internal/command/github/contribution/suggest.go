@@ -1,6 +1,7 @@
 package contribution
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -43,6 +44,9 @@ func Suggest(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 		}
 
 		suggestion := contribution.Suggest(chm, scope.Since(opts.Value), schedule, target)
+		if suggestion.Time.IsZero() {
+			return fmt.Errorf("nothing to suggest")
+		}
 		suggestion.Time = suggestion.Time.Add(jitter.FullRandom().Apply(time.Hour))
 		opts.Value = suggestion.Time // reuse options
 		area := contribution.LookupRange(opts).ExcludeFuture()
@@ -51,7 +55,7 @@ func Suggest(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 		if !short {
 			TableView(cmd, chm, area)
 		}
-		cmd.PrintErr("Suggestion is ") // TODO:support suggestion.Time.IsZero()
+		cmd.PrintErr("Suggestion is ")
 		if delta {
 			cmd.PrintErr(suggestion.Time.Local().Format(time.RFC3339), ": ")
 			cmd.Print(Datetime(suggestion.Time.Local()))
