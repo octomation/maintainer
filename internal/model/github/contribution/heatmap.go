@@ -18,14 +18,14 @@ var counter = regexp.MustCompile(`^\d+`)
 
 func BuildHeatMap(doc *goquery.Document) HeatMap {
 	chm := make(HeatMap)
-	doc.Find("svg.js-calendar-graph-svg rect.ContributionCalendar-day").
+	doc.Find("table.ContributionCalendar-grid td.ContributionCalendar-day").
 		Each(func(_ int, node *goquery.Selection) {
 			// data-count="0"
 			// data-count="2"
 			count, has := node.Attr("data-count")
 			if !has {
-				// No contributions on January 2, 2006
-				// 2 contributions on January 2, 2006
+				// No contributions on Monday, January 2, 2006
+				// 2 contributions on Monday, January 2, 2006
 				count = counter.FindString(node.Text())
 				if count == "" {
 					count = "0"
