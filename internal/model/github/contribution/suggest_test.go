@@ -57,7 +57,7 @@ func TestSuggest(t *testing.T) {
 			basis: 5,
 			expected: Suggestion{
 				Time:   xtime.UTC().Year(2021).Month(time.April).Day(28).Hour(8).Time(),
-				Actual: 4,
+				Actual: 3,
 				Target: 10,
 			},
 		},
@@ -78,19 +78,19 @@ func TestSuggest(t *testing.T) {
 		"issue#68: missed Saturday": {
 			heats: func() HeatMap {
 				chm := BuildHeatMap(load(t, "testdata/kamilsk.2021.html"))
-				delete(chm, xtime.UTC().Year(2021).Month(time.December).Day(18).Time())
+				delete(chm, xtime.UTC().Year(2021).Month(time.December).Day(2).Time())
 				return chm
 			}(),
 			scope: xtime.NewRange(
-				xtime.UTC().Year(2021).Month(time.December).Day(12).Time(),
+				xtime.UTC().Year(2021).Month(time.November).Day(28).Time(),
 				time.Now(),
 			),
 			hours: xtime.Everyday(xtime.Hours(8, 22, 0)),
 			basis: 5,
 			expected: Suggestion{
-				Time:   xtime.UTC().Year(2021).Month(time.December).Day(18).Hour(8).Time(),
+				Time:   xtime.UTC().Year(2021).Month(time.December).Day(2).Hour(8).Time(),
 				Actual: 0,
-				Target: 10,
+				Target: 15,
 			},
 		},
 		"issue#119: max Saturday": {
