@@ -29,11 +29,11 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - name: Set up Go environment
         uses: actions/setup-go@v4
-        with: { go-version: 1.20.x, cache-dependency-path: tools/go.sum }
+        with: { go-version: 1.21.x, cache-dependency-path: tools/go.sum }
 
       - name: Prepare and run linter
         run: make tools lint
@@ -48,13 +48,12 @@ jobs:
       matrix:
         go:
           - 1.x
-          - 1.18.x
-          - 1.19.x
           - 1.20.x
+          - 1.21.x
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with: { fetch-depth: 0 }
       - name: Set up Go environment
         uses: actions/setup-go@v4
@@ -64,7 +63,7 @@ jobs:
         run: make env deps-fetch test-with-coverage
       - name: Store code coverage report
         uses: actions/upload-artifact@v3
-        if: matrix.go == '1.20.x'
+        if: matrix.go == '1.21.x'
         with: { name: code-coverage-report, path: c.out }
 
       - run: make install
@@ -77,7 +76,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with: { fetch-depth: 0 }
 
       - name: Fetch code coverage report
