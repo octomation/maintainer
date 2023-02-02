@@ -17,7 +17,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/pkg/url"
 )
 
-var overview = url.MustParse("https://github.com?tab=overview")
+var overview = url.MustParse("https://github.com?controller=profiles&action=show&tab=contributions")
 
 func (srv *Service) ContributionHeatMap(
 	ctx context.Context,
