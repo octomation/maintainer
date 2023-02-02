@@ -1,6 +1,8 @@
 module go.octolab.org/toolset/maintainer
 
-go 1.20
+go 1.21
+
+toolchain go1.22.1
 
 require (
 	github.com/PuerkitoBio/goquery v1.8.1
@@ -8,7 +10,7 @@ require (
 	github.com/fatih/color v1.16.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/golang/mock v1.6.0
-	github.com/google/go-github/v59 v59.0.0
+	github.com/google/go-github/v60 v60.0.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
