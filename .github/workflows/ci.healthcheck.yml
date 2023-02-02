@@ -9,7 +9,6 @@ on:
 jobs:
   test:
     name: Testing
-    needs: [ update]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -34,7 +33,7 @@ jobs:
 
   notify:
     name: Notifying
-    needs: [ update, test ]
+    needs: [ test ]
     runs-on: ubuntu-latest
     if: github.event_name != 'pull_request' && (failure() || success())
 
