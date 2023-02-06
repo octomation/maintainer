@@ -19,5 +19,6 @@ func (s Setter) NoCache() Setter {
 	h.Add(header.CacheControl, "must-revalidate")
 	h.Set("Pragma", "no-cache")
 	h.Set("Expires", "0")
+	h.Set("X-Requested-With", "XMLHttpRequest")
 	return s
 }
