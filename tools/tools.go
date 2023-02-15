@@ -10,7 +10,6 @@ import (
 	_ "github.com/marwan-at-work/mod/cmd/mod"
 	_ "golang.org/x/exp/cmd/gorelease"
 	_ "golang.org/x/tools/cmd/benchcmp"
-	_ "golang.org/x/tools/cmd/goimports"
 	_ "golang.org/x/tools/cmd/gomvpkg"
 	_ "golang.org/x/tools/cmd/gorename"
 )
@@ -20,6 +19,5 @@ import (
 //go:generate go install github.com/marwan-at-work/mod/cmd/mod
 //go:generate go install golang.org/x/exp/cmd/gorelease
 //go:generate go install golang.org/x/tools/cmd/benchcmp
-//go:generate go install golang.org/x/tools/cmd/goimports
 //go:generate go install golang.org/x/tools/cmd/gomvpkg
 //go:generate go install golang.org/x/tools/cmd/gorename
