@@ -3,7 +3,7 @@ package github
 import (
 	"net/http"
 
-	"github.com/google/go-github/v78/github"
+	"github.com/google/go-github/v79/github"
 )
 
 // New returns a new GitHub service.
