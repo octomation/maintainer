@@ -1,11 +1,12 @@
 module go.octolab.org/toolset/maintainer/tools
 
 go 1.21
+toolchain go1.24.1
 
 require (
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.52.2
-	github.com/marwan-at-work/mod v0.7.1
+	github.com/marwan-at-work/mod v0.8.0
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	golang.org/x/tools v0.13.0
 )
@@ -129,7 +130,6 @@ require (
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/polyfloyd/go-errorlint v1.4.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
@@ -185,7 +185,7 @@ require (
 	go.uber.org/zap v1.24.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230224173230-c95f2b4c22f2 // indirect
-	golang.org/x/mod v0.13.0 // indirect
+	golang.org/x/mod v0.24.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
