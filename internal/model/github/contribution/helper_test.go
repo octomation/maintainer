@@ -55,7 +55,7 @@ func TestYearRange(t *testing.T) {
 
 	min, max := YearRange(doc)
 	assert.Equal(t, 2011, min)
-	assert.Equal(t, 2024, max)
+	assert.Equal(t, 2025, max)
 }
 
 func load(t testing.TB, name string) *goquery.Document {
