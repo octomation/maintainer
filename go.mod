@@ -9,7 +9,7 @@ require (
 	github.com/go-git/go-git/v5 v5.6.0
 	github.com/golang/mock v1.6.0
 	github.com/google/go-github/v50 v50.1.0
-	github.com/spf13/afero v1.9.4
+	github.com/spf13/afero v1.9.5
 	github.com/spf13/cobra v1.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
