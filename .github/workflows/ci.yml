@@ -29,10 +29,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.2
         with: { fetch-depth: 0 }
       - name: Set up Go environment
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.3.0
         with: { go-version: 1.21.x, cache-dependency-path: tools/go.sum }
 
       - name: Prepare and run linter
@@ -53,16 +53,16 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.2
         with: { fetch-depth: 0 }
       - name: Set up Go environment
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.3.0
         with: { go-version: '${{ matrix.go }}' }
 
       - name: Prepare and run tests
         run: make env deps-fetch test-with-coverage
       - name: Store code coverage report
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v7.0.0
         if: matrix.go == '1.21.x'
         with: { name: code-coverage-report, path: c.out }
 
@@ -76,14 +76,14 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.2
         with: { fetch-depth: 0 }
 
       - name: Fetch code coverage report
-        uses: actions/download-artifact@v5.0.0
+        uses: actions/download-artifact@v8.0.0
         with: { name: code-coverage-report }
       - name: Send code coverage report to Codecov (codecov.io)
-        uses: codecov/codecov-action@v5.5.1
+        uses: codecov/codecov-action@v5.5.2
         with: { files: c.out }
 
   notify:
