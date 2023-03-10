@@ -1,8 +1,6 @@
 module go.octolab.org/toolset/maintainer
 
-go 1.24.0
-
-toolchain go1.24.1
+go 1.25.0
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.3
@@ -10,7 +8,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/go-git/go-git/v5 v5.16.3
 	github.com/golang/mock v1.6.0
-	github.com/google/go-github/v76 v76.0.0
+	github.com/google/go-github/v84 v84.0.0
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
 	github.com/spf13/pflag v1.0.10
@@ -18,8 +16,8 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/whilp/git-urls v1.0.0
 	go.octolab.org v0.12.2
-	go.octolab.org/toolkit/cli v0.6.3
-	go.octolab.org/toolkit/config v0.0.4
+	go.octolab.org/toolkit/cli v0.6.4
+	go.octolab.org/toolkit/config v0.0.5
 	go.octolab.org/toolkit/protocol v0.1.0
 	golang.org/x/oauth2 v0.32.0
 	golang.org/x/sync v0.17.0
@@ -40,7 +38,7 @@ require (
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
 	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/golang/groupcache v0.0.0-20241129210726-2c02b8208cf8 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
