@@ -20,10 +20,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v5.0.0
+        uses: actions/checkout@v6.0.2
         with: { fetch-depth: 0 }
       - name: Set up Go environment
-        uses: actions/setup-go@v6.0.0
+        uses: actions/setup-go@v6.3.0
         with: { go-version: '${{ matrix.go }}' }
 
       - name: Fetch new test data
