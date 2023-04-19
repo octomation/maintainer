@@ -1,5 +1,7 @@
-# ln -s /sparkle/project .github/notes
-/.github/notes
+# sparkle
+.github/notes
+
+
 
 # goreleaser artifacts
 /dist/
