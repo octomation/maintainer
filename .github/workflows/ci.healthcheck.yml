@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7.0.0
         with: { fetch-depth: 0 }
       - name: Set up Go environment
         uses: actions/setup-go@v6.4.0
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Send Slack notification
-        uses: rtCamp/action-slack-notify@v2.3.3
+        uses: rtCamp/action-slack-notify@v2.4.0
         env:
           SLACK_COLOR: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
           SLACK_ICON: https://github.com/github.png?size=64
