@@ -1,4 +1,3 @@
----
 project_name: maintainer
 
 archives:
@@ -7,7 +6,6 @@ archives:
       - LICENSE
     format: tar.gz
     name_template: "{{.Binary}}_{{.Version}}_{{.Os}}-{{.Arch}}"
-    rlcp: true
 
 brews:
   - name: maintainer
@@ -18,7 +16,7 @@ brews:
     description: Maintainer is an indispensable assistant to Open Source contribution.
     folder: Formula
     homepage: https://github.com/octomation/maintainer
-    tap:
+    repository:
       owner: octolab
       name: homebrew-tap
     install: |
