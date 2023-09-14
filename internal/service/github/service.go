@@ -9,7 +9,8 @@ import (
 // New returns a new GitHub service.
 func New(client *http.Client) *Service {
 	srv := new(Service)
-	srv.client = github.NewClient(client)
+	// WithHTTPClient never fails for a non-enterprise client.
+	srv.client, _ = github.NewClient(github.WithHTTPClient(client))
 
 	return srv
 }

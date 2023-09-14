@@ -2,7 +2,6 @@ package management
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 	"strings"
 
@@ -74,15 +73,15 @@ func Issue(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 		}
 
 		// Create GitHub client
-		var httpClient *http.Client
+		var opts []github.ClientOptionsFunc
 		token := string(cnf.GitHub.Token)
 		if token != "" {
 			ts := oauth2.StaticTokenSource(
 				&oauth2.Token{AccessToken: token},
 			)
-			httpClient = oauth2.NewClient(ctx, ts)
+			opts = append(opts, github.WithHTTPClient(oauth2.NewClient(ctx, ts)))
 		}
-		client := github.NewClient(httpClient)
+		client, _ := github.NewClient(opts...)
 
 		// Fetch all issues
 		opt := &github.IssueListByRepoOptions{

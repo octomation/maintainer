@@ -10,11 +10,14 @@ import (
 )
 
 type Git struct {
-	Remote string `mapstructure:"remote"`
+	// Keys match viper's flat env/flag keys (GIT_REMOTE → git_remote). Since
+	// viper 1.20 reads these as flat keys, the squashed mapstructure tag must
+	// use the full key, not the bare "remote"/"token".
+	Remote string `mapstructure:"git_remote"`
 }
 
 type GitHub struct {
-	Token config.Secret `mapstructure:"token"`
+	Token config.Secret `mapstructure:"github_token"`
 }
 
 type Tool struct {

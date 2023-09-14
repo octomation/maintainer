@@ -21,9 +21,9 @@ func New(cnf *config.Tool) *cobra.Command {
 		Short: "fetch data from GitHub and Trello to manage it",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			client := github.NewClient(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+			client, _ := github.NewClient(github.WithHTTPClient(http.TokenSourcedClient(cmd.Context(), cnf.Token)))
 
-			opt := new(github.IssueListOptions)
+			opt := new(github.ListAllIssuesOptions)
 			opt.ListOptions.PerPage = 100
 
 			f, err := os.Create("bin/github.issues.json")
@@ -35,7 +35,7 @@ func New(cnf *config.Tool) *cobra.Command {
 			var mx sync.Mutex
 			result := make([]*github.Issue, 0, 1024)
 
-			issues, resp, err := client.Issues.List(cmd.Context(), true, opt)
+			issues, resp, err := client.Issues.ListAllIssues(cmd.Context(), opt)
 			if err != nil {
 				return err
 			}
@@ -45,7 +45,7 @@ func New(cnf *config.Tool) *cobra.Command {
 				job := new(async.Job)
 				for i := 2; i <= resp.LastPage; i++ {
 					job.Do(func() error {
-						issues, _, err := client.Issues.List(cmd.Context(), true, opt)
+						issues, _, err := client.Issues.ListAllIssues(cmd.Context(), opt)
 						if err != nil {
 							return err
 						}
