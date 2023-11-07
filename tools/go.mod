@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/golang/mock v1.6.0
 	github.com/golangci/golangci-lint v1.52.2
-	github.com/marwan-at-work/mod v0.7.0
+	github.com/marwan-at-work/mod v0.7.1
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
 	golang.org/x/tools v0.13.0
 )
