@@ -9,6 +9,7 @@ on:
         options:
           - Cache invalidation
           - Continuous integration
+          - Continuous integration healthcheck
           - Dependabot at weekends
           - Documentation delivery
           - Tools validation
