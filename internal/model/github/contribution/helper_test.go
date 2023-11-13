@@ -38,8 +38,8 @@ func TestLookupRange(t *testing.T) {
 
 		opts.Value = suggestion.Time
 		scope = LookupRange(opts)
-		assert.Equal(t, "2021-01-24", scope.From().Format(xtime.DateOnly))
-		assert.Equal(t, "2021-02-13", scope.To().Format(xtime.DateOnly))
+		assert.Equal(t, "2021-01-17", scope.From().Format(xtime.DateOnly))
+		assert.Equal(t, "2021-02-06", scope.To().Format(xtime.DateOnly))
 	})
 }
 

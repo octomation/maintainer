@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -17,27 +18,15 @@ import (
 var counter = regexp.MustCompile(`^\d+`)
 
 func BuildHeatMap(doc *goquery.Document) HeatMap {
+	type id = string
+	type day = time.Time
+	idx := make(map[id]day, 365)
+
 	chm := make(HeatMap)
 	doc.Find("table.ContributionCalendar-grid td.ContributionCalendar-day").
 		Each(func(_ int, node *goquery.Selection) {
-			// data-count="0"
-			// data-count="2"
-			count, has := node.Attr("data-count")
-			if !has {
-				// No contributions on Monday, January 2, 2006
-				// 2 contributions on Monday, January 2, 2006
-				count = counter.FindString(node.Text())
-				if count == "" {
-					count = "0"
-				}
-			}
-			c, err := strconv.ParseUint(count, 10, 0)
-			if err != nil {
-				html, _ := node.Html()
-				panic(errors.ContentError(fmt.Errorf("invalid count value: %w", err), html))
-			}
-
-			// data-date="2006-01-02"
+			// An expected attribute format:
+			//  - data-date="2006-01-02"
 			date := node.AttrOr("data-date", "")
 			d, err := time.Parse(xtime.DateOnly, date)
 			if err != nil {
@@ -45,6 +34,32 @@ func BuildHeatMap(doc *goquery.Document) HeatMap {
 				panic(errors.ContentError(fmt.Errorf("invalid date value: %w", err), html))
 			}
 
+			chm.SetCount(d, 0)
+			idx[node.AttrOr("id", "")] = d
+		})
+	// Selectors "table.ContributionCalendar-grid tool-tip", "table tool-tip"
+	// are not working. Also, `node.Next()` and `.AddBack()` didn't work too.
+	doc.Find("tool-tip").
+		Each(func(_ int, node *goquery.Selection) {
+			link := node.AttrOr("for", "")
+			if !strings.HasPrefix(link, "contribution-day-component-") {
+				return
+			}
+
+			// An expected content format:
+			//  - No contributions on January 5th.
+			//  - 5 contributions on January 5rd.
+			count := counter.FindString(node.Text())
+			if count == "" {
+				count = "0"
+			}
+			c, err := strconv.ParseUint(count, 10, 0)
+			if err != nil {
+				html, _ := node.Html()
+				panic(errors.ContentError(fmt.Errorf("invalid count value: %w", err), html))
+			}
+
+			d := idx[link]
 			chm.SetCount(d, uint(c))
 		})
 	return chm
