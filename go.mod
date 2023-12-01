@@ -8,7 +8,7 @@ require (
 	github.com/fatih/color v1.16.0
 	github.com/go-git/go-git/v5 v5.10.1
 	github.com/golang/mock v1.6.0
-	github.com/google/go-github/v56 v56.0.0
+	github.com/google/go-github/v57 v57.0.0
 	github.com/spf13/afero v1.11.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
