@@ -12,8 +12,8 @@ require (
 	github.com/golang/mock v1.6.0
 	github.com/google/go-github/v68 v68.0.0
 	github.com/spf13/afero v1.11.0
-	github.com/spf13/cobra v1.8.0
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/cobra v1.9.0
+	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.18.2
 	github.com/stretchr/testify v1.9.0
 	github.com/whilp/git-urls v1.0.0
