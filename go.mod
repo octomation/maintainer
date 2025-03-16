@@ -1,8 +1,7 @@
 module go.octolab.org/toolset/maintainer
 
 go 1.22.0
-
-toolchain go1.24.0
+toolchain go1.24.1
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.1
@@ -22,7 +21,7 @@ require (
 	go.octolab.org/toolkit/config v0.0.4
 	go.octolab.org/toolkit/protocol v0.1.0
 	golang.org/x/oauth2 v0.18.0
-	golang.org/x/sync v0.6.0
+	golang.org/x/sync v0.12.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
