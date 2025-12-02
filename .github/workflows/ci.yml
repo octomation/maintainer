@@ -29,10 +29,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with: { fetch-depth: 0 }
       - name: Set up Go environment
-        uses: actions/setup-go@v6.5.0
+        uses: actions/setup-go@v7.0.0
         with: { go-version: 1.21.x, cache-dependency-path: tools/go.sum }
 
       - name: Prepare and run linter
@@ -53,10 +53,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with: { fetch-depth: 0 }
       - name: Set up Go environment
-        uses: actions/setup-go@v6.5.0
+        uses: actions/setup-go@v7.0.0
         with: { go-version: '${{ matrix.go }}' }
 
       - name: Prepare and run tests
@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.0
+        uses: actions/checkout@v7.0.1
         with: { fetch-depth: 0 }
 
       - name: Fetch code coverage report
