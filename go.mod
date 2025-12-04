@@ -19,7 +19,7 @@ require (
 	github.com/whilp/git-urls v1.0.0
 	go.octolab.org v0.12.2
 	go.octolab.org/toolkit/cli v0.6.3
-	go.octolab.org/toolkit/config v0.0.4
+	go.octolab.org/toolkit/config v0.0.5
 	go.octolab.org/toolkit/protocol v0.1.0
 	golang.org/x/oauth2 v0.32.0
 	golang.org/x/sync v0.17.0
