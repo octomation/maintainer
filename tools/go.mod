@@ -1,12 +1,12 @@
 module go.octolab.org/toolset/maintainer/tools
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/golang/mock v1.6.0
 	github.com/marwan-at-work/mod v0.10.0
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
-	golang.org/x/tools v0.47.0
+	golang.org/x/tools v0.50.0
 	golang.org/x/tools/cmd/gorename v0.1.0-deprecated
 )
 
@@ -22,13 +22,13 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/urfave/cli/v2 v2.25.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
-	golang.org/x/crypto v0.53.0 // indirect
-	golang.org/x/mod v0.37.0 // indirect
-	golang.org/x/net v0.56.0 // indirect
+	golang.org/x/crypto v0.57.0 // indirect
+	golang.org/x/mod v0.41.0 // indirect
+	golang.org/x/net v0.59.0 // indirect
 	golang.org/x/oauth2 v0.7.0 // indirect
-	golang.org/x/sync v0.21.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/telemetry v0.0.0-20260625142307-59b4966ccb57 // indirect
+	golang.org/x/sync v0.23.0 // indirect
+	golang.org/x/sys v0.48.0 // indirect
+	golang.org/x/telemetry v0.0.0-20260908163034-4bcc4b2ee518 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 )
