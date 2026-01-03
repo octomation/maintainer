@@ -12,6 +12,14 @@ updated_at: 2023-08-26T19:26:36Z
 
 # template: go new support
 
-**Motivation:** support [`go new`](https://github.com/golang/tools/releases/tag/v0.11.1) and [GitHub templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository) for better developer experience. Port it to different stacks.
+Simplify creating a project from a template: get a ready structure with a new module name and consistent imports, without copying files by hand or running a mass search and replace. The original idea combines Go templates with GitHub template repositories, and aims to port the approach to other stacks for a better developer experience.
 
-**Details:** https://go.dev/blog/gonew.
+The reference from the [Go blog post](https://go.dev/blog/gonew) is a separate `gonew` tool rather than a built-in `go new` command:
+
+```bash
+gonew golang.org/x/example/helloserver example.com/myserver
+```
+
+The proposed result for maintainer: choose the template source and version, name the new project, and get consistent files plus clear next steps. An existing non-empty directory must not be overwritten implicitly. Support for other stacks should be advertised according to the adapters that actually exist, not promised universally in advance.
+
+**At present** no such command exists. Renaming Go paths is [#135](issue-135.md); synchronizing the created project with its template later is [#10](issue-10.md). Additional original links: [tools v0.11.1 release](https://github.com/golang/tools/releases/tag/v0.11.1), [GitHub templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository).

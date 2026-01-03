@@ -12,10 +12,15 @@ updated_at: 2022-05-10T07:21:07Z
 
 # contribution chart
 
-Add a possibility to fetch contribution chart from GitHub and shows appropriate date correction for git commit.
+Bring the GitHub Contributions Calendar into the terminal: view the activity and get a date for the next contribution. The motivation is to stop studying the calendar in a browser before using a personal Git wrapper.
+
+In the current CLI the scenario reads:
 
 ```bash
-$ maintainer contribution chart
-
-$ git at $(maintainer contribution next) did something useful
+maintainer github contribution lookup 2021-02-01/3
+maintainer github contribution suggest --short 2021/+10
 ```
+
+The first command shows the calendar, the second returns the suggested date. The `git at` call from the original idea is an external user command, not part of maintainer; `suggest` does not create a commit itself.
+
+**Current state:** the historical task is closed and the features are available under the `github contribution` group. Choosing the date in detail is [#24](issue-24.md); viewing, snapshots, comparison and the activity distribution are [#26](issue-26.md)–[#29](issue-29.md). The scenarios are described in [the documentation](../../docs/changelog.md).

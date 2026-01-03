@@ -12,12 +12,10 @@ updated_at: 2024-01-09T08:49:33Z
 
 # github: suggestion: reduce jitter
 
-**Motivation:** it limits available capacity for the day.
+Reduce the random offset of the suggestion time and tie it to the target activity. A large offset after every commit quickly consumes the day's available working time, especially with a high target.
 
-**Details**
+The scenario, illustrated: with a target of 50 contributions, an hour is left until the end of the working interval; yet another nearly hour-long offset leaves too little time for the remaining work.
 
-https://github.com/octomation/maintainer/blob/020d048eebf8059814ca342b4ccd1e34a87784c1/internal/command/github/contribution/suggest.go#L50
+The proposal is to choose the offset with the target in mind and to cap it from above. How the remaining contributions and the time until the boundary are taken into account has to be defined, as does what happens when no room is left. The resulting date must not go beyond the agreed working interval or the present moment.
 
-**To do**
-
-I must change it to a "target-specific" value but limit it to top.
+**At present** [suggest](../../internal/command/github/contribution/suggest.go) adds a random value of up to an hour after the time has already been chosen, with no re-check of the upper bound. The original point of discussion is the [historical jitter call](https://github.com/octomation/maintainer/blob/020d048eebf8059814ca342b4ccd1e34a87784c1/internal/command/github/contribution/suggest.go#L50). Related: configuring hours [#127](issue-127.md), a future HEAD [#133](issue-133.md).

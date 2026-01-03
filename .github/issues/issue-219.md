@@ -12,6 +12,16 @@ updated_at: 2024-03-30T17:14:09Z
 
 # ci/cd: Continuous integration healthcheck doesn't work properly
 
-**Details**
+Make sure the daily GitHub calendar check actually runs against fresh HTML. The original healthcheck updated the testdata, but the changes never reached the next step, so a green result on stale fixtures could hide a broken integration.
 
-The step Updating test suite doesn't provide changed testdata for the next steps.
+The expected sequence:
+
+```text
+Fetch fresh GitHub HTML
+→ store the fixtures in the working checkout
+→ run the tests against exactly those files
+```
+
+A download failure must stop the check rather than quietly fall back to a run against old data. The point of the healthcheck is to notice an external format change that ordinary tests over stored fixtures cannot detect.
+
+**Current state:** the issue is closed. In [ci.healthcheck.yml](../workflows/ci.healthcheck.yml) the `Fetch new test data` step calls `./Taskfile testdata`, and the tests then run in the same job. That confirms the files are handed over inside the current checkout. The check was introduced after [#174](issue-174.md); the change of how the data is obtained is described in [#220](issue-220.md).

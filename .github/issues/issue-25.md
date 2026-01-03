@@ -12,14 +12,22 @@ updated_at: 2023-01-06T13:48:50Z
 
 # add possibility to compare configuration of repos
 
-```bash
-$ maintainer config compare octomation/maintainer kamilsk/retry
-# shows the diff
-```
+Compare repository settings and show the deviations from a chosen reference. This helps to configure a family of projects identically and to spot differences that currently have to be hunted down on separate GitHub pages.
 
-optional if possible
+A provisional interface:
 
 ```bash
-$ maintaner config apply octomation/maintainer kamilsk/retry kamilsk/semaphore
-# apply the diff
+maintainer config compare octomation/maintainer kamilsk/retry
+# issues: enabled → disabled
+# merge settings: differ
 ```
+
+The mandatory outcome is a comparison that changes nothing: which properties differ, what was taken as the reference, and which data could not be read. The set of compared settings has to be defined explicitly; lack of access is not the same as an absent setting.
+
+Applying the difference was proposed as an **optional follow-up**:
+
+```bash
+maintainer config apply octomation/maintainer kamilsk/retry kamilsk/semaphore
+```
+
+It should rest on a reviewable plan ([#19](issue-19.md)). **At present** there is no `config` group. Synchronizing template files is the different task [#10](issue-10.md); the new fetch specification does not change GitHub settings.
