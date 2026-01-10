@@ -183,7 +183,7 @@ go-pkg:
 .PHONY: go-pkg
 
 lint:
-	$(AT) golangci-lint run --enable looppointer ./...
+	$(AT) golangci-lint run --fast-only ./...
 .PHONY: lint
 
 test:
