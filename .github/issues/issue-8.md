@@ -11,8 +11,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2021-03-03T17:31:12Z
-updatedAt: 2023-03-31T15:34:19Z
-lastEditedAt: 2021-03-15T19:53:00Z
+updatedAt: 2026-09-25T05:13:50Z
+lastEditedAt: 2026-09-25T05:13:50Z
 closedAt: 2021-03-15T19:53:10Z
 ---
 
@@ -20,7 +20,7 @@ closedAt: 2021-03-15T19:53:10Z
 
 Reduce work with GitHub labels to a manageable set of rules: read the current labels, choose a target set, and prepare reviewable changes. This removes the need to configure identical categories by hand across many repositories.
 
-Historical scope: the default set (`defaults`) and the target set (`target`) were marked done; a separate mapping step was dropped from the plan.
+Scope: the default set (`defaults`) and the target set (`target`). A separate mapping step is out of scope.
 
 An example of the result at the user level:
 
@@ -30,9 +30,9 @@ feature    → type: feature
 help wanted: keep
 ```
 
-Related parts: inventory [#12](issue-12.md), presets [#13](issue-13.md), preview [#14](issue-14.md), issue classification [#32](issue-32.md).
+This issue does not propose bringing label management back without a new decision about product boundaries.
 
-**Current state:** the direction is historical and closed. In [#80](issue-80.md) label management was handed over to the settings app; there is no `github labels` group in the current CLI. This issue does not propose bringing it back without a new decision about product boundaries.
+Related: inventory [[issue-12]], presets [[issue-13]], preview [[issue-14]], issue classification [[issue-32]], label scope removal [[issue-80]].
 
 <!-- 2021-03-09T18:59Z https://github.com/octomation/maintainer/issues/8#issuecomment-794309846
 mapping will be done in #12

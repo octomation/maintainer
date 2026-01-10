@@ -14,8 +14,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2024-01-20T19:51:39Z
-updatedAt: 2024-01-20T19:51:39Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:01Z
+lastEditedAt: 2026-09-25T05:11:01Z
 closedAt:
 ---
 
@@ -32,4 +32,4 @@ maintainer insights deps go github.com/spf13/cobra@v1.10.2
 
 The ecosystem, the package and the version have to be distinguished explicitly; absent data does not mean absent problems. The result must show the provenance of the information and be suitable for further processing, for example through a proposed JSON mode. This is information retrieval, not automatic dependency updating.
 
-**At present** there is no `insights` group and no integration. The original references are [deps.dev](https://deps.dev/), its [documentation](https://docs.deps.dev/) and the [v3alpha API](https://docs.deps.dev/api/v3alpha/); since that alpha contract was the starting point, the currently supported API version has to be chosen before implementing. Related context: [raw dumps](<../notes/Issues/maintainer as raw.md>), [the project graph](<../notes/Issues/project graph.md>), [version delta research](<../notes/Issues/version delta research.md>).
+The original references are [deps.dev](https://deps.dev/), its [documentation](https://docs.deps.dev/) and the [v3alpha API](https://docs.deps.dev/api/v3alpha/); since that alpha contract was the starting point, the currently supported API version has to be chosen before implementing. Related context: [raw dumps](<../notes/Issues/maintainer as raw.md>), [the project graph](<../notes/Issues/project graph.md>), [version delta research](<../notes/Issues/version delta research.md>).

@@ -16,8 +16,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2023-03-27T08:11:43Z
-updatedAt: 2023-04-05T19:42:34Z
-lastEditedAt: 2023-04-05T19:41:45Z
+updatedAt: 2026-09-25T05:09:52Z
+lastEditedAt: 2026-09-25T05:09:52Z
 closedAt: 2023-04-05T19:42:34Z
 ---
 
@@ -35,4 +35,4 @@ Table:       the corresponding Tuesday already has contributions.
 
 The date, the highlighted cell and the actual value in the explanation are expected to refer to one calendar day, and Sunday must not be lost when the weeks are aligned. A full commit timestamp must not act as a different key from the calendar date.
 
-**Current state:** the issue is closed, and both original sub-tasks — the empty Sunday and the `0 → 10` count — were marked done. The current model normalizes dates to UTC; a new case of a wrong count for today is handled in [#136](issue-136.md).
+Related: a wrong count for today [[issue-136]].

@@ -14,8 +14,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2023-07-31T14:14:42Z
-updatedAt: 2023-08-26T19:26:36Z
-lastEditedAt: 2023-08-26T19:22:14Z
+updatedAt: 2026-09-25T05:10:35Z
+lastEditedAt: 2026-09-25T05:10:35Z
 closedAt:
 ---
 
@@ -31,7 +31,7 @@ gonew golang.org/x/example/helloserver example.com/myserver
 
 The proposed result for maintainer: choose the template source and version, name the new project, and get consistent files plus clear next steps. An existing non-empty directory must not be overwritten implicitly. Support for other stacks should be advertised according to the adapters that actually exist, not promised universally in advance.
 
-**At present** no such command exists. Renaming Go paths is [#135](issue-135.md); synchronizing the created project with its template later is [#10](issue-10.md). Additional original links: [tools v0.11.1 release](https://github.com/golang/tools/releases/tag/v0.11.1), [GitHub templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository).
+Renaming Go paths is [[issue-135]]; synchronizing the created project with its template later is [[issue-10]]. Additional original links: [tools v0.11.1 release](https://github.com/golang/tools/releases/tag/v0.11.1), [GitHub templates](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository).
 
 <!-- 2023-08-09T12:36Z https://github.com/octomation/maintainer/issues/153#issuecomment-1671245480
 related to #135

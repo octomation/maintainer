@@ -11,8 +11,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2021-01-01T14:38:09Z
-updatedAt: 2021-01-01T16:02:44Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:38Z
+lastEditedAt: 2026-09-25T05:11:38Z
 closedAt: 2021-01-01T16:02:44Z
 ---
 
@@ -30,4 +30,4 @@ maintainer makefile build 'Go Tool.mk' 'Go Service.mk'
 
 The assembler expands includes and writes a separate result for every input file. The list of files can also be passed as lines on stdin.
 
-**Current state:** the move is reflected in the [makefile commands](../../internal/command/makefile/). The task is closed. Formatting of the result is refined by [#7](issue-7.md), nested fragment dependencies by [#81](issue-81.md). Original link: [octomation/makefiles#22](https://github.com/octomation/makefiles/issues/22).
+Related: formatting of the result [[issue-7]], nested fragment dependencies [[issue-81]], original [octomation/makefiles#22](https://github.com/octomation/makefiles/issues/22).

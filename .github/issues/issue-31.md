@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-05-11T14:06:20Z
-updatedAt: 2023-01-06T13:48:42Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:43Z
+lastEditedAt: 2026-09-25T05:11:42Z
 closedAt:
 ---
 
@@ -38,4 +38,6 @@ backup/octomation/maintainer/
 
 The full contents of the copy have to be defined, preserving the relations between objects, their identifiers and the moment of the dump. A partial failure must not look like a successful full backup; the result must make it possible to verify what was actually stored. Restoring requires a separate contract.
 
-**At present** there is no backup command; the existing draft for reading issues is not wired into the CLI and is not an archiver. The [fetch specification](<../notes/Specs/GitHub fetcher, PoC implementation plan.md>) explicitly excludes downloading issues and projects, and excludes mirroring. Related context: [Repository Metadata](<../notes/Repository Metadata.md>) and [raw dumps](<../notes/Issues/maintainer as raw.md>).
+This is not part of fetch: its specification excludes downloading issues and projects, and excludes mirroring.
+
+Related: [fetch specification](<../notes/Specs/GitHub fetcher, PoC implementation plan.md>), [Repository Metadata](<../notes/Repository Metadata.md>), [raw dumps](<../notes/Issues/maintainer as raw.md>).

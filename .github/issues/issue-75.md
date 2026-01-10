@@ -15,8 +15,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-26T18:07:42Z
-updatedAt: 2023-04-05T20:54:21Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:38Z
+lastEditedAt: 2026-09-25T05:13:38Z
 closedAt: 2023-04-05T20:54:20Z
 ---
 
@@ -33,4 +33,6 @@ maintainer github contribution suggest --delta --target=10 2022-07-24
 
 At the time of the original report, 27 July and the days after it should have shown `?`, and week `#31` onwards should have been absent. A past day with a zero count stays `-`.
 
-**Current state:** the issue is closed; the current detailed output limits the range to the present moment and marks the days beyond it. That concerns displaying the calendar: the absence of future columns does not by itself guarantee that the suggestion timestamp will not move into the future once the random offset is added ([#193](issue-193.md)).
+This concerns displaying the calendar: keeping the suggestion timestamp out of the future once the random offset is added is a separate concern.
+
+Related: the random offset [[issue-193]].

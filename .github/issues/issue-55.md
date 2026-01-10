@@ -10,8 +10,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-06-12T15:14:08Z
-updatedAt: 2022-06-14T19:51:35Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:45Z
+lastEditedAt: 2026-09-25T05:12:45Z
 closedAt: 2022-06-14T19:51:35Z
 ---
 
@@ -27,9 +27,7 @@ test   → tests and coverage collection
 report → sending the report
 ```
 
-The rename must preserve the job dependencies, the handover of the coverage artifact, and the purpose of the stage; the report must not be lost because a name changed.
-
-**Current state:** the historical task is closed. [ci.yml](../workflows/ci.yml) contains `report` with the display name `Reporting`; it depends on `test` and consumes `code-coverage-report`. No separate user-facing command is required.
+The rename must preserve the job dependencies, the handover of the coverage artifact, and the purpose of the stage; the report must not be lost because a name changed. No separate user-facing command is required.
 
 <!-- 2022-06-14T19:51Z https://github.com/octomation/maintainer/issues/55#issuecomment-1155648481
 https://github.com/octomation/maintainer/commit/af1de01a4b5408e679ba5216b8e4f4bfbc381276

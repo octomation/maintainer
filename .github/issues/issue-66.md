@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-10T16:05:28Z
-updatedAt: 2022-07-10T19:10:53Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:14Z
+lastEditedAt: 2026-09-25T05:13:14Z
 closedAt: 2022-07-10T19:10:52Z
 ---
 
@@ -29,7 +29,7 @@ maintainer github contribution lookup /-2
 
 A new week column with Sunday 2022-07-10 is expected; when checked on that day, the following days must not look like past days without contributions. The range and the table must describe the same dates.
 
-**Current state:** this historical issue is closed. The current calculation handles Sunday as a separate case; that does not rule out other boundary defects. Related cases: suggest with a zero date [#67](issue-67.md), panics on Sunday [#123](issue-123.md), the wrong new-year week number [#284](issue-284.md).
+Related: suggest with a zero date [[issue-67]], panics on Sunday [[issue-123]], the wrong new-year week number [[issue-284]].
 
 <!-- 2022-07-10T19:10Z https://github.com/octomation/maintainer/issues/66#issuecomment-1179782485
 https://github.com/octomation/maintainer/commit/a33aefc1af8968bcc46bdb409164fab4117db3a8

@@ -15,8 +15,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2025-01-05T17:04:56Z
-updatedAt: 2025-01-05T17:04:57Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:33Z
+lastEditedAt: 2026-09-25T05:11:33Z
 closedAt:
 ---
 
@@ -33,6 +33,4 @@ maintainer github contribution lookup 2024-12-29/1
 
 The original evidence is this [screenshot](https://github.com/user-attachments/assets/66a4020b-8ee7-456e-a5d9-e4a56621b35f).
 
-**Code context:** the table starts a week on Sunday, takes the ISO week number of that day and adds one. That conversion ignores the transition into a new year and the possibility of a 53rd ISO week.
-
-Consistent numbering of the Sunday columns at the December/January boundary is expected, with the data and the right-hand dates staying in the same cells. An ordinary year transition, a year with 53 ISO weeks, and the detailed suggest that uses the same table all need checking. Loading several years is already supported ([#43](issue-43.md)); the defect is specifically in the week label.
+Consistent numbering of the Sunday columns at the December/January boundary is expected, with the data and the right-hand dates staying in the same cells. An ordinary year transition, a year with 53 ISO weeks, and the detailed suggest that uses the same table all need checking. The defect is specifically in the week label; loading several years is [[issue-43]].

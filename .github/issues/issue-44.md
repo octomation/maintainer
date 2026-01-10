@@ -15,8 +15,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2022-06-03T19:53:46Z
-updatedAt: 2023-04-06T11:16:42Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:16Z
+lastEditedAt: 2026-09-25T05:12:16Z
 closedAt:
 ---
 
@@ -26,6 +26,4 @@ Make the contribution commands easier to maintain before the release: a change t
 
 The reference user path: `lookup` shows the dates → `suggest` highlights the chosen day → `snapshot` stores the data → `diff` explains the changes. Identical dates and counts must be interpreted identically in every view.
 
-**Current state:** the commands are already split across files and share the date and table operations. At the same time `diff` keeps a separate view carrying TODOs, and the table prints `Stats: coming soon`. Neither treating the whole original technical debt as untouched, nor treating it as finished, is accurate.
-
-The remaining work should be aligned with [#127](issue-127.md), the diff fix [#70](issue-70.md) and the statistics [#79](issue-79.md). The completion criterion is preserved scenarios and specific divergences eliminated, not a reorganization of files as an end in itself.
+The remaining work should be aligned with [[issue-127]], the diff fix [[issue-70]] and the statistics [[issue-79]]. The completion criterion is preserved scenarios and specific divergences eliminated, not a reorganization of files as an end in itself.

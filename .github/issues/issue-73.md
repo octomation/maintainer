@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-25T18:16:08Z
-updatedAt: 2022-07-25T18:20:49Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:33Z
+lastEditedAt: 2026-09-25T05:13:33Z
 closedAt: 2022-07-25T18:20:48Z
 ---
 
@@ -30,4 +30,4 @@ rc6 displayed two weeks and rc7 displayed one; in both outputs the wrong suggest
 
 For `/+1` the reference week plus one following week is expected, with Sunday in the right column and a date no earlier than 1 May. Verification has to compare identical data and identical input arguments, not just the visible number of columns.
 
-**Current state:** the issue is closed. The direction contract is described in [#41](issue-41.md), and the original Sunday selection defect in [#72](issue-72.md).
+Related: the direction contract [[issue-41]], the original Sunday selection defect [[issue-72]].

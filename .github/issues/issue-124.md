@@ -14,8 +14,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2023-04-03T18:36:14Z
-updatedAt: 2023-04-05T19:40:33Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:09:57Z
+lastEditedAt: 2026-09-25T05:09:57Z
 closedAt: 2023-04-05T19:40:32Z
 ---
 
@@ -23,8 +23,8 @@ closedAt: 2023-04-05T19:40:32Z
 
 Centre the detailed suggest calendar on the chosen date. When the highlighted day is off centre, the user does not get the surroundings they expected for checking the suggestion visually.
 
-In the original report the window spanned 7 August – 22 October 2022, columns #32–#42. The suggestion referred to week #38, yet the visual centre turned out to be #37.
+In the original report the window spanned 7 August – 22 October 2022, columns [[issue-32]]–[[issue-42]]. The suggestion referred to week [[issue-38]], yet the visual centre turned out to be [[issue-37]].
 
 Symmetric surroundings are expected for the centred mode, with the reference week positioned correctly, Sunday included. If the window is clamped by the current time, the shortening must be explained by the data boundary rather than by a hidden one-week shift.
 
-**Current state:** the issue is closed; the [LookupRange test](../../internal/model/github/contribution/helper_test.go) contains `issue#124: correct centering`. Directed windows have a different contract ([#41](issue-41.md)); highlighting the chosen day is [#63](issue-63.md).
+Related: directed windows [[issue-41]], highlighting the chosen day [[issue-63]].

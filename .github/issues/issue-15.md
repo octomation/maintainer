@@ -11,8 +11,8 @@ milestone:
 state: CLOSED
 stateReason: NOT_PLANNED
 createdAt: 2021-03-25T15:59:21Z
-updatedAt: 2023-03-31T15:33:04Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:30Z
+lastEditedAt: 2026-09-25T05:10:30Z
 closedAt: 2023-03-31T15:33:04Z
 ---
 
@@ -35,4 +35,4 @@ maintainer github labels patch empty
 
 The task was to define how presets merge, to show conflicting definitions, and to distinguish adding a thematic set of labels from removing a set entirely.
 
-**Current state:** a closed follow-up to [#13](issue-13.md). After labels were handed over to the settings app ([#80](issue-80.md)), these commands do not exist in maintainer.
+Related: presets [[issue-13]], label scope removal [[issue-80]].

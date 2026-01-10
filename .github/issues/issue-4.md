@@ -10,14 +10,14 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2021-01-02T08:55:25Z
-updatedAt: 2023-01-06T13:48:58Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:04Z
+lastEditedAt: 2026-09-25T05:12:04Z
 closedAt:
 ---
 
 # how to warmup godoc and vanity url
 
-After releasing a Go module or a new subpackage, verify that the vanity path resolves and trigger the appearance of documentation. Today `go vanity build` only produces pages: successful generation does not yet mean the published import path is reachable for users or listed in the package index.
+After releasing a Go module or a new subpackage, verify that the vanity path resolves and trigger the appearance of documentation. Successful page generation with `go vanity build` does not mean the published import path is reachable for users or listed in the package index.
 
 Proposed scenario; the command name is provisional:
 

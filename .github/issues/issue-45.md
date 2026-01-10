@@ -16,8 +16,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2022-06-03T20:04:59Z
-updatedAt: 2023-04-06T11:18:18Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:18Z
+lastEditedAt: 2026-09-25T05:12:18Z
 closedAt:
 ---
 
@@ -34,4 +34,4 @@ maintainer github contribution lookup 2013-11
 
 How neighbouring days in partial weeks are shown has to be decided, the month boundaries have to be visible, and directed weekly requests must still work for arguments carrying `/…`.
 
-**At present** the shared parser accepts `YYYY-MM` but passes the first day of the month into the weekly calculation; there is no separate monthly mode for lookup. Moreover, the suffix-less form runs into the defect [#155](issue-155.md). In `histogram` a calendar month already has its own meaning ([#29](issue-29.md)); that is a useful consistency reference, not proof that lookup implements it.
+Related: [[issue-155]], [[issue-29]].

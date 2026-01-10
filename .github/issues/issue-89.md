@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: NOT_PLANNED
 createdAt: 2022-12-17T12:04:38Z
-updatedAt: 2023-03-25T20:55:08Z
-lastEditedAt: 2022-12-17T12:05:17Z
+updatedAt: 2026-09-25T05:14:16Z
+lastEditedAt: 2026-09-25T05:14:16Z
 closedAt: 2023-03-25T20:55:08Z
 ---
 
@@ -29,4 +29,4 @@ git config contribution.since 2022-05-01
 
 The precedence of the project setting, an explicitly passed date, and the date of the latest commit has to be defined. Choosing an earlier start must not silently cancel the chronology requirement for new commits.
 
-**Current state:** the issue is closed, but the current maintainer does not read `contribution.since`; the fallback takes the author date of HEAD. The `git contribute` call in the original example is an external wrapper whose support cannot be confirmed from this repository. Related: the automatic Git anchor [#58](issue-58.md), the ordering of dates [#84](issue-84.md).
+Related: the automatic Git anchor [[issue-58]], the ordering of dates [[issue-84]].

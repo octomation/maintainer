@@ -12,8 +12,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-06-17T10:12:05Z
-updatedAt: 2022-06-22T06:39:18Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:02Z
+lastEditedAt: 2026-09-25T05:13:02Z
 closedAt: 2022-06-22T06:39:18Z
 ---
 
@@ -29,5 +29,3 @@ After:  Suggestion is ..., 3 → 5
 ```
 
 The change applies to the wording of messages and examples, not to shell syntax or the JSON format. Numbers and the direction of the transition keep their previous meaning.
-
-**Current state:** the issue is closed; the current suggest and diff messages use `→`. The [older documentation](../../docs/changelog.md) still contains `0 -> 5`, so the closed status does not mean the symbol has already been replaced in every historical example.

@@ -12,8 +12,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-05-07T06:48:18Z
-updatedAt: 2022-06-15T10:15:47Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:25Z
+lastEditedAt: 2026-09-25T05:11:25Z
 closedAt: 2022-05-10T07:16:56Z
 ---
 
@@ -29,4 +29,4 @@ maintainer github contribution lookup 2021-02-01/3
 
 A window around the given date is requested: the week containing it plus the neighbouring weeks. Table rows correspond to the days from Sunday to Saturday; the dates of the last column are printed on the right. A `-` marks a zero count, and `?` is used beyond the available end of the range.
 
-**Current state:** the closed task is implemented in [lookup](../../internal/command/github/contribution/lookup.go). The original `--weeks=3` was replaced by `/3`. `now/3` anchors the window to the present moment; with an empty date the HEAD date of an available Git repository is used, otherwise the current time. The known week-numbering defect is described separately in [#284](issue-284.md).
+Related: [[issue-284]].

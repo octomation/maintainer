@@ -12,8 +12,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-06-07T19:01:10Z
-updatedAt: 2023-03-31T15:34:36Z
-lastEditedAt: 2022-06-07T19:02:47Z
+updatedAt: 2026-09-25T05:12:35Z
+lastEditedAt: 2026-09-25T05:12:35Z
 closedAt:
 ---
 
@@ -29,6 +29,6 @@ diff a.json b.json     → reading local snapshots
 snapshot 2021          → a service with the token of this very invocation
 ```
 
-**At present** the configuration is loaded at start-up and the services are created separately inside the commands. There is no shared mechanism for obtaining dependencies. The scenario from [#50](issue-50.md) has to be completed while preserving the settings precedence and the ability to verify commands independently.
+The scenario from [[issue-50]] has to be completed while preserving the settings precedence and the ability to verify commands independently.
 
 The initial research suggested [Wire](https://github.com/google/wire) and [Fx](https://github.com/uber-go/fx). Choosing between them is not the goal of the issue: any clear solution is enough, as long as unused services are not initialized and the used ones receive the current configuration.

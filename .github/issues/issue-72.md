@@ -12,8 +12,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-25T18:01:46Z
-updatedAt: 2022-07-25T18:33:26Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:31Z
+lastEditedAt: 2026-09-25T05:13:31Z
 closedAt: 2022-07-25T18:33:26Z
 ---
 
@@ -31,4 +31,6 @@ maintainer github contribution suggest --delta 2022-05-01/+1
 
 A request starting from 2 May chose the right day, so the week boundary is exactly what matters. Sunday 1 May is expected to belong to the week that begins, and the chosen day must not precede the reference moment.
 
-**Current state:** the issue is closed; the current calculation handles Sunday as a separate case. Verification needs fixed calendar data and the same period for a Sunday and for a Monday. The window narrowing that followed the attempted fix is described separately in [#73](issue-73.md).
+Verification needs fixed calendar data and the same period for a Sunday and for a Monday.
+
+Related: the window narrowing that followed the attempted fix [[issue-73]].

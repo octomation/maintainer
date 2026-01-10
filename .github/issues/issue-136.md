@@ -15,8 +15,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2023-04-20T05:19:35Z
-updatedAt: 2023-04-20T09:18:36Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:23Z
+lastEditedAt: 2026-09-25T05:10:23Z
 closedAt:
 ---
 
@@ -35,7 +35,7 @@ Previous commit: 2023-04-19 23:25:37 +0300
 
 The calendar showed 8 for 19 April and a highlighted empty cell for 20 April. The difference between the days does not by itself prove a counter defect: the chosen date, the time zone and the moment the data was fetched all have to be checked.
 
-Consistency between the timestamp, the highlighted day and actual/target is expected, within the time boundaries. **Current code context:** the date goes to stdout and the explanation to stderr, so under shell substitution the date predictably disappears from the visible message. A direct `suggest --short git/+1` call and the external wrapper have to be checked separately, rather than attributing the lost text to the algorithm without verification. Future-HEAD cases are [#133](issue-133.md).
+Consistency between the timestamp, the highlighted day and actual/target is expected, within the time boundaries. A direct `suggest --short git/+1` call and the external wrapper have to be checked separately, rather than attributing the lost text to the algorithm without verification. Future-HEAD cases are [[issue-133]].
 
 <!-- 2023-04-20T09:18Z https://github.com/octomation/maintainer/issues/136#issuecomment-1515999107
 the key is 23:25:37 -> outside working hours.

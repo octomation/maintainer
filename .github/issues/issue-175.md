@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2023-11-18T09:14:11Z
-updatedAt: 2023-11-18T09:14:11Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:49Z
+lastEditedAt: 2026-09-25T05:10:49Z
 closedAt:
 ---
 
@@ -22,6 +22,6 @@ Synchronize maintainer's infrastructure with go-tool so that the checks and the 
 
 The result must include a reviewable diff of the template settings and must preserve maintainer's own scenarios, above all the daily check of the GitHub calendar. Mechanically copying every template file is not enough.
 
-**Current context:** `go.mod` requires Go 1.26, while the workflows still name 1.21.x and 1.22.x explicitly; the toolset and the release build commands have also changed separately. The advertised support, the toolchain actually selected, the generation and the delivery all have to be brought into agreement — rather than declaring some old version number the proven cause of a historical failure.
+The advertised support, the toolchain actually selected, the generation and the delivery all have to be brought into agreement — rather than declaring some old version number the proven cause of a historical failure.
 
-Readiness means the mandatory jobs are verified and the intentional differences from the chosen template revision are understood. General automation of synchronization is [#10](issue-10.md), the earlier release preparation is [#69](issue-69.md), and the workflow-management context is [this note](<../notes/Issues/work with workflows.md>).
+Readiness means the mandatory jobs are verified and the intentional differences from the chosen template revision are understood. General automation of synchronization is [[issue-10]], the earlier release preparation is [[issue-69]], and the workflow-management context is [this note](<../notes/Issues/work with workflows.md>).

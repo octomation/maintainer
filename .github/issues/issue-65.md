@@ -12,8 +12,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-05T09:38:50Z
-updatedAt: 2022-07-05T10:34:15Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:12Z
+lastEditedAt: 2026-09-25T05:13:12Z
 closedAt: 2022-07-05T10:34:15Z
 ---
 
@@ -30,7 +30,9 @@ maintainer github contribution lookup /-5
 
 The [GitHub screenshot](https://user-images.githubusercontent.com/1165416/177298172-c6fb76df-e451-450f-ac27-97124eeca477.png) is kept for comparison. Counts are expected to match for one calendar date, and the future must be clearly distinct from zero activity.
 
-**Current state:** the issue is closed. In the code the calendar dates are normalized to UTC, while the suggestion timestamp is printed in the local zone. Verifying a defect like this requires pinning the moment of the run and the time zone, especially near midnight; today's command with an empty date may also take HEAD. The neighbouring Sunday defects are described in [#66](issue-66.md), and configuring working hours in [#127](issue-127.md).
+Verifying a defect like this requires pinning the moment of the run and the time zone, especially near midnight.
+
+Related: the neighbouring Sunday defects [[issue-66]], configuring working hours [[issue-127]].
 
 <!-- 2022-07-05T10:34Z https://github.com/octomation/maintainer/issues/65#issuecomment-1174903261
 it's related to timezone, but I don't have possibility to change it without login on it

@@ -10,8 +10,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-06-12T14:51:18Z
-updatedAt: 2022-06-12T14:57:55Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:43Z
+lastEditedAt: 2026-09-25T05:12:43Z
 closedAt: 2022-06-12T14:57:55Z
 ---
 
@@ -21,9 +21,7 @@ Fix the invalid job dependency in the publishing workflow: GitHub rejected the f
 
 The original failure: [run 2483849692](https://github.com/octomation/maintainer/actions/runs/2483849692), pointing at `.github/workflows/cd.yml#L38`.
 
-**Context established from history:** commit `585ab36` replaced the notification job's dependency on a non-existent `test` job with the existing publishing job. The expected result is a valid job graph: publish first, then notify based on its outcome.
-
-**Current state:** the issue is closed. The job is now called `release`, and `notify` depends on `release` in [cd.yml](../workflows/cd.yml). That confirms the dependency was fixed, but it is not a check that today's release delivery succeeds.
+The expected result is a valid job graph: publish first, then notify based on its outcome.
 
 <!-- 2022-06-12T14:57Z https://github.com/octomation/maintainer/issues/54#issuecomment-1153196709
 https://github.com/octomation/maintainer/commit/585ab3676657091cd8122ccdc473c81b683d32f0

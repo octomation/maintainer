@@ -16,8 +16,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2022-08-06T20:07:58Z
-updatedAt: 2023-04-06T11:15:15Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:43Z
+lastEditedAt: 2026-09-25T05:13:43Z
 closedAt:
 ---
 
@@ -34,4 +34,6 @@ maintainer github contribution diff before.json after.json
 
 One document holding every requested date is expected, with no repetitions; a year given twice must not duplicate the data. A failure to load one period must be visible rather than hidden behind the appearance of a complete snapshot. The syntax for comparing a file against several live periods still has to be defined.
 
-**At present** `snapshot` accepts at most one year, and `diff` exactly two sources, each of which is a file or a single year. Merging years inside the service range ([#43](issue-43.md)) does not implement this CLI scenario. The main consumer is [daily snapshots, #78](issue-78.md) — it simplifies the cronjob recipe described there.
+The main consumer is [[issue-78]] — it simplifies the cronjob recipe described there.
+
+Related: merging years inside the service range [[issue-43]].

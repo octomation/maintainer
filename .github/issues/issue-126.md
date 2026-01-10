@@ -17,8 +17,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2023-04-05T19:49:00Z
-updatedAt: 2023-04-05T20:02:21Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:09:59Z
+lastEditedAt: 2026-09-25T05:09:59Z
 closedAt: 2023-04-05T20:02:21Z
 ---
 
@@ -35,4 +35,4 @@ maintainer github contribution lookup /-2
 
 Expected: a past day without contributions is `-`; a day beyond the time boundary is `?`. The counts of existing contributions are preserved. A check with a fixed moment in the middle of a week is needed, not only with a completed year.
 
-**Current state:** the issue is closed; the current table respects the end of the available range. The analogous case in suggest is [#75](issue-75.md), and time-zone differences are [#65](issue-65.md).
+Related: the analogous case in suggest [[issue-75]], time-zone differences [[issue-65]].

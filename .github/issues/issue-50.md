@@ -15,8 +15,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2022-06-07T18:59:04Z
-updatedAt: 2023-04-06T06:13:34Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:33Z
+lastEditedAt: 2026-09-25T05:12:33Z
 closedAt:
 ---
 
@@ -26,6 +26,4 @@ Make the commands verifiable without real GitHub requests and without depending 
 
 An example of a check that is needed: for the same arguments, substitute a successful calendar response, a network refusal, and a corrupted snapshot; then assert the output and the error of each scenario. The user must get identical behaviour regardless of how the command was constructed.
 
-**Current state:** the registration and execution files are already partly separated, but the contribution commands still construct the GitHub service inside the run. The original motivation stands; the particular runner signature from the initial PoC is not a requirement.
-
-The completion criterion: dependencies can be substituted when a command is tested, configuration is loaded in time, and the help needs no network access. Lazy service resolution is the related task [#51](issue-51.md).
+The completion criterion: dependencies can be substituted when a command is tested, configuration is loaded in time, and the help needs no network access. The particular runner signature from the initial PoC is not a requirement. Lazy service resolution is the related task [[issue-51]].

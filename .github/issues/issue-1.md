@@ -11,8 +11,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2020-12-30T19:25:12Z
-updatedAt: 2021-01-01T18:25:16Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:09:36Z
+lastEditedAt: 2026-09-25T05:09:36Z
 closedAt: 2021-01-01T18:25:16Z
 ---
 
@@ -28,4 +28,4 @@ maintainer go vanity build --file modules.yml --host go.octolab.org dist
 
 The result is a tree of pages under `dist`, ready to be published separately on the given domain. The command does not configure DNS or hosting.
 
-**Current state:** the command and the generator are present in [the code](../../internal/command/golang/vanity.go). The historical task is closed; follow-up work on complex module layouts is [#21](issue-21.md), automatic discovery is [#134](issue-134.md). Original link: [octomation/vanity#6](https://github.com/octomation/vanity/issues/6).
+Related: complex module layouts [[issue-21]], automatic discovery [[issue-134]], original [octomation/vanity#6](https://github.com/octomation/vanity/issues/6).

@@ -17,8 +17,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2023-11-16T09:29:52Z
-updatedAt: 2023-11-16T10:37:58Z
-lastEditedAt: 2023-11-16T10:37:58Z
+updatedAt: 2026-09-25T05:10:47Z
+lastEditedAt: 2026-09-25T05:10:47Z
 closedAt: 2023-11-16T10:37:52Z
 ---
 
@@ -35,6 +35,6 @@ maintainer github contribution lookup 2022-09-18/3
 
 The useful detail of the format: the date lives in `<td data-date="…" id="…">`, while the number of contributions lives in `<tool-tip for="…">`. They have to be joined by identifier; the tooltip cannot be assumed to sit next to its cell.
 
-Exact restoration of the dates and numbers is expected, days without activity included. Besides fixing the parsing, the original checklist covered a daily integration check and the removal of legacy markers for previous formats; all three items were marked done.
+Exact restoration of the dates and numbers is expected, days without activity included. Besides fixing the parsing, the original checklist covered a daily integration check and the removal of legacy markers for previous formats.
 
-**Current state:** the issue is closed. Joining the elements is implemented in [BuildHeatMap](../../internal/model/github/contribution/heatmap.go), and the healthcheck lives in its [workflow](../workflows/ci.healthcheck.yml). Passing fresh fixtures further down CI was refined in [#219](issue-219.md).
+Related: [[issue-219]] (passing fresh fixtures further down CI).

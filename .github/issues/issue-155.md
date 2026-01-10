@@ -15,8 +15,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2023-08-09T19:54:39Z
-updatedAt: 2023-08-09T19:54:40Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:37Z
+lastEditedAt: 2026-09-25T05:10:37Z
 closedAt:
 ---
 
@@ -30,6 +30,4 @@ maintainer github contribution lookup 2022
 # unexpected panic occurred
 ```
 
-**Confirmed against the current code:** the call crashes before any GitHub data is fetched. With no suffix, the parser turns on the centred window while lookup passes a negative default number of weeks, and the range check rejects that combination. The same crash therefore also affects `lookup 2022-02`, `lookup 2022-02-01`, and a bare `lookup` with no argument at all — the very form the documentation advertises. Meanwhile the help explains no date arguments.
-
-The expectation is no panic for a year, a month, a day, or empty input. The supported forms must have a clear meaning and examples in the help, and invalid input must produce an ordinary diagnostic error. The calendar-month contract is specified separately in [#45](issue-45.md); simply accepting `YYYY-MM` must not be mistaken for implementing it. The difference from [#121](issue-121.md): there the parsing of `2022/+10` was refused, whereas here the window calculation itself breaks when the suffix is absent.
+The expectation is no panic for a year, a month, a day, or empty input. The supported forms must have a clear meaning and examples in the help, and invalid input must produce an ordinary diagnostic error. The calendar-month contract is specified separately in [[issue-45]]; simply accepting `YYYY-MM` must not be mistaken for implementing it. The difference from [[issue-121]]: there the parsing of `2022/+10` was refused, whereas here the window calculation itself breaks when the suffix is absent.

@@ -14,8 +14,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2023-04-17T16:51:00Z
-updatedAt: 2023-04-17T16:51:00Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:19Z
+lastEditedAt: 2026-09-25T05:10:19Z
 closedAt:
 ---
 
@@ -34,4 +34,4 @@ Git submodules: the directories holding module sources
 
 The discovered set has to be shown before publication, a Go module has to be distinguishable from a Git submodule, and missing directories and conflicting import paths have to be diagnosed. Explicit exclusions, and a directory that does not match its import path, must stay manageable.
 
-**At present** `maintainer go vanity build` reads only the `--file` file, `modules.yml` by default; there is no discovery. Before implementing, the precedence of sources and compatibility with the existing configuration have to be decided. Complex path mappings and multiple modules are handled in [#21](issue-21.md); creating a project from a template is [#153](issue-153.md).
+Before implementing, the precedence of sources and compatibility with the existing configuration have to be decided. Complex path mappings and multiple modules are handled in [[issue-21]]; creating a project from a template is [[issue-153]].

@@ -14,8 +14,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2023-09-06T07:56:34Z
-updatedAt: 2023-11-16T09:21:10Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:40Z
+lastEditedAt: 2026-09-25T05:10:40Z
 closedAt: 2023-11-16T09:21:10Z
 ---
 
@@ -26,8 +26,6 @@ Update the GitHub client to v55.0.0 while keeping maintainer's user scenarios wo
 The original target release: [v55.0.0](https://github.com/google/go-github/releases/tag/v55.0.0). New client capabilities must not be counted as new maintainer features: they only become available once a command uses them.
 
 The update is done when the project builds, authorization and GitHub data retrieval keep their previous contract, and the checks for the affected scenarios pass. Crossing a major version also requires aligning module and import paths; editing a single version number is not enough.
-
-**Current state:** this historical issue is closed. [go.mod](../../go.mod) already uses `github.com/google/go-github/v91 v91.0.0`, so returning the dependency to v55.0.0 is not required. This is the record of one concrete update step, not a request to downgrade.
 
 <!-- 2023-09-06T08:00Z https://github.com/octomation/maintainer/issues/158#issuecomment-1707858989
 need to be adopted

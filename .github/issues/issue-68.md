@@ -12,8 +12,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-21T08:15:21Z
-updatedAt: 2022-07-22T18:18:53Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:19Z
+lastEditedAt: 2026-09-25T05:13:19Z
 closedAt: 2022-07-22T18:18:53Z
 ---
 
@@ -30,5 +30,3 @@ maintainer github contribution suggest --delta 2021
 On the data in the report the command chose 12 September: `9 → 12`. The expected choice was 11 September, a Saturday with no activity: `0 → 7`. The relative values `-312d` and `-313d` refer to the moment of the original run, not to today.
 
 The fix criterion: a day with a zero count participates in the choice on equal terms with the rest, including the last day of the week, and actual/target match the chosen date.
-
-**Current state:** the issue is closed; the [suggest test](../../internal/model/github/contribution/suggest_test.go) contains a dedicated case named `issue#68: missed Saturday`. It checks the class of defect against stored data rather than replaying the historical calendar exactly.

@@ -14,8 +14,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2022-05-11T09:50:26Z
-updatedAt: 2023-04-06T11:18:37Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:40Z
+lastEditedAt: 2026-09-25T05:11:40Z
 closedAt:
 ---
 
@@ -25,9 +25,7 @@ Prepare a stable v0.1.0 release covering the main GitHub Contributions Calendar 
 
 The release includes verifying the available commands and their examples, describing the limitations, building the distributed binaries, and writing release notes. The typical verification path: store a snapshot → read the calendar → pick a date → compare snapshots.
 
-**Reassessment:** the issue is still open in the dump, and it refers to a [historical release draft](https://github.com/octomation/maintainer/releases/tag/untagged-b3dd1d314e99b98d5cdf). The existence of later code is not by itself proof that this particular release was published. Before closing the organizational task, the actual release must be reconciled with its intended contents, rather than re-implementing commands that already exist.
-
-Related: the quality of the contribution commands [#44](issue-44.md), the template before the release [#69](issue-69.md), the [changelog](../../docs/changelog.md).
+Related: the quality of the contribution commands [[issue-44]], the template before the release [[issue-69]], the [changelog](../../docs/content/changelog/index.md), the [historical release draft](https://github.com/octomation/maintainer/releases/tag/untagged-b3dd1d314e99b98d5cdf).
 
 <!-- 2022-05-19T18:20Z https://github.com/octomation/maintainer/issues/30#issuecomment-1132045246
 good examples:

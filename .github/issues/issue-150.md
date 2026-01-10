@@ -15,8 +15,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2023-07-15T05:30:17Z
-updatedAt: 2023-07-15T06:09:08Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:33Z
+lastEditedAt: 2026-09-25T05:10:33Z
 closedAt: 2023-07-15T06:09:07Z
 ---
 
@@ -26,8 +26,8 @@ Restore reading of the calendar after GitHub changed its HTML markup. Once the s
 
 The historical symptom is preserved in the [screenshot from the report](https://github.com/octomation/maintainer/assets/1165416/e3b9917a-0f51-4d27-a232-fa9f5f590563).
 
-**Context established from history:** commit `a9229ce` replaced the `svg.js-calendar-graph-svg rect.ContributionCalendar-day` lookup with `table.ContributionCalendar-grid td.ContributionCalendar-day` and refreshed the stored HTML fixtures. That is a useful localization of the defect, not a requirement to preserve that old format forever.
-
 The expected result: the previous dates and counts are read again from the new response, and a real user's empty calendar cannot be confused with a failure to recognize any elements.
 
-**Current state:** the issue is closed; the current parser uses table cells and additionally links them to a tooltip. The later relocation of the counter is [#174](issue-174.md), and the later change of the loading mechanism is [#220](issue-220.md).
+Source crumb: commit `a9229ce` replaced the `svg.js-calendar-graph-svg rect.ContributionCalendar-day` lookup with `table.ContributionCalendar-grid td.ContributionCalendar-day` and refreshed the stored HTML fixtures. That localizes the defect; it is not a requirement to preserve that format.
+
+Related: [[issue-174]] (the later relocation of the counter), [[issue-220]] (the later change of the loading mechanism).

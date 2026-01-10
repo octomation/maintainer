@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-06-05T13:29:43Z
-updatedAt: 2023-01-06T13:48:49Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:26Z
+lastEditedAt: 2026-09-25T05:12:25Z
 closedAt:
 ---
 
@@ -25,6 +25,6 @@ The candidate is [act](https://github.com/nektos/act). A prototype of the experi
 act -W .github/workflows/ci.yml -j test
 ```
 
-The outcome of the task is a reproducible local-run scenario documenting the prerequisites, the jobs that were verified, and the differences from a hosted runner. A representative build/test check has to be chosen, and the external integrations that a local run does not cover have to be recorded.
+The outcome of the task is a reproducible local-run scenario documenting the prerequisites, the jobs that were verified, and the differences from a hosted runner. A representative build/test check has to be chosen, and the external integrations that a local run does not cover have to be recorded. This is research into a development tool, not a new maintainer command.
 
-**Current state:** there is no act-specific integration in the repository. This is research into a development tool, not a new maintainer command. The general idea of configuring and enabling workflows is described in [work with workflows](<../notes/Issues/work with workflows.md>).
+Related: [work with workflows](<../notes/Issues/work with workflows.md>).

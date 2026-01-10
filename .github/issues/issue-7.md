@@ -11,8 +11,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2021-02-18T13:41:46Z
-updatedAt: 2021-03-05T19:07:21Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:24Z
+lastEditedAt: 2026-09-25T05:13:24Z
 closedAt: 2021-03-05T19:07:21Z
 ---
 
@@ -30,4 +30,4 @@ export PATH := $(GOBIN):$(PATH)
 
 After the contents of `env.mk`, exactly one blank separator is expected before `export`, even when the included file already ends with a blank line. Recipe tabs and non-empty lines are preserved.
 
-**Clarification of the original report:** its `expected` and `obtained` blocks contradicted the title — two blank lines were labelled as expected. In the current [assembler](../../internal/command/makefile/pkg.go) a run of newlines is capped at two characters, that is one blank line. The closed task describes exactly this removal of duplicates.
+**Clarification of the original report:** its `expected` and `obtained` blocks contradicted the title — two blank lines were labelled as expected.

@@ -16,8 +16,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2023-03-27T08:09:12Z
-updatedAt: 2023-03-29T13:41:39Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:09:50Z
+lastEditedAt: 2026-09-25T05:09:50Z
 closedAt: 2023-03-29T13:41:39Z
 ---
 
@@ -34,4 +34,4 @@ maintainer github contribution lookup 2022/+10
 
 The year is expected to be accepted as the reference date and a directed weekly window built from it. A short year input with `/+10` does not mean showing every day of that year.
 
-**Current state:** the issue is closed; the shared [date parsing](../../internal/command/github/contribution/helper.go) accepts a year, a month, a day and a supported timestamp. That fixes this specific parsing refusal. A bare `lookup 2022` without a suffix still crashes because of how the range parameters combine ([#155](issue-155.md)); it must not be considered fixed merely because the year now parses.
+Related: a bare `lookup 2022` without a suffix [[issue-155]].

@@ -11,8 +11,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-12-17T10:58:56Z
-updatedAt: 2023-03-31T15:34:37Z
-lastEditedAt: 2022-12-17T11:00:19Z
+updatedAt: 2026-09-25T05:14:13Z
+lastEditedAt: 2026-09-25T05:14:13Z
 closedAt:
 ---
 
@@ -29,4 +29,6 @@ maintainer git stats --since=2022-01-01
 
 The scope of history and of authors has to be defined, along with the treatment of merge commits and of the time zone. The result must state explicitly which local history it counted; the absence of a network request does not automatically make statistics for all branches or remote repositories complete.
 
-**At present** there is no `git stats` group. `github contribution histogram` fetches the GitHub calendar and does not replace local analysis. Original references: [git-stats](https://github.com/IonicaBizau/git-stats), [github-contributions-chart](https://github.com/sallar/github-contributions-chart). The checkout status table from the status specification is a separate task, not history statistics.
+The checkout status table from the status specification is a separate task, not history statistics.
+
+Related: [git-stats](https://github.com/IonicaBizau/git-stats), [github-contributions-chart](https://github.com/sallar/github-contributions-chart).

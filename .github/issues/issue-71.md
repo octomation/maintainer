@@ -12,8 +12,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-23T19:38:09Z
-updatedAt: 2022-07-25T19:29:56Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:29Z
+lastEditedAt: 2026-09-25T05:13:29Z
 closedAt: 2022-07-25T19:29:56Z
 ---
 
@@ -32,4 +32,4 @@ snapshot.txt  → a clear unsupported-format error
 
 The criterion of success: identical data after a write followed by a read, and correct messages for corrupted content and for an unknown extension.
 
-**Current state:** the issue is closed; [Packer](../../internal/pkg/io/packer.go) is used by the contributions file source and is covered by tests. `diff` can read JSON and YAML files, but `snapshot` writes JSON to stdout: the existence of a shared mechanism does not give it a `--format` flag it never had. The previous helper area was removed in [#74](issue-74.md).
+Related: removing the previous helper area [[issue-74]].

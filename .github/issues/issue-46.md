@@ -12,8 +12,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-06-03T20:06:15Z
-updatedAt: 2023-04-05T20:41:10Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:21Z
+lastEditedAt: 2026-09-25T05:12:21Z
 closedAt: 2023-04-05T20:41:10Z
 ---
 
@@ -33,4 +33,4 @@ Saturday      10   Mar 13
 
 For several weeks the column refers to the last, rightmost column of the calendar — the "last" dates of the requested window. Crossing a month or a year must not break the correspondence between a row and its date.
 
-**Current state:** the task is closed; the `Date` column is produced by the shared [calendar view](../../internal/command/github/contribution/helper.go) and is used by lookup and by the detailed suggest. Fixing the numbering of the weeks themselves is handled separately in [#284](issue-284.md).
+Related: [[issue-284]].

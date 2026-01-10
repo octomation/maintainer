@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2023-01-06T07:32:55Z
-updatedAt: 2023-01-06T13:48:01Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:14:21Z
+lastEditedAt: 2026-09-25T05:14:21Z
 closedAt: 2023-01-06T13:48:00Z
 ---
 
@@ -29,4 +29,4 @@ maintainer github contribution lookup /-2
 
 The stack pointed at reading the count out of the HTML. Either correct recognition of the available format, or a diagnosable load/parse error, is expected; an empty value must not silently turn the whole calendar into zeros.
 
-**Current state:** this historical issue is closed and the parser has changed since. The current code still panics on some malformed data — `invalid count value` is still raised from the heat-map builder — so closure does not amount to general protection against any future GitHub change. Later incidents: the move to a table [#150](issue-150.md), the tooltip [#174](issue-174.md), asynchronous loading [#220](issue-220.md).
+Related: the move to a table [[issue-150]], the tooltip [[issue-174]], asynchronous loading [[issue-220]].

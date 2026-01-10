@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-05-07T06:50:24Z
-updatedAt: 2022-06-15T10:15:47Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:28Z
+lastEditedAt: 2026-09-25T05:11:28Z
 closedAt: 2022-06-02T19:46:00Z
 ---
 
@@ -32,9 +32,7 @@ The result is a JSON object mapping a UTC date to the number of contributions, f
 {"2021-02-01T00:00:00Z": 5}
 ```
 
-**Current state:** the task is closed and the command is implemented. It accepts one year and uses the current one when the argument is omitted; the `--format` flag from the original prototype does not exist and the output is always JSON. This is a snapshot of the calendar, not a backup of commits or issues.
-
-Comparing snapshots is [#28](issue-28.md). Several years in a single call remain task [#77](issue-77.md), and the daily scenario is [#78](issue-78.md).
+This is a snapshot of the calendar, not a backup of commits or issues. Comparing snapshots is [[issue-28]]. Several years in a single call remain task [[issue-77]], and the daily scenario is [[issue-78]].
 
 <!-- 2022-06-02T19:46Z https://github.com/octomation/maintainer/issues/27#issuecomment-1145276220
 https://github.com/octomation/maintainer/commit/f80f8f94c822db0c81049a54f3c53e6cb90e404d

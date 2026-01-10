@@ -16,8 +16,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2023-04-13T10:02:01Z
-updatedAt: 2023-04-13T10:02:02Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:16Z
+lastEditedAt: 2026-09-25T05:10:16Z
 closedAt:
 ---
 
@@ -35,6 +35,4 @@ git contrib … → recovered: assertion is not a true
 
 The expected behaviour is to limit the reference moment by the current time, as the original report proposed, or else to state clearly that there is no valid suggestion. An impossible range must not be constructed, and an empty date must not be handed to the next command.
 
-**Code context:** suggest clamps the end of the range to `now` and only then sets the start from the HEAD timestamp; with a future HEAD the start can end up later than the end. That is a verifiable cause of the panic risk, not an assumption about how `git contrib` — an external wrapper — behaves.
-
-Cases needed: a future time today, and a future calendar date. The detailed reproduction with clock times and a stack is [#148](issue-148.md); an excessive random offset is [#193](issue-193.md).
+Cases needed: a future time today, and a future calendar date. The detailed reproduction with clock times and a stack is [[issue-148]]; an excessive random offset is [[issue-193]].

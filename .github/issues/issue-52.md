@@ -16,8 +16,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2022-06-11T09:59:51Z
-updatedAt: 2023-04-06T11:17:48Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:38Z
+lastEditedAt: 2026-09-25T05:12:37Z
 closedAt:
 ---
 
@@ -36,9 +36,7 @@ A prototype of the storyline:
 4. Show the result: diff.
 ```
 
-The experiment is ready when the presentation can be reproduced and its examples match the real CLI. Whether the format actually helps to understand the scenario should be assessed before extending it to the remaining releases.
-
-**Current state:** there are no slides and no integration; the changelog remains a [Markdown document](../../docs/changelog.md). The experiment does not replace the concise user reference under `docs/`.
+The experiment is ready when the presentation can be reproduced and its examples match the real CLI. Whether the format actually helps to understand the scenario should be assessed before extending it to the remaining releases. The experiment does not replace the concise user reference under `docs/`.
 
 <!-- 2023-04-01T14:07Z https://github.com/octomation/maintainer/issues/52#issuecomment-1492980304
 Add `howto` command.

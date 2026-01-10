@@ -14,8 +14,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: NOT_PLANNED
 createdAt: 2023-01-19T06:32:01Z
-updatedAt: 2023-01-19T18:16:02Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:14:29Z
+lastEditedAt: 2026-09-25T05:14:29Z
 closedAt: 2023-01-19T18:15:21Z
 ---
 
@@ -34,7 +34,7 @@ The original evidence: [the wrong suggestion](https://user-images.githubusercont
 
 The expected result is a sequential search from the chosen lower bound, respecting the available activity and the target, with no unexplained skipping of a suitable day. An exact check needs the calendar snapshot, the arguments and the moment of the original run; a single screenshot is not a complete reproducible data set.
 
-**Current state:** the issue is closed; the current selection walks week by week from the start of the range. Related defects: zero days [#68](issue-68.md), a choice before the reference date [#119](issue-119.md).
+Related: zero days [[issue-68]], a choice before the reference date [[issue-119]].
 
 <!-- 2023-01-19T18:15Z https://github.com/octomation/maintainer/issues/99#issuecomment-1397411152
 isn't a bug

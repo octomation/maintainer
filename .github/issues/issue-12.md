@@ -11,8 +11,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2021-03-09T18:58:04Z
-updatedAt: 2023-03-31T15:34:19Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:09:45Z
+lastEditedAt: 2026-09-25T05:09:45Z
 closedAt: 2021-03-17T10:11:17Z
 ---
 
@@ -30,7 +30,7 @@ kamilsk/retry          bug            d73a4a   Something isn't working
 
 A stable order of repositories and labels is expected, preserving name, color and description. An empty set must be distinguishable from a failure to read the data. The dump feeds comparison and preset preparation; it changes nothing on GitHub by itself.
 
-**Current state:** a historical, closed part of [#8](issue-8.md). After [#80](issue-80.md) there are no label commands in the CLI. The idea of a structured dump for external processing continues separately in [maintainer as raw](<../notes/Issues/maintainer as raw.md>).
+Related: umbrella [[issue-8]], label scope removal [[issue-80]], a structured dump for external processing in [maintainer as raw](<../notes/Issues/maintainer as raw.md>).
 
 <!-- 2021-03-09T18:58Z https://github.com/octomation/maintainer/issues/12#issuecomment-794308858
 related to #8

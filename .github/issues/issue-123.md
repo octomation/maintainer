@@ -15,8 +15,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: NOT_PLANNED
 createdAt: 2023-04-03T14:31:28Z
-updatedAt: 2023-04-05T18:50:14Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:09:55Z
+lastEditedAt: 2026-09-25T05:09:55Z
 closedAt: 2023-04-05T18:50:14Z
 ---
 
@@ -37,7 +37,7 @@ Both stacks pointed at range operations: `ExpandRight` for suggest and `Shift` f
 
 A correct, non-empty window with Sunday at the start of the week is expected, and clamping the future must not produce an impossible range. Verification has to pin the time and the Git anchor.
 
-**Current state:** the issue is closed, and the former `ExpandRight` no longer exists in the current code. The surviving range validity check does not by itself prove the absence of every panic: another reproducible case is described in [#155](issue-155.md), and a future HEAD in [#148](issue-148.md).
+Related: another range panic [[issue-155]], a future HEAD [[issue-148]].
 
 <!-- 2023-04-05T18:50Z https://github.com/octomation/maintainer/issues/123#issuecomment-1497964858
 I hope the problem has gone. I will check it on Sunday. `maintainer github contribution suggest 2023-04-02/-20` works well.

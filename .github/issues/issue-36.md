@@ -12,8 +12,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-05-12T15:38:44Z
-updatedAt: 2022-06-15T10:15:49Z
-lastEditedAt: 2022-05-12T15:39:07Z
+updatedAt: 2026-09-25T05:11:55Z
+lastEditedAt: 2026-09-25T05:11:55Z
 closedAt: 2022-05-12T20:47:39Z
 ---
 
@@ -30,4 +30,6 @@ maintainer github contribution lookup /2
 
 The actual counts up to the current date are expected to be loaded and displayed, and future days must be distinguishable from days without activity. The [original expected view](https://user-images.githubusercontent.com/1165416/168114309-beb71f1a-c88f-4221-8cd8-1e56c2ab4453.png) is kept as evidence of the report.
 
-**Current state:** the issue is closed. A re-check today should use an explicit `now/3`: in the current CLI an empty date may take the HEAD date instead. The historical output does not reproduce by simply re-running the old `/2` at a different time against a different Git history. Window-width defects are tracked separately in [#38](issue-38.md), and time-zone defects in [#65](issue-65.md).
+A reproduction must fix the moment of execution and pass an explicit `now/3`, since an empty date may resolve from the Git history; re-running the old `/2` at a different time does not reproduce the historical output.
+
+Related: [[issue-38]], [[issue-65]].

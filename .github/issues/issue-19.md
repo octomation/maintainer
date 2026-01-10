@@ -11,8 +11,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2021-08-27T20:30:43Z
-updatedAt: 2023-03-31T15:34:35Z
-lastEditedAt: 2021-08-27T20:33:36Z
+updatedAt: 2026-09-25T05:10:56Z
+lastEditedAt: 2026-09-25T05:10:56Z
 closedAt:
 ---
 
@@ -32,4 +32,6 @@ Transition { name: { from: "x", to: "y" } }
 
 For the user the plan reads as "rename x to y; keep the remaining properties". If the source state has changed in the meantime, the divergence must be shown rather than the stale plan presented as current.
 
-**Current state:** there is no separate transition model, and labels were removed ([#80](issue-80.md)). The idea is useful for comparing configurations ([#25](issue-25.md)) and agrees with the change plan in the [fetch specification](<../notes/Specs/GitHub fetcher, PoC implementation plan.md>). This task defines the general meaning of a change plan; it does not require bringing labels back or introducing a particular internal structure.
+This task defines the general meaning of a change plan; it does not require bringing labels back or introducing a particular internal structure.
+
+Related: comparing configurations [[issue-25]], the change plan in the [fetch specification](<../notes/Specs/GitHub fetcher, PoC implementation plan.md>), label scope removal [[issue-80]].

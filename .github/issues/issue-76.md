@@ -14,8 +14,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-29T14:10:53Z
-updatedAt: 2023-03-26T20:22:55Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:40Z
+lastEditedAt: 2026-09-25T05:13:40Z
 closedAt: 2023-03-26T20:22:54Z
 ---
 
@@ -31,4 +31,4 @@ maintainer github contribution suggest --short "$(git --no-pager log -1 --format
 
 An RFC 3339 timestamp is expected to be parsed, and the time chosen with respect to the reference moment and the working interval. For a new day, any time inside the working range fits; for the same day, an acceptable offset after the previous commit matters.
 
-**Current state:** the issue is closed, and a full date with `Z` or a numeric time zone is accepted by the shared parser. That is one concrete supported format, not arbitrary ISO 8601 notation. Configuring working hours and the zone still needs work ([#127](issue-127.md)); the size of the random offset is [#193](issue-193.md).
+Related: configuring working hours and the zone [[issue-127]], the size of the random offset [[issue-193]].

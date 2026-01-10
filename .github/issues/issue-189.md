@@ -14,8 +14,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2024-01-06T13:33:42Z
-updatedAt: 2024-01-06T13:33:43Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:54Z
+lastEditedAt: 2026-09-25T05:10:54Z
 closedAt:
 ---
 
@@ -34,4 +34,4 @@ GIT_DIR=/path/to/repo/.git maintainer github contribution suggest git/1
 
 In the original report the first form chose 29 December 2023 (`45 → 50`), while the second chose the current day, 6 January 2024 (`13 → 15`). The likely effect is that the Git anchor is lost and the current time is used as a fallback.
 
-**Code context:** HEAD detection looks for `.git` relative to the working directory; there is no explicit handling of `GIT_DIR`. The fix criterion is the same repository and the same lower bound under both ways of addressing it, with no silent switch to a different checkout. The exact time may still differ because of jitter. `git --git-dir=… log` is useful for confirming the expected HEAD; maintainer itself has no `--git-dir` flag today.
+The fix criterion is the same repository and the same lower bound under both ways of addressing it, with no silent switch to a different checkout. The exact time may still differ because of jitter. `git --git-dir=… log` is useful for confirming the expected HEAD.

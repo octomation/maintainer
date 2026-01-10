@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-05-07T13:22:14Z
-updatedAt: 2022-06-15T10:15:48Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:35Z
+lastEditedAt: 2026-09-25T05:11:35Z
 closedAt: 2022-05-21T15:56:08Z
 ---
 
@@ -37,4 +37,4 @@ How to read the result:
 
 With no argument the current week is shown. Zero values can be included with the `--with-zero` flag.
 
-**Current state:** the closed task is implemented. One `#` stands for one day, so a whole-year selection can be far too wide for a terminal; that is the separate improvement [#130](issue-130.md).
+Related: [[issue-130]].

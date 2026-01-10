@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-05-07T06:54:20Z
-updatedAt: 2022-06-15T10:15:48Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:30Z
+lastEditedAt: 2026-09-25T05:11:30Z
 closedAt: 2022-06-03T18:06:34Z
 ---
 
@@ -29,4 +29,4 @@ maintainer github contribution diff before.json 2021
 
 The first argument is the base, the second is the new state; a year means loading data from GitHub, a path means reading a stored snapshot. The expected meaning of the output: 3 became 5 → `+2`; 5 became 3 → `-2`; no changes → an explicit message that there is no diff.
 
-**Current state:** the command exists and the issue is closed. The original `--src`/`--dst`, and the later `--base`/`--head`, were replaced by positional arguments. The correctness of the sign and the remaining presentation problems are handled in the open [#70](issue-70.md). Snapshots are produced by the command from [#27](issue-27.md).
+Related: [[issue-70]], [[issue-27]].

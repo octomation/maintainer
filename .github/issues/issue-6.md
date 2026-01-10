@@ -10,8 +10,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2021-01-11T18:25:15Z
-updatedAt: 2023-08-09T12:43:11Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:57Z
+lastEditedAt: 2026-09-25T05:12:57Z
 closedAt: 2023-08-09T12:43:11Z
 ---
 
@@ -29,7 +29,7 @@ packages:
 
 Pages are expected not only for `tools/cli/flag`, but also for the intermediate paths `tools` and `tools/cli`, carrying the metadata of the right repository. Repeated parents must not produce divergent results.
 
-**Current state:** the issue is closed; [the intermediate-path generator and its tests](../../internal/model/golang/vanity/issue6_test.go) are named after this task. That does not cover the multiple-module and mismatched-path support from [#21](issue-21.md). Original report: [octomation/vanity#7](https://github.com/octomation/vanity/issues/7).
+Related: multiple modules and mismatched paths [[issue-21]], original report [octomation/vanity#7](https://github.com/octomation/vanity/issues/7).
 
 <!-- 2023-08-09T12:43Z https://github.com/octomation/maintainer/issues/6#issuecomment-1671256156
 fixed

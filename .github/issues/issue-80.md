@@ -10,8 +10,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-08-12T08:09:14Z
-updatedAt: 2023-03-31T15:31:20Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:53Z
+lastEditedAt: 2026-09-25T05:13:53Z
 closedAt: 2023-03-31T15:31:20Z
 ---
 
@@ -21,6 +21,6 @@ Remove GitHub label management from maintainer, since the settings app replaced 
 
 Expected result: the user-facing help no longer offers `github labels`, and the current examples do not point at removed operations. Historical tasks and material may be kept as long as their former context is stated explicitly.
 
-**Current state:** the issue is closed; the [github](../../internal/command/github/root.go) group wires only the contribution commands and there is no label-management code. This explains the status of the older tasks about presets, dry-run and classification: [#8](issue-8.md), [#13](issue-13.md), [#14](issue-14.md), [#32](issue-32.md).
+Removing labels does not cancel the general ideas of comparing configurations ([[issue-25]]) and of reviewable transitions ([[issue-19]]).
 
-Removing labels does not cancel the general ideas of comparing configurations ([#25](issue-25.md)) and of reviewable transitions ([#19](issue-19.md)).
+Related: the older tasks about presets, dry-run and classification [[issue-8]], [[issue-13]], [[issue-14]], [[issue-32]].

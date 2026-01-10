@@ -10,8 +10,8 @@ milestone:
 state: CLOSED
 stateReason: NOT_PLANNED
 createdAt: 2021-01-01T13:33:11Z
-updatedAt: 2023-03-31T15:35:21Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:04Z
+lastEditedAt: 2026-09-25T05:11:04Z
 closedAt: 2023-03-31T15:35:21Z
 ---
 
@@ -28,4 +28,4 @@ The user-visible result for a README with "Installation" and "Usage" sections:
 
 The dedicated table-of-contents block is expected to be updated while the rest of the text is preserved. Regenerating it without changing the headings must not produce a diff, and the links must resolve to their sections when the document is viewed on GitHub.
 
-**Current state:** the issue is closed, but neither a doctoc command nor an equivalent integration exists in the current tree. The closed status does not mean the CLI has this capability. The related open task for Markdown processing is [#11](issue-11.md).
+Related: Markdown processing [[issue-11]].

@@ -11,8 +11,8 @@ milestone:
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2021-03-17T10:16:07Z
-updatedAt: 2023-03-31T15:34:20Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:10:09Z
+lastEditedAt: 2026-09-25T05:10:09Z
 closedAt: 2021-03-25T11:31:31Z
 ---
 
@@ -30,4 +30,4 @@ maintainer github labels update < .git/labels.yml
 
 A clear mapping of the existing labels onto the preset categories is expected — the original sketch described it as a classification tree whose most appropriate node supplies the transform rule. Ambiguous cases must be visible in the proposal, and reprocessing an already conforming set must not create new changes.
 
-**Current state:** the task is closed and the interface above is not available in the current version: the label scope was removed by [#80](issue-80.md). Presets relate to the umbrella task [#8](issue-8.md), the preview [#14](issue-14.md) and the wider repository set [#15](issue-15.md).
+Related: umbrella [[issue-8]], preview [[issue-14]], wider repository set [[issue-15]], label scope removal [[issue-80]].

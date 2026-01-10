@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-07-25T18:57:39Z
-updatedAt: 2022-07-25T19:00:16Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:36Z
+lastEditedAt: 2026-09-25T05:13:36Z
 closedAt: 2022-07-25T19:00:16Z
 ---
 
@@ -22,4 +22,6 @@ Remove the duplicating golden helper area now that there is a shared mechanism f
 
 The observable result: the previous scenarios of reading reference data and comparing snapshots keep working through the shared facilities; file formats and diagnostic messages do not change by accident because an old layer was dropped.
 
-**Current state:** the issue is closed and there is no golden package in the current tree. Its responsibilities are split between [pkg/io](../../internal/pkg/io/) and the [contributions sources](../../internal/model/github/contribution/source.go). The related JSON/YAML work is [#71](issue-71.md). This refactoring requires no user-facing flag and no new CLI command.
+This refactoring requires no user-facing flag and no new CLI command.
+
+Related: the JSON/YAML work [[issue-71]].

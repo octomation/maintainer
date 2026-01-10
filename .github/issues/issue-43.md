@@ -10,8 +10,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-05-31T09:45:24Z
-updatedAt: 2022-06-15T10:22:32Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:12:13Z
+lastEditedAt: 2026-09-25T05:12:13Z
 closedAt: 2022-05-31T14:21:48Z
 ---
 
@@ -28,4 +28,4 @@ maintainer github contribution lookup 2014-01-01/5
 
 Each call used to return only the part belonging to its own year and printed `?` where the neighbouring year's data was required. All requested weeks are expected, with the actual values from both years; the unavailable future stays a separate case. The original checklist named the two steps: drop the year trimming from the scope calculation, and let the heat map span several years.
 
-**Current state:** the issue is closed. The [contributions service](../../internal/service/github/contribution.go) requests every year touched by the range, merges the data, and takes the required subset. This does not mean `snapshot` accepts several years: extending its input remains task [#77](issue-77.md). The numbering of the new-year week is the separate defect [#284](issue-284.md).
+Related: [[issue-77]], [[issue-284]].

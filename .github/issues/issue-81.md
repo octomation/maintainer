@@ -12,8 +12,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-08-12T11:11:50Z
-updatedAt: 2023-08-09T12:38:09Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:56Z
+lastEditedAt: 2026-09-25T05:13:55Z
 closedAt:
 ---
 
@@ -30,7 +30,7 @@ include build.tool.mk
 
 `maintainer makefile build 'Go Service.mk'` is expected to produce a self-contained result carrying the required rules in the right order. Path resolution, repeated includes, optional files and cycle diagnostics all have to be defined, so that recursion does not turn into a hang.
 
-**Current state:** the [assembler](../../internal/command/makefile/entity.go) already expands `include` and `-include` recursively, so the task does not start from zero — a three-level chain assembles correctly and in order. Paths are opened relative to the working directory, and there is no explicit protection against cycles: two fragments including each other recurse until the process fails with `open <file>: too many open files`. Closing this issue should mean verifying the original fragment structure and the missing cases, not redefining its goal as the mere presence of a recursive call.
+Closing this issue should mean verifying the original fragment structure and the missing cases, not redefining its goal as the mere presence of a recursive call.
 
 <!-- 2023-08-09T12:38Z https://github.com/octomation/maintainer/issues/81#issuecomment-1671248449
 I have to avoid recursive including and deep-nesting cases.

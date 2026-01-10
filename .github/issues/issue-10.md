@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2021-03-06T16:24:19Z
-updatedAt: 2023-10-31T08:45:34Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:09:38Z
+lastEditedAt: 2026-09-25T05:09:38Z
 closedAt:
 ---
 
@@ -27,9 +27,9 @@ maintainer layer template sync
 # Makefile: locally modified, needs review
 ```
 
-This is a provisional interface: there is no `layer` command today. The criterion of success is a reviewable diff with a clear origin for every change; re-synchronizing an applied update must not offer it again. Conflicts are not resolved by silently replacing files.
+This is a provisional interface. The criterion of success is a reviewable diff with a clear origin for every change; re-synchronizing an applied update must not offer it again. Conflicts are not resolved by silently replacing files.
 
-One-off transfers of changes into maintainer itself are [#23](issue-23.md), [#69](issue-69.md), [#175](issue-175.md). Creating a new project from a template is the separate task [#153](issue-153.md).
+One-off transfers of changes into maintainer itself are [[issue-23]], [[issue-69]], [[issue-175]]. Creating a new project from a template is the separate task [[issue-153]].
 
 <!-- 2023-10-31T08:43Z https://github.com/octomation/maintainer/issues/10#issuecomment-1786756606
 it should be based on https://docs.github.com/en/rest/repos/properties?apiVersion=2022-11-28#about-custom-properties

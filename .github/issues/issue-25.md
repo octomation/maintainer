@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-05-06T06:26:52Z
-updatedAt: 2023-01-06T13:48:50Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:23Z
+lastEditedAt: 2026-09-25T05:11:23Z
 closedAt:
 ---
 
@@ -35,4 +35,4 @@ Applying the difference was proposed as an **optional follow-up**:
 maintainer config apply octomation/maintainer kamilsk/retry kamilsk/semaphore
 ```
 
-It should rest on a reviewable plan ([#19](issue-19.md)). **At present** there is no `config` group. Synchronizing template files is the different task [#10](issue-10.md); the new fetch specification does not change GitHub settings.
+It should rest on a reviewable plan ([[issue-19]]). Synchronizing template files is the different task [[issue-10]]; fetch does not change GitHub settings either.

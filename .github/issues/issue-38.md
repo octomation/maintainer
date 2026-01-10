@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2022-05-13T18:34:22Z
-updatedAt: 2022-06-15T10:15:49Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:11:59Z
+lastEditedAt: 2026-09-25T05:11:59Z
 closedAt: 2022-05-21T10:52:44Z
 ---
 
@@ -29,7 +29,7 @@ lookup /2: showed #17, #18, #19; #17 is superfluous.
 
 The user must see exactly the window around the chosen date, with no unexpected shift into the past. A test has to pin the run date and cover a single week, several weeks, and Sunday separately.
 
-**Current state:** this historical issue is closed, but the modern syntax distinguishes a centred window `/N` from a directed offset `/+N` or `/-N`; a negative value includes the reference week and the ones before it. For the present moment `now` has to be spelled out, since an empty date may mean HEAD. The direction contract is covered by [#41](issue-41.md); the crash on an argument without a suffix is [#155](issue-155.md).
+Related: [[issue-41]], [[issue-155]].
 
 <!-- 2022-05-21T10:52Z https://github.com/octomation/maintainer/issues/38#issuecomment-1133599244
 https://github.com/octomation/maintainer/commit/7b3c4af8d384810c8457bd168fe5232dec9dc96e

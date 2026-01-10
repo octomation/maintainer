@@ -14,8 +14,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2022-07-21T08:20:55Z
-updatedAt: 2023-04-06T11:16:17Z
-lastEditedAt:
+updatedAt: 2026-09-25T05:13:21Z
+lastEditedAt: 2026-09-25T05:13:21Z
 closedAt:
 ---
 
@@ -25,6 +25,6 @@ Carry the go-tool changes that were current at release time into maintainer befo
 
 The result is a reviewable diff of the service files with the project's specifics preserved. For example: update the shared workflow configuration without losing the contribution tests or maintainer's publishing parameters.
 
-**Reassessment:** the issue is open in the archive and is tied to preparing release [#30](issue-30.md). The original phrase `blocker is .../30` is ambiguous about the direction of the dependency; it must not turn into the circular requirement of "publish the release first, then prepare its template".
+The original phrase `blocker is .../30` is ambiguous about the direction of the dependency; it must not turn into the circular requirement of "publish the release first, then prepare its template". Before closing, it has to be decided which changes belong to this release.
 
-Before closing, it has to be decided which changes still belong to this historical release. The later synchronization is [#175](issue-175.md), and the general automated mechanism is [#10](issue-10.md).
+Related: preparing release v0.1.0 [[issue-30]], the later synchronization [[issue-175]], the general automated mechanism [[issue-10]].
