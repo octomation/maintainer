@@ -35,6 +35,8 @@ updates:
 #    open-pull-requests-limit: 10
 
   - package-ecosystem: gomod
+    # Tool directives are indirect: dependabot/dependabot-core#12050.
+    # Keep security updates; use make tools-update for version updates.
     directory: /tools/
     schedule:
       interval: daily
@@ -47,7 +49,7 @@ updates:
     commit-message:
       prefix: 'tools'
       include: 'scope'
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0
 
   - package-ecosystem: github-actions
     directory: /

@@ -294,26 +294,15 @@ tools-tidy:
 .PHONY: tools-tidy
 
 tools-install: GOFLAGS = $(TOOLFLAGS)
-tools-install: GOTAGS = tools
 tools-install: tools-fetch
 	$(AT) cd tools; \
-	go generate -tags $(GOTAGS) tools.go
+	go install tool
 .PHONY: tools-install
 
 tools-update: GOFLAGS = $(TOOLFLAGS)
-tools-update: selector = '{{if not (or .Main .Indirect)}}{{.Path}}{{end}}'
+# Tool modules are indirect requirements; select the tool pattern explicitly.
 tools-update:
-	$(AT) cd tools; \
-	if command -v egg >/dev/null; then \
-		packages="`egg deps list | tr ' ' '\n'`"; \
-	else \
-		packages="`go list -f $(selector) -m -mod=readonly all`"; \
-	fi; \
-	if [ -z "$$packages" ]; then exit; fi; \
-	for package in $$packages; do \
-		go mod edit -require=$$package@latest; \
-		go mod tidy; \
-	done
+	$(AT) cd tools; go get tool
 	$(AT) $(MAKE) tools-tidy tools-install
 .PHONY: tools-update
 else
