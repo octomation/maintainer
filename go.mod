@@ -1,6 +1,12 @@
 module go.octolab.org/toolset/maintainer
 
-go 1.26.0
+go 1.27.0
+
+ignore (
+	./bin
+	./dist
+	./docs
+)
 
 require (
 	github.com/PuerkitoBio/goquery v1.13.0
