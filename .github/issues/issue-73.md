@@ -1,63 +1,33 @@
 ---
-id: 73
-database_id: 1317194684
-node_id: I_kwDOE2M9Zc5Ogsu8
-status: closed
-title: "github: contribution: suggest command has regression with weeks arg"
-labels: ["scope: code"]
+code:
+id: I_kwDOE2M9Zc5Ogsu8
+databaseId: 1317194684
+number: 73
 url: https://github.com/octomation/maintainer/issues/73
-created_at: 2022-07-25T18:16:08Z
-updated_at: 2022-07-25T18:20:49Z
+title: "github: contribution: suggest command has regression with weeks arg"
+labels:
+  - "scope: code"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2022-07-25T18:16:08Z
+updatedAt: 2022-07-25T18:20:49Z
+lastEditedAt:
+closedAt: 2022-07-25T18:20:48Z
 ---
 
 # github: contribution: suggest command has regression with weeks arg
 
-**Steps to reproduce**
+Restore the size of the directed suggest window after the regression between v0.1.0-rc6 and v0.1.0-rc7. Fixing a calendar boundary must not change what the number of weeks means.
+
+The original call:
 
 ```bash
-$ maintainer version
-maintainer:
-  version     : 0.1.0-rc6
-  build date  : 2022-07-22T20:00:19Z
-  git hash    : dac6a2a2edd891fe6dc338853878aac73c03ebc9
-  go version  : go1.18.4
-  go compiler : gc
-  platform    : darwin/arm64
-  features    : boilerplate=true
-
-$ maintainer github contribution suggest --delta 2022-05-01/+1
- Day / Week          #17        #18    
------------------ ---------- ----------
- Sunday               3          6     
- Monday               4          6     
- Tuesday              5          6     
- Wednesday            6          1     
- Thursday             6          6     
- Friday               6          6     
- Saturday             4          6     
------------------ ---------- ----------
- Suggestion is 2022-04-24: -92d, 3 → 6
-
-$ maintainer version
-maintainer:
-  version     : 0.1.0-rc7
-  build date  : 2022-07-23T19:46:51Z
-  git hash    : bf45f395772252f5592d0282e7aba51cd5239f22
-  go version  : go1.18.4
-  go compiler : gc
-  platform    : darwin/arm64
-  features    : boilerplate=true
-
-$ maintainer github contribution suggest --delta 2022-05-01/+1         
- Day / Week                   #17      
------------------------ ---------------
- Sunday                        3       
- Monday                        4       
- Tuesday                       5       
- Wednesday                     6       
- Thursday                      6       
- Friday                        6       
- Saturday                      4       
------------------------ ---------------
- Suggestion is 2022-04-24: -92d, 3 → 6
+maintainer github contribution suggest --delta 2022-05-01/+1
 ```
+
+rc6 displayed two weeks and rc7 displayed one; in both outputs the wrong suggestion of 24 April remained. These are two independent symptoms: the width of the window and the choice of day.
+
+For `/+1` the reference week plus one following week is expected, with Sunday in the right column and a date no earlier than 1 May. Verification has to compare identical data and identical input arguments, not just the visible number of columns.
+
+**Current state:** the issue is closed. The direction contract is described in [#41](issue-41.md), and the original Sunday selection defect in [#72](issue-72.md).

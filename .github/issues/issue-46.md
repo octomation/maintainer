@@ -1,32 +1,36 @@
 ---
-id: 46
-database_id: 1260324305
-node_id: I_kwDOE2M9Zc5LHwXR
-status: closed
-title: "github: contribution: show datetime on the right side of lookup"
-labels: ["scope: docs","scope: code"]
+code:
+id: I_kwDOE2M9Zc5LHwXR
+databaseId: 1260324305
+number: 46
 url: https://github.com/octomation/maintainer/issues/46
-created_at: 2022-06-03T20:06:15Z
-updated_at: 2023-04-05T20:41:10Z
+title: "github: contribution: show datetime on the right side of lookup"
+labels:
+  - "scope: docs"
+  - "scope: code"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2022-06-03T20:06:15Z
+updatedAt: 2023-04-05T20:41:10Z
+lastEditedAt:
+closedAt: 2023-04-05T20:41:10Z
 ---
 
 # github: contribution: show datetime on the right side of lookup
 
-for example
+Add a column of dates to the right of the calendar so that a weekday row can be matched quickly to a concrete date. Week numbers without dates force the user to recount the calendar by hand.
 
-```
-$ maintainer github contribution lookup 2021-03-13/1
- Day / Week                                    #10
----------------------------------- ---------------------------
- Sunday                                        10
- Monday                                        10
- Tuesday                                        8
- Wednesday                                     10
- Thursday                                      10
- Friday                                        10
- Saturday                                      10
----------------------------------- ---------------------------
- Contributions are on the range from 2021-03-07 to 2021-03-13
+An example of the expected fragment:
+
+```text
+Day / Week   #10   Date
+Sunday        10   Mar 7
+Monday        10   Mar 8
+...
+Saturday      10   Mar 13
 ```
 
-needs to be extended by right column with "last" dates
+For several weeks the column refers to the last, rightmost column of the calendar — the "last" dates of the requested window. Crossing a month or a year must not break the correspondence between a row and its date.
+
+**Current state:** the task is closed; the `Date` column is produced by the shared [calendar view](../../internal/command/github/contribution/helper.go) and is used by lookup and by the detailed suggest. Fixing the numbering of the weeks themselves is handled separately in [#284](issue-284.md).

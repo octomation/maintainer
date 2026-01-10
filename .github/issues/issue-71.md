@@ -1,60 +1,35 @@
 ---
-id: 71
-database_id: 1315731752
-node_id: I_kwDOE2M9Zc5ObHko
-status: closed
-title: "pkg: file: register encoders for specific formats"
-labels: ["scope: code","scope: test"]
+code:
+id: I_kwDOE2M9Zc5ObHko
+databaseId: 1315731752
+number: 71
 url: https://github.com/octomation/maintainer/issues/71
-created_at: 2022-07-23T19:38:09Z
-updated_at: 2022-07-25T19:29:56Z
+title: "pkg: file: register encoders for specific formats"
+labels:
+  - "scope: code"
+  - "scope: test"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2022-07-23T19:38:09Z
+updatedAt: 2022-07-25T19:29:56Z
+lastEditedAt:
+closedAt: 2022-07-25T19:29:56Z
 ---
 
 # pkg: file: register encoders for specific formats
 
-**Motivation:** it allows to simplify code like this
+Make reading and writing snapshots uniform, driven by the file format. The user must not meet different format rules in different commands, and adding a new representation must not require repeating the same switch everywhere.
 
-```go
-	var data HeatMap
-	format := strings.ToLower(filepath.Ext(file.Name()))
-	switch format {
-	case ".json":
-		err := json.NewDecoder(file).Decode(&data)
-		src.data = data
-		return data, err
-	case ".yml", ".yaml":
-		err := yaml.NewDecoder(file).Decode(&data)
-		src.data = data
-		return data, err
-	default:
-		return nil, fmt.Errorf("unsupported format: %s", format)
-	}
+The contract, illustrated:
+
+```text
+snapshot.json → JSON
+snapshot.yml  → YAML
+snapshot.yaml → YAML
+snapshot.txt  → a clear unsupported-format error
 ```
 
-```go
-func pack(file afero.File, data any) error {
-	format := strings.ToLower(filepath.Ext(file.Name()))
+The criterion of success: identical data after a write followed by a read, and correct messages for corrupted content and for an unknown extension.
 
-	switch format {
-	case ".json":
-		return json.NewEncoder(file).Encode(data)
-	case ".yml", ".yaml":
-		return yaml.NewEncoder(file).Encode(data)
-	default:
-		return fmt.Errorf("unsupported format: %s", format)
-	}
-}
-
-func unpack(file afero.File, ptr any) error {
-	format := strings.ToLower(filepath.Ext(file.Name()))
-
-	switch format {
-	case ".json":
-		return json.NewDecoder(file).Decode(ptr)
-	case ".yml", ".yaml":
-		return yaml.NewDecoder(file).Decode(ptr)
-	default:
-		return fmt.Errorf("unsupported format: %s", format)
-	}
-}
-```
+**Current state:** the issue is closed; [Packer](../../internal/pkg/io/packer.go) is used by the contributions file source and is covered by tests. `diff` can read JSON and YAML files, but `snapshot` writes JSON to stdout: the existence of a shared mechanism does not give it a `--format` flag it never had. The previous helper area was removed in [#74](issue-74.md).

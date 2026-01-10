@@ -1,15 +1,17 @@
 ---
-id: 1
-database_id: 8083467
-node_id: MI_kwDOE2M9Zc4Ae1gL
-status: open
-title: "GCC, v0.1"
+code:
+id: MI_kwDOE2M9Zc4Ae1gL
+databaseId: 8083467
+number: 1
 url: https://github.com/octomation/maintainer/milestone/1
-open_issues: 21
-closed_issues: 48
-due_on: null
-created_at: 2022-06-15T10:12:33Z
-updated_at: 2024-03-30T17:19:02Z
+title: "GCC, v0.1"
+state: OPEN
+openIssueCount: 21
+closedIssueCount: 48
+dueOn:
+createdAt: 2022-06-15T10:12:33Z
+updatedAt: 2024-03-30T17:19:02Z
+closedAt:
 ---
 
 # milestone: GCC, v0.1

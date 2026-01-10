@@ -1,42 +1,40 @@
 ---
-id: 133
-database_id: 1666111192
-node_id: I_kwDOE2M9Zc5jTtbY
-status: open
-title: "github: contribution: suggest for cmm"
-labels: ["scope: code","scope: test","type: bug","severity: major","impact: medium","effort: easy"]
+code:
+id: I_kwDOE2M9Zc5jTtbY
+databaseId: 1666111192
+number: 133
 url: https://github.com/octomation/maintainer/issues/133
-created_at: 2023-04-13T10:02:01Z
-updated_at: 2023-04-13T10:02:02Z
+title: "github: contribution: suggest for cmm"
+labels:
+  - "scope: code"
+  - "scope: test"
+  - "type: bug"
+  - "severity: major"
+  - "impact: medium"
+  - "effort: easy"
+milestone: "[[milestone-1]]"
+state: OPEN
+stateReason:
+createdAt: 2023-04-13T10:02:01Z
+updatedAt: 2023-04-13T10:02:02Z
+lastEditedAt:
+closedAt:
 ---
 
 # github: contribution: suggest for cmm
 
-**Details**
+Do not crash when the author date of HEAD lies in the future relative to the current time. This happens when a Git wrapper is used again after a commit with a future timestamp.
 
-```bash
-$ git contrib ...
-# add commit for future
-$ git contrib ...
-recovered: assertion is not a true
----
-unexpected panic occurred
-# because last commit was for the future
+The original scenario:
+
+```text
+git contrib … → creates a commit dated later than the present moment
+git contrib … → recovered: assertion is not a true
+                unexpected panic occurred
 ```
 
-```bash
-$ git log
-commit 1e6a5a23aa36a7c239c62352df868f3afa1d90d8 (HEAD -> main)
-Author: Kamil Samigullin <kamil@samigullin.info>
-Date:   Thu Apr 13 13:06:20 2023 +0300
+The expected behaviour is to limit the reference moment by the current time, as the original report proposed, or else to state clearly that there is no valid suggestion. An impossible range must not be constructed, and an empty date must not be handed to the next command.
 
-    fix #694: docs: integrate Nextra for docs publishing
+**Code context:** suggest clamps the end of the range to `now` and only then sets the start from the HEAD timestamp; with a future HEAD the start can end up later than the end. That is a verifiable cause of the panic risk, not an assumption about how `git contrib` — an external wrapper — behaves.
 
-commit d0c41cc9a42622ef9312ec7394d7d5ee30b96ca9 (tag: v0.3.0-pre.2, origin/main, origin/HEAD)
-Author: Kamil Samigullin <kamil@samigullin.info>
-Date:   Thu Apr 13 12:34:13 2023 +0300
-
-    docs: changelog: describe v0.3.0-pre.2
-```
-
-So, it must be limited by `now()`.
+Cases needed: a future time today, and a future calendar date. The detailed reproduction with clock times and a stack is [#148](issue-148.md); an excessive random offset is [#193](issue-193.md).

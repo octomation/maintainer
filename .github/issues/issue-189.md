@@ -1,61 +1,37 @@
 ---
-id: 189
-database_id: 2068634275
-node_id: I_kwDOE2M9Zc57TNqj
-status: open
-title: "github: contribution: suggest doesn't work properly in headless mode"
-labels: ["scope: code","type: bug","severity: major","effort: medium"]
+code:
+id: I_kwDOE2M9Zc57TNqj
+databaseId: 2068634275
+number: 189
 url: https://github.com/octomation/maintainer/issues/189
-created_at: 2024-01-06T13:33:42Z
-updated_at: 2024-01-06T13:33:43Z
+title: "github: contribution: suggest doesn't work properly in headless mode"
+labels:
+  - "scope: code"
+  - "type: bug"
+  - "severity: major"
+  - "effort: medium"
+milestone: "[[milestone-1]]"
+state: OPEN
+stateReason:
+createdAt: 2024-01-06T13:33:42Z
+updatedAt: 2024-01-06T13:33:43Z
+lastEditedAt:
+closedAt:
 ---
 
 # github: contribution: suggest doesn't work properly in headless mode
 
-**Details**
+Use the same Git repository whether the date is chosen from inside its directory or with `GIT_DIR` set explicitly. This matters for scripts that work with a repository without entering its working tree.
 
-If I use something like this `export GIT_DIR=path/to/.git`, it cannot define the correct suggestion.
-
-E.g.,
-
-- correct suggestion
+The scenarios to compare:
 
 ```bash
-$ maintainer github contribution suggest git/1
-
- Day / Week   #52    Date
------------- ----- --------
- Sunday       50    Dec 24
- Monday       50    Dec 25
- Tuesday      50    Dec 26
- Wednesday    50    Dec 27
- Thursday     50    Dec 28
- Friday       45*   Dec 29
- Saturday      -    Dec 30
------------- ----- --------
-        Stats: coming soon
-
-Suggestion is 2023-12-29T16:33:16+03:00, 45 → 50
-```
-
-- incorrect suggestion
-
-```bash
+# From the working tree:
 maintainer github contribution suggest git/1
-
- Day / Week   #53    Date
------------- ----- --------
- Sunday        -    Dec 31
- Monday       15    Jan  1
- Tuesday      15    Jan  2
- Wednesday     8    Jan  3
- Thursday      5    Jan  4
- Friday        9    Jan  5
- Saturday     13*   Jan  6
------------- ----- --------
-        Stats: coming soon
-
-Suggestion is 2024-01-06T16:42:05+03:00, 13 → 15
+# From another directory:
+GIT_DIR=/path/to/repo/.git maintainer github contribution suggest git/1
 ```
 
-P.S.: I have to check it with `git --git-dir=path/to/.git ...`.
+In the original report the first form chose 29 December 2023 (`45 → 50`), while the second chose the current day, 6 January 2024 (`13 → 15`). The likely effect is that the Git anchor is lost and the current time is used as a fallback.
+
+**Code context:** HEAD detection looks for `.git` relative to the working directory; there is no explicit handling of `GIT_DIR`. The fix criterion is the same repository and the same lower bound under both ways of addressing it, with no silent switch to a different checkout. The exact time may still differ because of jitter. `git --git-dir=… log` is useful for confirming the expected HEAD; maintainer itself has no `--git-dir` flag today.

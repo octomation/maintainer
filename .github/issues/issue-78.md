@@ -1,24 +1,41 @@
 ---
-id: 78
-database_id: 1330839082
-node_id: I_kwDOE2M9Zc5PUv4q
-status: open
-title: "github: contribution: tips and tricks, daily snapshot"
-labels: ["scope: docs","type: feature","scope: inventory","impact: medium","effort: medium"]
+code:
+id: I_kwDOE2M9Zc5PUv4q
+databaseId: 1330839082
+number: 78
 url: https://github.com/octomation/maintainer/issues/78
-created_at: 2022-08-06T20:08:51Z
-updated_at: 2023-04-06T11:14:35Z
+title: "github: contribution: tips and tricks, daily snapshot"
+labels:
+  - "scope: docs"
+  - "type: feature"
+  - "scope: inventory"
+  - "impact: medium"
+  - "effort: medium"
+milestone: "[[milestone-1]]"
+state: OPEN
+stateReason:
+createdAt: 2022-08-06T20:08:51Z
+updatedAt: 2023-04-06T11:14:35Z
+lastEditedAt:
+closedAt:
 ---
 
 # github: contribution: tips and tricks, daily snapshot
 
-**Motivation:** there is no possibility to summarise your daily contribution impact.
+Document a convenient way to track contributions daily: store a starting point and later see what changed. This answers "what was my contribution impact today", including changes to older calendar dates.
 
-**Interface**
+The scenario available for a single year:
 
 ```bash
-$ cron 0 0 0 maintainer github contribution snapshot $(year - 1) $(year) > /tmp/daily.snapshot.json
-
-$ maintainer github contribution diff progress
-# maintainer github contribution diff --base=/tmp/daily.snapshot.json $(year - 1) $(year)
+maintainer github contribution snapshot 2022 > daily.2022.json
+# Later:
+maintainer github contribution diff daily.2022.json 2022
 ```
+
+A scheduled run must keep a successfully fetched snapshot and must not overwrite the previous good file on failure. The path has to be suitable for storage, and the time of the daily run has to be chosen explicitly by the user.
+
+**Proposed follow-up:** a combined snapshot of the previous and the current year depends on [#77](issue-77.md). The short `diff progress` alias from the original idea does not exist yet, and the `cron` and `year` calls in the original example were notional, not part of maintainer. A finished recipe has to rest on a real scheduler and on the available CLI.
+
+<!-- 2023-04-01T14:03Z https://github.com/octomation/maintainer/issues/78#issuecomment-1492978937
+do it by GitHub Actions
+-->

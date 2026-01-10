@@ -1,15 +1,37 @@
 ---
-id: 81
-database_id: 1337072715
-node_id: I_kwDOE2M9Zc5PshxL
-status: open
-title: "makefile: build: allow include recursively"
-labels: ["scope: code","scope: test"]
+code:
+id: I_kwDOE2M9Zc5PshxL
+databaseId: 1337072715
+number: 81
 url: https://github.com/octomation/maintainer/issues/81
-created_at: 2022-08-12T11:11:50Z
-updated_at: 2023-08-09T12:38:09Z
+title: "makefile: build: allow include recursively"
+labels:
+  - "scope: code"
+  - "scope: test"
+milestone:
+state: OPEN
+stateReason:
+createdAt: 2022-08-12T11:11:50Z
+updatedAt: 2023-08-09T12:38:09Z
+lastEditedAt:
+closedAt:
 ---
 
 # makefile: build: allow include recursively
 
-**Motivation:** `build.service.mk` uses `build.tool.mk`. Now, this relation is implicit and resolved on the top level: `Go Service.mk`.
+Let a Makefile fragment include another fragment explicitly, so the dependency does not have to be duplicated at the top level. The original example: `build.service.mk` uses `build.tool.mk`, but the relation was declared only in `Go Service.mk`.
+
+A prototype of the input:
+
+```make
+# build.service.mk
+include build.tool.mk
+```
+
+`maintainer makefile build 'Go Service.mk'` is expected to produce a self-contained result carrying the required rules in the right order. Path resolution, repeated includes, optional files and cycle diagnostics all have to be defined, so that recursion does not turn into a hang.
+
+**Current state:** the [assembler](../../internal/command/makefile/entity.go) already expands `include` and `-include` recursively, so the task does not start from zero — a three-level chain assembles correctly and in order. Paths are opened relative to the working directory, and there is no explicit protection against cycles: two fragments including each other recurse until the process fails with `open <file>: too many open files`. Closing this issue should mean verifying the original fragment structure and the missing cases, not redefining its goal as the mere presence of a recursive call.
+
+<!-- 2023-08-09T12:38Z https://github.com/octomation/maintainer/issues/81#issuecomment-1671248449
+I have to avoid recursive including and deep-nesting cases.
+-->

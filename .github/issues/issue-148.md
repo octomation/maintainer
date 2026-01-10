@@ -1,66 +1,40 @@
 ---
-id: 148
-database_id: 1773169593
-node_id: I_kwDOE2M9Zc5psGu5
-status: open
-title: "github: contribution: edge case for contrib suggestion"
-labels: ["scope: code","type: bug","severity: critical","impact: medium","effort: medium"]
+code:
+id: I_kwDOE2M9Zc5psGu5
+databaseId: 1773169593
+number: 148
 url: https://github.com/octomation/maintainer/issues/148
-created_at: 2023-06-25T09:20:51Z
-updated_at: 2023-06-25T09:20:52Z
+title: "github: contribution: edge case for contrib suggestion"
+labels:
+  - "scope: code"
+  - "type: bug"
+  - "severity: critical"
+  - "impact: medium"
+  - "effort: medium"
+milestone: "[[milestone-1]]"
+state: OPEN
+stateReason:
+createdAt: 2023-06-25T09:20:51Z
+updatedAt: 2023-06-25T09:20:52Z
+lastEditedAt:
+closedAt:
 ---
 
 # github: contribution: edge case for contrib suggestion
 
-**Details**
+Handle a future HEAD date without a panic and without handing an empty timestamp to Git. This is a concrete reproduction of the defect class from [#133](issue-133.md), which additionally ended with `fatal: invalid date format:` in the external wrapper.
 
-```bash
-$ which maintainer
-/Users/ksamigullin/go/bin/maintainer
+The recorded conditions:
 
-$ git contrib dev: add init task
-recovered: assertion is not a true
----
-unexpected panic occurred
-go.octolab.org/safe.Do.func2
-        /Users/ksamigullin/go/pkg/mod/go.octolab.org@v0.12.2/safe/do.go:26
-runtime.gopanic
-        /opt/homebrew/Cellar/go/1.20.5/libexec/src/runtime/panic.go:884
-go.octolab.org/toolset/maintainer/internal/pkg/assert.True
-        /Users/ksamigullin/Development/public/octomation/maintainer/internal/pkg/assert/assert.go:33
-go.octolab.org/toolset/maintainer/internal/pkg/time.NewRange
-        /Users/ksamigullin/Development/public/octomation/maintainer/internal/pkg/time/range.go:11
-go.octolab.org/toolset/maintainer/internal/pkg/time.Range.Since
-        /Users/ksamigullin/Development/public/octomation/maintainer/internal/pkg/time/range.go:105
-go.octolab.org/toolset/maintainer/internal/command/github/contribution.Suggest.func1
-        /Users/ksamigullin/Development/public/octomation/maintainer/internal/command/github/contribution/suggest.go:46
-github.com/spf13/cobra.(*Command).execute
-        /Users/ksamigullin/go/pkg/mod/github.com/spf13/cobra@v1.7.0/command.go:940
-github.com/spf13/cobra.(*Command).ExecuteC
-        /Users/ksamigullin/go/pkg/mod/github.com/spf13/cobra@v1.7.0/command.go:1068
-github.com/spf13/cobra.(*Command).Execute
-        /Users/ksamigullin/go/pkg/mod/github.com/spf13/cobra@v1.7.0/command.go:992
-github.com/spf13/cobra.(*Command).ExecuteContext
-        /Users/ksamigullin/go/pkg/mod/github.com/spf13/cobra@v1.7.0/command.go:985
-main.main.func1
-        /Users/ksamigullin/Development/public/octomation/maintainer/main.go:48
-go.octolab.org/safe.Do
-        /Users/ksamigullin/go/pkg/mod/go.octolab.org@v0.12.2/safe/do.go:29
-main.main
-        /Users/ksamigullin/Development/public/octomation/maintainer/main.go:48
-runtime.main
-        /opt/homebrew/Cellar/go/1.20.5/libexec/src/runtime/proc.go:250
-runtime.goexit
-        /opt/homebrew/Cellar/go/1.20.5/libexec/src/runtime/asm_arm64.s:1172
-fatal: invalid date format:
-
-$ git --no-pager log -1 
-commit dca8015b0eb4f750fdd6e14221afef59accf962d (HEAD -> main)
-Author: Kamil Samigullin <kamil@samigullin.info>
-Date:   Mon Jun 26 08:35:26 2023 +0300
-
-    chore: up go version
-
-$ datetime
-2023-06-25 12:15:27 +0300
+```text
+Current time: 2023-06-25 12:15:27 +0300
+HEAD date:    2023-06-26 08:35:26 +0300
+Command:      git contrib dev: add init task
+Result:       assertion is not a true → invalid date format
 ```
+
+The useful part of the stack: `Suggest → Range.Since → NewRange`. The selection tried to build a range from a future HEAD to the present moment.
+
+The expectation is either clamping the anchor by an agreed rule, or an explicit error stating that no valid time exists; neither a zero nor an empty date may look like a successful suggestion. Cases to check: a future hour today, the next day, a future year, and an ordinary HEAD in the past.
+
+**At present** the order in which the bounds are set in [suggest](../../internal/command/github/contribution/suggest.go) preserves this risk. `git contrib` is an external command; maintainer is responsible for correct stdout and a correct exit status of its own invocation.

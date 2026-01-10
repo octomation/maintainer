@@ -1,45 +1,30 @@
 ---
-id: 124
-database_id: 1652573543
-node_id: I_kwDOE2M9Zc5igEVn
-status: closed
-title: "github: contribution: suggest use incorrect center"
-labels: ["type: bug","severity: major","impact: medium","effort: medium"]
+code:
+id: I_kwDOE2M9Zc5igEVn
+databaseId: 1652573543
+number: 124
 url: https://github.com/octomation/maintainer/issues/124
-created_at: 2023-04-03T18:36:14Z
-updated_at: 2023-04-05T19:40:33Z
+title: "github: contribution: suggest use incorrect center"
+labels:
+  - "type: bug"
+  - "severity: major"
+  - "impact: medium"
+  - "effort: medium"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2023-04-03T18:36:14Z
+updatedAt: 2023-04-05T19:40:33Z
+lastEditedAt:
+closedAt: 2023-04-05T19:40:32Z
 ---
 
 # github: contribution: suggest use incorrect center
 
-**Details**
+Centre the detailed suggest calendar on the chosen date. When the highlighted day is off centre, the user does not get the surroundings they expected for checking the suggestion visually.
 
-```bash
-$ git at $(suggest) 'tools(deps): bump github.com/evanw/esbuild from 0.17.14 to 0.17.15'
- Day / Week   #32   #33   #34   #35   #36   #37   #38   #39   #40   #41   #42
------------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
- Sunday        5     5     5     5     5     5     3     5     5     5    15
- Monday        5     5     5     5     5     5     5     5     5     5     7
- Tuesday       5     5     5     5     5     5     5     5     5     5     4
- Wednesday     5     5     5     5     5     5     5     5     5     5    10
- Thursday      5     5     5     5     5     5     5     5     5     5    11
- Friday        5     5     5     5     5     5     5     5     5     5    11
- Saturday      5     5     5     5     5     6     5     5     5     5    11
------------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
- Contributions are on the range from 2022-08-07 to 2022-10-22
+In the original report the window spanned 7 August – 22 October 2022, columns #32–#42. The suggestion referred to week #38, yet the visual centre turned out to be #37.
 
-$ git at $(suggest) 'tools(deps): bump github.com/mikefarah/yq/v4 from 4.33.1 to 4.33.2'
- Day / Week   #32   #33   #34   #35   #36   #37   #38   #39   #40   #41   #42
------------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
- Sunday        5     5     5     5     5     5     4     5     5     5    15
- Monday        5     5     5     5     5     5     5     5     5     5     7
- Tuesday       5     5     5     5     5     5     5     5     5     5     4
- Wednesday     5     5     5     5     5     5     5     5     5     5    10
- Thursday      5     5     5     5     5     5     5     5     5     5    11
- Friday        5     5     5     5     5     5     5     5     5     5    11
- Saturday      5     5     5     5     5     6     5     5     5     5    11
------------- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
- Contributions are on the range from 2022-08-07 to 2022-10-22
-```
+Symmetric surroundings are expected for the centred mode, with the reference week positioned correctly, Sunday included. If the window is clamped by the current time, the shortening must be explained by the data boundary rather than by a hidden one-week shift.
 
-the center is `#38` week, not `#37`.
+**Current state:** the issue is closed; the [LookupRange test](../../internal/model/github/contribution/helper_test.go) contains `issue#124: correct centering`. Directed windows have a different contract ([#41](issue-41.md)); highlighting the chosen day is [#63](issue-63.md).

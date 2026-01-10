@@ -1,32 +1,41 @@
 ---
-id: 65
-database_id: 1294048701
-node_id: I_kwDOE2M9Zc5NIZ29
-status: closed
-title: "github: contribution: lookup has problem with timezone"
-labels: ["scope: code","scope: test"]
+code:
+id: I_kwDOE2M9Zc5NIZ29
+databaseId: 1294048701
+number: 65
 url: https://github.com/octomation/maintainer/issues/65
-created_at: 2022-07-05T09:38:50Z
-updated_at: 2022-07-05T10:34:15Z
+title: "github: contribution: lookup has problem with timezone"
+labels:
+  - "scope: code"
+  - "scope: test"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2022-07-05T09:38:50Z
+updatedAt: 2022-07-05T10:34:15Z
+lastEditedAt:
+closedAt: 2022-07-05T10:34:15Z
 ---
 
 # github: contribution: lookup has problem with timezone
 
+Reconcile GitHub's calendar dates with the local time zone in lookup. In the original report the terminal and the browser showed a different boundary for the available activity, which made the most recent contributions hard to assess.
+
+The historical reproduction:
+
 ```bash
-$ maintainer github contribution lookup /-5
- Day / Week      #22     #23     #24     #25     #26     #27
--------------- ------- ------- ------- ------- ------- -------
- Sunday           5       5       5       5       5       3
- Monday           4       5       3       5       5       6
- Tuesday          5       4       5       5       4       3
- Wednesday        5       5       5       5       4       ?
- Thursday         4       4       3       4       4       ?
- Friday           5       5       4       5       4       ?
- Saturday         5       4       3       5       2       ?
--------------- ------- ------- ------- ------- ------- -------
- Contributions are on the range from 2022-05-29 to 2022-07-05
+maintainer github contribution lookup /-5
+# In the table the available data ends at 2022-07-05.
 ```
 
-But on the same time
+The [GitHub screenshot](https://user-images.githubusercontent.com/1165416/177298172-c6fb76df-e451-450f-ac27-97124eeca477.png) is kept for comparison. Counts are expected to match for one calendar date, and the future must be clearly distinct from zero activity.
 
-<img width="260" alt="image" src="https://user-images.githubusercontent.com/1165416/177298172-c6fb76df-e451-450f-ac27-97124eeca477.png">
+**Current state:** the issue is closed. In the code the calendar dates are normalized to UTC, while the suggestion timestamp is printed in the local zone. Verifying a defect like this requires pinning the moment of the run and the time zone, especially near midnight; today's command with an empty date may also take HEAD. The neighbouring Sunday defects are described in [#66](issue-66.md), and configuring working hours in [#127](issue-127.md).
+
+<!-- 2022-07-05T10:34Z https://github.com/octomation/maintainer/issues/65#issuecomment-1174903261
+it's related to timezone, but I don't have possibility to change it without login on it
+
+<img width="241" alt="image" src="https://user-images.githubusercontent.com/1165416/177308878-8fe7e1b2-0fa0-4230-93c2-f5e8a6f685ed.png">
+
+the solution is to check in private mode
+-->

@@ -1,34 +1,38 @@
 ---
-id: 119
-database_id: 1633416767
-node_id: I_kwDOE2M9Zc5hW_Y_
-status: closed
-title: "github: contribution: invalid suggestion for specific date"
-labels: ["type: bug","severity: critical","impact: high","effort: medium"]
+code:
+id: I_kwDOE2M9Zc5hW_Y_
+databaseId: 1633416767
+number: 119
 url: https://github.com/octomation/maintainer/issues/119
-created_at: 2023-03-21T08:18:46Z
-updated_at: 2023-03-25T20:26:23Z
+title: "github: contribution: invalid suggestion for specific date"
+labels:
+  - "type: bug"
+  - "severity: critical"
+  - "impact: high"
+  - "effort: medium"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2023-03-21T08:18:46Z
+updatedAt: 2023-03-25T20:26:23Z
+lastEditedAt:
+closedAt: 2023-03-25T20:26:23Z
 ---
 
 # github: contribution: invalid suggestion for specific date
 
-**Bad case**
+Do not choose a day earlier than the explicitly supplied date, even when a profitable gap exists earlier in the same week. The user sets the lower bound of the search, and calendar alignment must not override it.
+
+The original example:
 
 ```bash
-$ maintainer github contribution suggest --delta 2022-02-12
- Day / Week   #6   #7   #8   #9   #10   #11
------------- ---- ---- ---- ---- ----- -----
- Sunday       6    6    6    6     4     5
- Monday       6    6    5    6     5     5
- Tuesday      6    6    6    6     7     5
- Wednesday    1    5    6    3     5     5
- Thursday     1    6    6    6     5     5
- Friday       5    5    6    6     5     5
- Saturday     10   6    6    5     5     5
------------- ---- ---- ---- ---- ----- -----
- Suggestion is 2022-02-06: -408d, 6 → 10
+maintainer github contribution suggest --delta 2022-02-12
+# Obtained: 2022-02-06, 6 → 10
+# Expected on the data in the report: 2022-02-16, 5 → 6
 ```
 
-Must be 2022-02-16 with 5 → 6, not 2022-02-06.
+The invalid past part of the week is expected to be skipped and the next suitable day found. Verification has to account for a saturated Saturday and the move into the following week; the actual/target values refer to the chosen date specifically.
 
-Related to #84 and kamilsk/dotfiles/issues/543.
+**Current state:** the issue is closed. The [suggest tests](../../internal/model/github/contribution/suggest_test.go) include the case `issue#119: max Saturday`, and the command bounds the search by the reference moment. The test uses its own stored data set, not the original 2022 calendar.
+
+Related: [#84](issue-84.md), [dotfiles#543](https://github.com/kamilsk/dotfiles/issues/543).

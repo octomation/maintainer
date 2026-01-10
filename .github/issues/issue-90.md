@@ -1,36 +1,32 @@
 ---
-id: 90
-database_id: 1522111801
-node_id: I_kwDOE2M9Zc5auZU5
-status: closed
-title: "github: contribution: lookup call throw panic"
-labels: ["scope: code"]
+code:
+id: I_kwDOE2M9Zc5auZU5
+databaseId: 1522111801
+number: 90
 url: https://github.com/octomation/maintainer/issues/90
-created_at: 2023-01-06T07:32:55Z
-updated_at: 2023-01-06T13:48:01Z
+title: "github: contribution: lookup call throw panic"
+labels:
+  - "scope: code"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2023-01-06T07:32:55Z
+updatedAt: 2023-01-06T13:48:01Z
+lastEditedAt:
+closedAt: 2023-01-06T13:48:00Z
 ---
 
 # github: contribution: lookup call throw panic
 
-Details
+Handle changes to the GitHub calendar format without an unhandled panic. In the original case lookup terminated with `panic: invalid count value:`, so the user received neither a calendar nor a clear explanation of the source failure.
 
-```
-$ maintainer github contribution lookup /-2
-panic: invalid count value:
+The reproduction from the report:
 
-goroutine 10 [running]:
-go.octolab.org/toolset/maintainer/internal/service/github.contributionHeatMap.func1(0x14000355e18?, 0x1400037cc30)
-	go.octolab.org/toolset/maintainer/internal/service/github/contribution.go:112 +0x2e0
-github.com/PuerkitoBio/goquery.(*Selection).Each(0x1400037cc00, 0x14000355e48)
-	github.com/PuerkitoBio/goquery@v1.8.0/iteration.go:10 +0x50
-go.octolab.org/toolset/maintainer/internal/service/github.contributionHeatMap(0x140001240f0)
-	go.octolab.org/toolset/maintainer/internal/service/github/contribution.go:108 +0x64
-go.octolab.org/toolset/maintainer/internal/service/github.(*service).ContributionHeatMap.func1.1(0x100ba1a90?, {0x0?, 0x0?})
-	go.octolab.org/toolset/maintainer/internal/service/github/contribution.go:44 +0xa8
-go.octolab.org/toolset/maintainer/internal/service/github.(*service).ContributionHeatMap.func2()
-	go.octolab.org/toolset/maintainer/internal/service/github/contribution.go:56 +0x48
-golang.org/x/sync/errgroup.(*Group).Go.func1()
-	golang.org/x/sync@v0.0.0-20220513210516-0976fa681c29/errgroup/errgroup.go:74 +0x60
-created by golang.org/x/sync/errgroup.(*Group).Go
-	golang.org/x/sync@v0.0.0-20220513210516-0976fa681c29/errgroup/errgroup.go:71 +0xa8
+```bash
+maintainer github contribution lookup /-2
+# panic: invalid count value:
 ```
+
+The stack pointed at reading the count out of the HTML. Either correct recognition of the available format, or a diagnosable load/parse error, is expected; an empty value must not silently turn the whole calendar into zeros.
+
+**Current state:** this historical issue is closed and the parser has changed since. The current code still panics on some malformed data — `invalid count value` is still raised from the heat-map builder — so closure does not amount to general protection against any future GitHub change. Later incidents: the move to a table [#150](issue-150.md), the tooltip [#174](issue-174.md), asynchronous loading [#220](issue-220.md).

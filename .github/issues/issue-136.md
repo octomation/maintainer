@@ -1,53 +1,42 @@
 ---
-id: 136
-database_id: 1676018941
-node_id: I_kwDOE2M9Zc5j5gT9
-status: open
-title: "github: contribution: incorrect suggest for today"
-labels: ["scope: code","type: bug","severity: critical","impact: high","effort: easy"]
+code:
+id: I_kwDOE2M9Zc5j5gT9
+databaseId: 1676018941
+number: 136
 url: https://github.com/octomation/maintainer/issues/136
-created_at: 2023-04-20T05:19:35Z
-updated_at: 2023-04-20T09:18:36Z
+title: "github: contribution: incorrect suggest for today"
+labels:
+  - "scope: code"
+  - "type: bug"
+  - "severity: critical"
+  - "impact: high"
+  - "effort: easy"
+milestone: "[[milestone-1]]"
+state: OPEN
+stateReason:
+createdAt: 2023-04-20T05:19:35Z
+updatedAt: 2023-04-20T09:18:36Z
+lastEditedAt:
+closedAt:
 ---
 
 # github: contribution: incorrect suggest for today
 
-**Details**
+Investigate the incorrect suggestion for the current day in combination with a Git wrapper. In the original report the detailed message lost the date, and the calendar was hard to reconcile with the commit that followed.
 
-```bash
-$ git contrib docs: readme: improve headline
+The observation of 20 April 2023:
 
- Day / Week   #15   #16    Date  
------------- ----- ----- --------
- Sunday       10    10    Apr 16 
- Monday       10    10    Apr 17 
- Tuesday      10    10    Apr 18 
- Wednesday    10     8    Apr 19 
- Thursday     10     *    Apr 20 
- Friday       10     ?    Apr 21 
- Saturday     10     ?    Apr 22 
------------- ----- ----- --------
-              Stats: coming soon 
-
+```text
+git contrib docs: readme: improve headline
 Suggestion is , 0 → 10
-info  - Loaded env from /Users/ksamigullin/Development/public/tact-app/web/.env
-✔ No ESLint warnings or errors
-[main 902e583] docs: readme: improve headline
- Date: Thu Apr 20 08:29:24 2023 +0300
- 2 files changed, 6 insertions(+), 6 deletions(-)
-
-
-
-$ git --no-pager log -2
-commit 902e5839c6640c007ab6b5c265f9580b63607dae (HEAD -> main)
-Author: Kamil Samigullin <kamil@samigullin.info>
-Date:   Thu Apr 20 08:29:24 2023 +0300
-
-    docs: readme: improve headline
-
-commit c3854cbea22b489c263b13505f78cf5e64be9f7a (origin/main, origin/HEAD)
-Author: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
-Date:   Wed Apr 19 23:25:37 2023 +0300
-
-    tools(deps): bump vercel from 28.18.5 to 28.19.0 in /tools (#722)
+Created commit:  2023-04-20 08:29:24 +0300
+Previous commit: 2023-04-19 23:25:37 +0300
 ```
+
+The calendar showed 8 for 19 April and a highlighted empty cell for 20 April. The difference between the days does not by itself prove a counter defect: the chosen date, the time zone and the moment the data was fetched all have to be checked.
+
+Consistency between the timestamp, the highlighted day and actual/target is expected, within the time boundaries. **Current code context:** the date goes to stdout and the explanation to stderr, so under shell substitution the date predictably disappears from the visible message. A direct `suggest --short git/+1` call and the external wrapper have to be checked separately, rather than attributing the lost text to the algorithm without verification. Future-HEAD cases are [#133](issue-133.md).
+
+<!-- 2023-04-20T09:18Z https://github.com/octomation/maintainer/issues/136#issuecomment-1515999107
+the key is 23:25:37 -> outside working hours.
+-->

@@ -1,34 +1,33 @@
 ---
-id: 36
-database_id: 1234170490
-node_id: I_kwDOE2M9Zc5Jj_J6
-status: closed
-title: "command: github contribution lookup doesn't work well with now()"
-labels: ["scope: code","scope: test"]
+code:
+id: I_kwDOE2M9Zc5Jj_J6
+databaseId: 1234170490
+number: 36
 url: https://github.com/octomation/maintainer/issues/36
-created_at: 2022-05-12T15:38:44Z
-updated_at: 2022-06-15T10:15:49Z
+title: "command: github contribution lookup doesn't work well with now()"
+labels:
+  - "scope: code"
+  - "scope: test"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2022-05-12T15:38:44Z
+updatedAt: 2022-06-15T10:15:49Z
+lastEditedAt: 2022-05-12T15:39:07Z
+closedAt: 2022-05-12T20:47:39Z
 ---
 
 # command: github contribution lookup doesn't work well with now()
 
-expected
+Fix viewing the calendar anchored to the current moment: in the original report empty cells were printed instead of the existing contributions. As a result the user saw a false picture of no activity.
 
-![image](https://user-images.githubusercontent.com/1165416/168114309-beb71f1a-c88f-4221-8cd8-1e56c2ab4453.png)
+The historical reproduction from May 2022:
 
-obtained
-
+```bash
+maintainer github contribution lookup /2
+# Weeks #17–#19: nearly every cell shows "-", although the GitHub calendar is populated.
 ```
-$ maintainer github contribution lookup /2
- Day / Week               #17           #18           #19
--------------------- ------------- ------------- -------------
- Sunday                    -             -             -
- Monday                    -             -             -
- Tuesday                   -             -             -
- Wednesday                 -             -             -
- Thursday                  -             -             -
- Friday                    -             -             ?
- Saturday                  -             -             ?
--------------------- ------------- ------------- -------------
- Contributions are on the range from 2022-04-24 to 2022-05-12
-```
+
+The actual counts up to the current date are expected to be loaded and displayed, and future days must be distinguishable from days without activity. The [original expected view](https://user-images.githubusercontent.com/1165416/168114309-beb71f1a-c88f-4221-8cd8-1e56c2ab4453.png) is kept as evidence of the report.
+
+**Current state:** the issue is closed. A re-check today should use an explicit `now/3`: in the current CLI an empty date may take the HEAD date instead. The historical output does not reproduce by simply re-running the old `/2` at a different time against a different Git history. Window-width defects are tracked separately in [#38](issue-38.md), and time-zone defects in [#65](issue-65.md).

@@ -1,30 +1,34 @@
 ---
-id: 57
-database_id: 1272193691
-node_id: I_kwDOE2M9Zc5L1CKb
-status: closed
-title: "github: contribution: refactor logic of suggest command"
-labels: ["scope: docs","scope: code"]
+code:
+id: I_kwDOE2M9Zc5L1CKb
+databaseId: 1272193691
+number: 57
 url: https://github.com/octomation/maintainer/issues/57
-created_at: 2022-06-15T12:54:26Z
-updated_at: 2022-06-15T14:23:05Z
+title: "github: contribution: refactor logic of suggest command"
+labels:
+  - "scope: docs"
+  - "scope: code"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2022-06-15T12:54:26Z
+updatedAt: 2022-06-15T14:23:05Z
+lastEditedAt: 2022-06-15T14:23:05Z
+closedAt: 2022-06-15T14:21:11Z
 ---
 
 # github: contribution: refactor logic of suggest command
 
-**Motivation:** there is a possibility to simplify code
+Simplify how suggest connects to personal Git commands: choosing a valid date and presenting it should be maintainer's job, so the logic is not duplicated in shell scripts.
 
-https://github.com/kamilsk/dotfiles/blob/d19edea4e4a08a325acece3ddb41f5c5312a0133/bin/git_commit#L40-L43
+The working scenario:
 
-**To do**
+```bash
+maintainer github contribution suggest --short --delta git/+2
+```
 
-- [x] use view option instead of a lot of args
-- [x] use `--delta` to show in format `-123d`
-- [x] solve `TODO:magic replace by params`
-- [x] simplify code in `dotfiles`
-  - [x] use current git history to make a decision about valid date
+The stdout result is a relative date suitable for further processing; a normal run also shows the calendar. The Git context sets the lower bound of the search, so a new suggestion does not send the user arbitrarily back in history.
 
-**Related to**
+**Current state:** the closed issue marked as done the simplified presentation, `--delta`, the replacement of hidden parameters, and the adaptation of dotfiles. The current CLI has `--target`, `--short`, `--delta` and reads the HEAD date; working hours are still not user-configurable ([#127](issue-127.md)).
 
-- #56 
-- kamilsk/dotfiles/issues/320
+Related: [#56](issue-56.md), the [historical git_commit](https://github.com/kamilsk/dotfiles/blob/d19edea4e4a08a325acece3ddb41f5c5312a0133/bin/git_commit#L40-L43), [dotfiles#320](https://github.com/kamilsk/dotfiles/issues/320).

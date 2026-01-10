@@ -1,86 +1,44 @@
 ---
-id: 123
-database_id: 1652194598
-node_id: I_kwDOE2M9Zc5ien0m
-status: closed
-title: "github: contribution: suggest and lookup paniced on Sunday"
-labels: ["scope: code","type: bug","severity: critical","impact: high","effort: medium"]
+code:
+id: I_kwDOE2M9Zc5ien0m
+databaseId: 1652194598
+number: 123
 url: https://github.com/octomation/maintainer/issues/123
-created_at: 2023-04-03T14:31:28Z
-updated_at: 2023-04-05T18:50:14Z
+title: "github: contribution: suggest and lookup paniced on Sunday"
+labels:
+  - "scope: code"
+  - "type: bug"
+  - "severity: critical"
+  - "impact: high"
+  - "effort: medium"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: NOT_PLANNED
+createdAt: 2023-04-03T14:31:28Z
+updatedAt: 2023-04-05T18:50:14Z
+lastEditedAt:
+closedAt: 2023-04-05T18:50:14Z
 ---
 
 # github: contribution: suggest and lookup paniced on Sunday
 
-**Details**
+Eliminate the crashes of lookup and suggest on a Sunday while the time window is computed. The user must get either a calendar or a comprehensible input error, whatever the day of the week.
+
+The original conditions: 2 April 2023, 09:09:53, UTC+03:00.
 
 ```bash
-$ datetime
-2023-04-02 09:09:53 +0300
-
-$ maintainer github contribution suggest /-20
-recovered: assertion is not a true
----
-unexpected panic occurred
-go.octolab.org/safe.Do.func2
-	go.octolab.org@v0.12.2/safe/do.go:26
-runtime.gopanic
-	runtime/panic.go:884
-go.octolab.org/toolset/maintainer/internal/pkg/assert.True
-	go.octolab.org/toolset/maintainer/internal/pkg/assert/assert.go:33
-go.octolab.org/toolset/maintainer/internal/pkg/time.Range.ExpandRight
-	go.octolab.org/toolset/maintainer/internal/pkg/time/range.go:115
-go.octolab.org/toolset/maintainer/internal/command/github/exec.Contribution.func1
-	go.octolab.org/toolset/maintainer/internal/command/github/exec/contribution.go:33
-github.com/spf13/cobra.(*Command).execute
-	github.com/spf13/cobra@v1.6.1/command.go:916
-github.com/spf13/cobra.(*Command).ExecuteC
-	github.com/spf13/cobra@v1.6.1/command.go:1044
-github.com/spf13/cobra.(*Command).Execute
-	github.com/spf13/cobra@v1.6.1/command.go:968
-github.com/spf13/cobra.(*Command).ExecuteContext
-	github.com/spf13/cobra@v1.6.1/command.go:961
-main.main.func1
-	go.octolab.org/toolset/maintainer/main.go:48
-go.octolab.org/safe.Do
-	go.octolab.org@v0.12.2/safe/do.go:29
-main.main
-	go.octolab.org/toolset/maintainer/main.go:48
-runtime.main
-	runtime/proc.go:250
-runtime.goexit
-	runtime/asm_arm64.s:1172
-
-$ maintainer github contribution lookup /-20
-recovered: assertion is not a true
----
-unexpected panic occurred
-go.octolab.org/safe.Do.func2
-	go.octolab.org@v0.12.2/safe/do.go:26
-runtime.gopanic
-	runtime/panic.go:884
-go.octolab.org/toolset/maintainer/internal/pkg/assert.True
-	go.octolab.org/toolset/maintainer/internal/pkg/assert/assert.go:33
-go.octolab.org/toolset/maintainer/internal/pkg/time.Range.Shift
-	go.octolab.org/toolset/maintainer/internal/pkg/time/range.go:122
-go.octolab.org/toolset/maintainer/internal/command/github.Contribution.func2
-	go.octolab.org/toolset/maintainer/internal/command/github/contribution.go:185
-github.com/spf13/cobra.(*Command).execute
-	github.com/spf13/cobra@v1.6.1/command.go:916
-github.com/spf13/cobra.(*Command).ExecuteC
-	github.com/spf13/cobra@v1.6.1/command.go:1044
-github.com/spf13/cobra.(*Command).Execute
-	github.com/spf13/cobra@v1.6.1/command.go:968
-github.com/spf13/cobra.(*Command).ExecuteContext
-	github.com/spf13/cobra@v1.6.1/command.go:961
-main.main.func1
-	go.octolab.org/toolset/maintainer/main.go:48
-go.octolab.org/safe.Do
-	go.octolab.org@v0.12.2/safe/do.go:29
-main.main
-	go.octolab.org/toolset/maintainer/main.go:48
-runtime.main
-	runtime/proc.go:250
-runtime.goexit
-	runtime/asm_arm64.s:1172
+maintainer github contribution suggest /-20
+maintainer github contribution lookup /-20
+# recovered: assertion is not a true
+# unexpected panic occurred
 ```
+
+Both stacks pointed at range operations: `ExpandRight` for suggest and `Shift` for lookup. For a bug report that is more useful than the full Cobra/runtime stack.
+
+A correct, non-empty window with Sunday at the start of the week is expected, and clamping the future must not produce an impossible range. Verification has to pin the time and the Git anchor.
+
+**Current state:** the issue is closed, and the former `ExpandRight` no longer exists in the current code. The surviving range validity check does not by itself prove the absence of every panic: another reproducible case is described in [#155](issue-155.md), and a future HEAD in [#148](issue-148.md).
+
+<!-- 2023-04-05T18:50Z https://github.com/octomation/maintainer/issues/123#issuecomment-1497964858
+I hope the problem has gone. I will check it on Sunday. `maintainer github contribution suggest 2023-04-02/-20` works well.
+-->

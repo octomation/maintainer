@@ -1,33 +1,35 @@
 ---
-id: 63
-database_id: 1281851164
-node_id: I_kwDOE2M9Zc5MZ38c
-status: closed
-title: "github: contribution: highlight suggested day"
-labels: ["scope: code","type: feature","impact: medium","effort: easy"]
+code:
+id: I_kwDOE2M9Zc5MZ38c
+databaseId: 1281851164
+number: 63
 url: https://github.com/octomation/maintainer/issues/63
-created_at: 2022-06-23T06:00:34Z
-updated_at: 2023-04-05T20:27:04Z
+title: "github: contribution: highlight suggested day"
+labels:
+  - "scope: code"
+  - "type: feature"
+  - "impact: medium"
+  - "effort: easy"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2022-06-23T06:00:34Z
+updatedAt: 2023-04-05T20:27:04Z
+lastEditedAt:
+closedAt: 2023-04-05T20:27:04Z
 ---
 
 # github: contribution: highlight suggested day
 
-**Motivation:** check correctness visually.
+Highlight the suggested day in the calendar so the user can check the date and its surroundings visually — to verify correctness at a glance. A single suggestion line is not enough when the table holds several weeks with identical counts.
 
-**Interface**
+An example of the current rendering:
 
-```bash
-$ maintainer github contribution suggest --delta 2013-11-20
-
- Day / Week    #45    #46    #47    #48   #49
-------------- ------ ------ ------ ----- -----
- Sunday         -      -      ★      1     -
- Monday         -      -      -      2     1
- Tuesday        -      -      -      8     1
- Wednesday      -      1      1      -     3
- Thursday       -      -      3      7     1
- Friday         -      -      -      1     2
- Saturday       -      -      -      -     -
-------------- ------ ------ ------ ----- -----
- Contributions for 2013-11-17: -3119d, 0 → 5
+```text
+Wednesday  3*  → the chosen day, which has three contributions
+Thursday    *  → the chosen day, whose count is zero
 ```
+
+In the detailed mode exactly the cell of the resulting date must be highlighted, and its count must not be lost. With `--short` the table is not printed and the machine-readable date stays available.
+
+**Current state:** the issue is closed. [Suggest](../../internal/command/github/contribution/suggest.go) uses `*` rather than the decorative `★` of the original prototype. The highlight itself does not prove the date was chosen correctly; the table centring shift is described in [#124](issue-124.md) and today's defects in [#136](issue-136.md).

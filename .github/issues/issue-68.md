@@ -1,32 +1,34 @@
 ---
-id: 68
-database_id: 1312861416
-node_id: I_kwDOE2M9Zc5OQKzo
-status: closed
-title: "github: contribution: invalid suggestion for edge case with zero"
-labels: ["scope: code","scope: test"]
+code:
+id: I_kwDOE2M9Zc5OQKzo
+databaseId: 1312861416
+number: 68
 url: https://github.com/octomation/maintainer/issues/68
-created_at: 2022-07-21T08:15:21Z
-updated_at: 2022-07-22T18:18:53Z
+title: "github: contribution: invalid suggestion for edge case with zero"
+labels:
+  - "scope: code"
+  - "scope: test"
+milestone: "[[milestone-1]]"
+state: CLOSED
+stateReason: COMPLETED
+createdAt: 2022-07-21T08:15:21Z
+updatedAt: 2022-07-22T18:18:53Z
+lastEditedAt:
+closedAt: 2022-07-22T18:18:53Z
 ---
 
 # github: contribution: invalid suggestion for edge case with zero
 
-**Steps to reproduce**
+Take days with zero contributions into account when choosing a date. Skipping such a day defeats the main purpose of suggest — to find the unfilled parts of the calendar rather than to grow already high counts.
+
+The original scenario:
 
 ```bash
-$ maintainer github contribution suggest --delta 2021
- Day / Week   #35   #36   #37   #38   #39
------------- ----- ----- ----- ----- -----
- Sunday        6     7     9     6     6
- Monday        6     7     5     6     6
- Tuesday       6     7    12     6     5
- Wednesday     6     7    10     4     5
- Thursday      6     7     6     6     5
- Friday        6     7     4     5     6
- Saturday      6     -     6     1     -
------------- ----- ----- ----- ----- -----
- Suggestion is 2021-09-12: -312d, 9 → 12
+maintainer github contribution suggest --delta 2021
 ```
 
-Expected suggestion: `Suggestion is 2021-09-11: -313d, 0 → 7`
+On the data in the report the command chose 12 September: `9 → 12`. The expected choice was 11 September, a Saturday with no activity: `0 → 7`. The relative values `-312d` and `-313d` refer to the moment of the original run, not to today.
+
+The fix criterion: a day with a zero count participates in the choice on equal terms with the rest, including the last day of the week, and actual/target match the chosen date.
+
+**Current state:** the issue is closed; the [suggest test](../../internal/model/github/contribution/suggest_test.go) contains a dedicated case named `issue#68: missed Saturday`. It checks the class of defect against stored data rather than replaying the historical calendar exactly.

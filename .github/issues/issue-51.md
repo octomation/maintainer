@@ -1,26 +1,34 @@
 ---
-id: 51
-database_id: 1263738579
-node_id: I_kwDOE2M9Zc5LUx7T
-status: open
-title: "di: define service provider to inject it into command for lazy service initialization"
-labels: ["scope: code","scope: test"]
+code:
+id: I_kwDOE2M9Zc5LUx7T
+databaseId: 1263738579
+number: 51
 url: https://github.com/octomation/maintainer/issues/51
-created_at: 2022-06-07T19:01:10Z
-updated_at: 2023-03-31T15:34:36Z
+title: "di: define service provider to inject it into command for lazy service initialization"
+labels:
+  - "scope: code"
+  - "scope: test"
+milestone:
+state: OPEN
+stateReason:
+createdAt: 2022-06-07T19:01:10Z
+updatedAt: 2023-03-31T15:34:36Z
+lastEditedAt: 2022-06-07T19:02:47Z
+closedAt:
 ---
 
 # di: define service provider to inject it into command for lazy service initialization
 
-**Motivation:** see #50.
+Construct services only for the operation being executed, and only after its configuration is resolved. That makes it possible to test commands with substitutable dependencies, and removes the need for a GitHub token or network access for help output and local actions.
 
-**PoC**:
+The user-facing contract:
 
-```go
-func RunE(provider interface { SomeDeps() Service }) func(cobra.Command, args) error {}
+```text
+--help                 → help without contacting GitHub
+diff a.json b.json     → reading local snapshots
+snapshot 2021          → a service with the token of this very invocation
 ```
 
-**To do:**
+**At present** the configuration is loaded at start-up and the services are created separately inside the commands. There is no shared mechanism for obtaining dependencies. The scenario from [#50](issue-50.md) has to be completed while preserving the settings precedence and the ability to verify commands independently.
 
-- [ ] check https://github.com/google/wire
-- [ ] check https://github.com/uber-go/fx
+The initial research suggested [Wire](https://github.com/google/wire) and [Fx](https://github.com/uber-go/fx). Choosing between them is not the goal of the issue: any clear solution is enough, as long as unused services are not initialized and the used ones receive the current configuration.

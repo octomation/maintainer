@@ -1,13 +1,20 @@
 ---
-id: 2
-database_id: 480234
-node_id: PVT_kwDOAuheaM4AB1Pq
-status: open
-title: "⏳ Delayed"
-visibility: private
+code:
+id: PVT_kwDOAuheaM4AB1Pq
+fullDatabaseId: 480234
+number: 2
 url: https://github.com/orgs/octomation/projects/2
-created_at: 2022-05-13T12:35:53Z
-updated_at: 2023-11-20T16:26:44Z
+owner:
+  id: MDEyOk9yZ2FuaXphdGlvbjQ4NzgyOTUy
+  login: "octomation"
+  type: Organization
+title: "⏳ Delayed"
+shortDescription: "Delayed issues for the next time."
+public: false
+closed: false
+createdAt: 2022-05-13T12:35:53Z
+updatedAt: 2023-11-20T16:26:44Z
+closedAt:
 ---
 
 # project: ⏳ Delayed

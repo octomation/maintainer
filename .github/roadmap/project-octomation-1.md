@@ -1,13 +1,20 @@
 ---
-id: 1
-database_id: 437916
-node_id: PVT_kwDOAuheaM4ABq6c
-status: open
-title: "🏗 Platform"
-visibility: public
+code:
+id: PVT_kwDOAuheaM4ABq6c
+fullDatabaseId: 437916
+number: 1
 url: https://github.com/orgs/octomation/projects/1
-created_at: 2022-05-07T06:25:58Z
-updated_at: 2026-04-17T18:03:02Z
+owner:
+  id: MDEyOk9yZ2FuaXphdGlvbjQ4NzgyOTUy
+  login: "octomation"
+  type: Organization
+title: "🏗 Platform"
+shortDescription: "OctoLab Platform development."
+public: true
+closed: false
+createdAt: 2022-05-07T06:25:58Z
+updatedAt: 2026-04-17T18:03:02Z
+closedAt:
 ---
 
 # project: 🏗 Platform
