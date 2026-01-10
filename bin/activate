@@ -116,8 +116,8 @@ _OLD_PS1="${PS1:-}"
 export GO111MODULE=on
 export GOBIN="${_BINPATH}"
 export GOFLAGS=-mod=
-export GOPRIVATE=go.octolab.net
-export GOPROXY=direct
+export GOPRIVATE=go.octolab.org
+export GOPROXY=https://proxy.golang.org,direct
 export PATH="${_BINPATH}:${PATH}"
 # shellcheck disable=SC2050
 if [[ "x(activated) " != x ]]; then
