@@ -1,50 +1,49 @@
-name: Cache invalidation
+name: Workflow caches cleanup
 
 on:
-  workflow_dispatch:
-
   schedule:
-    - cron: 0 7 1 * *
+    - cron: 0 6 1 * * # at 06:00 on day-of-month 1, UTC
+
+  workflow_call:
+
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: The reason for dispatching it manually.
+        type: string
+        default: manual healthcheck
+        required: true
+
+permissions:
+  contents: read
 
 jobs:
   delete:
     name: Deleting
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Cleanup caches
+        run: gh cache delete --all --succeed-on-no-caches -R "$GITHUB_REPOSITORY"
+
+  notify:
+    name: Notifying
+    needs: [ delete ]
+    runs-on: ubuntu-24.04
+    if: failure() || success()
 
     steps:
       - name: Checkout the repository
         uses: actions/checkout@v7.0.1
         with: { fetch-depth: 0 }
 
-      - name: Install a GitHub CLI cache extension
-        run: gh extension install actions/gh-actions-cache
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Cleanup caches
-        run: |
-          keys=$(gh actions-cache list -R '${{ github.repository }}' | cut -f1)
-          if [ -z "${keys}" ]; then echo 'Nothing to do' && exit 0; fi
-
-          echo Deleting caches...
-          for key in ${keys}; do
-            gh actions-cache delete "${key}" -R '${{ github.repository }}' --confirm || true
-          done
-          echo Done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  notify:
-    name: Notifying
-    needs: [ delete ]
-    runs-on: ubuntu-latest
-    if: failure() || success()
-
-    steps:
-      - name: Send Slack notification
-        uses: rtCamp/action-slack-notify@v2.4.0
-        env:
-          SLACK_COLOR: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
-          SLACK_ICON: https://github.com/github.png?size=64
-          SLACK_TITLE: '🧹 ${{ github.repository }}: ${{ github.workflow }}'
-          SLACK_USERNAME: GitHub Actions
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      - name: Send notification
+        uses: ./.github/actions/notify
+        with:
+          emoji: 🧹
+          channel: ${{ secrets.SLACK_WEBHOOK }}
+          success: ${{ ! contains(needs.*.result, 'failure') }}

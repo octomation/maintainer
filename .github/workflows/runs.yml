@@ -1,30 +1,49 @@
-name: Workflow invalidation
+name: Workflow runs cleanup
 
 on:
+  schedule:
+    - cron: 0 6 1 * * # at 06:00 on day-of-month 1, UTC
+
+  workflow_call:
+
   workflow_dispatch:
     inputs:
       pattern:
-        description: The name of workflow to clean.
+        description: Delete completed runs of this workflow, or All workflows.
         type: choice
         options:
-          - Cache invalidation
-          - Continuous integration
+          - All
+          - Continuous delivery
+          # The action uses substring matching; the CI name also matches healthcheck.
+          - ci.yml
           - Continuous integration healthcheck
-          - Dependabot at weekends
           - Documentation delivery
+          - Repository doctor
           - Tools validation
-          - Workflow invalidation
-        default: Workflow invalidation
+          - Workflow caches cleanup
+          - Workflow caches warmup
+          - Workflow runs cleanup
+        default: All
         required: true
       dry_run:
         description: Only log actions, do not perform any delete operations.
         type: boolean
         required: false
+      reason:
+        description: The reason for dispatching it manually.
+        type: string
+        default: manual healthcheck
+        required: true
+
+permissions:
+  contents: read
 
 jobs:
   delete:
     name: Deleting
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
 
     steps:
       - name: Delete workflow runs
@@ -32,23 +51,30 @@ jobs:
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
-          delete_workflow_pattern: ${{ github.event.inputs.pattern }}
-          dry_run: ${{ fromJSON('["", "true"]')[github.event.inputs.dry_run == 'true'] }}
+          delete_workflow_pattern: >-
+            ${{
+              github.event.inputs.pattern != 'All'
+              && github.event.inputs.pattern
+              || ''
+            }}
+          dry_run: ${{ inputs.dry_run && 'true' || 'false' }}
           retain_days: 0
           keep_minimum_runs: 0
 
   notify:
     name: Notifying
     needs: [ delete ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: failure() || success()
 
     steps:
-      - name: Send Slack notification
-        uses: rtCamp/action-slack-notify@v2.4.0
-        env:
-          SLACK_COLOR: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
-          SLACK_ICON: https://github.com/github.png?size=64
-          SLACK_TITLE: '🗑️ ${{ github.repository }}: ${{ github.workflow }}'
-          SLACK_USERNAME: GitHub Actions
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+
+      - name: Send notification
+        uses: ./.github/actions/notify
+        with:
+          emoji: 🧹
+          channel: ${{ secrets.SLACK_WEBHOOK }}
+          success: ${{ ! contains(needs.*.result, 'failure') }}
