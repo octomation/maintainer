@@ -264,7 +264,7 @@ install-clean:
 .PHONY: install-clean
 
 dist-check:
-	$(AT) goreleaser --snapshot --skip-publish --rm-dist
+	$(AT) goreleaser release --snapshot --skip=publish --clean
 .PHONY: dist-check
 
 dist-installer:

@@ -1,41 +1,75 @@
----
+version: 2
+
 project_name: maintainer
 
 archives:
   - id: maintainer
     files:
       - LICENSE
-    format: tar.gz
-    name_template: "{{.Binary}}_{{.Version}}_{{.Os}}-{{.Arch}}"
-    rlcp: true
+    formats: [tar.gz]
+    name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
 
+# Keep the existing Formula updated alongside the Cask until it is retired, #456.
+# GoReleaser 2.18.2 still supports brews (deprecated).
 brews:
   - name: maintainer
-    caveats: ''
+    ids: [maintainer]
     commit_author:
       name: Kamil Samigullin
       email: kamil@samigullin.info
     description: Maintainer is an indispensable assistant to Open Source contribution.
-    folder: Formula
+    directory: Formula
     homepage: https://github.com/octomation/maintainer
-    tap:
+    repository:
       owner: octolab
       name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    # Homebrew has no formula-to-cask conflicts: the caveat and the cask
+    # preflight steps keep the two installations apart.
+    caveats: |
+      maintainer is also published as a cask; keep only one installation.
+      To switch: brew uninstall --formula maintainer && brew install --cask maintainer
+    custom_block: |
+      deprecate! date: "2026-11-05", because: "is replaced by the cask", replacement_cask: "maintainer"
     install: |
       bin.install "maintainer"
-
-      output = Utils.popen_read("#{bin}/maintainer completion bash")
-      (bash_completion/"maintainer").write output
-
-      output = Utils.popen_read("#{bin}/maintainer completion fish")
-      (fish_completion/"maintainer.fish").write output
-
-      output = Utils.popen_read("#{bin}/maintainer completion zsh")
-      (zsh_completion/"_maintainer").write output
-
+      (bash_completion/"maintainer").write Utils.popen_read("#{bin}/maintainer", "completion", "bash")
+      (zsh_completion/"_maintainer").write Utils.popen_read("#{bin}/maintainer", "completion", "zsh")
+      (fish_completion/"maintainer.fish").write Utils.popen_read("#{bin}/maintainer", "completion", "fish")
       prefix.install_metafiles
     test: |
-      system "#{bin}/maintainer version"
+      system "#{bin}/maintainer", "version"
+
+homebrew_casks:
+  - name: maintainer
+    ids: [maintainer]
+    binaries: [maintainer]
+    commit_author:
+      name: Kamil Samigullin
+      email: kamil@samigullin.info
+    description: Maintainer is an indispensable assistant to Open Source contribution.
+    directory: Casks
+    homepage: https://github.com/octomation/maintainer
+    repository:
+      owner: octolab
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    generate_completions_from_executable:
+      executable: maintainer
+      shell_parameter_format: cobra
+      shells: [bash, zsh, fish]
+    # Homebrew 7 deprecates the preflight hook that `hooks` renders.
+    # Clear the quarantine before completions run the unsigned binary; warn
+    # when the formula already owns the binary link.
+    custom_block: |
+      preflight_steps do
+        if_path_exists "opt/maintainer", base: :homebrew_prefix do
+          warn "maintainer is installed as a formula; run `brew uninstall --formula maintainer` first"
+        end
+        on_macos do
+          run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ "{{staged_path}}" }}/maintainer"]
+        end
+      end
 
 builds:
   - id: maintainer
@@ -57,6 +91,8 @@ builds:
 checksum: { name_template: checksums.txt }
 
 release:
-  github:
-    owner: octomation
-    name: maintainer
+  # the repository comes from the git remote; the title from the release note,
+  # see .github/scripts/release.mjs render
+  name_template: '{{ envOrDefault "RELEASE_TITLE" .Tag }}'
+  preflight:
+    fail_on_error: true
