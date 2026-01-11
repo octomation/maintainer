@@ -6,17 +6,19 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     name: Testing
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         go:
           - 1.x
-          - 1.21.x
-          - 1.22.x
+          - 1.27.x
 
     steps:
       - name: Checkout the repository
@@ -27,22 +29,27 @@ jobs:
         with: { go-version: '${{ matrix.go }}' }
 
       - name: Fetch new test data
-        run: ./Taskfile testdata
+        run: |
+          ./Taskfile testdata
+          echo "MAINTAINER_TESTDATA_YEAR=$(date -u +%Y)" >> "$GITHUB_ENV"
       - name: Prepare and run tests
-        run: make env deps-fetch test
+        run: make env deps-fetch test TIMEOUT=2m
 
   notify:
     name: Notifying
     needs: [ test ]
-    runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' && (failure() || success())
+    runs-on: ubuntu-24.04
+    if: github.event_name != 'pull_request'
+      && (failure() || success())
 
     steps:
-      - name: Send Slack notification
-        uses: rtCamp/action-slack-notify@v2.4.0
-        env:
-          SLACK_COLOR: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
-          SLACK_ICON: https://github.com/github.png?size=64
-          SLACK_TITLE: '⚙️ ${{ github.repository }}: ${{ github.workflow }}'
-          SLACK_USERNAME: GitHub Actions
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+
+      - name: Send notification
+        uses: ./.github/actions/notify
+        with:
+          emoji: ⚙️
+          channel: ${{ secrets.SLACK_WEBHOOK }}
+          success: ${{ ! contains(needs.*.result, 'failure') }}

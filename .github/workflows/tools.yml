@@ -2,24 +2,42 @@ name: Tools validation
 
 on:
   workflow_dispatch:
+    inputs:
+      reason:
+        description: The reason for dispatching it manually.
+        type: string
+        default: manual healthcheck
+        required: true
 
   pull_request:
-    branches: [ '*' ]
+    branches: [ main ]
     paths:
       - '.github/workflows/tools.yml'
-      - 'tools/*'
+      - 'tools/**.go'
+      - 'tools/go.mod'
+      - 'tools/go.sum'
+      - 'Makefile'
 
   push:
-    branches: [ '*' ]
+    branches: [ main ]
     paths:
       - '.github/workflows/tools.yml'
-      - 'tools/*'
+      - 'tools/**.go'
+      - 'tools/go.mod'
+      - 'tools/go.sum'
+      - 'Makefile'
     tags: [ '!*' ]
+
+  schedule:
+    - cron: 0 7 1 * * # at 07:00 on day-of-month 1, UTC
+
+permissions:
+  contents: read
 
 jobs:
   check:
     name: Checking
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout the repository
@@ -27,26 +45,33 @@ jobs:
         with: { fetch-depth: 0 }
       - name: Set up Go environment
         uses: actions/setup-go@v7.0.0
-        with: { go-version: 1.22.x, cache-dependency-path: tools/go.sum }
+        with:
+          go-version: 1.27.x
+          cache-dependency-path: tools/go.sum
+          check-latest: true
 
       - name: Install and check tools
-        run: make tools && [ $(ls bin/linux/*/* | wc -l) = $(grep go:gen tools/tools.go | wc -l) ]
+        run: make tools && [ "$(find bin/linux -mindepth 2 -type f | wc -l)" = "$(cd tools && go list tool | wc -l)" ]
 
       - name: Check git state
-        run: make generate git-check
+        run: make tools-tidy generate git-check
+      - name: Check tools
+        run: make tools-check
 
   notify:
     name: Notifying
     needs: [ check ]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     if: github.event_name != 'pull_request' && (failure() || success())
 
     steps:
-      - name: Send Slack notification
-        uses: rtCamp/action-slack-notify@v2.4.0
-        env:
-          SLACK_COLOR: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
-          SLACK_ICON: https://github.com/github.png?size=64
-          SLACK_TITLE: '🛠️ ${{ github.repository }}: ${{ github.workflow }}'
-          SLACK_USERNAME: GitHub Actions
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+
+      - name: Send notification
+        uses: ./.github/actions/notify
+        with:
+          emoji: 🛠️
+          channel: ${{ secrets.SLACK_WEBHOOK }}
+          success: ${{ ! contains(needs.*.result, 'failure') }}
