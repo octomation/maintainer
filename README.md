@@ -17,40 +17,47 @@ $ maintainer go vanity build
 
 ## 🏆 Motivation
 
-...
+Inspect GitHub contribution calendars and automate recurring repository maintenance.
 
 ## 🤼‍♂️ How to
 
-...
+Start with `maintainer --help` and the [documentation][docs.page].
+See [development tools](tools/README.md) and [GitHub workflows](.github/workflows/README.md) for repository checks and releases.
 
 ## 🧩 Installation
 
 ### Homebrew
 
 ```bash
-$ brew install octolab/tap/maintainer
+$ brew install --cask octolab/tap/maintainer
 ```
+
+The cask is published from the next release on, for macOS and Linux. The formula
+(`brew install --formula octolab/tap/maintainer`) keeps existing installations updated
+and is deprecated on 2026-11-05. Keep only one of them; to switch, run
+`brew uninstall --formula maintainer && brew install --cask maintainer`.
 
 ### Binary
 
 ```bash
-$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/master/bin/install | sh
+$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh
 # or
-$ wget -qO-  https://raw.githubusercontent.com/octomation/maintainer/master/bin/install | sh
+$ wget -qO-  https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh
 ```
 
 > Don't forget about [security](https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/).
 
 ### Source
 
+Install the development version from a checkout so Go uses the repository's module replacements:
+
 ```bash
-# use standard go tools
-$ go get go.octolab.org/toolset/maintainer@latest
-# or use egg tool
-$ egg tools add go.octolab.org/toolset/maintainer@latest
+$ git clone https://github.com/octomation/maintainer.git
+$ cd maintainer
+$ go install .
 ```
 
-> [egg][] is an `extended go get`.
+The executable is installed into `GOBIN`, or `$(go env GOPATH)/bin` when `GOBIN` is unset. Add that directory to `PATH`.
 
 ### Shell completions
 
@@ -65,11 +72,11 @@ $ source <(maintainer completion)
 [awesome.icon]:     https://awesome.re/mentioned-badge.svg
 [build.page]:       https://github.com/octomation/maintainer/actions/workflows/ci.yml
 [build.icon]:       https://github.com/octomation/maintainer/actions/workflows/ci.yml/badge.svg
-[coverage.page]:    https://codeclimate.com/github/octomation/maintainer/test_coverage
-[coverage.icon]:    https://api.codeclimate.com/v1/badges/6687c945bf44772d3131/test_coverage
+[coverage.page]:    https://app.codecov.io/gh/octomation/maintainer
+[coverage.icon]:    https://codecov.io/gh/octomation/maintainer/branch/main/graph/badge.svg
 [design.page]:      https://www.notion.so/octolab/maintainer-76d7f532a13244b5ac71708990f340ed
-[docs.page]:        https://pkg.go.dev/go.octolab.org/toolset/maintainer
-[docs.icon]:        https://img.shields.io/badge/docs-pkg.go.dev-blue
+[docs.page]:        https://maintainer.octolab.org/
+[docs.icon]:        https://img.shields.io/badge/docs-GitHub%20Pages-blue
 [mirror.page]:      https://bitbucket.org/kamilsk/maintainer
 [mirror.icon]:      https://img.shields.io/badge/mirror-bitbucket-blue
 [promo.page]:       https://github.com/octomation/maintainer
