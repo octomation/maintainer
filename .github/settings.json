@@ -1,0 +1,17 @@
+{
+  "x-release": {
+    "tag_pattern": "^v\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$",
+    "notes": "docs/content/changelog/{tag}.md",
+    "branches": []
+  },
+  "secrets": {
+    "HOMEBREW_TAP_TOKEN": {
+      "scope": "organization"
+    }
+  },
+  "pages": {
+    "cname": "maintainer.octolab.org",
+    "https_enforced": true,
+    "build_type": "workflow"
+  }
+}

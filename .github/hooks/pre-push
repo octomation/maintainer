@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Refuses to push a release tag that would fail the release: see .github/scripts/release.mjs check.
+# Release tags are refs/tags/v*, the same refs that trigger .github/workflows/cd.yml.
+set -euo pipefail
+
+pushed=()
+tags=()
+while read -r _local_ref local_sha remote_ref _; do
+  [[ "${local_sha}" =~ ^0+$ ]] && continue # deletion
+  case "${remote_ref}" in
+    refs/heads/*) pushed+=(--pushed "${remote_ref#refs/heads/}=${local_sha}") ;;
+    refs/tags/v*) tags+=("${remote_ref#refs/tags/}=${local_sha}") ;;
+  esac
+done
+
+if [[ ${#tags[@]} -gt 0 ]]; then
+  command -v node >/dev/null || { echo "pre-push: node is required to check release tags" >&2; exit 1; }
+fi
+
+status=0
+for tag in ${tags[@]+"${tags[@]}"}; do
+  sha="$(git rev-parse "${tag#*=}^{commit}")"
+  node .github/scripts/release.mjs check "${tag%%=*}" --sha "${sha}" ${pushed[@]+"${pushed[@]}"} || status=1
+done
+[[ ${status} -eq 0 ]] || exit "${status}"
+
+# Application checks for every push.
+make deps-tidy verify

@@ -26,25 +26,21 @@ todo:
 COMMIT  := $(shell git rev-parse --verify HEAD)
 RELEASE := $(shell git describe --tags 2>/dev/null | rev | cut -d - -f3- | rev)
 
-ifneq (, $(wildcard bin/lib/git/hooks/))
+ifneq (, $(wildcard .github/hooks/))
 ifdef GIT_HOOKS
 
-hooks: unhook
-	$(AT) for hook in $(GIT_HOOKS); do \
-		cp bin/lib/git/hooks/$$hook .git/hooks/; \
-	done
+# versioned hooks take effect in place, see octomation/makefiles#81
+hooks:
+	$(AT) git config --local core.hooksPath .github/hooks
 .PHONY: hooks
 
 unhook:
-	$(AT) ls .git/hooks \
-	| grep -v .sample \
-	| sed 's|.*|.git/hooks/&|' \
-	| xargs rm -f || true
+	$(AT) git config --local --unset core.hooksPath || true
 .PHONY: unhook
 
 define hook_tpl
 $(1):
-	$$(AT) bin/lib/git/hooks/$(1)
+	$$(AT) .github/hooks/$(1) < /dev/null
 .PHONY: $(1)
 endef
 
@@ -128,6 +124,7 @@ go-verbose:
 
 deps-check:
 	$(AT) go mod verify
+	$(AT) govulncheck ./...
 	$(AT) if command -v egg >/dev/null; then \
 		egg deps check license; \
 		egg deps check version; \
@@ -389,3 +386,36 @@ verbose: make-verbose go-verbose
 
 verify: deps-check generate check git-check
 .PHONY: verify
+
+# Repository checks shared with GitHub Actions.
+source-check:
+	$(AT) go vet ./...
+	$(AT) test -z "$$(gofmt -l $$(git ls-files '*.go' ':!:tools/**'))"
+.PHONY: source-check
+
+tools-check:
+	$(AT) cd tools; go mod verify; govulncheck tool
+.PHONY: tools-check
+
+config-vet:
+	$(AT) cue vet -c .github/settings.cue .github/settings.json
+.PHONY: config-vet
+
+doctor:
+	$(AT) node .github/scripts/release.mjs doctor
+.PHONY: doctor
+
+release-check: config-vet
+	$(AT) test -n "$(TAG)" || { echo 'usage: make release-check TAG=vX.Y.Z'; exit 2; }
+	$(AT) node .github/scripts/release.mjs check "$(TAG)" --local
+	$(AT) $(MAKE) deps-tidy tools-tidy git-check
+	$(AT) $(MAKE) release-config-check
+.PHONY: release-check
+
+release-config-check:
+	$(AT) node .github/scripts/goreleaser-check.mjs
+.PHONY: release-config-check
+
+# Tools-module vulnerability checks run in tools.yml, independently of releases.
+release-verify: config-vet source-check deps-check deps-tidy go-generate git-check
+.PHONY: release-verify

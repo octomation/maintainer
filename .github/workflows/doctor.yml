@@ -1,0 +1,47 @@
+name: Repository doctor
+
+on:
+  # a Pages domain change triggers nothing: catch the drift daily
+  schedule:
+    - cron: 0 6 * * * # at 06:00 every day, UTC
+
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: The reason for dispatching it manually.
+        type: string
+        default: manual healthcheck
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  doctor:
+    name: Diagnosing
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: read
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      # a scheduled run has no repository in its payload, so no default branch:
+      # take it from the remote, as a local clone would
+      - name: Resolve the default branch
+        run: git remote set-head origin --auto
+
+      # the workflow token cannot list secrets: they are reported as unverified,
+      # the preflight below checks the ones that matter for a release
+      - name: Compare the repository with GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: node .github/scripts/release.mjs doctor
+      - name: Check release secrets
+        if: success() || failure()
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: node .github/scripts/release.mjs preflight
