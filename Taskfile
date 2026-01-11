@@ -16,6 +16,11 @@ function github() {
   _ make format
 }
 
+function docs() {
+  if [[ "${1:-}" == npm ]]; then shift; (cd docs && npm "$@");
+  else (cd docs && npm run "${@:-build}"); fi
+}
+
 function testdata() {
   local base='https://github.com/kamilsk?controller=profiles&action=show&tab=contributions'
   declare -A urls

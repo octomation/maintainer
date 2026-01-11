@@ -1,0 +1,49 @@
+---
+title: maintainer
+description: A command-line assistant for open source contribution.
+---
+
+# maintainer
+
+Tools for working with GitHub contribution calendars, Git repositories, and Go modules.
+
+## Build from source
+
+Use Go 1.27 or newer to install the development version described here:
+
+```sh
+git clone https://github.com/octomation/maintainer.git
+cd maintainer
+go install .
+maintainer --help
+```
+
+Installing from a checkout respects the module replacements in `go.mod`. Add `GOBIN`
+(or `$(go env GOPATH)/bin` when unset) to `PATH`.
+
+For a local build without installation, run `make build`. The executable is written to `bin/<os>/<arch>/maintainer`.
+
+## Explore the commands
+
+```sh
+maintainer github --help
+maintainer makefile --help
+maintainer go --help
+```
+
+Read the [GitHub contributions guide](/contributions/) for calendar examples, or see the [changelog](/changelog/).
+
+## Release binaries
+
+Download archives for macOS and Linux (amd64, arm64) from [GitHub Releases](https://github.com/octomation/maintainer/releases),
+or install them with Homebrew:
+
+```sh
+brew install --cask octolab/tap/maintainer
+```
+
+The cask is published from the next release on, for macOS and Linux. The formula (`brew install --formula octolab/tap/maintainer`) keeps existing installations updated and is deprecated on 2026-11-05. Keep only one of them; to switch, run `brew uninstall --formula maintainer && brew install --cask maintainer`.
+
+## Contribute
+
+Source, issues, and development instructions are available in the [GitHub repository](https://github.com/octomation/maintainer).

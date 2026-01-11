@@ -1,108 +1,69 @@
-> # 👨‍🔧 maintainer
->
-> Upcoming changes. Full changelog is [here](changelog.md).
+# maintainer documentation
 
-## [GitHub Contributions Calendar][calendar]
+The public site for maintainer, built with Nextra 4 on Next.js.
 
-- Add support GitHub Access Token by parameter
+## Run locally
 
-  You could still provide it by the environment variable
+Use Node 24 (the CI version). From the repository root:
 
-  ```bash
-  $ export GITHUB_TOKEN=secret
-  $ maintainer github ...
-  ```
+```sh
+./Taskfile docs npm ci
+./Taskfile docs dev
+```
 
-  But now, you also could choose the parameter for its provisioning
+Open the local URL printed by Next.js, normally <http://localhost:3000>.
 
-  ```bash
-  $ maintainer github --token=secret ...
-  ```
+Or, from `docs/`, run `npm ci` and `npm run dev`.
 
-- Add commands to work with GitHub Contributions Calendar
+## Build
 
-  * Shows contributions histogram
+For a production server:
 
-    ```bash
-    $ maintainer github contribution histogram 2013
-      1 #######
-      2 ######
-      3 ###
-      4 #
-      7 ##
-      8 #
+```sh
+./Taskfile docs build
+./Taskfile docs start
+```
 
-    $ maintainer github contribution histogram 2013-11    # month
-    $ maintainer github contribution histogram 2013-11-20 # week
-    ```
+For GitHub Pages:
 
-  * Shows contributions for a specified time range
+```sh
+TARGET=static SITE_URL=https://maintainer.octolab.org/ ./Taskfile docs build
+```
 
-    ```bash
-    $ maintainer github contribution lookup 2013-12-03/9
-     Day / Week   #45   #46   #47   #48   #49   #50   #51   #52   #1
-    ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
-     Sunday        -     -     -     1     -     -     -     -    -
-     Monday        -     -     -     2     1     2     -     -    -
-     Tuesday       -     -     -     8     1     -     -     2    -
-     Wednesday     -     1     1     -     3     -     -     2    -
-     Thursday      -     -     3     7     1     7     4     -    -
-     Friday        -     -     -     1     2     -     3     2    -
-     Saturday      -     -     -     -     -     -     -     -    -
-    ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
-     Contributions are on the range from 2013-11-03 to 2014-01-04
+Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH=/maintainer` only when hosting under a path, as on the default `octomation.github.io/maintainer/`. The [docs workflow](../.github/workflows/docs.yml) supplies both: from Pages on main, from `.github/settings.json` for PR previews.
 
-    $ maintainer github contribution lookup            # -> now()/-1
-    $ maintainer github contribution lookup 2013-12-03 # -> 2013-12-03/-1
-    $ maintainer github contribution lookup now/3      # -> now()/3 == now()/-1
-    $ maintainer github contribution lookup /3         # -> now()/3 == now()/-1
-    ```
+## Edit the content
 
-  * Makes a snapshot of contributions for a specified year or shows changes
+| Location | Purpose |
+| --- | --- |
+| `content/index.mdx` | Overview, installation and paths into the guides |
+| `content/contributions.md` | GitHub contribution calendar commands |
+| `content/changelog/index.md` | Unreleased changes |
+| `content/changelog/vX.Y.Z.md` | Release notes, one per tag |
+| `content/**/_meta.js` | Navigation order and labels |
+| `app/globals.css` | Shared styles |
+| `app/layout.jsx` | Site identity and Nextra theme |
+| `app/[[...mdxPath]]/page.jsx` | Page titles and social metadata |
+| `public/` | Favicon |
 
-    ```bash
-    $ maintainer github contribution snapshot 2013 | tee /tmp/snap.01.2013.json | jq
-    {
-      "2013-11-13T00:00:00Z": 1,
-      ...
-      "2013-12-27T00:00:00Z": 2
-    }
+The public origin in metadata comes from `SITE_URL` (see `site.mjs`). Internal links use Next.js/Nextra and keep the configured base path.
 
-    $ maintainer github contribution diff --base=/tmp/snap.01.2013.json 2013
-     Day / Week                  #46             #48             #49           #50
-    ---------------------- --------------- --------------- --------------- -----------
-     Sunday                       -               -               -             -
-     Monday                       -               -               -             -
-     Tuesday                      -               -               -             -
-     Wednesday                   +4               -              +1             -
-     Thursday                     -               -               -            +1
-     Friday                       -              +2               -             -
-     Saturday                     -               -               -             -
-    ---------------------- --------------- --------------- --------------- -----------
-     The diff between head{"/tmp/snap.02.2013.json"} → base{"/tmp/snap.01.2013.json"}
+## Write a release note
 
-    $ maintainer github contribution diff --base=/tmp/snap.01.2013.json --head=/tmp/snap.02.2013.json
-    ```
+A release is a curated note plus a tag. Add `content/changelog/vX.Y.Z.md` with `title` and `description` frontmatter and an H1 equal to the title; Markdown and HTML, no MDX, site-relative links. The release workflow validates the note of the tag and renders it as the GitHub release body. Write the note when the release is ready, see [releases](../.github/workflows/README.md#cd).
 
-  * Suggests a reasonable date to contribute
+## Change the domain
 
-    ```bash
-    $ maintainer github contribution suggest --delta 2013-11-20
-     Day / Week    #45    #46    #47    #48   #49
-    ------------- ------ ------ ------ ----- -----
-     Sunday         -      -      -      1     -
-     Monday         -      -      -      2     1
-     Tuesday        -      -      -      8     1
-     Wednesday      -      1      1      -     3
-     Thursday       -      -      3      7     1
-     Friday         -      -      -      1     2
-     Saturday       -      -      -      -     -
-    ------------- ------ ------ ------ ----- -----
-     Contributions for 2013-11-17: -3119d, 0 -> 5
+The site is served from the custom domain `maintainer.octolab.org`; `octomation.github.io/maintainer/` redirects to it, keeping the path. The build bakes the domain into asset paths and metadata, and changing it in Settings → Pages triggers no rebuild. To change it:
 
-    $ maintainer github contribution suggest 2013-11/10
-    $ maintainer github contribution suggest --target=5 2013/+10
-    $ maintainer github contribution suggest --short 2013/-10
-    ```
+1. Update `pages.cname` in [`.github/settings.json`](../.github/settings.json) (remove it for the default domain) and push.
+2. Change Settings → Pages → Custom domain to match.
+3. Rebuild: `gh workflow run docs.yml -f reason="domain change"`.
 
-[calendar]: https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-graphs-on-your-profile/viewing-contributions-on-your-profile#contributions-calendar
+The docs build stops while the two disagree, the deployment is smoke-tested, and the daily [doctor](../.github/workflows/doctor.yml) reports a stale site.
+
+## Keep it accurate
+
+The CLI implementation is the source of truth: check examples against command help and tests. Describe unreleased changes in `content/changelog/index.md`, not as shipped. Archive names and platforms must match `.goreleaser.yml`.
+
+`package.json` pins Zod to `4.1.12` for Nextra and its theme to avoid [a validation regression](https://github.com/shuding/nextra/issues/5036). Revisit those overrides when upgrading Nextra. Search is disabled: static search indexing is not configured.

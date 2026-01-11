@@ -1,6 +1,9 @@
-> # 👨‍🔧 maintainer
->
-> Changelog.
+---
+title: Changelog
+description: Upcoming changes to maintainer.
+---
+
+# Changelog
 
 ## Unreleased, [GitHub Contributions Calendar][calendar]
 
@@ -52,10 +55,10 @@
     ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
      Contributions are on the range from 2013-11-03 to 2014-01-04
 
-    $ maintainer github contribution lookup            # -> now()/-1
-    $ maintainer github contribution lookup 2013-12-03 # -> 2013-12-03/-1
-    $ maintainer github contribution lookup now/3      # -> now()/3 == now()/-1
-    $ maintainer github contribution lookup /3         # -> now()/3 == now()/-1
+    $ maintainer github contribution lookup            # → now()/-1
+    $ maintainer github contribution lookup 2013-12-03 # → 2013-12-03/-1
+    $ maintainer github contribution lookup now/3      # → now()/3 == now()/-1
+    $ maintainer github contribution lookup /3         # → now()/3 == now()/-1
     ```
 
   * Makes a snapshot of contributions for a specified year or shows changes
@@ -98,7 +101,7 @@
      Friday         -      -      -      1     2
      Saturday       -      -      -      -     -
     ------------- ------ ------ ------ ----- -----
-     Contributions for 2013-11-17: -3119d, 0 -> 5
+     Contributions for 2013-11-17: -3119d, 0 → 5
 
     $ maintainer github contribution suggest 2013-11/10
     $ maintainer github contribution suggest --target=5 2013/+10

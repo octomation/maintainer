@@ -1,21 +1,132 @@
-name: documenting
+name: Documentation delivery
 
-# see
-# - https://github.com/actions/checkout/issues/719
-# - https://github.com/golangci/golangci-lint-action/pull/471#issuecomment-1127537719
-on: workflow_dispatch
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/scripts/**'
+      - '.github/settings.json'
+      - '.github/workflows/docs.yml'
+      - 'docs/**'
+      - 'Taskfile'
+      - '.github/actions/**'
 
-#on:
-#  pull_request:
-#    branches: [ '*' ]
-#    paths:
-#      - '.github/workflows/docs.yml'
-#      - 'docs/*'
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/scripts/**'
+      - '.github/settings.json'
+      - '.github/workflows/docs.yml'
+      - 'docs/**'
+      - 'Taskfile'
+      - '.github/actions/**'
+
+  schedule:
+    - cron: 0 7 1 * * # at 07:00 on day-of-month 1, UTC
+
+  workflow_call:
+
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: The reason for dispatching it manually.
+        type: string
+        default: manual healthcheck
+        required: true
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
-  compile:
-    runs-on: ubuntu-latest
+  build:
+    name: Building
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: read
 
     steps:
-      - uses: actions/checkout@v7.0.1
-        with: { fetch-depth: 0, ref: '${{ github.event.pull_request.head.ref }}' }
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+          check-latest: true
+      - name: Set up GitHub Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        id: pages
+        uses: actions/configure-pages@v6.0.0
+      # the build bakes the base path and the origin in: refuse a domain
+      # that .github/settings.json does not expect
+      - name: Check the Pages domain
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
+        run: node .github/scripts/release.mjs pages "${BASE_URL}"
+      - name: Install dependencies
+        run: ./Taskfile docs npm ci
+
+      - name: Resolve the preview URL
+        if: github.event_name == 'pull_request' || github.ref != 'refs/heads/main'
+        run: |
+          node .github/scripts/release.mjs site-env >> "$GITHUB_ENV"
+      - name: Build the documentation
+        run: ./Taskfile docs build
+        env:
+          TARGET: static
+          BASE_PATH: ${{ steps.pages.outputs.base_path || env.BASE_PATH }}
+          SITE_URL: ${{ steps.pages.outputs.base_url || env.SITE_URL }}
+      - name: Upload the documentation
+        uses: actions/upload-pages-artifact@v5.0.0
+        with: { path: docs/dist }
+
+  deploy:
+    name: Deploying
+    needs: [ build ]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      id-token: write
+      pages: write
+
+    steps:
+      - name: Deploy it to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5.0.1
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+      # Pages may serve the previous deployment for a few minutes: retries 20×15s
+      - name: Smoke-test the site
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: node .github/scripts/release.mjs smoke "${PAGE_URL}"
+
+  notify:
+    name: Notifying
+    needs: [ build, deploy ]
+    runs-on: ubuntu-24.04
+    if: failure() || success()
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+        with: { fetch-depth: 0 }
+
+      - name: Send notification
+        uses: ./.github/actions/notify
+        with:
+          emoji: 📚
+          channel: ${{ secrets.SLACK_WEBHOOK }}
+          success: ${{ ! contains(needs.*.result, 'failure') }}
