@@ -9,7 +9,6 @@ ignore (
 )
 
 require (
-	github.com/PuerkitoBio/goquery v1.13.0
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/fatih/color v1.19.0
 	github.com/go-git/go-git/v5 v5.19.2
@@ -24,7 +23,6 @@ require (
 	go.octolab.org v0.12.2
 	go.octolab.org/toolkit/cli v0.6.4
 	go.octolab.org/toolkit/config v0.0.5
-	go.octolab.org/toolkit/protocol v0.1.0
 	golang.org/x/oauth2 v0.37.0
 	golang.org/x/sync v0.23.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -34,7 +32,6 @@ require (
 	dario.cat/mergo v1.0.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.1.6 // indirect
-	github.com/andybalholm/cascadia v1.3.4 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect

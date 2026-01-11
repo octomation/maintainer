@@ -14,9 +14,7 @@ on:
         options:
           - All
           - Continuous delivery
-          # The action uses substring matching; the CI name also matches healthcheck.
-          - ci.yml
-          - Continuous integration healthcheck
+          - Continuous integration
           - Documentation delivery
           - Repository doctor
           - Tools validation

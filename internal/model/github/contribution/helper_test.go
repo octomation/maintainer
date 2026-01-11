@@ -1,12 +1,11 @@
 package contribution_test
 
 import (
+	"encoding/json"
 	"os"
-	"strconv"
 	"testing"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.octolab.org/safe"
@@ -17,16 +16,7 @@ import (
 )
 
 func TestLookupRange(t *testing.T) {
-	const name = "testdata/kamilsk.2021.html"
-
-	f, err := os.Open(name)
-	require.NoError(t, err)
-	defer safe.Close(f, unsafe.Ignore)
-
-	doc, err := goquery.NewDocumentFromReader(f)
-	require.NoError(t, err)
-
-	chm := BuildHeatMap(doc)
+	chm := load(t, "testdata/kamilsk.2021.json")
 
 	t.Run("issue#124: correct centering", func(t *testing.T) {
 		opts := DateOptions{
@@ -44,36 +34,14 @@ func TestLookupRange(t *testing.T) {
 	})
 }
 
-func TestYearRange(t *testing.T) {
-	const name = "testdata/kamilsk.1986.html"
-	// The committed fixture was captured in 2025. The live healthcheck supplies
-	// the capture year when it refreshes fixtures, without weakening this check.
-	expectedYear := 2025
-	if value := os.Getenv("MAINTAINER_TESTDATA_YEAR"); value != "" {
-		var err error
-		expectedYear, err = strconv.Atoi(value)
-		require.NoError(t, err)
-	}
-
+// load reads a heat map snapshot, the same format the snapshot command writes.
+func load(t testing.TB, name string) HeatMap {
 	f, err := os.Open(name)
 	require.NoError(t, err)
 	defer safe.Close(f, unsafe.Ignore)
 
-	doc, err := goquery.NewDocumentFromReader(f)
-	require.NoError(t, err)
+	chm := make(HeatMap)
+	require.NoError(t, json.NewDecoder(f).Decode(&chm))
 
-	min, max := YearRange(doc)
-	assert.Equal(t, 2011, min)
-	assert.Equal(t, expectedYear, max)
-}
-
-func load(t testing.TB, name string) *goquery.Document {
-	f, err := os.Open(name)
-	require.NoError(t, err)
-	defer safe.Close(f, unsafe.Ignore)
-
-	doc, err := goquery.NewDocumentFromReader(f)
-	require.NoError(t, err)
-
-	return doc
+	return chm
 }

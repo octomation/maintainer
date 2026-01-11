@@ -3,7 +3,6 @@
 | Workflow | Name | Runs on | Does |
 | --- | --- | --- | --- |
 | [ci](#ci) | Continuous integration | PR and push to main (Go files, release config), `v*` tag, monthly, manual | Lint, tests, coverage to Codecov, vulnerabilities, release config |
-| [healthcheck](#healthcheck) | Continuous integration healthcheck | daily, manual | Refresh the GitHub fixtures and run the tests against them |
 | [cd](#cd) | Continuous delivery | `v*` tag, manual | Check the tag, test, publish the release, the Homebrew Formula and Cask; a snapshot on manual runs |
 | [docs](#docs) | Documentation delivery | PR and push to main (`docs/`), monthly, manual, reusable | Build the site; deploy it to Pages from main |
 | [tools](#tools) | Tools validation | PR and push to main (`tools/`), monthly, manual | Install the tools module, check generated code and tool vulnerabilities |
@@ -12,14 +11,14 @@
 | [warmup](#warmup) | Workflow caches warmup | after caches cleanup, manual | Refill Go, docs and tools caches |
 | [runs](#runs) | Workflow runs cleanup | monthly, manual, reusable | Delete completed runs, with a dry run |
 
-Schedules are in UTC: cleanups, the healthcheck and the doctor at 06:00, checks at 07:00, monthly on day 1.
+Schedules are in UTC: cleanups and the doctor at 06:00, checks at 07:00, monthly on day 1.
 
 ```mermaid
 flowchart LR
   dev([developer]) -- PR / push main --> ci & docs & tools
   dev -- "git push --atomic origin main vX.Y.Z" --> hook{{pre-push hook}}
   hook -- tag --> cd & ci
-  cron([schedule]) --> ci & healthcheck & docs & tools & doctor & caches & runs
+  cron([schedule]) --> ci & docs & tools & doctor & caches & runs
   caches -- completed --> warmup
   cd --> release[(GitHub release)] & tap[(Homebrew tap)]
   docs --> pages[(GitHub Pages)]
@@ -60,7 +59,7 @@ Nothing here is stored in the repository, so a fresh repository or a fork needs 
    should run: `gh workflow enable <file> -R octomation/maintainer`. The doctor
    reports every workflow that is not active.
 
-Then dispatch ci, tools, docs and healthcheck, run doctor after the first Pages
+Then dispatch ci, tools and docs, run doctor after the first Pages
 deployment, and dispatch cd on main for a snapshot. Do not dispatch the cleanups
 to try them out: they delete data.
 
@@ -83,14 +82,6 @@ flowchart LR
   `.goreleaser.yml` or a vulnerable dependency fails on main, not on the tag.
 - `vulns` scans the application only; tool vulnerabilities belong to [tools](#tools).
 - Codecov uses GitHub OIDC (`id-token: write`). PRs get no notification.
-
-## healthcheck
-
-[ci.healthcheck.yml](ci.healthcheck.yml) catches GitHub changing the markup of
-the contribution calendar: it downloads fresh profile pages with
-`./Taskfile testdata` and runs the tests against them. The committed fixtures
-stay as they are; the capture year reaches the tests through
-`MAINTAINER_TESTDATA_YEAR`.
 
 ## cd
 
@@ -214,7 +205,7 @@ flowchart LR
   deps[Go modules] & docs[docs npm] & tools[tools module] --> notify[notify]
 ```
 
-The keys match the consumers: the Go matrix of ci and healthcheck use `go.sum`;
+The keys match the consumers: the Go matrix of ci uses `go.sum`;
 the tools job, ci `vulns` and cd use `tools/go.sum`.
 
 ## runs
@@ -229,8 +220,6 @@ flowchart LR
 - To clear the history, run it with `pattern: All` (the default) and `dry_run`
   unchecked. Scheduled and reusable runs also target all workflows, Dependabot
   included. Active runs, including this one, remain.
-- The upstream action matches workflows by substring, so application CI is
-  listed as `ci.yml`: its name is a part of the healthcheck's name.
 - The upstream action also deletes orphaned runs of workflows that no longer
   exist, whatever their status or the selected workflow.
 

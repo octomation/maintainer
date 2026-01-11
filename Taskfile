@@ -21,19 +21,6 @@ function docs() {
   else (cd docs && npm run "${@:-build}"); fi
 }
 
-function testdata() {
-  local base='https://github.com/kamilsk?controller=profiles&action=show&tab=contributions'
-  declare -A urls
-  urls['kamilsk.1986.html']="${base}&from=1986-01-01"
-  urls['kamilsk.2019.html']="${base}&from=2019-01-01"
-  urls['kamilsk.2021.html']="${base}&from=2021-01-01"
-
-  for name in "${!urls[@]}"; do
-    _ curl -sSfL -H 'X-Requested-With: XMLHttpRequest' "${urls[${name}]}" \
-    > "internal/model/github/contribution/testdata/${name}"
-  done
-}
-
 @debug() { echo "${@}"; }
 @trace() { @debug "${@}" && "${@}"; }
 @error() { echo "${@}" >&2; }
