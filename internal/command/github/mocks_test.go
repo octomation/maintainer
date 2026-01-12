@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-
 	git "go.octolab.org/toolset/maintainer/internal/model/git"
 	contribution "go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	time "go.octolab.org/toolset/maintainer/internal/pkg/time"
