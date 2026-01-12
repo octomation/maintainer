@@ -36,9 +36,12 @@ Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH
 
 | Location | Purpose |
 | --- | --- |
-| `content/index.mdx` | Overview, installation and paths into the guides |
+| `content/index.mdx` | Overview and paths into the guides |
+| `content/quickstart.md` | Installation and a first calendar workflow |
 | `content/contributions.md` | GitHub contribution calendar commands |
-| `content/changelog/index.md` | Unreleased changes |
+| `content/vanity.md` | Go vanity import page generation |
+| `content/makefiles.md` | Makefile bundling |
+| `content/changelog/index.md` | Short release history |
 | `content/changelog/vX.Y.Z.md` | Release notes, one per tag |
 | `content/**/_meta.js` | Navigation order and labels |
 | `app/globals.css` | Shared styles |
@@ -64,6 +67,6 @@ The docs build stops while the two disagree, the deployment is smoke-tested, and
 
 ## Keep it accurate
 
-The CLI implementation is the source of truth: check examples against command help and tests. Describe unreleased changes in `content/changelog/index.md`, not as shipped. Archive names and platforms must match `.goreleaser.yml`.
+The CLI implementation is the source of truth: check examples against command help and tests. The v0.1.0 note describes the release being prepared, not an already published tag; update its status when the tag ships. Archive names and platforms must match `.goreleaser.yml`.
 
 `package.json` pins Zod to `4.1.12` for Nextra and its theme to avoid [a validation regression](https://github.com/shuding/nextra/issues/5036). Revisit those overrides when upgrading Nextra. Search is disabled: static search indexing is not configured.

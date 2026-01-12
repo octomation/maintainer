@@ -1,111 +1,69 @@
 ---
 title: GitHub contributions
-description: Inspect and compare GitHub contribution calendars.
+description: See your contribution pace and choose where to focus your next open source session.
 ---
 
 # GitHub contributions
 
-## [GitHub Contributions Calendar][calendar]
+Use your contribution calendar as a record of visible activity: read recent weeks, identify a lighter day, and choose a target for your next open source session. These commands read the account identified by `GITHUB_TOKEN` or `--token` through GitHub's GraphQL API. They make no changes to your profile or repositories.
 
-- Add support GitHub Access Token by parameter
+```sh
+export GITHUB_TOKEN=your_token
+maintainer github contribution lookup now/-3
+```
 
-  You could still provide it by the environment variable
+The table lets you compare days across weeks. A `-` is a day with no contributions; a `?` marks a future day in the displayed window. The final Date column locates each row in the range. Counts show GitHub activity, not the value or difficulty of the work.
 
-  ```bash
-  $ export GITHUB_TOKEN=secret
-  $ maintainer github ...
-  ```
+## See your recent pace
 
-  But now, you also could choose the parameter for its provisioning
+```sh
+maintainer github contribution lookup now/-3          # recent weeks through today
+maintainer github contribution lookup 2026-09-25/4    # centered on a date
+maintainer github contribution lookup 2026-09-25/-4   # look backward
+maintainer github contribution lookup git/4           # centered on this repo's latest commit
+```
 
-  ```bash
-  $ maintainer github --token=secret ...
-  ```
+`lookup` accepts a year (`2026`), month (`2026-09`), day (`2026-09-25`), RFC 3339 timestamp, `now`, or `git` as an anchor. Add `/N` for a centered span, `/+N` for weeks forward, or `/-N` for weeks backward. `git` uses the latest commit author's date in a Git checkout and falls back to now elsewhere.
 
-- Add commands to work with GitHub Contributions Calendar
+**For this version, always include a nonzero week span with `lookup`.** The bare command and date-only forms can panic; they are tracked in [issue #155](https://github.com/octomation/maintainer/issues/155). A year or month acts as an anchor, not as a whole-year or whole-month display.
 
-  * Shows contributions histogram
+## Choose a contribution target
 
-    ```bash
-    $ maintainer github contribution histogram 2013
-      1 #######
-      2 ######
-      3 ###
-      4 #
-      7 ##
-      8 #
+```sh
+maintainer github contribution suggest --target 25 now/-3
+maintainer github contribution suggest --short --target 25 now/-3
+maintainer github contribution suggest --delta git/5
+```
 
-    $ maintainer github contribution histogram 2013-11    # month
-    $ maintainer github contribution histogram 2013-11-20 # week
-    ```
+`suggest` highlights a candidate day with `*` and reports its current count and effective target. `--target` sets a minimum (default `5`); the effective target rises to the highest count in the candidate week when that is larger. `--short` omits the table for scripts. `--delta` prints a relative time too. The chosen time includes randomness, so repeat runs can differ. This is planning advice: nothing is committed or scheduled.
 
-  * Shows contributions for a specified time range
+The `git` anchor uses the latest commit author's date, so it can choose a past date. Use `now` when planning from the present.
 
-    ```bash
-    $ maintainer github contribution lookup 2013-12-03/9
-     Day / Week   #45   #46   #47   #48   #49   #50   #51   #52   #1
-    ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
-     Sunday        -     -     -     1     -     -     -     -    -
-     Monday        -     -     -     2     1     2     -     -    -
-     Tuesday       -     -     -     8     1     -     -     2    -
-     Wednesday     -     1     1     -     3     -     -     2    -
-     Thursday      -     -     3     7     1     7     4     -    -
-     Friday        -     -     -     1     2     -     3     2    -
-     Saturday      -     -     -     -     -     -     -     -    -
-    ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
-     Contributions are on the range from 2013-11-03 to 2014-01-04
+## Keep a baseline, then compare
 
-    $ maintainer github contribution lookup            # → now()/-1
-    $ maintainer github contribution lookup 2013-12-03 # → 2013-12-03/-1
-    $ maintainer github contribution lookup now/3      # → now()/3 == now()/-1
-    $ maintainer github contribution lookup /3         # → now()/3 == now()/-1
-    ```
+```sh
+maintainer github contribution snapshot 2026 > before.json
+# Return later, after GitHub has recorded more contributions.
+maintainer github contribution diff before.json 2026
+```
 
-  * Makes a snapshot of contributions for a specified year or shows changes
+`snapshot` writes a JSON object of UTC dates and daily counts for one calendar year. Without a year it uses the current year. `diff` takes **base then head**: each argument is either a snapshot file or a four-digit year fetched from GitHub. The table displays positive changes. For two saved points in time, run `maintainer github contribution diff before.json after.json`.
 
-    ```bash
-    $ maintainer github contribution snapshot 2013 | tee /tmp/snap.01.2013.json | jq
-    {
-      "2013-11-13T00:00:00Z": 1,
-      ...
-      "2013-12-27T00:00:00Z": 2
-    }
+Snapshots record what GitHub reported at the time of the read. Current-day counts can still change as GitHub processes activity; keep the original file if you need a stable comparison. **A decrease currently wraps to a huge positive number** in `diff` because counts use unsigned arithmetic. Check the two JSON files directly if a decrease is possible ([issue #70](https://github.com/octomation/maintainer/issues/70)).
 
-    $ maintainer github contribution diff /tmp/snap.01.2013.json 2013
-     Day / Week                  #46             #48             #49           #50
-    ---------------------- --------------- --------------- --------------- -----------
-     Sunday                       -               -               -             -
-     Monday                       -               -               -             -
-     Tuesday                      -               -               -             -
-     Wednesday                   +4               -              +1             -
-     Thursday                     -               -               -            +1
-     Friday                       -              +2               -             -
-     Saturday                     -               -               -             -
-    ---------------------- --------------- --------------- --------------- -----------
-     The diff between head{"/tmp/snap.02.2013.json"} → base{"/tmp/snap.01.2013.json"}
+## Find the shape of a year
 
-    $ maintainer github contribution diff /tmp/snap.01.2013.json /tmp/snap.02.2013.json
-    ```
+```sh
+maintainer github contribution histogram 2026
+maintainer github contribution histogram 2026-09
+maintainer github contribution histogram --with-zero 2026-09-25
+```
 
-  * Suggests a reasonable date to contribute
+`histogram` groups days by their contribution count and draws one `#` per day. Pass a year, month, or day; a day selects its week. Zero-count days are hidden by default, and `--with-zero` includes them.
 
-    ```bash
-    $ maintainer github contribution suggest --delta 2013-11-20
-     Day / Week    #45    #46    #47    #48   #49
-    ------------- ------ ------ ------ ----- -----
-     Sunday         -      -      -      1     -
-     Monday         -      -      -      2     1
-     Tuesday        -      -      -      8     1
-     Wednesday      -      1      1      -     3
-     Thursday       -      -      3      7     1
-     Friday         -      -      -      1     2
-     Saturday       -      -      -      -     -
-    ------------- ------ ------ ------ ----- -----
-     Contributions for 2013-11-17: -3119d, 0 → 5
+## Useful boundaries
 
-    $ maintainer github contribution suggest 2013-11/10
-    $ maintainer github contribution suggest --target=5 2013/+10
-    $ maintainer github contribution suggest --short 2013/-10
-    ```
-
-[calendar]: https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-graphs-on-your-profile/viewing-contributions-on-your-profile#contributions-calendar
+- A GitHub token is required when reading the live calendar. The CLI queries the token owner's calendar rather than taking a username.
+- `snapshot` takes a year, while `histogram` accepts year, month, or day. `lookup` and `suggest` accept date anchors and week spans.
+- A `diff` queries GitHub if either argument is a year; comparing two files needs no token or calendar fetch.
+- Use `maintainer github contribution <command> --help` to inspect the installed version's flags.

@@ -1,122 +1,20 @@
 ---
 title: Changelog
-description: Upcoming changes to maintainer.
+description: A concise record of maintainer releases and the quickest way to try each one.
 ---
 
 # Changelog
 
-## Unreleased, [GitHub Contributions Calendar][calendar]
+## [v0.1.0](/changelog/v0.1.0/) · ready for release
 
-- Add support GitHub Access Token by parameter
+The first stable release helps you plan open source work around your contribution pace. **Lookup** places recent weeks side by side; **suggest** highlights a day and a target for your next session.
 
-  You could still provide it by the environment variable
+```sh
+export GITHUB_TOKEN=your_token
+maintainer github contribution lookup now/-3
+maintainer github contribution suggest --target 25 now/-3
+```
 
-  ```bash
-  $ export GITHUB_TOKEN=secret
-  $ maintainer github ...
-  ```
+When you want a record, **histogram**, **snapshot**, and **diff** help inspect the shape and changes of the calendar. The release also bundles Go vanity pages and Makefiles from small source files. [Read the release note](/changelog/v0.1.0/) for the short tour, or [start with installation](/quickstart/).
 
-  But now, you also could choose the parameter for its provisioning
-
-  ```bash
-  $ maintainer github --token=secret ...
-  ```
-
-- Read the Contributions Calendar through the GraphQL API
-
-  The profile HTML was served from caches of different ages, so the same
-  request could report different counts for the same day between two calls,
-  and a fresh value only appeared after retrying the command a few times.
-  The [GraphQL][graphql] `contributionsCollection` has the same caches behind
-  a repeated query, so the current year is requested up to the present second:
-  a range nobody asked for before is always resolved from the source, and one
-  call is enough. It needs `GITHUB_TOKEN` even for public profiles.
-
-- Add commands to work with GitHub Contributions Calendar
-
-  * Shows contributions histogram
-
-    ```bash
-    $ maintainer github contribution histogram 2013
-      1 #######
-      2 ######
-      3 ###
-      4 #
-      7 ##
-      8 #
-
-    $ maintainer github contribution histogram 2013-11    # month
-    $ maintainer github contribution histogram 2013-11-20 # week
-    ```
-
-  * Shows contributions for a specified time range
-
-    ```bash
-    $ maintainer github contribution lookup 2013-12-03/9
-     Day / Week   #45   #46   #47   #48   #49   #50   #51   #52   #1
-    ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
-     Sunday        -     -     -     1     -     -     -     -    -
-     Monday        -     -     -     2     1     2     -     -    -
-     Tuesday       -     -     -     8     1     -     -     2    -
-     Wednesday     -     1     1     -     3     -     -     2    -
-     Thursday      -     -     3     7     1     7     4     -    -
-     Friday        -     -     -     1     2     -     3     2    -
-     Saturday      -     -     -     -     -     -     -     -    -
-    ------------ ----- ----- ----- ----- ----- ----- ----- ----- ----
-     Contributions are on the range from 2013-11-03 to 2014-01-04
-
-    $ maintainer github contribution lookup            # → now()/-1
-    $ maintainer github contribution lookup 2013-12-03 # → 2013-12-03/-1
-    $ maintainer github contribution lookup now/3      # → now()/3 == now()/-1
-    $ maintainer github contribution lookup /3         # → now()/3 == now()/-1
-    ```
-
-  * Makes a snapshot of contributions for a specified year or shows changes
-
-    ```bash
-    $ maintainer github contribution snapshot 2013 | tee /tmp/snap.01.2013.json | jq
-    {
-      "2013-11-13T00:00:00Z": 1,
-      ...
-      "2013-12-27T00:00:00Z": 2
-    }
-
-    $ maintainer github contribution diff /tmp/snap.01.2013.json 2013
-     Day / Week                  #46             #48             #49           #50
-    ---------------------- --------------- --------------- --------------- -----------
-     Sunday                       -               -               -             -
-     Monday                       -               -               -             -
-     Tuesday                      -               -               -             -
-     Wednesday                   +4               -              +1             -
-     Thursday                     -               -               -            +1
-     Friday                       -              +2               -             -
-     Saturday                     -               -               -             -
-    ---------------------- --------------- --------------- --------------- -----------
-     The diff between head{"/tmp/snap.02.2013.json"} → base{"/tmp/snap.01.2013.json"}
-
-    $ maintainer github contribution diff /tmp/snap.01.2013.json /tmp/snap.02.2013.json
-    ```
-
-  * Suggests a reasonable date to contribute
-
-    ```bash
-    $ maintainer github contribution suggest --delta 2013-11-20
-     Day / Week    #45    #46    #47    #48   #49
-    ------------- ------ ------ ------ ----- -----
-     Sunday         -      -      -      1     -
-     Monday         -      -      -      2     1
-     Tuesday        -      -      -      8     1
-     Wednesday      -      1      1      -     3
-     Thursday       -      -      3      7     1
-     Friday         -      -      -      1     2
-     Saturday       -      -      -      -     -
-    ------------- ------ ------ ------ ----- -----
-     Contributions for 2013-11-17: -3119d, 0 → 5
-
-    $ maintainer github contribution suggest 2013-11/10
-    $ maintainer github contribution suggest --target=5 2013/+10
-    $ maintainer github contribution suggest --short 2013/-10
-    ```
-
-[graphql]:  https://docs.github.com/en/graphql/reference/objects#contributionscalendar
-[calendar]: https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-graphs-on-your-profile/viewing-contributions-on-your-profile#contributions-calendar
+The stable v0.1.0 tag has not been published yet. These notes describe the release being prepared from the current functionality.

@@ -6,8 +6,8 @@ import './globals.css'
 import { siteUrl } from '../site.mjs'
 
 export const metadata = {
-  title: { default: 'maintainer — Open source contribution assistant', template: '%s · maintainer' },
-  description: 'Command-line tools for GitHub contributions, Git repositories, and Go modules.',
+  title: { default: 'maintainer — Small tools for open source upkeep', template: '%s · maintainer' },
+  description: 'See your open source contribution pace and plan your next session from the terminal.',
   metadataBase: new URL(siteUrl),
   icons: { icon: `${process.env.BASE_PATH || ''}/icon.svg` },
 }
