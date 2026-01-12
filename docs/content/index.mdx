@@ -6,33 +6,35 @@ description: See your open source contribution pace and plan your next session f
 import Link from 'next/link'
 
 <div className="hero">
-  <p className="eyebrow">OPEN SOURCE TOOLKIT · CURRENT SOURCE</p>
+  <p className="eyebrow">OPEN SOURCE TOOLKIT · v0.1.0</p>
   <h1>Keep the little things moving.</h1>
   <p className="hero-lede">See your recent open source activity, spot lighter days, and choose a contribution target for your next session. Turn the GitHub calendar into a practical plan.</p>
   <div className="hero-actions">
     <Link className="button button-primary" href="/quickstart/">Get started <span aria-hidden="true">↗</span></Link>
-    <Link className="button button-quiet" href="/changelog/v0.1.0/">Preview v0.1.0 <span aria-hidden="true">→</span></Link>
+    <Link className="button button-quiet" href="/changelog/v0.1.0/">What’s in v0.1.0 <span aria-hidden="true">→</span></Link>
   </div>
 </div>
 
 <div className="terminal" aria-label="A contribution planning example">
   <div className="terminal-top"><span className="terminal-dots">● ● ●</span><span>plan a contribution · example run</span></div>
-  <pre>{`$ maintainer github contribution suggest --target 25 now/-3
+  <pre>{`$ maintainer github contribution suggest --target 25 git/3
 
- Day / Week   #36   #37   #38   #39    Date
------------- ----- ----- ----- ----- --------
- Sunday       25    25    25    25    Sep 20
- Monday       25    25    25    25    Sep 21
- Tuesday      25    25    25    25    Sep 22
- Wednesday    25    25    25    25    Sep 23
- Thursday     25    25    25    25    Sep 24
- Friday       25    25    25    5*    Sep 25
- Saturday     25    25    25     ?    Sep 26
------------- ----- ----- ----- ----- --------
-Suggestion is 2026-09-25T12:46:48+03:00, 5 → 25`}</pre>
+ Day / Week   #02   #03   #04    Date
+------------ ----- ----- ----- --------
+ Sunday       25    25    15    Jan 18
+ Monday       25    17*   15    Jan 19
+ Tuesday      25    15    15    Jan 20
+ Wednesday    25    15    15    Jan 21
+ Thursday     25    15    15    Jan 22
+ Friday       25    15    15    Jan 23
+ Saturday     25    15    15    Jan 24
+------------ ----- ----- ----- --------
+    distribution{15: 12, 17: 1, 25: 8}
+
+Suggestion is 2026-01-12T09:34:23+03:00, 17 → 25`}</pre>
 </div>
 
-<p className="terminal-note">Excerpt from a real CLI run on 25 September 2026. The star marks the suggested day: five contributions so far, with a target of 25. Your counts and suggested time will differ.</p>
+<p className="terminal-note">A real run in a checkout whose latest commit is dated 12 January 2026. The star marks the suggested day: 17 contributions toward a target of 25, and the suggested moment is never later than now. Your counts and suggested time will differ.</p>
 
 ## Start with your contribution pace
 
@@ -45,6 +47,6 @@ Suggestion is 2026-09-25T12:46:48+03:00, 5 → 25`}</pre>
 
 ## A small, practical release
 
-The [v0.1.0 release draft](/changelog/v0.1.0/) starts with the contribution planning flow. The [calendar guide](/contributions/) explains dates, targets, and the other ways to inspect your activity; the Go and Makefile guides cover the smaller tools around your projects.
+The [v0.1.0 release](/changelog/v0.1.0/) starts with the contribution planning flow. The [calendar guide](/contributions/) explains dates, targets, and the other ways to inspect your activity; the Go and Makefile guides cover the smaller tools around your projects.
 
 Maintainer works on the authenticated GitHub account for contribution commands. It reads the calendar; it does not create contributions or change your repositories.

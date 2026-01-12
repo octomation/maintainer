@@ -67,6 +67,6 @@ The docs build stops while the two disagree, the deployment is smoke-tested, and
 
 ## Keep it accurate
 
-The CLI implementation is the source of truth: check examples against command help and tests. The v0.1.0 note describes the release being prepared, not an already published tag; update its status when the tag ships. Archive names and platforms must match `.goreleaser.yml`.
+The CLI implementation is the source of truth: check examples against command help and tests. A release note describes its release as published, with examples that reproduce on the built binary. Archive names and platforms must match `.goreleaser.yml`.
 
 `package.json` pins Zod to `4.1.12` for Nextra and its theme to avoid [a validation regression](https://github.com/shuding/nextra/issues/5036). Revisit those overrides when upgrading Nextra. Search is disabled: static search indexing is not configured.
