@@ -64,6 +64,46 @@ func TestPlanner_Fetch(t *testing.T) {
 	assert.Equal(t, KindFetch, actions[0].Kind)
 }
 
+func TestPlanner_TrackedMissingCloneConflictsWhenTargetExists(t *testing.T) {
+	p := newPlanner(t, nil)
+	const path = "/work/public/acme/service"
+	st := state.New()
+	st.Upsert(state.Record{
+		ID: 1, OwnerLogin: "acme", Name: "service", Path: path,
+		RemoteURL: "git@github.com:acme/service.git", CloneURL: "ssh",
+	})
+	actions, err := p.Plan(PlanInput{
+		Snapshots: []github.RepoSnapshot{{ID: 1, Owner: "acme", Name: "service", Visibility: github.Public}},
+		State:     st,
+		Occupancy: map[string]Occupancy{path: OccupancyForeign},
+	})
+	require.NoError(t, err)
+	require.Len(t, actions, 1)
+	assert.Equal(t, KindConflict, actions[0].Kind)
+	assert.Contains(t, actions[0].Reason, "refusing to overwrite")
+}
+
+func TestPlanner_UsesObservedFetchRemoteForDrift(t *testing.T) {
+	p := newPlanner(t, nil)
+	const path = "/work/public/acme/service"
+	st := state.New()
+	st.Upsert(state.Record{
+		ID: 1, OwnerLogin: "acme", Name: "service", Path: path,
+		RemoteURL: "git@github.com:acme/service.git", CloneURL: "ssh",
+	})
+	actions, err := p.Plan(PlanInput{
+		Snapshots: []github.RepoSnapshot{{ID: 1, Owner: "acme", Name: "service", Visibility: github.Public}},
+		State:     st,
+		Clones: []DiskClone{{
+			Path: path, ID: 1, Transport: "ssh", RemoteURL: "git@github.com:acme/old-name.git",
+		}},
+	})
+	require.NoError(t, err)
+	require.Len(t, actions, 1)
+	assert.Equal(t, KindUpdateRemote, actions[0].Kind)
+	assert.Equal(t, "git@github.com:acme/service.git", actions[0].RemoteURL)
+}
+
 func TestPlanner_MoveOnRename(t *testing.T) {
 	p := newPlanner(t, nil)
 	st := state.New()

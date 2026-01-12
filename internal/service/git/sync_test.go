@@ -8,6 +8,7 @@ import (
 	"time"
 
 	gogit "github.com/go-git/go-git/v5"
+	gitconfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -87,6 +88,50 @@ func TestSync_CloneEmptyRepo(t *testing.T) {
 	require.Len(t, info.Origins, 1)
 	assert.Equal(t, origin, info.Origins[0])
 	assert.Empty(t, info.HeadShort) // no commits yet
+}
+
+func TestSync_InspectAndUpdateRemotePreservePushURLs(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "locked")
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	const original = "git@github.com:acme/original.git"
+	_, err = repo.CreateRemote(&gitconfig.RemoteConfig{Name: "origin", URLs: []string{original}})
+	require.NoError(t, err)
+
+	cfg, err := repo.Config()
+	require.NoError(t, err)
+	cfg.Raw.Section("remote").Subsection("origin").SetOption("pushurl", "no_push")
+	require.NoError(t, repo.SetConfig(cfg))
+
+	sync := gitsvc.NewSync()
+	info, err := sync.Inspect(dir)
+	require.NoError(t, err)
+	assert.Equal(t, []string{original}, info.Origins)
+	assert.Equal(t, []string{"no_push"}, info.PushURLs)
+
+	const renamed = "git@github.com:acme/renamed.git"
+	require.NoError(t, sync.UpdateRemote(dir, renamed))
+	info, err = sync.Inspect(dir)
+	require.NoError(t, err)
+	assert.Equal(t, []string{renamed}, info.Origins)
+	assert.Equal(t, []string{"no_push"}, info.PushURLs, "update_remote removed the push lock")
+}
+
+func TestSync_CloneRefusesExistingTargetWithoutModification(t *testing.T) {
+	origin := originRepo(t)
+	target := filepath.Join(t.TempDir(), "existing")
+	require.NoError(t, os.Mkdir(target, 0o755))
+	marker := filepath.Join(target, "local-only.txt")
+	require.NoError(t, os.WriteFile(marker, []byte("must survive"), 0o644))
+
+	err := gitsvc.NewSync().Clone(context.Background(), gitsvc.CloneOptions{
+		URL: origin, Path: target, Auth: gitsvc.Auth{Transport: "https"},
+	})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "already exists; refusing to modify it")
+	content, readErr := os.ReadFile(marker)
+	require.NoError(t, readErr)
+	assert.Equal(t, "must survive", string(content))
 }
 
 func TestSync_MoveMissingSourceErrors(t *testing.T) {
