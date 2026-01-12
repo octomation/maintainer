@@ -1,10 +1,12 @@
 package contribution_test
 
 import (
+	"bytes"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -228,4 +230,22 @@ func TestParseDate(t *testing.T) {
 			test.assert(t, contribution.LookupRange(opts))
 		})
 	}
+}
+
+func TestTableView(t *testing.T) {
+	sunday := xtime.UTC().Year(2021).Month(time.January).Day(3)
+
+	heats := make(contribution.HeatMap)
+	heats.SetCount(sunday.Time(), 5)
+	heats.SetCount(sunday.Day(4).Time(), 5)
+	heats.SetCount(sunday.Day(5).Time(), 10)
+	heats.SetCount(sunday.Day(14).Time(), 3) // after the scope, shown as "?"
+
+	var buf bytes.Buffer
+	cmd := new(cobra.Command)
+	cmd.SetErr(&buf)
+	TableView(cmd, heats, xtime.NewRange(sunday.Time(), sunday.Day(12).Hour(23).Time()))
+
+	// ten days up to the end of the scope: three with contributions, seven without
+	assert.Contains(t, buf.String(), "distribution{0: 7, 5: 2, 10: 1}")
 }

@@ -155,12 +155,16 @@ func TableView(
 		Text:  "Date",
 	})
 
+	shown := make(contribution.HeatMap)
 	for i, cursor := time.Sunday, scope.From(); i <= time.Saturday; i++ {
 		row := append(make([]*simpletable.Cell, 0, weeks+1), &simpletable.Cell{Text: i.String()})
 		for j := 0; j < weeks; j++ {
 			cell := cursor.Add(time.Duration(j) * xtime.Week)
 
 			count := heats.Count(cell)
+			if !cell.After(scope.To()) {
+				shown.SetCount(cell, count)
+			}
 			text := "-"
 			if count > 0 {
 				text = strconv.FormatUint(uint64(count), 10)
@@ -188,10 +192,21 @@ func TableView(
 			{
 				Align: simpletable.AlignRight,
 				Span:  len(table.Header.Cells),
-				Text:  "Stats: coming soon",
+				Text:  distribution(shown),
 			},
 		},
 	}
 	table.SetStyle(simpletable.StyleCompactLite)
 	cmd.PrintErrln("\n" + table.String() + "\n")
+}
+
+// distribution tells how many days have each contribution count,
+// e.g., distribution{5: 123, 10: 23, 15: 2}.
+func distribution(heats contribution.HeatMap) string {
+	rows := contribution.HistogramByCount(heats, contribution.OrderByCount)
+	pairs := make([]string, 0, len(rows))
+	for _, row := range rows {
+		pairs = append(pairs, fmt.Sprintf("%d: %d", row.Count, row.Frequency))
+	}
+	return "distribution{" + strings.Join(pairs, ", ") + "}"
 }
