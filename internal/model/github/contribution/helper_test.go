@@ -23,12 +23,13 @@ func TestLookupRange(t *testing.T) {
 			Value: xtime.UTC().Year(2021).Month(time.January).Day(30).Time(),
 			Weeks: 3, Half: true,
 		}
-		scope := LookupRange(opts).Until(time.Now())
+		now := xtime.UTC().Year(2022).Time()
 		schedule, target := xtime.Everyday(xtime.Hours(5, 19, 0)), uint(5)
-		suggestion := Suggest(chm, scope.Since(opts.Value), schedule, target)
+		suggestion := Suggest(chm, opts.Value, now, schedule, target)
+		require.False(t, suggestion.Time.IsZero())
 
 		opts.Value = suggestion.Time
-		scope = LookupRange(opts)
+		scope := LookupRange(opts)
 		assert.Equal(t, "2021-01-17", scope.From().Format(xtime.DateOnly))
 		assert.Equal(t, "2021-02-06", scope.To().Format(xtime.DateOnly))
 	})

@@ -65,3 +65,66 @@ func TestSchedule_Suggest(t *testing.T) {
 		})
 	}
 }
+
+func TestSchedule_End(t *testing.T) {
+	tests := []struct {
+		name     string
+		hours    Schedule
+		time     time.Time
+		expected time.Time
+	}{
+		{
+			name:     "empty schedule",
+			hours:    make(Schedule),
+			time:     UTC().Hour(10).Time(),
+			expected: time.Time{},
+		},
+		{
+			name:     "before interval",
+			hours:    Everyday(Hours(9, 12, 0), Hours(14, 18, 0)),
+			time:     UTC().Hour(8).Minute(22).Second(18).Time(),
+			expected: time.Time{},
+		},
+		{
+			name:     "at the beginning of interval",
+			hours:    Everyday(Hours(9, 12, 0), Hours(14, 18, 0)),
+			time:     UTC().Hour(9).Time(),
+			expected: UTC().Hour(12).Time(),
+		},
+		{
+			name:     "inside first interval",
+			hours:    Everyday(Hours(9, 12, 0), Hours(14, 18, 0)),
+			time:     UTC().Hour(10).Minute(22).Second(18).Time(),
+			expected: UTC().Hour(12).Time(),
+		},
+		{
+			name:     "between intervals",
+			hours:    Everyday(Hours(9, 12, 0), Hours(14, 18, 0)),
+			time:     UTC().Hour(12).Minute(22).Second(18).Time(),
+			expected: time.Time{},
+		},
+		{
+			name:     "inside second interval",
+			hours:    Everyday(Hours(9, 12, 0), Hours(14, 18, 0)),
+			time:     UTC().Hour(15).Minute(22).Second(18).Time(),
+			expected: UTC().Hour(18).Time(),
+		},
+		{
+			name:     "at the end of interval",
+			hours:    Everyday(Hours(9, 12, 0), Hours(14, 18, 0)),
+			time:     UTC().Hour(18).Time(),
+			expected: UTC().Hour(18).Time(),
+		},
+		{
+			name:     "till midnight",
+			hours:    Everyday(Hours(20, 24, 0)),
+			time:     UTC().Hour(23).Minute(22).Second(18).Time(),
+			expected: UTC().Day(2).Time(),
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.expected, test.hours.End(test.time))
+		})
+	}
+}

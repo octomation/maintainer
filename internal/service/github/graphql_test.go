@@ -3,10 +3,14 @@ package github_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sort"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -110,6 +114,126 @@ func TestService_FetchContributionsGraphQLErrors(t *testing.T) {
 	})
 }
 
+func TestService_ContributionHeatMapYears(t *testing.T) {
+	now := xtime.UTC().Year(2026).Month(time.September).Day(25).Hour(12).Time()
+
+	tests := map[string]struct {
+		scope xtime.Range
+		years []int
+	}{
+		"before GitHub": {
+			scope: xtime.RangeByYears(xtime.UTC().Year(1990).Time(), 19, false),
+			years: []int{
+				1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+				2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+			},
+		},
+		"long before GitHub": {
+			scope: xtime.RangeByYears(xtime.UTC().Year(1990).Time(), 0, false),
+			years: []int{1990},
+		},
+		"after the current year": {
+			scope: xtime.NewRange(
+				xtime.UTC().Year(2025).Month(time.June).Time(),
+				xtime.UTC().Year(2028).Month(time.June).Time(),
+			),
+			years: []int{2025, 2026},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			var (
+				mu    sync.Mutex
+				years []int
+			)
+			service := serve(t, func(rw http.ResponseWriter, req *http.Request) {
+				if req.URL.Path == "/user" {
+					_, _ = io.WriteString(rw, `{"login":"kamilsk"}`)
+					return
+				}
+
+				var request struct {
+					Variables struct {
+						From string `json:"from"`
+					} `json:"variables"`
+				}
+				assert.NoError(t, json.NewDecoder(req.Body).Decode(&request))
+				from, err := time.Parse(time.RFC3339, request.Variables.From)
+				assert.NoError(t, err)
+
+				mu.Lock()
+				years = append(years, from.Year())
+				mu.Unlock()
+				_, _ = fmt.Fprintf(rw, `{"data":{"user":{"contributionsCollection":{"contributionCalendar":{
+					"weeks":[{"contributionDays":[{"date":"%d-06-01","contributionCount":1}]}]
+				}}}}}`, from.Year())
+			})
+			service.WithClock(func() time.Time { return now })
+
+			chm, err := service.ContributionHeatMap(context.Background(), test.scope)
+			require.NoError(t, err)
+
+			sort.Ints(years)
+			assert.Equal(t, test.years, years)
+			assert.Len(t, chm, len(test.years), "a day of every requested year")
+		})
+	}
+}
+
+func TestService_ContributionHeatMapLimit(t *testing.T) {
+	const limit = 4 // the same as the service has
+
+	var inFlight, peak, total atomic.Int32
+	queued := make(chan struct{})
+	var once sync.Once
+	service := serve(t, func(rw http.ResponseWriter, req *http.Request) {
+		if req.URL.Path == "/user" {
+			_, _ = io.WriteString(rw, `{"login":"kamilsk"}`)
+			return
+		}
+
+		var request struct {
+			Variables struct {
+				From string `json:"from"`
+			} `json:"variables"`
+		}
+		assert.NoError(t, json.NewDecoder(req.Body).Decode(&request))
+		from, err := time.Parse(time.RFC3339, request.Variables.From)
+		assert.NoError(t, err)
+
+		current := inFlight.Add(1)
+		for {
+			if old := peak.Load(); current <= old || peak.CompareAndSwap(old, current) {
+				break
+			}
+		}
+		total.Add(1)
+		// hold the requests until the limit is reached, so a burst would show
+		if current >= limit {
+			once.Do(func() { close(queued) })
+		}
+		select {
+		case <-queued:
+		case <-time.After(5 * time.Second):
+			t.Error("the requests are not concurrent")
+		}
+		inFlight.Add(-1)
+
+		_, _ = fmt.Fprintf(rw, `{"data":{"user":{"contributionsCollection":{"contributionCalendar":{
+			"weeks":[{"contributionDays":[{"date":"%d-06-01","contributionCount":1}]}]
+		}}}}}`, from.Year())
+	})
+	service.WithClock(func() time.Time { return xtime.UTC().Year(2026).Month(time.September).Day(25).Time() })
+
+	scope := xtime.RangeByYears(xtime.UTC().Year(1990).Time(), 19, false)
+	chm, err := service.ContributionHeatMap(context.Background(), scope)
+	require.NoError(t, err)
+
+	assert.Len(t, chm, 20)
+	assert.Equal(t, int32(20), total.Load())
+	assert.Equal(t, int32(limit), peak.Load(), "no more requests at once than the limit")
+}
+
 // serve returns a service whose every request lands on the handler.
 func serve(t *testing.T, handler http.HandlerFunc) *github.Service {
 	t.Helper()
@@ -132,4 +256,26 @@ func (r redirect) RoundTrip(req *http.Request) (*http.Response, error) {
 	proxy.Host = r.target.Host
 
 	return http.DefaultTransport.RoundTrip(proxy)
+}
+
+func TestService_FetchContributionsWithoutCalendar(t *testing.T) {
+	tests := map[string]string{
+		"no data":       `{"data":null}`,
+		"no user":       `{"data":{"user":null}}`,
+		"no weeks":      `{"data":{"user":{"contributionsCollection":{"contributionCalendar":{"weeks":[]}}}}}`,
+		"no collection": `{"data":{"user":{"contributionsCollection":null}}}`,
+	}
+	for name, payload := range tests {
+		t.Run(name, func(t *testing.T) {
+			service := serve(t, func(rw http.ResponseWriter, _ *http.Request) {
+				_, _ = io.WriteString(rw, payload)
+			})
+
+			chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
+			require.Error(t, err)
+			assert.Nil(t, chm)
+			assert.Contains(t, err.Error(), `fetch contributions of "kamilsk" for 2026`)
+			assert.Contains(t, err.Error(), "no contribution calendar")
+		})
+	}
 }

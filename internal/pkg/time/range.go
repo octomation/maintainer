@@ -1,10 +1,17 @@
 package time
 
 import (
+	"fmt"
 	"time"
+
+	"go.octolab.org/errors"
 
 	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
 )
+
+// ErrFuturePeriod reports a range that starts at or after now:
+// nothing has happened in it yet.
+const ErrFuturePeriod = errors.Message("the period starts in the future")
 
 func NewRange(from, to time.Time) Range {
 	assert.True(func() bool { return !from.IsZero() })
@@ -52,6 +59,20 @@ func GregorianWeeks(date time.Time, weeks int, half bool) Range {
 		return r.Shift(6 * Day)
 	}
 	return r.Shift(-Day)
+}
+
+// GregorianWeek returns the week of the date, whose weeks start on Sunday:
+// the week that contains January 1 is the first one, and the year of a week
+// is the year of its Saturday. The date is taken in its own location.
+func GregorianWeek(date time.Time) (year, week int) {
+	y, m, d := date.Date()
+	day := time.Date(y, m, d, 0, 0, 0, 0, time.UTC)
+	sunday := day.AddDate(0, 0, -int(day.Weekday()))
+
+	year = sunday.AddDate(0, 0, 6).Year()
+	first := time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC)
+	first = first.AddDate(0, 0, -int(first.Weekday()))
+	return year, int(sunday.Sub(first)/Week) + 1
 }
 
 func RangeByMonths(date time.Time, months int, half bool) Range {
@@ -109,9 +130,15 @@ func (r Range) Shift(shift time.Duration) Range {
 	return NewRange(r.from.Add(shift), r.to.Add(shift))
 }
 
-func (r Range) ExcludeFuture() Range {
-	if now := time.Now(); now.Before(r.to) {
-		return NewRange(r.from, now)
+// ExcludeFuture cuts the range at now. A range that starts at or after now
+// has no past part, so it fails with ErrFuturePeriod instead.
+func (r Range) ExcludeFuture(now time.Time) (Range, error) {
+	if !r.from.Before(now) {
+		return Range{}, fmt.Errorf("%w: %s, now is %s", ErrFuturePeriod,
+			r.from.UTC().Format(time.RFC3339), now.UTC().Format(time.RFC3339))
 	}
-	return r
+	if now.Before(r.to) {
+		return NewRange(r.from, now), nil
+	}
+	return r, nil
 }

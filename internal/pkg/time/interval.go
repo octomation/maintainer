@@ -94,3 +94,14 @@ func (s Schedule) Suggest(t time.Time) time.Time {
 
 	return time.Time{}
 }
+
+// End returns the end of the interval that contains the time,
+// otherwise the zero time instant.
+func (s Schedule) End(t time.Time) time.Time {
+	for _, interval := range s[t.Weekday()] {
+		if interval.Contains(t) {
+			return interval.to.CopyTo(t)
+		}
+	}
+	return time.Time{}
+}

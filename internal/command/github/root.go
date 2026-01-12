@@ -18,20 +18,9 @@ func New(cnf *config.Tool) *cobra.Command {
 	}
 
 	set := command.PersistentFlags()
-	set.String("remote", "", "a connection to a remote repository")
 	set.String("token", "", "personal access token")
 
 	fn.Must(
-		func() error {
-			return cnf.Bind(func(v *viper.Viper) error {
-				return v.BindEnv("GIT_REMOTE")
-			})
-		},
-		func() error {
-			return cnf.Bind(func(v *viper.Viper) error {
-				return v.BindPFlag("git_remote", set.Lookup("remote"))
-			})
-		},
 		func() error {
 			return cnf.Bind(func(v *viper.Viper) error {
 				return v.BindEnv("GITHUB_TOKEN")

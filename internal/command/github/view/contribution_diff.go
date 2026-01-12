@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/alexeyco/simpletable"
@@ -10,110 +11,104 @@ import (
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
-// TODO:refactor simplify and remove the implementation
-
+// ContributionDiff prints a row per changed day: the count in the base,
+// the count in the head, and the signed difference between them.
+// A day missing from a source is shown as "-" on its side.
+//
+//	 Day          before   after   diff
+//	------------ -------- ------- ------
+//	 2013-11-13     1        5      +4
+//	 2013-11-14     5        2      -3
+//	The diff between base{"file:before.json"} and head{"file:after.json"}
+//	head also has 2 days that base lacks, 2013-11-17…2013-11-18, 1 with contributions listed above
+//
+// The baseOnly and headOnly days are the days only one source covers,
+// a line under the table names them, because a day without contributions
+// there has no row.
 func ContributionDiff(
 	printer interface{ Println(...interface{}) },
-	heatmap contribution.HeatMap,
+	diff []contribution.DayDiff,
+	baseOnly, headOnly []time.Time,
 	base, head string,
 ) error {
-	data := prepare(heatmap)
-	table := simpletable.New()
-
-	if len(data) == 0 {
-		printer.Println(fmt.Sprintf("There is no diff between head{%q} → base{%q}", head, base))
+	if len(diff) == 0 {
+		printer.Println(fmt.Sprintf("There is no diff between base{%q} and head{%q}", base, head))
+		coverage(printer, diff, baseOnly, headOnly)
 		return nil
 	}
 
+	table := simpletable.New()
 	table.Header = &simpletable.Header{
 		Cells: []*simpletable.Cell{
-			{Align: simpletable.AlignLeft, Text: "Day / Week"},
+			{Align: simpletable.AlignLeft, Text: "Day"},
+			{Align: simpletable.AlignCenter, Text: "before"},
+			{Align: simpletable.AlignCenter, Text: "after"},
+			{Align: simpletable.AlignCenter, Text: "diff"},
 		},
 	}
-	for _, week := range data {
-		table.Header.Cells = append(table.Header.Cells, &simpletable.Cell{
-			Align: simpletable.AlignCenter,
-			Text:  fmt.Sprintf("#%d", week.Number),
+	for _, day := range diff {
+		table.Body.Cells = append(table.Body.Cells, []*simpletable.Cell{
+			{Text: day.Day.Format(xtime.DateOnly)},
+			{Align: simpletable.AlignCenter, Text: count(day.Before, day.InBase)},
+			{Align: simpletable.AlignCenter, Text: count(day.After, day.InHead)},
+			{Align: simpletable.AlignCenter, Text: fmt.Sprintf("%+d", day.Delta())},
 		})
-	}
-
-	for i := time.Sunday; i <= time.Saturday; i++ {
-		row := make([]*simpletable.Cell, 0, len(data)+1)
-		row = append(row, &simpletable.Cell{Text: i.String()})
-		for _, week := range data {
-			txt := "-"
-			if count := week.Report[i]; count != 0 {
-				txt = fmt.Sprintf("%+d", count)
-			}
-			row = append(row, &simpletable.Cell{Align: simpletable.AlignCenter, Text: txt})
-		}
-		table.Body.Cells = append(table.Body.Cells, row)
-	}
-
-	table.Footer = &simpletable.Footer{
-		Cells: []*simpletable.Cell{
-			{
-				Span: len(table.Header.Cells),
-				Text: fmt.Sprintf("The diff between head{%q} → base{%q}", head, base),
-			},
-		},
 	}
 
 	table.SetStyle(simpletable.StyleCompactLite)
 	printer.Println(table.String())
+	printer.Println(fmt.Sprintf("The diff between base{%q} and head{%q}", base, head))
+	coverage(printer, diff, baseOnly, headOnly)
 	return nil
 }
 
-// TODO:refactor simplify and remove the implementation
-
-func prepare(heatmap contribution.HeatMap) []WeekReport {
-	report := make([]WeekReport, 0, 8)
-
-	start := xtime.TruncateToWeek(heatmap.From())
-	for week, end := start, heatmap.To(); week.Before(end); week = week.Add(xtime.Week) {
-		subset := heatmap.Subset(xtime.GregorianWeeks(week, 0, false))
-		if len(subset) == 0 {
-			continue
+// coverage prints a line per source that has days the other one lacks.
+// Such a day with contributions is a row of the diff, so they are counted
+// by the rows missing from the other side.
+func coverage(
+	printer interface{ Println(...interface{}) },
+	diff []contribution.DayDiff,
+	baseOnly, headOnly []time.Time,
+) {
+	var inBaseOnly, inHeadOnly int
+	for _, day := range diff {
+		if !day.InHead {
+			inBaseOnly++
 		}
-
-		_, num := week.ISOWeek()
-		row := WeekReport{
-			Number: num,
-			Report: make(map[time.Weekday]uint, len(subset)),
-		}
-		for ts, count := range subset {
-			row.Report[ts.Weekday()] = count
-		}
-		report = append(report, row)
-	}
-
-	// shift Sunday to the right and cleanup empty weeks
-	last := len(report) - 1
-	if last > -1 {
-		_, week := heatmap.To().Add(xtime.Week).ISOWeek()
-		report = append(report, WeekReport{
-			Number: week,
-			Report: make(map[time.Weekday]uint),
-		})
-		for i := last + 1; i > 0; i-- {
-			if count, present := report[i-1].Report[time.Sunday]; present {
-				report[i].Report[time.Sunday] = count
-				delete(report[i-1].Report, time.Sunday)
-			}
+		if !day.InBase {
+			inHeadOnly++
 		}
 	}
-	cleaned := make([]WeekReport, 0, len(report))
-	for _, row := range report {
-		if len(row.Report) > 0 {
-			cleaned = append(cleaned, row)
-		}
+	if line := extra("base", "head", baseOnly, inBaseOnly); line != "" {
+		printer.Println(line)
 	}
-	report = cleaned
-
-	return report
+	if line := extra("head", "base", headOnly, inHeadOnly); line != "" {
+		printer.Println(line)
+	}
 }
 
-type WeekReport struct {
-	Number int
-	Report map[time.Weekday]uint
+// extra describes the days one source has and the other one lacks,
+// or returns an empty string if there are no such days.
+func extra(side, other string, days []time.Time, contributed int) string {
+	if len(days) == 0 {
+		return ""
+	}
+
+	noun, span := "days", days[0].Format(xtime.DateOnly)+"…"+days[len(days)-1].Format(xtime.DateOnly)
+	if len(days) == 1 {
+		noun, span = "day", days[0].Format(xtime.DateOnly)
+	}
+	tail := "without contributions"
+	if contributed > 0 {
+		tail = fmt.Sprintf("%d with contributions listed above", contributed)
+	}
+	return fmt.Sprintf("%s also has %d %s that %s lacks, %s, %s", side, len(days), noun, other, span, tail)
+}
+
+// count returns the count of a day, or "-" if the source has no such day.
+func count(value uint, present bool) string {
+	if !present {
+		return "-"
+	}
+	return strconv.FormatUint(uint64(value), 10)
 }

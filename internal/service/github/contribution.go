@@ -12,6 +12,10 @@ import (
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
+// concurrentYears is the most calendar years requested at once: the span
+// is bounded by the commands, but a burst of requests is still unwelcome.
+const concurrentYears = 4
+
 // contributionCalendar requests the daily contribution counts of a user.
 // GitHub caps the span of a single collection at one year, which is why
 // ContributionHeatMap fans out per calendar year.
@@ -57,7 +61,14 @@ func (srv *Service) ContributionHeatMap(
 	}()
 
 	group, cascade := errgroup.WithContext(ctx)
+	group.SetLimit(concurrentYears)
 	min, max := scope.From().UTC().Year(), scope.To().UTC().Year()
+	// There are no contributions after the current year, so the heat map
+	// has no days of those years, and they are not requested. A year before
+	// GitHub is requested all the same: its days are known to have none.
+	if year := srv.now().UTC().Year(); max > year {
+		max = year
+	}
 	for i, user := min, u.GetLogin(); i <= max; i++ {
 		year := i
 		group.Go(func() error { return merge(srv.FetchContributions(cascade, user, year)) })
@@ -73,10 +84,12 @@ func (srv *Service) FetchContributions(
 	ctx context.Context,
 	user string, year int,
 ) (contribution.HeatMap, error) {
-	var response struct {
-		User struct {
-			Contributions struct {
-				Calendar struct {
+	// Pointers tell a missing calendar from an empty one: GitHub may answer
+	// without the user or the calendar, and it is not a year without contributions.
+	var response *struct {
+		User *struct {
+			Contributions *struct {
+				Calendar *struct {
 					Weeks []struct {
 						Days []struct {
 							Date  string `json:"date"`
@@ -104,6 +117,11 @@ func (srv *Service) FetchContributions(
 	}
 	if err := srv.queryGraphQL(ctx, contributionCalendar, vars, &response); err != nil {
 		return nil, fmt.Errorf("fetch contributions of %q for %d: %w", user, year, err)
+	}
+
+	if response == nil || response.User == nil || response.User.Contributions == nil ||
+		response.User.Contributions.Calendar == nil || len(response.User.Contributions.Calendar.Weeks) == 0 {
+		return nil, fmt.Errorf("fetch contributions of %q for %d: the response has no contribution calendar", user, year)
 	}
 
 	chm := make(contribution.HeatMap, 366)
