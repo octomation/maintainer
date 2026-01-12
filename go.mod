@@ -66,7 +66,3 @@ require (
 	golang.org/x/text v0.41.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 )
-
-// https://github.com/mitchellh/mapstructure/issues/288
-// https://github.com/mitchellh/mapstructure/pull/291
-replace github.com/mitchellh/mapstructure v1.5.0 => github.com/kamilsk/mapstructure v1.5.1-0.20220531052913-46503656eb6d

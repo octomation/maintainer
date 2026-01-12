@@ -32,7 +32,7 @@ See [development tools](tools/README.md) and [GitHub workflows](.github/workflow
 $ brew install --cask octolab/tap/maintainer
 ```
 
-The cask is published from the next release on, for macOS and Linux. The formula
+The cask is available for macOS and Linux. The formula
 (`brew install --formula octolab/tap/maintainer`) keeps existing installations updated
 and is deprecated on 2026-11-05. Keep only one of them; to switch, run
 `brew uninstall --formula maintainer && brew install --cask maintainer`.
@@ -45,16 +45,20 @@ $ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/in
 $ wget -qO-  https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh
 ```
 
+The script installs the latest release into `./bin`. Pass `-b` to choose another directory and a tag to pin the version:
+
+```bash
+$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.1.0
+```
+
 > Don't forget about [security](https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/).
 
 ### Source
 
-Install the development version from a checkout so Go uses the repository's module replacements:
+Install the latest release with Go 1.27 or newer, no checkout needed:
 
 ```bash
-$ git clone https://github.com/octomation/maintainer.git
-$ cd maintainer
-$ go install .
+$ go install go.octolab.org/toolset/maintainer@latest
 ```
 
 The executable is installed into `GOBIN`, or `$(go env GOPATH)/bin` when `GOBIN` is unset. Add that directory to `PATH`.
