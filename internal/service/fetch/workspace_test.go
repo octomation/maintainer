@@ -56,8 +56,8 @@ func TestWorkspacePinLifecycle(t *testing.T) {
 	acts, err := newPlanner(t, cnf).Plan(PlanInput{State: st, Snapshots: []github.RepoSnapshot{snap}, Clones: []DiskClone{clone}})
 	require.NoError(t, err)
 	require.Len(t, acts, 1)
-	assert.Equal(t, KindNoop, acts[0].Kind)
-	assert.Contains(t, acts[0].Reason, "out-of-scope")
+	assert.Equal(t, KindOrphan, acts[0].Kind)
+	assert.Equal(t, "out-of-scope", acts[0].OrphanReason)
 }
 
 func TestWorkspacePinsDoNotChooseDuplicates(t *testing.T) {
@@ -77,7 +77,8 @@ func TestWorkspacePinsDoNotChooseDuplicates(t *testing.T) {
 	cnf.Repos = []config.Repo{{Match: config.RepoMatch{ID: 1}, Path: "prototyping/tool"}}
 	acts, err := newPlanner(t, cnf).Plan(PlanInput{State: state.New(), Snapshots: []github.RepoSnapshot{snap}, Clones: clones})
 	require.NoError(t, err)
-	require.Len(t, acts, 1)
+	require.Len(t, acts, 2)
+	assert.Equal(t, KindOrphan, acts[1].Kind)
 	assert.Equal(t, KindAdopt, acts[0].Kind)
 	assert.Empty(t, acts[0].Record.PinSource, "a specific repo pin wins over a broad workspace pin")
 }
@@ -92,8 +93,8 @@ func TestWorkspaceOldStateIsNotAuthority(t *testing.T) {
 		acts, err := newPlanner(t, nil).Plan(PlanInput{State: st, Snapshots: []github.RepoSnapshot{snap}})
 		require.NoError(t, err)
 		require.Len(t, acts, 1)
-		assert.Equal(t, KindNoop, acts[0].Kind)
-		assert.Contains(t, acts[0].Reason, "out-of-scope")
+		assert.Equal(t, KindOrphan, acts[0].Kind)
+		assert.Equal(t, "out-of-scope", acts[0].OrphanReason)
 	}
 }
 
@@ -132,13 +133,16 @@ func TestWorkspaceFetchStatusSameLocalScope(t *testing.T) {
 		fetchPaths = append(fetchPaths, c.Path)
 	}
 	for _, row := range rows {
-		statusPaths = append(statusPaths, row.Path)
+		if row.OrphanReason == "" {
+			statusPaths = append(statusPaths, row.Path)
+		}
 		assert.Empty(t, row.Error)
 	}
 	sort.Strings(fetchPaths)
 	sort.Strings(statusPaths)
 	assert.Equal(t, fetchPaths, statusPaths)
-	require.Len(t, rows, 2)
+	require.Len(t, rows, 3)
+	assert.Equal(t, "out-of-scope", rows[2].OrphanReason)
 	assert.False(t, rows[0].Pinned)
 	assert.True(t, rows[1].Pinned)
 }

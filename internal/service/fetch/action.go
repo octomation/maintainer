@@ -54,9 +54,11 @@ type Action struct {
 	Profile      string // source profile whose creds materialise the clone
 	UpdateRemote bool   // a move that also rewrites remote.origin.url
 
-	Filtered bool   // noop/fetch flagged "filtered" (§7.1)
-	Flag     string // orphan/confirmation flag (inaccessible/legal-hold)
-	Reason   string // conflict / report-only explanation
+	Filtered     bool   // noop/fetch flagged "filtered" (§7.1)
+	Flag         string // orphan/confirmation flag (inaccessible/legal-hold)
+	Reason       string // conflict / report-only explanation
+	OrphanReason string // stable machine-readable management reason
+	ActivePath   string // selected checkout when this is an inactive copy
 
 	Snapshot *github.RepoSnapshot
 	Record   *state.Record

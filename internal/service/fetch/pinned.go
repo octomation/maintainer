@@ -70,6 +70,16 @@ func planPinned(base Action, target string, rec *state.Record, clones []DiskClon
 	base.Record.PinnedPath = target
 	if rec != nil {
 		base.Record.FirstSeen = rec.FirstSeen
+		base.Record.PreviousPaths = append([]string(nil), rec.PreviousPaths...)
+		if rec.Path != "" && rec.Path != target {
+			found := false
+			for _, path := range base.Record.PreviousPaths {
+				found = found || path == rec.Path
+			}
+			if !found {
+				base.Record.PreviousPaths = append(base.Record.PreviousPaths, rec.Path)
+			}
+		}
 	}
 	base.UpdateRemote = c.RemoteURL != "" && c.RemoteURL != base.RemoteURL
 	switch {

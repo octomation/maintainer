@@ -3,6 +3,7 @@ package status
 import (
 	"context"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	fetchsvc "go.octolab.org/toolset/maintainer/internal/service/fetch"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
+	"go.octolab.org/toolset/maintainer/internal/service/workspace"
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
@@ -35,7 +37,8 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 	pins := map[string]string{}
 	pinnedPaths := map[string]bool{}
 	explicitPaths := map[string]bool{}
-	suspended := map[string]bool{}
+	orphans := map[string]string{}
+	activePaths := map[string]string{}
 	add := func(path string, rec state.Record) {
 		path = filepath.Clean(path)
 		if _, exists := byPath[path]; exists && rec.ID == 0 {
@@ -46,6 +49,12 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 			name = rec.OwnerLogin + "/" + rec.Name
 		}
 		byPath[path] = Row{ID: rec.ID, Repository: name, Path: path, DefaultBranch: rec.DefaultBranch}
+		if rec.RemoteStatus == "gone" {
+			orphans[path] = workspace.OrphanRemoteGone
+			row := byPath[path]
+			row.RemoteCheckedAt = rec.RemoteCheckedAt
+			byPath[path] = row
+		}
 	}
 	for _, rec := range st.Repos {
 		byName[strings.ToLower(rec.OwnerLogin+"/"+rec.Name)] = rec
@@ -53,13 +62,27 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 			continue
 		}
 		snap := snapshot(rec)
-		if !paths.Authorised(rec, snap) {
-			suspended[filepath.Clean(rec.Path)] = true
-			continue
-		}
 		pin, err := paths.PinnedPath(snap, &rec)
 		if err != nil {
 			return nil, err
+		}
+		active := rec.Path
+		if pin != "" {
+			active = pin
+		}
+		for _, old := range append(append([]string(nil), rec.PreviousPaths...), rec.Path) {
+			if old == "" || old == active {
+				continue
+			}
+			if _, err := os.Stat(filepath.Join(old, ".git")); !os.IsNotExist(err) {
+				add(old, rec)
+				orphans[old], activePaths[old] = workspace.OrphanDuplicatePin, active
+			}
+		}
+		if !paths.Authorised(rec, snap) {
+			add(rec.Path, rec)
+			orphans[filepath.Clean(rec.Path)] = workspace.OrphanOutOfScope
+			continue
 		}
 		if pin != "" {
 			pinnedPaths[pin] = true
@@ -93,9 +116,6 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 	}
 	err = scope.Walk(ctx, func(path string, pinned bool) error {
-		if suspended[path] {
-			return nil
-		}
 		add(path, state.Record{})
 		if pinned {
 			pinnedPaths[path] = true
@@ -108,6 +128,10 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 	rows := make([]Row, 0, len(byPath))
 	for _, row := range byPath {
 		row.Pinned = pinnedPaths[row.Path]
+		row.OrphanReason, row.ActivePath = orphans[row.Path], activePaths[row.Path]
+		if row.OrphanReason == workspace.OrphanDuplicatePin || row.OrphanReason == workspace.OrphanOutOfScope {
+			row.Pinned = false
+		}
 		rows = append(rows, row)
 	}
 	var group errgroup.Group
@@ -153,9 +177,10 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 		if pin, ok := pins[key]; ok {
 			if row.Path != pin {
-				continue
+				row.OrphanReason, row.ActivePath, row.Pinned = workspace.OrphanDuplicatePin, pin, false
+			} else {
+				row.Pinned = true
 			}
-			row.Pinned = true
 		}
 		if duplicates[key] > 1 && pins[key] == "" {
 			row.Status, row.Error = "error", "multiple checkouts for this repository; select one with a per-repo path"

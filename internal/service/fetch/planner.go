@@ -6,6 +6,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
+	"go.octolab.org/toolset/maintainer/internal/service/workspace"
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
@@ -54,11 +55,12 @@ type Confirmation struct {
 // facts are gathered by the service before planning, so the Planner does no
 // I/O (§9).
 type PlanInput struct {
-	Snapshots     []github.RepoSnapshot
-	State         *state.State
-	Clones        []DiskClone
-	Confirmations map[int64]Confirmation
-	Occupancy     map[string]Occupancy // keyed by cleaned target path; optional
+	KnownCheckouts map[string]bool // existing exact historical paths; reporting only
+	Snapshots      []github.RepoSnapshot
+	State          *state.State
+	Clones         []DiskClone
+	Confirmations  map[int64]Confirmation
+	Occupancy      map[string]Occupancy // keyed by cleaned target path; optional
 }
 
 // Planner turns {API, State, Disk} facts into an ordered, conflict-checked
@@ -125,8 +127,38 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 			continue // ignore = true suppresses the whole pipeline (§4.2)
 		}
 		if hasRec && !p.paths.Authorised(*rec, snap) {
-			actions = append(actions, Action{Kind: KindNoop, ID: id, Owner: owner, Name: name, Path: rec.Path, Record: rec, Reason: "out-of-scope: state does not authorise managing this checkout"})
+			actions = append(actions, orphanAction(id, owner, name, rec.Path, workspace.OrphanOutOfScope, ""))
 			continue
+		}
+		// A specific pin selects mutation authority, not visibility. Other
+		// checkouts remain visible even when the selected pin is missing.
+		pinSnap := snap
+		if !hasSnap && hasRec {
+			pinSnap = github.RepoSnapshot{ID: id, Owner: rec.OwnerLogin, Name: rec.Name}
+		}
+		pin, err := p.paths.PinnedPath(pinSnap, rec)
+		if err != nil {
+			return nil, err
+		}
+		if pin != "" && !p.paths.WorkspacePin(pinSnap, rec) {
+			seen := map[string]bool{pin: true}
+			addOrphan := func(path string) {
+				if path == "" || seen[path] {
+					return
+				}
+				seen[path] = true
+				actions = append(actions, orphanAction(id, owner, name, path, workspace.OrphanDuplicatePin, pin))
+			}
+			for _, c := range clonesByID[id] {
+				addOrphan(c.Path)
+			}
+			if hasRec {
+				for _, path := range append(append([]string(nil), rec.PreviousPaths...), rec.Path) {
+					if in.KnownCheckouts[path] {
+						addOrphan(path)
+					}
+				}
+			}
 		}
 
 		switch {
@@ -139,7 +171,14 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 				actions = append(actions, *act)
 			}
 		case hasRec:
-			if act := p.planMissing(*rec, in.Confirmations[id]); act != nil {
+			c, confirmed := in.Confirmations[id]
+			if !confirmed {
+				continue
+			} // absence of evidence is not a 404
+			if act := p.planMissing(*rec, c); act != nil {
+				if pin != "" {
+					act.Path = pin
+				}
 				actions = append(actions, *act)
 			}
 		}
@@ -156,6 +195,11 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 		return actions[i].Path < actions[j].Path
 	})
 	return actions, nil
+}
+
+func orphanAction(id int64, owner, name, path, reason, active string) Action {
+	return Action{Kind: KindOrphan, ID: id, Owner: owner, Name: name, Path: path,
+		OrphanReason: reason, ActivePath: active, Reason: workspace.OrphanDescription(reason, active)}
 }
 
 // Confirmation of an unchanged repository outside discovery remains a noop.
@@ -410,7 +454,8 @@ func (p *Planner) planMissing(rec state.Record, c Confirmation) *Action {
 		return nil // leave unchanged; the service reports the transient error
 	default: // ConfirmGone (404)
 		base.Kind = KindOrphan
-		base.Reason = "gone on GitHub (404); local clone retained"
+		base.OrphanReason = workspace.OrphanRemoteGone
+		base.Reason = workspace.OrphanDescription(base.OrphanReason, "")
 		return &base
 	}
 }

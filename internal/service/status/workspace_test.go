@@ -26,7 +26,9 @@ func TestWorkspaceBroadPinDuplicatesAndExplicitSelection(t *testing.T) {
 	cnf.Repos = []config.Repo{{Match: config.RepoMatch{ID: 1}, Path: pin}}
 	rows, err = Collect(context.Background(), cnf, state.New(), root, root, nil, 2)
 	require.NoError(t, err)
-	require.Len(t, rows, 1)
+	require.Len(t, rows, 2)
+	assert.Equal(t, managed, rows[1].Path)
+	assert.Equal(t, "duplicate-pin", rows[1].OrphanReason)
 	assert.Equal(t, pin, rows[0].Path)
 	assert.NotEqual(t, managed, rows[0].Path)
 	assert.True(t, rows[0].Pinned)
@@ -41,7 +43,9 @@ func TestWorkspaceRemovedPinDoesNotReenterThroughStateOrTemplate(t *testing.T) {
 	cnf := &config.Fetch{Workspace: &config.Workspace{Root: root}}
 	rows, err := Collect(context.Background(), cnf, st, root, root, nil, 1)
 	require.NoError(t, err)
-	assert.Empty(t, rows)
+	require.Len(t, rows, 1)
+	assert.Equal(t, "out-of-scope", rows[0].OrphanReason)
+	assert.False(t, rows[0].Pinned)
 	cnf.Workspace.Pins = []string{"public/acme"}
 	rows, err = Collect(context.Background(), cnf, st, root, root, nil, 1)
 	require.NoError(t, err)
