@@ -58,7 +58,7 @@ Unknown/inaccessible identity blocks changes; status remains entirely offline.
 A broad pin does not choose between duplicate checkouts. Both rows are marked
 as ambiguous in status and fetch reports a conflict. A specific per-repository
 `path` selects the active checkout and keeps mutation precedence over copies.
-Other copies remain visible as `orphan [duplicate-pin]`, with their own local
+Other copies remain visible as `orphan`, with their own local
 changes and the selected active path. They are never fetched, moved or deleted.
 
 Pins granted by workspace rules are recorded with `pin_source = "workspace"`.
@@ -70,7 +70,7 @@ their legacy persistent-pin semantics.
 ## State and boundaries
 
 An ordinary state record outside the current scope does not grant management
-permission. Both commands show it as `orphan [out-of-scope]`; fetch keeps the record,
+permission. Both commands show it as `orphan`; fetch keeps the record,
 and does not move or re-clone it. Changing root is not a request to import
 checkouts from the previous root.
 
@@ -84,7 +84,8 @@ after the switch, including outside root. These exact known paths can be
 inspected for reporting; they never become recursive discovery roots or gain
 mutation permission. Missing historical copies are omitted.
 
-`orphan [remote-gone]` means fetch confirmed a GitHub ID returned 404. Offline
+An orphan with JSON `orphan_reason: remote-gone` means fetch confirmed a GitHub
+ID returned 404. Human output uses just `orphan`, without bracketed codes. Offline
 status can only show the last saved observation, labelled cached with its time.
 Plan-only does not persist observations; apply does, without deleting the clone.
 Missing listings, authentication failures and network errors are not proof of

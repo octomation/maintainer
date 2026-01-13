@@ -123,7 +123,7 @@ path = "~/.dotfiles"
 Fetch verifies its GitHub identity and selects it even if an old duplicate
 exists at `Development/public/kamilsk/dotfiles`. Apply adopts the selected path
 into state; the duplicate stays untouched and appears as a report-only
-`orphan [duplicate-pin]` with the active path. Rename/transfer updates origin at
+`orphan` with the active path (`orphan_reason: duplicate-pin` in JSON). Rename/transfer updates origin at
 `~/.dotfiles`, without moving the folder. Missing or foreign pinned paths are
 conflicts; fetch never clones into a pin or falls back to a duplicate.
 

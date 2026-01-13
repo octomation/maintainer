@@ -55,7 +55,7 @@ func cells(row Row) []string {
 		status = strings.Join(parts, " · ")
 	}
 	if row.OrphanReason != "" {
-		status = "orphan [" + row.OrphanReason + "] · " + status
+		status = "orphan · " + status
 	}
 	return []string{safeText(row.Repository), safeText(branch), safeText(changes), safeText(status)}
 }
