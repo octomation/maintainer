@@ -80,9 +80,9 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 	}
 	// Transfers can leave the selected owners. A successful ID confirmation
 	// still supplies authoritative metadata for reconciliation.
-	for id, c := range in.Confirmations {
-		if _, exists := snapByID[id]; !exists && c.Status == ConfirmFound && c.Snapshot != nil {
-			snapByID[id] = *c.Snapshot
+	for _, snap := range confirmedRenames(in.State, in.Confirmations) {
+		if _, exists := snapByID[snap.ID]; !exists {
+			snapByID[snap.ID] = snap
 		}
 	}
 	clonesByID := make(map[int64][]DiskClone)
@@ -131,6 +131,21 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 		return actions[i].ID < actions[j].ID
 	})
 	return actions, nil
+}
+
+// Confirmation of an unchanged repository outside discovery remains a noop.
+// Only a rename/transfer needs to re-enter reconciliation from confirmation.
+func confirmedRenames(st *state.State, confirmations map[int64]Confirmation) []github.RepoSnapshot {
+	var snapshots []github.RepoSnapshot
+	for id, c := range confirmations {
+		if c.Status != ConfirmFound || c.Snapshot == nil || c.Snapshot.ID != id {
+			continue
+		}
+		if rec, ok := st.ByID(id); ok && (rec.OwnerLogin != c.Snapshot.Owner || rec.Name != c.Snapshot.Name) {
+			snapshots = append(snapshots, *c.Snapshot)
+		}
+	}
+	return snapshots
 }
 
 // planPresent handles the API-present rows of the drift table (§10).

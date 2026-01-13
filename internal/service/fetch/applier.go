@@ -72,7 +72,7 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 			if r, ok := st.ByID(act.ID); ok {
 				r.RemoteURL = act.RemoteURL
 				r.OwnerLogin, r.Name = act.Owner, act.Name
-				r.LastApply = now
+				r.LastSeen, r.LastApply = now, now
 			}
 		})
 
