@@ -1,9 +1,14 @@
 package status
 
 import (
+	"bytes"
+	"context"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 	"testing"
+	"time"
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/charmbracelet/x/ansi"
@@ -14,6 +19,114 @@ import (
 func press(m *screen, code rune, text string, mod tea.KeyMod) tea.Cmd {
 	_, cmd := m.Update(tea.KeyPressMsg{Code: code, Text: text, Mod: mod})
 	return cmd
+}
+
+func TestQuitDrainsInputBeforeReturningToShell(t *testing.T) {
+	for _, key := range []tea.KeyPressMsg{
+		{Code: tea.KeyEscape},
+		{Code: 'q', Text: "q"},
+		{Code: 'c', Mod: tea.ModCtrl},
+		{Code: 'd', Mod: tea.ModCtrl},
+	} {
+		t.Run(key.String(), func(t *testing.T) {
+			m := newScreen([]Row{{Repository: "one"}, {Repository: "two"}})
+			_, cmd := m.Update(key)
+			require.NotNil(t, cmd)
+			require.True(t, m.quitting)
+			view := m.View()
+			assert.True(t, view.AltScreen, "keep the TUI open while consuming trailing input")
+			assert.Equal(t, tea.MouseModeNone, view.MouseMode)
+			assert.True(t, view.DisableBracketedPasteMode)
+			for _, trailing := range []tea.Msg{
+				tea.MouseWheelMsg{Button: tea.MouseWheelDown},
+				tea.KeyPressMsg{Code: '/'},
+				tea.KeyPressMsg{Code: 'q'},
+				tea.PasteMsg{Content: "65;65;53M"},
+			} {
+				_, next := m.Update(trailing)
+				assert.Nil(t, next, "trailing input must not schedule commands")
+			}
+			assert.Zero(t, m.selection.Index)
+			assert.False(t, m.search.Focused())
+			assert.Empty(t, m.search.Value())
+			assert.IsType(t, tea.QuitMsg{}, cmd())
+		})
+	}
+}
+
+func TestEscapeInSearchDoesNotStartExit(t *testing.T) {
+	m := newScreen(nil)
+	m.search.Focus()
+	m.search.SetValue("query")
+	assert.Nil(t, press(m, tea.KeyEscape, "", 0))
+	assert.False(t, m.search.Focused())
+	assert.Equal(t, "query", m.search.Value())
+	assert.False(t, m.quitting)
+	assert.Nil(t, press(m, tea.KeyEscape, "", 0))
+	assert.Empty(t, m.search.Value())
+	assert.False(t, m.quitting)
+}
+
+func TestInteractiveConsumesReportsAfterDisablingMouse(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	in, input, err := os.Pipe()
+	require.NoError(t, err)
+	defer in.Close()
+	defer input.Close()
+	output, out, err := os.Pipe()
+	require.NoError(t, err)
+	defer output.Close()
+	defer out.Close()
+
+	enabled, disabled := make(chan struct{}), make(chan struct{})
+	go func() {
+		var seen bytes.Buffer
+		buf := make([]byte, 4096)
+		on, off := false, false
+		for {
+			n, err := output.Read(buf)
+			seen.Write(buf[:n])
+			if !on && strings.Contains(seen.String(), ansi.SetModeMouseExtSgr) {
+				on = true
+				close(enabled)
+			}
+			if on && !off && strings.Contains(seen.String(), ansi.ResetModeMouseExtSgr) {
+				off = true
+				close(disabled)
+			}
+			if err != nil {
+				return
+			}
+		}
+	}()
+	done := make(chan error, 1)
+	go func() { done <- Interactive(ctx, in, out, []Row{{Repository: "acme/tool"}}) }()
+	await := func(ch <-chan struct{}) {
+		t.Helper()
+		select {
+		case <-ch:
+		case <-ctx.Done():
+			t.Fatal("timed out waiting for terminal mode change")
+		}
+	}
+	await(enabled)
+	_, err = input.WriteString("\x1b")
+	require.NoError(t, err)
+	await(disabled)
+	// Simulate reports already in flight when the terminal processes mouse-off.
+	_, err = input.WriteString("\x1b[<65;65;53M\x1b[<65;65;53Mtrailing text")
+	require.NoError(t, err)
+	select {
+	case err = <-done:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		t.Fatal("interactive status did not exit")
+	}
+	require.NoError(t, input.Close())
+	remaining, err := io.ReadAll(in)
+	require.NoError(t, err)
+	assert.Empty(t, remaining, "TUI input must not be left for the shell")
 }
 
 func TestKeyboardSortingAndFilter(t *testing.T) {

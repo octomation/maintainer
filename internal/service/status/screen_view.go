@@ -145,5 +145,9 @@ func (m *screen) View() tea.View {
 	v := tea.NewView(strings.Join(all[:min(len(all), m.height)], "\n"))
 	v.AltScreen = true
 	v.MouseMode = tea.MouseModeCellMotion
+	if m.quitting {
+		v.MouseMode = tea.MouseModeNone
+		v.DisableBracketedPasteMode = true
+	}
 	return v
 }
