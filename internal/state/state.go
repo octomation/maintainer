@@ -25,6 +25,7 @@ type Record struct {
 	Visibility       string    `json:"visibility"`
 	Path             string    `json:"path"`
 	PinnedPath       string    `json:"pinned_path,omitempty"` // explicit checkout; survives rename/transfer
+	PinSource        string    `json:"pin_source,omitempty"`  // "workspace" pins require current workspace authorisation
 	RemoteURL        string    `json:"remote_url"`
 	CloneURL         string    `json:"clone_url"`
 	SourceProfile    string    `json:"source_profile"`

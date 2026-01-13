@@ -9,9 +9,12 @@ const FetchConfigTemplate = `# maintainer fetch configuration (also read by main
 # Location: ./fetch.toml or $XDG_CONFIG_HOME/maintainer/fetch.toml
 # Format is picked by extension; a fetch.yaml form is a 1:1 translation.
 
-[defaults]
+[workspace]
 root         = "."        # checkout root; defaults to the current working directory
 path         = "{{.Visibility}}/{{.Owner}}/{{.Repo}}"
+pins         = []         # existing checkout trees kept in place, e.g. ["prototyping"]
+
+[defaults]
 clone_url    = "ssh"      # "ssh" | "https"
 concurrency  = 4
 # state_file = "/path/to/state.json"  # default: $XDG_STATE_HOME/maintainer/fetch/state.json

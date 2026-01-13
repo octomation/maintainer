@@ -73,11 +73,11 @@ func TestInvalidOptions(t *testing.T) {
 
 func TestErrorRowsDoNotHideSuccessfulCheckouts(t *testing.T) {
 	root := t.TempDir()
-	_, err := git.PlainInit(filepath.Join(root, "present"), false)
+	_, err := git.PlainInit(filepath.Join(root, "public/acme/present"), false)
 	require.NoError(t, err)
 	statePath := filepath.Join(t.TempDir(), "state.json")
 	st := state.New()
-	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "missing", Path: filepath.Join(root, "missing")})
+	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "missing", Path: filepath.Join(root, "public/acme/missing")})
 	require.NoError(t, state.NewStore(afero.NewOsFs(), statePath, nil).Save(st))
 	configPath := filepath.Join(t.TempDir(), "fetch.toml")
 	require.NoError(t, os.WriteFile(configPath, []byte("[defaults]\nroot = '"+root+"'\nstate_file = '"+statePath+"'\n"), 0o600))

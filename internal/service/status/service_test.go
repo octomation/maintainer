@@ -21,7 +21,7 @@ func TestCollectPinnedAndMissing(t *testing.T) {
 		Repos: []config.Repo{{Match: config.RepoMatch{ID: 1}, Path: pin}}}
 	st := state.New()
 	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "tool", Path: duplicate})
-	st.Upsert(state.Record{ID: 2, OwnerLogin: "acme", Name: "missing", Path: filepath.Join(root, "missing")})
+	st.Upsert(state.Record{ID: 2, OwnerLogin: "acme", Name: "missing", Path: filepath.Join(root, "public/acme/missing")})
 	rows, err := Collect(context.Background(), cnf, st, root, root, nil, 2)
 	require.NoError(t, err)
 	require.Len(t, rows, 2)

@@ -8,6 +8,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
+	"go.octolab.org/toolset/maintainer/internal/service/workspace"
 )
 
 // templateVars are the variables available to a path template (§4.3).
@@ -110,12 +111,17 @@ func expand(s, home, base string) (string, error) {
 type PathResolver struct {
 	cnf      *config.Fetch
 	renderer *PathRenderer
+	scope    *workspace.Scope
+	scopeErr error
 }
 
 // NewPathResolver wires a resolver from config and an expanded renderer.
 func NewPathResolver(cnf *config.Fetch, renderer *PathRenderer) *PathResolver {
-	return &PathResolver{cnf: cnf, renderer: renderer}
+	scope, err := workspace.New(cnf, renderer.Root(), renderer.home)
+	return &PathResolver{cnf: cnf, renderer: renderer, scope: scope, scopeErr: err}
 }
+
+func (pr *PathResolver) Scope() (*workspace.Scope, error) { return pr.scope, pr.scopeErr }
 
 // Resolve returns the absolute target path for a snapshot.
 func (pr *PathResolver) Resolve(snap github.RepoSnapshot) (string, error) {
@@ -125,11 +131,21 @@ func (pr *PathResolver) Resolve(snap github.RepoSnapshot) (string, error) {
 		return pr.renderer.Render(r.Path, snap, external)
 	}
 	// Per-owner override next.
+	tmpl := pr.cnf.WorkspaceConfig().Path
 	if o, ok := pr.cnf.OwnerOverride(snap.Owner); ok && o.Path != "" {
-		return pr.renderer.Render(o.Path, snap, false)
+		tmpl = o.Path
 	}
-	// Defaults.
-	return pr.renderer.Render(pr.cnf.Defaults.Path, snap, false)
+	resolved, err := pr.renderer.Render(tmpl, snap, false)
+	if err != nil {
+		return "", err
+	}
+	if pr.scopeErr != nil {
+		return "", pr.scopeErr
+	}
+	if !pr.scope.Managed(resolved) {
+		return "", fmt.Errorf("rendered path %q is outside workspace layout; template fields must remain within one path component", resolved)
+	}
+	return resolved, nil
 }
 
 // External reports whether the resolved path for a snapshot lives outside root

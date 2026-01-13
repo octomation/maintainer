@@ -18,7 +18,9 @@ type DiskClone struct {
 	Owner     string
 	Name      string
 	ID        int64
-	Origins   int // number of origin fetch URLs (>1 ⇒ conflict)
+	Origins   int  // number of origin fetch URLs (>1 ⇒ conflict)
+	Pinned    bool // discovered through workspace.pins or an explicit path
+	Error     string
 }
 
 // Occupancy classifies what occupies a would-be target path (§7.5).
@@ -74,6 +76,9 @@ func NewPlanner(cnf *config.Fetch, paths *PathResolver) *Planner {
 // Plan computes the action list. The result is sorted by apply order then id,
 // with target-path collisions resolved up front (§7.4).
 func (p *Planner) Plan(in PlanInput) ([]Action, error) {
+	if _, err := p.paths.Scope(); err != nil {
+		return nil, err
+	}
 	snapByID := make(map[int64]github.RepoSnapshot, len(in.Snapshots))
 	for _, s := range in.Snapshots {
 		snapByID[s.ID] = s
@@ -98,13 +103,30 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 	ids := unionIDs(in)
 
 	actions := make([]Action, 0, len(ids))
+	blocked := map[int64]bool{}
+	for _, c := range in.Clones {
+		if c.Error != "" {
+			if p.cnf.Ignored(c.ID, c.Owner, c.Name) {
+				continue
+			}
+			blocked[c.ID] = true
+			actions = append(actions, Action{Kind: KindConflict, ID: c.ID, Owner: c.Owner, Name: c.Name, Path: c.Path, Reason: c.Error})
+		}
+	}
 	for _, id := range ids {
+		if blocked[id] {
+			continue
+		}
 		snap, hasSnap := snapByID[id]
 		rec, hasRec := in.State.ByID(id)
 
 		owner, name := bestName(snap, hasSnap, rec, hasRec)
 		if p.cnf.Ignored(id, owner, name) {
 			continue // ignore = true suppresses the whole pipeline (§4.2)
+		}
+		if hasRec && !p.paths.Authorised(*rec, snap) {
+			actions = append(actions, Action{Kind: KindNoop, ID: id, Owner: owner, Name: name, Path: rec.Path, Record: rec, Reason: "out-of-scope: state does not authorise managing this checkout"})
+			continue
 		}
 
 		switch {
@@ -128,7 +150,10 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 		if actions[i].order() != actions[j].order() {
 			return actions[i].order() < actions[j].order()
 		}
-		return actions[i].ID < actions[j].ID
+		if actions[i].ID != actions[j].ID {
+			return actions[i].ID < actions[j].ID
+		}
+		return actions[i].Path < actions[j].Path
 	})
 	return actions, nil
 }
@@ -169,23 +194,56 @@ func (p *Planner) planPresent(
 		return nil, err
 	}
 	if pinned != "" {
-		return planPinned(base, pinned, rec, clones), nil
+		a := planPinned(base, pinned, rec, clones)
+		if p.paths.WorkspacePin(snap, rec) {
+			if len(uniquePaths(clones)) > 1 {
+				a.Kind, a.Reason = KindConflict, "workspace pin does not select between duplicate checkouts"
+			}
+			if a.Record != nil {
+				a.Record.PinSource = "workspace"
+			}
+		}
+		return a, nil
+	}
+	for _, c := range clones {
+		if p.paths.scope.Pinned(c.Path) {
+			if len(uniquePaths(clones)) > 1 {
+				base.Kind, base.Path, base.Reason = KindConflict, c.Path, "workspace pin does not select between duplicate checkouts"
+				return &base, nil
+			}
+			a := planPinned(base, c.Path, rec, clones)
+			if a.Record != nil {
+				a.Record.PinSource = "workspace"
+			}
+			return a, nil
+		}
+	}
+	// Explicit pins have already been handled. Ordinary disk facts must not
+	// turn an arbitrary path into an adopted checkout, even in a pure plan.
+	var managed []DiskClone
+	for _, c := range clones {
+		if p.paths.scope.Managed(c.Path) {
+			managed = append(managed, c)
+		}
+	}
+	clones = managed
+	if len(uniquePaths(clones)) > 1 {
+		base.Kind, base.Path, base.Reason = KindConflict, clones[0].Path, "same repository id found at multiple locations on disk"
+		return &base, nil
 	}
 	target, err := p.paths.Resolve(snap)
 	if err != nil {
 		return nil, fmt.Errorf("resolve path for %s (id=%d): %w", snap.FullName(), snap.ID, err)
+	}
+	if p.paths.scope.Pinned(target) {
+		base.Kind, base.Path, base.Reason = KindConflict, target, "target is inside workspace.pins; only existing pinned checkouts are allowed"
+		return &base, nil
 	}
 	snapCopy := snap
 
 	if !hasRec {
 		// API Y, State N — adopt an existing clone, clone fresh, or conflict.
 		switch {
-		case len(uniquePaths(clones)) > 1:
-			a := base
-			a.Kind = KindConflict
-			a.Reason = "same repository id found at multiple locations on disk"
-			a.Path = target
-			return &a, nil
 		case len(clones) == 1:
 			c := clones[0]
 			a := base

@@ -66,11 +66,14 @@ func NewService(
 	if deps.IDGen == nil {
 		deps.IDGen = defaultIDGen(deps.Clock)
 	}
-	renderer, err := NewPathRenderer(cnf.Defaults.Root, home, cwd)
+	renderer, err := NewPathRenderer(cnf.WorkspaceConfig().Root, home, cwd)
 	if err != nil {
 		return nil, exit.WithUser(err)
 	}
 	paths := NewPathResolver(cnf, renderer)
+	if _, err := paths.Scope(); err != nil {
+		return nil, exit.WithUser(err)
+	}
 
 	auth := func(profile, transport string) gitsvc.Auth {
 		return gitsvc.Auth{Transport: transport, Token: tokenFor(profiles, profile)}
@@ -111,6 +114,10 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 
 	confirmations := s.confirm(ctx, st, snapshots)
 	snapshots = append(snapshots, confirmedRenames(st, confirmations)...)
+	snapshots, err = s.explicitSnapshots(ctx, st, snapshots)
+	if err != nil {
+		return err
+	}
 	var extraPaths []string
 	for _, snap := range snapshots {
 		rec, _ := st.ByID(snap.ID)
@@ -122,12 +129,62 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 			extraPaths = append(extraPaths, path)
 		}
 	}
+	// Persisted explicit pins remain inspectable when confirmation says the
+	// remote is gone/inaccessible. Their local path must not be forgotten.
+	for _, rec := range st.Repos {
+		if s.cnf.Ignored(rec.ID, rec.OwnerLogin, rec.Name) {
+			continue
+		}
+		pin, err := s.planner.paths.PinnedPath(github.RepoSnapshot{ID: rec.ID, Owner: rec.OwnerLogin, Name: rec.Name}, &rec)
+		if err != nil {
+			return exit.WithUser(err)
+		}
+		if pin != "" {
+			extraPaths = append(extraPaths, pin)
+		}
+	}
 	var clones []DiskClone
 	if s.adopter != nil {
-		clones, err = s.adopter.Scan(ctx, s.root, snapshots, s.cnf, extraPaths...)
+		clones, err = s.adopter.ScanScoped(ctx, s.planner.paths.scope, snapshots, extraPaths...)
 		if err != nil {
 			return err
 		}
+	}
+	// Existing workspace checkouts (especially pins) are explicit local scope,
+	// even when their owners are absent from remote discovery for new clones.
+	known := make(map[int64]bool)
+	for _, snap := range snapshots {
+		known[snap.ID] = true
+	}
+	for i := range clones {
+		c := &clones[i]
+		if c.ID == 0 || known[c.ID] || c.Error != "" || s.cnf.Ignored(c.ID, c.Owner, c.Name) {
+			continue
+		}
+		if rec, ok := st.ByID(c.ID); ok && !s.planner.paths.Authorised(*rec, github.RepoSnapshot{}) {
+			continue
+		}
+		if s.deps.Confirmer == nil {
+			c.Error = "workspace checkout metadata is unavailable; leaving unchanged"
+			continue
+		}
+		profile := primaryProfile(s.profiles)
+		if rec, ok := st.ByID(c.ID); ok {
+			for _, candidate := range s.profiles {
+				if candidate.Name == rec.SourceProfile {
+					profile = candidate
+					break
+				}
+			}
+		}
+		snap, err := s.deps.Confirmer.ConfirmByID(ctx, github.Profile{Name: profile.Name, Token: profile.Token}, c.ID)
+		if err != nil || snap.ID != c.ID {
+			c.Error = "workspace checkout identity could not be confirmed; leaving unchanged"
+			continue
+		}
+		snap.SourceProfile = profile.Name
+		snapshots = append(snapshots, snap)
+		known[c.ID] = true
 	}
 	occupancy, err := s.scanOccupancy(snapshots, st)
 	if err != nil {
@@ -177,6 +234,58 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		))
 	}
 	return nil
+}
+
+// explicitSnapshots resolves per-repo pins outside discovery, so an explicit
+// local selection is meaningful without adding an entire remote owner.
+func (s *Service) explicitSnapshots(ctx context.Context, st *state.State, snapshots []github.RepoSnapshot) ([]github.RepoSnapshot, error) {
+	for _, rule := range s.cnf.Repos {
+		if rule.Ignore || rule.Path == "" {
+			continue
+		}
+		found := false
+		for _, snap := range snapshots {
+			if (rule.Match.ID != 0 && snap.ID == rule.Match.ID) || (rule.Match.ID == 0 && snap.Owner == rule.Match.Owner && snap.Name == rule.Match.Name) {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+		// Known records already went through confirmation; do not bypass a
+		// failed confirmation with a second, differently authenticated request.
+		for _, rec := range st.Repos {
+			if (rule.Match.ID != 0 && rec.ID == rule.Match.ID) || (rule.Match.ID == 0 && rec.OwnerLogin == rule.Match.Owner && rec.Name == rule.Match.Name) {
+				found = true
+				break
+			}
+		}
+		if found {
+			continue
+		}
+		p := primaryProfile(s.profiles)
+		profile := github.Profile{Name: p.Name, Token: p.Token}
+		var snap github.RepoSnapshot
+		var err error
+		switch {
+		case rule.Match.ID != 0 && s.deps.Confirmer != nil:
+			snap, err = s.deps.Confirmer.ConfirmByID(ctx, profile, rule.Match.ID)
+			if err == nil && snap.ID != rule.Match.ID {
+				err = fmt.Errorf("ID mismatch")
+			}
+		case rule.Match.ID == 0 && s.deps.Resolver != nil:
+			snap, err = s.deps.Resolver.ResolveByName(ctx, profile, rule.Match.Owner, rule.Match.Name)
+		default:
+			err = fmt.Errorf("identity resolver is unavailable")
+		}
+		if err != nil || snap.ID == 0 {
+			return nil, fmt.Errorf("cannot verify explicit checkout %q: %v", rule.Path, err)
+		}
+		snap.SourceProfile = p.Name
+		snapshots = append(snapshots, snap)
+	}
+	return snapshots, nil
 }
 
 // discover runs each profile's Discoverer concurrently (bounded) and merges the
@@ -230,6 +339,9 @@ func (s *Service) confirm(ctx context.Context, st *state.State, snapshots []gith
 	for i := range st.Repos {
 		rec := st.Repos[i]
 		if present[rec.ID] || s.cnf.Ignored(rec.ID, rec.OwnerLogin, rec.Name) {
+			continue
+		}
+		if !s.planner.paths.Authorised(rec, github.RepoSnapshot{}) {
 			continue
 		}
 		profile := github.Profile{Name: rec.SourceProfile, Token: tokenFor(s.profiles, rec.SourceProfile)}
