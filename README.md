@@ -61,11 +61,13 @@ $ maintainer fetch state prune           # forget records whose path is gone
 $ GITHUB_TOKEN=ghp_… maintainer fetch --owner=acme --apply
 ```
 
-Configuration lives in `fetch.{toml,yaml}` (`defaults`, `filters`,
+Configuration lives in `fetch.{toml,yaml}` (`workspace`, `defaults`, `filters`,
 `[profiles.<name>]`, `[[owners]]`, `[[repos]]`); see the template written by
 `fetch config init`. Per-profile tokens make a bot account's private repos
 reachable (`clone_url = "https"` + its own `token_env`). The state file
 defaults to `$XDG_STATE_HOME/maintainer/fetch/state.json` (`0600`).
+The shared [workspace](docs/workspace.md) defines `root`, the managed `path`
+layout, and optional `pins` for additional checkout trees kept in place.
 
 Exit codes: `0` clean (incl. "no drift"), `1` transport/Git/state error,
 `2` user input error (bad config/flags, missing token), `3` apply finished with
