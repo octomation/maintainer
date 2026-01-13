@@ -3,7 +3,9 @@ package config
 // FetchConfigTemplate is the documented TOML template written by
 // `maintainer fetch config init` (§4.2). It is intentionally a 1:1 mirror of
 // the schema documented in the plan, with comments preserved.
-const FetchConfigTemplate = `# maintainer fetch configuration
+const FetchConfigTemplate = `# maintainer fetch configuration (also read by maintainer status)
+# A per-repo path pins an EXISTING checkout; it is never moved or cloned into.
+# Example: [[repos]], match = { id = 154873464 }, path = "~/.dotfiles"
 # Location: ./fetch.toml or $XDG_CONFIG_HOME/maintainer/fetch.toml
 # Format is picked by extension; a fetch.yaml form is a 1:1 translation.
 

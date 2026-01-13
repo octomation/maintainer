@@ -41,8 +41,16 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 	now := a.clock()
 	switch act.Kind {
 	case KindAdopt:
+		if act.UpdateRemote {
+			if err := a.git.UpdateRemote(act.Path, act.RemoteURL); err != nil {
+				return err
+			}
+		}
 		rec := *act.Record
-		rec.FirstSeen, rec.LastSeen, rec.LastApply = now, now, now
+		if rec.FirstSeen.IsZero() {
+			rec.FirstSeen = now
+		}
+		rec.LastSeen, rec.LastApply = now, now
 		a.commit(func() { st.Upsert(rec) })
 
 	case KindRelocate:
@@ -58,6 +66,9 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 			return err
 		}
 		a.commit(func() {
+			if act.Record != nil && act.Record.PinnedPath != "" {
+				st.Upsert(*act.Record)
+			}
 			if r, ok := st.ByID(act.ID); ok {
 				r.RemoteURL = act.RemoteURL
 				r.OwnerLogin, r.Name = act.Owner, act.Name
@@ -105,6 +116,9 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 			return err
 		}
 		a.commit(func() {
+			if act.Record != nil && act.Record.PinnedPath != "" {
+				st.Upsert(*act.Record)
+			}
 			if r, ok := st.ByID(act.ID); ok {
 				r.LastSeen, r.LastApply = now, now
 			}

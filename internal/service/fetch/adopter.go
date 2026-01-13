@@ -39,7 +39,7 @@ func NewAdopter(git gitsvc.GitSync, resolver NameResolver) *Adopter {
 // root and would otherwise never be re-discovered), inspects every clone, and
 // resolves each to a stable id. Snapshots are consulted first to avoid an API
 // round trip; only an (owner,name) miss falls back to the redirect resolver.
-func (a *Adopter) Scan(ctx context.Context, root string, snapshots []github.RepoSnapshot, cnf *config.Fetch) ([]DiskClone, error) {
+func (a *Adopter) Scan(ctx context.Context, root string, snapshots []github.RepoSnapshot, cnf *config.Fetch, extraPaths ...string) ([]DiskClone, error) {
 	byName := make(map[string]int64, len(snapshots))
 	for _, s := range snapshots {
 		byName[s.Owner+"/"+s.Name] = s.ID
@@ -68,7 +68,7 @@ func (a *Adopter) Scan(ctx context.Context, root string, snapshots []github.Repo
 			return nil, err
 		}
 	}
-	for _, ext := range externalPaths(cnf) {
+	for _, ext := range append(externalPaths(cnf), extraPaths...) {
 		if info, err := os.Stat(ext); err == nil && info.IsDir() {
 			if err := add(ext); err != nil {
 				return nil, err

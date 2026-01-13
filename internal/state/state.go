@@ -24,6 +24,7 @@ type Record struct {
 	Name             string    `json:"name"`
 	Visibility       string    `json:"visibility"`
 	Path             string    `json:"path"`
+	PinnedPath       string    `json:"pinned_path,omitempty"` // explicit checkout; survives rename/transfer
 	RemoteURL        string    `json:"remote_url"`
 	CloneURL         string    `json:"clone_url"`
 	SourceProfile    string    `json:"source_profile"`

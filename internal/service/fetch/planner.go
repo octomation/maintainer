@@ -78,6 +78,13 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 	for _, s := range in.Snapshots {
 		snapByID[s.ID] = s
 	}
+	// Transfers can leave the selected owners. A successful ID confirmation
+	// still supplies authoritative metadata for reconciliation.
+	for id, c := range in.Confirmations {
+		if _, exists := snapByID[id]; !exists && c.Status == ConfirmFound && c.Snapshot != nil {
+			snapByID[id] = *c.Snapshot
+		}
+	}
 	clonesByID := make(map[int64][]DiskClone)
 	clonesByPath := make(map[string]DiskClone)
 	for _, c := range in.Clones {
@@ -135,16 +142,23 @@ func (p *Planner) planPresent(
 	clonesByPath map[string]DiskClone,
 	occupancy map[string]Occupancy,
 ) (*Action, error) {
-	target, err := p.paths.Resolve(snap)
-	if err != nil {
-		return nil, fmt.Errorf("resolve path for %s (id=%d): %w", snap.FullName(), snap.ID, err)
-	}
 	transport := p.cnf.CloneURLFor(snap.SourceProfile, snap.Owner, snap.ID, snap.Name)
 	filtered := p.filtered(snap)
 
 	base := Action{
 		ID: snap.ID, NodeID: snap.NodeID, Owner: snap.Owner, Name: snap.Name,
 		Transport: transport, Profile: snap.SourceProfile, Snapshot: &snap,
+	}
+	pinned, err := p.paths.PinnedPath(snap, rec)
+	if err != nil {
+		return nil, err
+	}
+	if pinned != "" {
+		return planPinned(base, pinned, rec, clones), nil
+	}
+	target, err := p.paths.Resolve(snap)
+	if err != nil {
+		return nil, fmt.Errorf("resolve path for %s (id=%d): %w", snap.FullName(), snap.ID, err)
 	}
 	snapCopy := snap
 

@@ -98,6 +98,30 @@ is absolute → used as-is; `~` → expanded from `$HOME`; otherwise joined with
 `root`. `defaults.path` and per-owner templates must stay **within `root`**;
 absolute/`~` are allowed only for per-repo overrides.
 
+### Active checkouts outside the tree
+
+Every per-repo `path` pins an **existing** active checkout. For example:
+
+```toml
+[[repos]]
+match = { id = 154873464 } # kamilsk/dotfiles
+path = "~/.dotfiles"
+```
+
+Fetch verifies its GitHub identity and selects it even if an old duplicate
+exists at `Development/public/kamilsk/dotfiles`. Apply adopts the selected path
+into state; the duplicate stays untouched. Rename/transfer updates origin at
+`~/.dotfiles`, without moving the folder. Missing or foreign pinned paths are
+conflicts; fetch never clones into a pin or falls back to a duplicate.
+
+Use numeric IDs so rules survive renames. Applied pins are also retained as
+`pinned_path` in state, protecting name-based rules on later runs. Removing a
+rule alone does not unpin: deliberately remove its state `pinned_path` too to
+return to template-managed moves. Changing a pin selects another verified
+existing checkout. Adoption/remote update fetch refs on the next invocation.
+
+Use [`maintainer status`](status.md) to inspect local branches and divergence.
+
 ## Profiles & tokens
 
 A profile is a `(token, owners)` pair. Token resolution order (per profile):
