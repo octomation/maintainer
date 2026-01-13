@@ -101,7 +101,9 @@ func (m *screen) View() tea.View {
 		}
 		content = append(content, text)
 	}
-	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(borderColor).Width(width).Render(strings.Join(content, "\n"))
+	// Lip Gloss includes the border in Width. The content already reserves its
+	// two cells; subtracting them again would wrap headers and shift mouse rows.
+	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(borderColor).Width(m.width).Render(strings.Join(content, "\n"))
 	lines := []string{
 		clip(accent.Bold(true).Render(" MAINTAINER ") + fmt.Sprintf("  %d / %d repositories", len(m.visible), len(m.rows)) + muted.Render(" · local refs")),
 		clip(muted.Render(m.sortSummary())),
@@ -123,7 +125,7 @@ func (m *screen) View() tea.View {
 	if m.search.Focused() {
 		help = "Type to filter · Enter/Esc return to table · Ctrl+u clear"
 	}
-	lines = append(lines, clip(muted.Render(help)), clip(muted.Render("/ search · Esc clear · h/l scroll · PgUp/PgDn · g/G first/last · q quit")))
+	lines = append(lines, clip(muted.Render(help)), clip(muted.Render("/ search · Esc clear · q quit · h/l scroll · PgUp/PgDn · g/G")))
 	all := strings.Split(strings.Join(lines, "\n"), "\n")
 	for i := range all {
 		all[i] = clip(all[i])
