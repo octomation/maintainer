@@ -10,6 +10,7 @@ import (
 
 	v5 "github.com/go-git/go-git/v5"
 	gomock "github.com/golang/mock/gomock"
+
 	git "go.octolab.org/toolset/maintainer/internal/service/git"
 )
 
