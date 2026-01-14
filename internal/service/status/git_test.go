@@ -12,14 +12,30 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func runGit(t *testing.T, path string, args ...string) string {
+// Inspect inherits the process environment, so fixtures and assertions
+// must not depend on the developer's or the CI runner's Git configuration.
+func TestMain(m *testing.M) {
+	for _, key := range []string{"GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_CONFIG_PARAMETERS", "GIT_CONFIG_COUNT"} {
+		_ = os.Unsetenv(key)
+	}
+	_ = os.Setenv("GIT_CONFIG_GLOBAL", os.DevNull)
+	_ = os.Setenv("GIT_CONFIG_NOSYSTEM", "1")
+	os.Exit(m.Run())
+}
+
+// gitOutput runs Git with a fixed identity and no hooks; callers decide whether failure is expected.
+func gitOutput(t *testing.T, path string, args ...string) (string, error) {
 	t.Helper()
 	argv := append([]string{"-C", path, "-c", "user.name=Test", "-c", "user.email=test@example.org", "-c", "commit.gpgsign=false", "-c", "core.hooksPath=/dev/null"}, args...)
-	cmd := exec.Command("git", argv...)
-	cmd.Env = append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_NOSYSTEM=1")
-	out, err := cmd.CombinedOutput()
+	out, err := exec.CommandContext(t.Context(), "git", argv...).CombinedOutput()
+	return strings.TrimSpace(string(out)), err
+}
+
+func runGit(t *testing.T, path string, args ...string) string {
+	t.Helper()
+	out, err := gitOutput(t, path, args...)
 	require.NoError(t, err, "%s", out)
-	return strings.TrimSpace(string(out))
+	return out
 }
 
 func write(t *testing.T, path, contents string) {
@@ -101,8 +117,6 @@ func TestInspectBranchStates(t *testing.T) {
 }
 
 func TestInspectPushLock(t *testing.T) {
-	t.Setenv("GIT_CONFIG_GLOBAL", os.DevNull)
-	t.Setenv("GIT_CONFIG_NOSYSTEM", "1")
 	for _, tc := range []struct {
 		name, remote string
 		urls         []string
@@ -215,8 +229,10 @@ func TestInspectRenameAndConflict(t *testing.T) {
 	runGit(t, path, "checkout", "main")
 	write(t, filepath.Join(path, "renamed\nfile"), "local\n")
 	runGit(t, path, "commit", "-am", "local")
-	cmd := exec.Command("git", "-C", path, "-c", "core.hooksPath=/dev/null", "merge", "conflict")
-	require.Error(t, cmd.Run())
+	out, err := gitOutput(t, path, "merge", "conflict")
+	require.Error(t, err, "%s", out)
+	require.Contains(t, out, "CONFLICT", "merge must stop on a content conflict")
+	runGit(t, path, "rev-parse", "-q", "--verify", "MERGE_HEAD")
 	row = Inspect(context.Background(), Row{Path: path})
 	assert.Empty(t, row.Error)
 	assert.Equal(t, 1, row.Conflicts)
