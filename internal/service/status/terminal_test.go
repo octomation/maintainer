@@ -163,6 +163,22 @@ func TestKeyboardSortingAndFilter(t *testing.T) {
 	assert.Len(t, m.visible, 2)
 }
 
+func TestPathColumnNavigationAndSorting(t *testing.T) {
+	m := newScreen([]Row{{Repository: "acme/tool", Path: "/work/public/acme/tool", displayPath: "public/acme/tool"}})
+	m.resize(60, 24)
+	press(m, tea.KeyTab, "", tea.ModShift)
+	assert.Equal(t, PathColumn, m.column)
+	assert.Positive(t, m.selection.Left)
+	press(m, 's', "s", 0)
+	assert.Equal(t, []sortKey{{Column: PathColumn}}, m.keys)
+	view := ansi.Strip(m.View().Content)
+	assert.Contains(t, view, "Path ↑1")
+	assert.Contains(t, view, "public/acme/tool")
+	press(m, tea.KeyTab, "", 0)
+	assert.Equal(t, RepositoryColumn, m.column)
+	assert.Zero(t, m.selection.Left)
+}
+
 func TestMouseSortingAndSelectionAcrossResize(t *testing.T) {
 	var rows []Row
 	for i := 0; i < 80; i++ {

@@ -16,9 +16,10 @@ const (
 	BranchColumn
 	ChangesColumn
 	StatusColumn
+	PathColumn
 )
 
-var columnNames = []string{"Repository", "Branch", "Uncommitted", "Status"}
+var columnNames = []string{"Repository", "Branch", "Uncommitted", "Status", "Path"}
 
 type sortKey struct {
 	Column Column
@@ -124,6 +125,8 @@ func compareColumn(a, b Row, column Column) int {
 			return order
 		}
 		return strings.Compare(a.Status, b.Status)
+	case PathColumn:
+		return strings.Compare(a.pathCell(), b.pathCell())
 	default:
 		return 0
 	}

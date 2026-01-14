@@ -2,6 +2,7 @@ package status
 
 import (
 	"context"
+	"encoding/json"
 	"path/filepath"
 	"testing"
 
@@ -56,11 +57,16 @@ func TestCollectIDIgnoreAndLiteralPinWithoutState(t *testing.T) {
 	assert.Empty(t, rows)
 	pin := checkout(t, t.TempDir())
 	cnf.Repos[0] = config.Repo{Match: config.RepoMatch{ID: 1}, Path: pin}
-	rows, err = Collect(context.Background(), cnf, state.New(), root, root, nil, 2)
+	rows, err = Collect(context.Background(), cnf, state.New(), filepath.Dir(pin), root, nil, 2)
 	require.NoError(t, err)
 	require.Len(t, rows, 1)
 	assert.Equal(t, pin, rows[0].Path)
 	assert.True(t, rows[0].Pinned)
+	assert.Equal(t, "~/repo", rows[0].displayPath)
+	raw, err := json.Marshal(rows[0])
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), `"path":"`+pin+`"`)
+	assert.NotContains(t, string(raw), "~/repo")
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 	_, err = Collect(ctx, cnf, st, root, root, nil, 2)

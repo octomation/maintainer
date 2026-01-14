@@ -2,6 +2,7 @@ package status
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -9,7 +10,7 @@ import (
 )
 
 func TestViews(t *testing.T) {
-	rows := []Row{{Repository: "acme/tool", Branch: "main", DefaultBranch: "main", Added: 12, Deleted: 1, Untracked: 3, Ahead: 1, Behind: 2, Status: "diverged"},
+	rows := []Row{{Repository: "acme/tool", Path: "/work/public/acme/tool", displayPath: "public/acme/tool", Branch: "main", DefaultBranch: "main", Added: 12, Deleted: 1, Untracked: 3, Ahead: 1, Behind: 2, Status: "diverged"},
 		{Repository: "evil\x1b[2J\nname", Path: "path\x1b", Error: "failure\r\n"}}
 	var out bytes.Buffer
 	require.NoError(t, Plain(&out, rows))
@@ -18,6 +19,27 @@ func TestViews(t *testing.T) {
 	assert.Contains(t, out.String(), "ahead 1 · behind 2")
 	assert.Contains(t, out.String(), "?3")
 	assert.NotContains(t, out.String(), "\x1b")
+	lines := strings.Split(out.String(), "\n")
+	assert.True(t, strings.HasSuffix(strings.TrimSpace(lines[2]), "│ PATH"))
+	assert.True(t, strings.HasSuffix(strings.TrimSpace(lines[4]), "│ public/acme/tool"))
+	assert.NotContains(t, out.String(), "/work/")
+}
+
+func TestRelativePath(t *testing.T) {
+	for _, tc := range []struct{ name, path, root, home, want string }{
+		{"workspace", "/home/me/work/public/acme/tool", "/home/me/work", "/home/me", "public/acme/tool"},
+		{"external pin", "/home/me/.dotfiles", "/home/me/work", "/home/me", "~/.dotfiles"},
+		{"outside home", "/srv/tool", "/home/me/work", "/home/me", "/srv/tool"},
+		{"root prefix", "/home/me/work-old/tool", "/home/me/work", "/home/me", "~/work-old/tool"},
+		{"home prefix", "/home/merlin/tool", "/home/me/work", "/home/me", "/home/merlin/tool"},
+		{"root checkout", "/home/me/work", "/home/me/work", "/home/me", "."},
+		{"home checkout", "/home/me", "/home/me/work", "/home/me", "~"},
+		{"unknown home", "/srv/tool", "/work", "", "/srv/tool"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, relativePath(tc.path, tc.root, tc.home))
+		})
+	}
 }
 
 func TestSelectionAndKeys(t *testing.T) {

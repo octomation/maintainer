@@ -127,6 +127,7 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 	}
 	rows := make([]Row, 0, len(byPath))
 	for _, row := range byPath {
+		row.displayPath = relativePath(row.Path, renderer.Root(), home)
 		row.Pinned = pinnedPaths[row.Path]
 		row.OrphanReason, row.ActivePath = orphans[row.Path], activePaths[row.Path]
 		if row.OrphanReason == workspace.OrphanDuplicatePin || row.OrphanReason == workspace.OrphanOutOfScope {

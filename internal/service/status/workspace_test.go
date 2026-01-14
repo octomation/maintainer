@@ -28,8 +28,10 @@ func TestWorkspaceBroadPinDuplicatesAndExplicitSelection(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, rows, 2)
 	assert.Equal(t, managed, rows[1].Path)
+	assert.Equal(t, "public/acme/repo", rows[1].displayPath)
 	assert.Equal(t, "duplicate-pin", rows[1].OrphanReason)
 	assert.Equal(t, pin, rows[0].Path)
+	assert.Equal(t, "prototyping/repo", rows[0].displayPath)
 	assert.NotEqual(t, managed, rows[0].Path)
 	assert.True(t, rows[0].Pinned)
 	assert.Empty(t, rows[0].Error)
@@ -62,4 +64,5 @@ func TestWorkspaceMissingPinIsVisible(t *testing.T) {
 	require.Len(t, rows, 1)
 	assert.True(t, rows[0].Pinned)
 	assert.Equal(t, "error", rows[0].Status)
+	assert.Equal(t, "missing", rows[0].displayPath)
 }
