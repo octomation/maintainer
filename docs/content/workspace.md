@@ -1,4 +1,17 @@
+---
+title: Workspace
+description: The shared layout, pins and state that define which checkouts fetch and status manage.
+---
+
 # Workspace
+
+> [!NOTE]
+> `maintainer fetch` and `maintainer status` are not released yet. To try them, build `maintainer` from a source checkout:
+>
+> ```sh
+> git clone https://github.com/octomation/maintainer.git
+> cd maintainer && go install .
+> ```
 
 `fetch` and `status` share one local discovery boundary. A workspace describes
 both where ordinary repositories belong and which existing checkouts stay put:

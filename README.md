@@ -27,78 +27,27 @@ See [development tools](tools/README.md) and [GitHub workflows](.github/workflow
 ## 🛰️ `maintainer fetch`
 
 `maintainer fetch` discovers GitHub repositories across several owners and
-reconciles a local checkout tree, in the spirit of `terraform plan` /
-`terraform apply`. A local state file (keyed by the stable numeric repo `id`)
-remembers what was materialised, so a rename or transfer on GitHub is detected
-as a **move**, not as a delete-and-reclone.
-
-It is **plan-only by default** and **safe-by-default on disk**: `--apply`
-performs only non-destructive actions (clone, fetch refs, move, update remote,
-adopt). A repository that disappears from GitHub is reported as an `orphan`
-(404-confirmed) and the local clone is **retained, never deleted**.
-Occupied or unverifiable targets are reported as conflicts and rechecked during
-apply; push-only URLs used by repository locks do not affect checkout identity.
-Accessible upstreams with no refs are valid no-ops and are retried every run.
+reconciles a local checkout tree: it plans by default and `--apply` performs
+only non-destructive actions, so renames become moves and vanished repositories
+are kept as orphans. It is not released yet; build from source to try it.
 
 ```bash
-# scaffold a documented config, then check it
-$ maintainer fetch config init           # writes ./fetch.toml
-$ maintainer fetch config validate
-
-# render a plan (no disk writes), then apply non-destructive actions
-$ maintainer fetch                       # plan only
-$ maintainer fetch --apply               # clone / fetch / move / update-remote / adopt
-
-# machine-readable plan for a wrapping tool (lists every action incl. fetches)
-$ maintainer fetch --format=json | jq .
-
-# scope a run; inspect or tidy state
-$ maintainer fetch --profile=primary --owner=acme
-$ maintainer fetch state show            # dump state.json
-$ maintainer fetch state prune           # forget records whose path is gone
-
-# single-run mode without a config file (a token is required)
-$ GITHUB_TOKEN=ghp_… maintainer fetch --owner=acme --apply
+$ maintainer fetch config init && maintainer fetch   # write ./fetch.toml, then plan
 ```
 
-Configuration lives in `fetch.{toml,yaml}` (`workspace`, `defaults`, `filters`,
-`[profiles.<name>]`, `[[owners]]`, `[[repos]]`); see the template written by
-`fetch config init`. Per-profile tokens make a bot account's private repos
-reachable (`clone_url = "https"` + its own `token_env`). The state file
-defaults to `$XDG_STATE_HOME/maintainer/fetch/state.json` (`0600`).
-The shared [workspace](docs/workspace.md) defines `root`, the managed `path`
-layout, and optional `pins` for additional checkout trees kept in place.
-
-Exit codes: `0` successful plan or apply (a plan can still contain conflicts),
-`1` transport/Git/state error,
-`2` user input error (bad config/flags, missing token), `3` apply finished with
-at least one per-repo failure or unresolved conflict (the summary lists which).
-
-Full reference: [`docs/fetch.md`](docs/fetch.md).
+See the [fetch guide][fetch.page] for configuration, profiles, state and exit codes.
 
 ## 🧭 `maintainer status`
 
-Inspect all local checkouts: current/default branch, uncommitted lines and
-files, commits ahead/behind upstream, and checkout paths in the last column.
-Paths are relative to the workspace root, or use `~/…` for external checkouts
-under home. Reads fetch configuration and pinned
-paths such as `~/.dotfiles`; no token, network or repository writes.
+`maintainer status` shows current and default branches, uncommitted changes and
+ahead/behind counts for every local checkout, offline and without a token.
+It is not released yet; build from source to try it.
 
 ```bash
-maintainer status                         # arrows/jk select a row; q exits
-maintainer status --format=plain          # printable full table
-maintainer status --format=json           # structured counts and paths
-maintainer status --owner kamilsk
+$ maintainer status --format=plain
 ```
 
-Tab selects a column; `s` sorts, Shift+s adds a sort key, and `0` resets sorting.
-`/` opens fuzzy filtering. The Charmbracelet terminal view also supports header
-clicks, Shift+click, and selection that survives sorting.
-
-Counts use local upstream refs. Full reference: [`docs/status.md`](docs/status.md).
-
-> The PoC ships REST discovery only; a GraphQL discoverer is a deferred
-> experiment. See [the PoC plan](.github/notes/) for the full design.
+See the [status guide][status.page] for columns, keys and JSON output.
 
 ## 🧩 Installation
 
@@ -156,6 +105,8 @@ $ source <(maintainer completion)
 [coverage.icon]:    https://codecov.io/gh/octomation/maintainer/branch/main/graph/badge.svg
 [design.page]:      https://www.notion.so/octolab/maintainer-76d7f532a13244b5ac71708990f340ed
 [docs.page]:        https://maintainer.octolab.org/
+[fetch.page]:       https://maintainer.octolab.org/fetch/
+[status.page]:      https://maintainer.octolab.org/status/
 [docs.icon]:        https://img.shields.io/badge/docs-GitHub%20Pages-blue
 [mirror.page]:      https://bitbucket.org/kamilsk/maintainer
 [mirror.icon]:      https://img.shields.io/badge/mirror-bitbucket-blue

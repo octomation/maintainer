@@ -1,6 +1,17 @@
-> # 👨‍🔧 maintainer
+---
+title: Fetch repositories
+description: Reconcile local GitHub checkouts across owners with a plan-first, non-destructive workflow.
+---
+
+# Fetch repositories
+
+> [!NOTE]
+> `maintainer fetch` is not released yet. To try it, build `maintainer` from a source checkout:
 >
-> `maintainer fetch` — reconcile local GitHub checkouts.
+> ```sh
+> git clone https://github.com/octomation/maintainer.git
+> cd maintainer && go install .
+> ```
 
 `maintainer fetch` discovers GitHub repositories across several owners and
 reconciles a local checkout tree, in the spirit of `terraform plan` / `apply`.
@@ -31,7 +42,7 @@ maintainer fetch state prune          # forget records whose path is gone
 
 Edit the generated config to set `workspace.root`, owners and token sources
 before running fetch. Fetch requires network access and a token, including
-public-only discovery; [status](status.md) works offline without credentials.
+public-only discovery; [status](/status/) works offline without credentials.
 The root command accepts flags and no positional arguments.
 
 Without a config file, provide an owner and set `GITHUB_TOKEN` (or `--token`):
@@ -117,7 +128,7 @@ verified and managed even when their owner is outside that remote selection.
 
 ### Path templates
 
-The [workspace](workspace.md) is shared with status. `workspace.path` is both
+The [workspace](/workspace/) is shared with status. `workspace.path` is both
 the target layout and the discovery boundary: the default only scans
 `{public,private,internal}/<owner>/<repo>`, not arbitrary root descendants.
 Legacy `defaults.root/path` remain supported, but cannot be mixed with
@@ -160,7 +171,7 @@ workspace layout. Removing a workspace tree pin instead suspends its remembered
 checkouts; it does not enable moves. Changing a per-repo pin selects another verified
 existing checkout. Adoption/remote update fetch refs on the next invocation.
 
-Use [`maintainer status`](status.md) to inspect local branches and divergence.
+Use [`maintainer status`](/status/) to inspect local branches and divergence.
 
 ## Profiles & tokens
 
@@ -328,5 +339,5 @@ Fetch manages one workspace and GitHub repository clones. It does not perform
 GitHub writes, push, checkout, merge, reset, automatic deletion or archival.
 Submodules and LFS content are not fetched. Managed moves require a destination
 on the same filesystem; external pins stay in place. For local branch and
-working-tree inspection, use [status](status.md); for layout and discovery
-rules, see [workspace](workspace.md).
+working-tree inspection, use [status](/status/); for layout and discovery
+rules, see [workspace](/workspace/).

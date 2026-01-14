@@ -5,5 +5,8 @@ export default {
   contributions: 'GitHub contributions',
   vanity: 'Go vanity URLs',
   makefiles: 'Makefiles',
+  fetch: 'Fetch repositories',
+  status: 'Repository status',
+  workspace: 'Workspace',
   changelog: 'Changelog',
 }

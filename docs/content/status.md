@@ -1,9 +1,20 @@
-> # 👨‍🔧 maintainer
+---
+title: Repository status
+description: Inspect branches, uncommitted changes and divergence across local checkouts, offline.
+---
+
+# Repository status
+
+> [!NOTE]
+> `maintainer status` is not released yet. To try it, build `maintainer` from a source checkout:
 >
-> `maintainer status` — inspect local repository work.
+> ```sh
+> git clone https://github.com/octomation/maintainer.git
+> cd maintainer && go install .
+> ```
 
 Status reads the same `fetch.toml` / `fetch.yaml` and state as
-[`maintainer fetch`](fetch.md), using the same [workspace](workspace.md) layout
+[`maintainer fetch`](/fetch/), using the same [workspace](/workspace/) layout
 and pins. It includes eligible remembered paths and explicitly pinned checkouts
 such as `~/.dotfiles`. It needs Git on
 PATH, but no token or network. It never fetches, modifies the index/worktree,
@@ -142,7 +153,7 @@ from stale refs. Search for `orphan` or its reason to find these rows.
 
 ## Configuration
 
-Status uses the same configuration as [fetch](fetch.md#configuration), in order:
+Status uses the same configuration as [fetch](/fetch/#configuration), in order:
 
 1. `--config <path>`; `--config=""` disables discovery.
 2. An existing file named by `$MAINTAINER_FETCH_CONFIG`.

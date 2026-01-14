@@ -41,6 +41,9 @@ Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH
 | `content/contributions.md` | GitHub contribution calendar commands |
 | `content/vanity.md` | Go vanity import page generation |
 | `content/makefiles.md` | Makefile bundling |
+| `content/fetch.md` | Unreleased `fetch`: reconcile local GitHub checkouts |
+| `content/status.md` | Unreleased `status`: inspect local repository work |
+| `content/workspace.md` | Workspace layout shared by `fetch` and `status` |
 | `content/changelog/index.md` | Short release history |
 | `content/changelog/vX.Y.Z.md` | Release notes, one per tag |
 | `content/**/_meta.js` | Navigation order and labels |
