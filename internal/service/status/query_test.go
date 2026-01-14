@@ -80,3 +80,16 @@ func TestSortAndFilterDisplayedPath(t *testing.T) {
 	assert.Equal(t, []int{0}, queryRows(rows, nil, "~/.dotfiles"))
 	assert.Equal(t, []int{0}, queryRows(rows, nil, "/home/me/.dotfiles"))
 }
+
+func TestSortAndFilterPushLock(t *testing.T) {
+	rows := []Row{
+		{Repository: "z", PushLocked: true},
+		{Repository: "b"},
+		{Repository: "a", PushLocked: true, OrphanReason: "duplicate-pin"},
+		{Repository: "c"},
+	}
+	assert.Equal(t, []int{1, 3, 2, 0}, queryRows(rows, []sortKey{{Column: LockColumn}}, ""))
+	assert.Equal(t, []int{2, 0, 1, 3}, queryRows(rows, []sortKey{{Column: LockColumn, Desc: true}}, ""))
+	assert.Equal(t, []int{0, 2, 3, 1}, queryRows(rows, []sortKey{{Column: LockColumn, Desc: true}, {Column: RepositoryColumn, Desc: true}}, ""))
+	assert.Equal(t, []int{2, 0}, queryRows(rows, nil, "🔒"))
+}

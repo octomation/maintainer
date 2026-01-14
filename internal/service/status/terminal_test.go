@@ -179,6 +179,33 @@ func TestPathColumnNavigationAndSorting(t *testing.T) {
 	assert.Zero(t, m.selection.Left)
 }
 
+func TestLockColumnNavigationAndSorting(t *testing.T) {
+	m := newScreen([]Row{{Repository: "acme/open", Path: "/open"}, {Repository: "acme/locked", Path: "/locked", PushLocked: true}})
+	m.resize(65, 16)
+	press(m, tea.KeyTab, "", tea.ModShift)
+	press(m, tea.KeyTab, "", tea.ModShift)
+	assert.Equal(t, LockColumn, m.column)
+	assert.Positive(t, m.selection.Left)
+	press(m, 's', "s", 0)
+	press(m, 's', "s", 0)
+	assert.Equal(t, []sortKey{{Column: LockColumn, Desc: true}}, m.keys)
+	assert.Equal(t, []int{1, 0}, m.visible)
+	view := ansi.Strip(m.View().Content)
+	assert.Contains(t, view, "Lock ↓1")
+	assert.Contains(t, view, "🔒")
+	for _, line := range strings.Split(view, "\n") {
+		assert.LessOrEqual(t, ansi.StringWidth(line), 65)
+	}
+	x := 1 - m.selection.Left
+	for i := 0; i < int(LockColumn); i++ {
+		x += m.widths[i] + 3
+	}
+	m.Update(tea.MouseClickMsg{X: x, Y: 4, Button: tea.MouseLeft})
+	assert.Empty(t, m.keys, "clicking the descending lock header removes sorting")
+	press(m, tea.KeyTab, "", 0)
+	assert.Equal(t, PathColumn, m.column)
+}
+
 func TestMouseSortingAndSelectionAcrossResize(t *testing.T) {
 	var rows []Row
 	for i := 0; i < 80; i++ {

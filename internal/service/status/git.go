@@ -3,6 +3,7 @@ package status
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -33,6 +34,7 @@ type Row struct {
 	Ahead           int        `json:"ahead"`
 	Behind          int        `json:"behind"`
 	Status          string     `json:"status"`
+	PushLocked      bool       `json:"push_locked"`
 	Pinned          bool       `json:"pinned"`
 	OrphanReason    string     `json:"orphan_reason,omitempty"`
 	ActivePath      string     `json:"active_path,omitempty"`
@@ -79,6 +81,11 @@ func Inspect(ctx context.Context, row Row) Row {
 	if _, err := os.Stat(filepath.Join(row.Path, ".git")); err != nil {
 		return fail(err)
 	}
+	locked, err := pushLocked(ctx, row.Path)
+	if err != nil {
+		return fail(err)
+	}
+	row.PushLocked = locked
 	if raw, err := git(ctx, row.Path, "remote", "get-url", "origin"); err == nil {
 		if name := remoteName(raw); name != "" {
 			row.Repository = name
@@ -179,4 +186,18 @@ func Inspect(ctx context.Context, row Row) Row {
 		row.Deleted += del
 	}
 	return row
+}
+
+// pushLocked recognizes the marker written by git lock [remote]. Read through
+// Git so includes and worktree configuration use the same rules as git push.
+func pushLocked(ctx context.Context, path string) (bool, error) {
+	_, err := git(ctx, path, "config", "--get-regexp", `^remote\..*\.pushurl$`, "^no_push$")
+	if err == nil {
+		return true, nil
+	}
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		return false, nil // no matching configuration entry
+	}
+	return false, err
 }
