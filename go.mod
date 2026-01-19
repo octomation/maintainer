@@ -18,7 +18,7 @@ require (
 	github.com/go-git/go-git/v5 v5.19.2
 	github.com/gofrs/flock v0.13.0
 	github.com/golang/mock v1.6.0
-	github.com/google/go-github/v91 v91.0.0
+	github.com/google/go-github/v93 v93.0.0
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-runewidth v0.0.27
 	github.com/pelletier/go-toml/v2 v2.2.4
