@@ -1,13 +1,18 @@
 package contribution
 
 import (
+	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/time/jitter"
@@ -23,7 +28,10 @@ func Suggest(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 		short  bool
 		target uint
 	)
-	cmd.Args = cobra.MaximumNArgs(1)
+	cmd.Args = func(cmd *cobra.Command, args []string) error {
+		return exit.WithUser(cobra.MaximumNArgs(1)(cmd, args))
+	}
+	cmd.SetFlagErrorFunc(func(_ *cobra.Command, err error) error { return exit.WithUser(err) })
 	cmd.Short = "Suggest a moment to contribute"
 	cmd.Long = `Suggests the first moment between the anchor and now, both inclusive,
 on a day with fewer contributions than its week requires: the most a day
@@ -61,7 +69,7 @@ or if there is no suitable moment up to now.
 		// The moment is printed to the second, so the window is whole seconds.
 		now := time.Now().Truncate(time.Second)
 		if target == 0 {
-			return fmt.Errorf("please provide a positive target, e.g., --target=5")
+			return exit.WithUser(fmt.Errorf("please provide a positive target, e.g., --target=5"))
 		}
 
 		// data provisioning
@@ -71,11 +79,11 @@ or if there is no suitable moment up to now.
 		}
 		opts, scope, err := SuggestScope(args, anchor, now)
 		if err != nil {
-			return err
+			return exit.WithUser(err)
 		}
 
 		if err := RequireToken(cnf); err != nil {
-			return err
+			return exit.WithUser(err)
 		}
 		service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 		chm, err := service.ContributionHeatMap(cmd.Context(), scope)
@@ -85,10 +93,7 @@ or if there is no suitable moment up to now.
 
 		suggestion := contribution.Suggest(chm, opts.Value, now, schedule, target)
 		if suggestion.Time.IsZero() {
-			return fmt.Errorf(
-				"nothing to suggest between %s and %s: there is no day short of the target within the schedule",
-				opts.Value.Format(time.RFC3339), now.Format(time.RFC3339),
-			)
+			return Missed(cmd, args, chm, opts, now, schedule, target, short)
 		}
 		suggestion.Time = Moment(suggestion.Time, now, schedule, jitter.FullRandom())
 
@@ -173,6 +178,110 @@ func Jitter(t, now time.Time, hours xtime.Schedule, random jitter.Transformation
 // It stays within the window, because the anchor and now are whole seconds.
 func Moment(t, now time.Time, hours xtime.Schedule, random jitter.Transformation) time.Time {
 	return Jitter(t, now, hours, random).Truncate(time.Second)
+}
+
+// Missed explains in stderr why there is nothing to suggest: the table
+// of the weeks around the day that tells it, unless short, the reason,
+// when a day short of its week opens, and the command with the least higher
+// target that has a moment up to now. It returns the error the command fails with.
+func Missed(
+	cmd *cobra.Command,
+	args []string,
+	chm contribution.HeatMap,
+	opts contribution.DateOptions,
+	now time.Time,
+	schedule xtime.Schedule,
+	target uint,
+	short bool,
+) error {
+	anchor := opts.Value
+	miss := contribution.Explain(chm, anchor, now, schedule, target)
+	if !short {
+		// reuse options; the day is known, as the anchor is not after now
+		if opts.Value = miss.Day; opts.Value.IsZero() {
+			opts.Value = now
+		}
+		// the weeks may start at now, e.g., a pending Sunday, and show nothing
+		area, err := contribution.LookupRange(opts).ExcludeFuture(now)
+		if err != nil && !errors.Is(err, xtime.ErrFuturePeriod) {
+			return err
+		}
+		if err == nil {
+			TableView(cmd, chm, area)
+		}
+	}
+	reason := Explanation(cmd, miss, anchor, now)
+	if raised := contribution.Raise(chm, anchor, now, schedule, target); raised > 0 {
+		cmd.PrintErrln("Or raise the target:", Rerun(cmd, args, raised))
+	}
+	return exit.WithNothing(fmt.Errorf(
+		"nothing to suggest between %s and %s: %s",
+		anchor.Format(time.RFC3339), now.Format(time.RFC3339), reason,
+	))
+}
+
+// dayStamp names a day in a sentence, unlike the padded one of the table.
+const dayStamp = "Jan 2"
+
+// Explanation prints in stderr why there is nothing to suggest
+// and when a day short of its week opens, and returns the reason in short.
+func Explanation(cmd *cobra.Command, miss contribution.Miss, anchor, now time.Time) string {
+	day := miss.Day.Format(dayStamp) // Closed and Pending
+	var reason string
+	switch miss.Reason {
+	case contribution.CaughtUp:
+		reason = "caught up"
+		if !miss.Day.IsZero() {
+			_, week := xtime.GregorianWeek(miss.Day)
+			cmd.PrintErrf("Every day since %s has what its week requires, %d in #%02d.\n",
+				xtime.TruncateToDay(anchor.UTC()).Format(dayStamp), miss.Target, week)
+		}
+	case contribution.Closed:
+		reason = "the schedule is over by the anchor"
+		cmd.PrintErrf("%s has %d of %d, but its schedule is over by the anchor.\n", day, miss.Actual, miss.Target)
+	case contribution.Pending:
+		reason = "the schedule has not opened yet"
+		cmd.PrintErrf("%s has %d of %d, but its schedule opens at %s, in %s.\n", day, miss.Actual, miss.Target,
+			miss.Next.Local().Format(time.RFC3339), Datetime(miss.Next.Local(), now))
+		return reason
+	}
+	if !miss.Next.IsZero() {
+		cmd.PrintErrf("The next gap opens at %s, in %s.\n",
+			miss.Next.Local().Format(time.RFC3339), Datetime(miss.Next.Local(), now))
+	}
+	return reason
+}
+
+// shellSafe matches an argument that needs no quotes in a shell.
+var shellSafe = regexp.MustCompile(`^[A-Za-z0-9_./:+@%=,-]+$`)
+
+// Rerun returns the command line that runs the command again with the target:
+// the same arguments and the flags of its own that are set, but no inherited
+// ones, so the token stays out of it.
+func Rerun(cmd *cobra.Command, args []string, target uint) string {
+	line := []string{cmd.CommandPath()}
+	cmd.LocalNonPersistentFlags().VisitAll(func(flag *pflag.Flag) {
+		switch {
+		case !flag.Changed, flag.Name == "target":
+		case flag.Value.Type() == "bool" && flag.Value.String() == "true":
+			line = append(line, "--"+flag.Name)
+		default:
+			line = append(line, "--"+flag.Name+"="+shellQuote(flag.Value.String()))
+		}
+	})
+	line = append(line, fmt.Sprintf("--target=%d", target))
+	for _, arg := range args {
+		line = append(line, shellQuote(arg))
+	}
+	return strings.Join(line, " ")
+}
+
+// shellQuote quotes the argument for a shell, unless it needs no quotes.
+func shellQuote(arg string) string {
+	if shellSafe.MatchString(arg) {
+		return arg
+	}
+	return "'" + strings.ReplaceAll(arg, "'", `'\''`) + "'"
 }
 
 // ceilSecond rounds the time up to a whole second: a moment is printed

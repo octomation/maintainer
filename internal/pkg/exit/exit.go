@@ -9,6 +9,7 @@ const (
 	Transport = 1 // transport / Git / state error (also the default)
 	User      = 2 // user input error (bad config, bad flag combo, missing token)
 	Partial   = 3 // apply requested but at least one per-repo action failed
+	Nothing   = 4 // no result, but no failure either (suggest has no moment up to now)
 )
 
 // Coder is implemented by errors that carry a process exit code.
@@ -39,3 +40,6 @@ func WithUser(err error) error { return With(User, err) }
 
 // WithPartial wraps err as a partial-apply failure (exit code 3).
 func WithPartial(err error) error { return With(Partial, err) }
+
+// WithNothing wraps err as a missing result that is not a failure (exit code 4).
+func WithNothing(err error) error { return With(Nothing, err) }

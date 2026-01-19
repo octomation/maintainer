@@ -1,17 +1,22 @@
 package contribution_test
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"math/rand"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	. "go.octolab.org/toolset/maintainer/internal/command/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/time/jitter"
 )
@@ -345,5 +350,211 @@ func TestMoment_Delta(t *testing.T) {
 				assert.Equal(t, expected, Datetime(moment.Local(), now))
 			}
 		}
+	}
+}
+
+// TestMissed covers the explanation of nothing to suggest: without it,
+// a week filled up to now looked like a failure to retry, since the table
+// that shows it was not printed.
+func TestMissed(t *testing.T) {
+	day := xtime.UTC().Year(2026).Month(time.October)
+	schedule, target := xtime.Everyday(xtime.Hours(5, 19, 0)), uint(5)
+	local := func(t time.Time) string { return t.Local().Format(time.RFC3339) }
+	upstream := func(thursday uint) contribution.HeatMap {
+		chm := make(contribution.HeatMap)
+		for ts := xtime.UTC().Year(2026).Month(time.September).Day(27).Time(); ts.Before(day.Day(11).Time()); ts = ts.Add(xtime.Day) {
+			chm.SetCount(ts, 25)
+		}
+		for ts := day.Day(11).Time(); ts.Before(day.Day(15).Time()); ts = ts.Add(xtime.Day) {
+			chm.SetCount(ts, 20)
+		}
+		chm.SetCount(day.Day(15).Time(), thursday)
+		return chm
+	}
+
+	tests := map[string]struct {
+		heats  contribution.HeatMap
+		args   []string
+		anchor time.Time
+		now    time.Time
+
+		reason   string
+		expected []string // what stderr tells
+		absent   []string // what stderr does not tell
+	}{
+		"caught up": {
+			heats:  upstream(20),
+			anchor: day.Day(11).Hour(9).Minute(18).Second(9).Time(),
+			now:    day.Day(15).Hour(16).Minute(50).Second(36).Time(),
+			reason: "caught up",
+			expected: []string{
+				"Oct 15", "distribution{20: 5, 25: 14}",
+				"Every day since Oct 11 has what its week requires, 20 in #42.\n",
+				"The next gap opens at " + local(day.Day(16).Hour(5).Time()) + ", in +12H9M24S.\n",
+				"Or raise the target: maintainer suggest --target=21\n",
+			},
+		},
+		"caught up across weeks": {
+			heats:  upstream(20),
+			anchor: day.Day(6).Hour(9).Time(), // week #41 requires 25
+			now:    day.Day(15).Hour(16).Minute(50).Second(36).Time(),
+			reason: "caught up",
+			expected: []string{
+				"Every day since Oct 6 has what its week requires, 20 in #42.\n",
+				"Or raise the target: maintainer suggest --target=21\n",
+			},
+		},
+		"caught up, short": {
+			heats:    upstream(20),
+			args:     []string{"--short", "2026-10-11"},
+			anchor:   time.Time{},
+			now:      day.Day(15).Hour(16).Minute(50).Second(36).Time(),
+			reason:   "caught up",
+			expected: []string{"Or raise the target: maintainer suggest --short --target=21 2026-10-11\n"},
+			absent:   []string{"Day / Week"},
+		},
+		"the schedule has not opened yet": {
+			heats:  upstream(0),
+			anchor: day.Day(11).Hour(9).Time(),
+			now:    day.Day(15).Hour(3).Time(),
+			reason: "the schedule has not opened yet",
+			expected: []string{
+				"Oct 15 has 0 of 20, but its schedule opens at " + local(day.Day(15).Hour(5).Time()) + ", in +2H0M0S.\n",
+				"Or raise the target: maintainer suggest --target=21\n", // Sunday has 20
+			},
+			absent: []string{"next gap"},
+		},
+		"the schedule has not opened at the start of a week": {
+			heats: func() contribution.HeatMap {
+				chm := upstream(20)
+				chm.SetCount(day.Day(16).Time(), 20)
+				chm.SetCount(day.Day(17).Time(), 20)
+				return chm
+			}(),
+			args:   []string{"2026-10-11/0"},
+			now:    day.Day(18).Time(), // Sunday midnight, the week of it starts at now
+			reason: "the schedule has not opened yet",
+			expected: []string{
+				"Oct 18 has 0 of 5, but its schedule opens at " + local(day.Day(18).Hour(5).Time()) + ", in +5H0M0S.\n",
+				"Or raise the target: maintainer suggest --target=21 2026-10-11/0\n", // the week before has 20
+			},
+			absent: []string{"Day / Week"}, // no weeks to show up to now
+		},
+		"the schedule is over by the anchor": {
+			heats:  upstream(19),
+			anchor: day.Day(15).Hour(20).Time(),
+			now:    day.Day(15).Hour(21).Time(),
+			reason: "the schedule is over by the anchor",
+			expected: []string{
+				"Oct 15 has 19 of 20, but its schedule is over by the anchor.\n",
+				"The next gap opens at " + local(day.Day(16).Hour(5).Time()) + ", in +8H0M0S.\n",
+			},
+			absent: []string{"raise the target"}, // no other day is in the window
+		},
+		"the schedule is over by the anchor, other days on target": {
+			heats: func() contribution.HeatMap {
+				chm := upstream(25)
+				for ts := day.Day(12).Time(); ts.Before(day.Day(15).Time()); ts = ts.Add(xtime.Day) {
+					chm.SetCount(ts, 25)
+				}
+				return chm
+			}(),
+			anchor: day.Day(11).Hour(20).Time(),
+			now:    day.Day(15).Hour(16).Time(),
+			reason: "the schedule is over by the anchor",
+			expected: []string{
+				"Oct 11 has 20 of 25, but its schedule is over by the anchor.\n",
+				"The next gap opens at " + local(day.Day(16).Hour(5).Time()) + ", in +13H0M0S.\n",
+				"Or raise the target: maintainer suggest --target=26\n", // 21 is closed on Oct 11
+			},
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			root := &cobra.Command{Use: "maintainer"}
+			cmd := Suggest(&cobra.Command{Use: "suggest"}, new(config.Tool))
+			root.AddCommand(cmd)
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
+			require.NoError(t, cmd.ParseFlags(test.args))
+			args := cmd.Flags().Args()
+			short, err := cmd.Flags().GetBool("short")
+			require.NoError(t, err)
+
+			opts, scope, err := SuggestScope(args, test.anchor, test.now)
+			require.NoError(t, err)
+			chm := test.heats.Subset(scope)
+			require.True(t, contribution.Suggest(chm, opts.Value, test.now, schedule, target).Time.IsZero())
+
+			err = Missed(cmd, args, chm, opts, test.now, schedule, target, short)
+			require.Error(t, err)
+			assert.True(t, strings.HasSuffix(err.Error(), ": "+test.reason), err.Error())
+			var coder exit.Coder
+			require.True(t, errors.As(err, &coder))
+			assert.Equal(t, exit.Nothing, coder.ExitCode())
+
+			assert.Empty(t, stdout.String())
+			for _, text := range test.expected {
+				assert.Contains(t, stderr.String(), text)
+			}
+			for _, text := range test.absent {
+				assert.NotContains(t, stderr.String(), text)
+			}
+		})
+	}
+}
+
+// TestSuggest_ExitCodes covers the exit codes of input errors, which the flags
+// and arguments decline before the command runs, and the command itself.
+func TestSuggest_ExitCodes(t *testing.T) {
+	tests := map[string][]string{
+		"a malformed target": {"--target=abc"},
+		"an unknown flag":    {"--unknown"},
+		"two arguments":      {"2026", "2027"},
+		"a zero target":      {"--target=0"},
+		"a malformed date":   {"2021-02-30"},
+		"an anchor ahead":    {"9999-01-01"},
+		"no token":           {"2026-01-01"},
+	}
+	for name, args := range tests {
+		t.Run(name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			cmd := Suggest(&cobra.Command{Use: "suggest", SilenceUsage: true}, new(config.Tool))
+			cmd.SetArgs(args)
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
+
+			err := cmd.Execute()
+			var coder exit.Coder
+			require.True(t, errors.As(err, &coder), "%v", err)
+			assert.Equal(t, exit.User, coder.ExitCode())
+			assert.Empty(t, stdout.String())
+		})
+	}
+}
+
+func TestRerun(t *testing.T) {
+	tests := map[string]struct {
+		args     []string
+		expected string
+	}{
+		"no arguments":     {nil, "maintainer suggest --target=21"},
+		"the target given": {[]string{"--target=3", "git/3"}, "maintainer suggest --target=21 git/3"},
+		"flags kept":       {[]string{"--delta", "--short=false", "2013-11/-10"}, "maintainer suggest --delta --short=false --target=21 2013-11/-10"},
+		"an empty date":    {[]string{""}, "maintainer suggest --target=21 ''"},
+		"a quote":          {[]string{"it's"}, `maintainer suggest --target=21 'it'\''s'`},
+		"a spaced date":    {[]string{"2026-10-11 10:00"}, "maintainer suggest --target=21 '2026-10-11 10:00'"},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			root := &cobra.Command{Use: "maintainer"}
+			root.PersistentFlags().String("token", "", "")
+			cmd := Suggest(&cobra.Command{Use: "suggest"}, new(config.Tool))
+			root.AddCommand(cmd)
+			require.NoError(t, cmd.ParseFlags(append([]string{"--token=secret"}, test.args...)))
+
+			assert.Equal(t, test.expected, Rerun(cmd, cmd.Flags().Args(), 21))
+		})
 	}
 }

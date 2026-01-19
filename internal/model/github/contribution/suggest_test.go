@@ -106,11 +106,12 @@ func TestSuggest(t *testing.T) {
 
 // TestSuggest_Bounds covers the window of a suggestion: it is never
 // before the anchor, nor after now, nor outside the schedule, and nothing
-// is suggested if there is no such moment.
+// is suggested if there is no such moment, but it is explained.
 func TestSuggest_Bounds(t *testing.T) {
 	sunday := xtime.UTC().Year(2026).Month(time.September).Day(20) // the week of now
 	now := sunday.Day(25).Hour(12).Minute(34).Second(56)           // Friday
 	hours, basis := xtime.Everyday(xtime.Hours(5, 19, 0)), uint(5) // the schedule of suggest
+	friday, saturday := sunday.Day(25).Time(), sunday.Day(26).Hour(5).Time()
 	week := func(counts ...uint) HeatMap {
 		chm := make(HeatMap)
 		for i, count := range counts {
@@ -125,6 +126,7 @@ func TestSuggest_Bounds(t *testing.T) {
 		until time.Time
 
 		expected Suggestion
+		miss     Miss // the explanation of the zero suggestion
 	}{
 		"anchor in the past on a gap": {
 			heats:    week(5, 5, 5, 5, 5, 0),
@@ -148,16 +150,20 @@ func TestSuggest_Bounds(t *testing.T) {
 			heats: week(5, 5, 5, 5, 5, 5), // Saturday is a gap, but in the future
 			since: sunday.Time(),
 			until: now.Time(),
+			miss:  Miss{Reason: CaughtUp, Day: friday, Actual: 5, Target: 5, Next: saturday},
 		},
 		"anchor after the schedule the same evening": {
 			heats: week(5, 5, 5, 5, 5, 0), // Friday is a gap, but its schedule is over
 			since: now.Hour(20).Time(),
 			until: now.Hour(21).Time(),
+			miss:  Miss{Reason: Closed, Day: friday, Actual: 0, Target: 5, Next: saturday},
 		},
 		"no gap in the window": {
 			heats: week(10, 10, 10, 10, 10, 10, 10),
 			since: sunday.Day(23).Hour(10).Time(),
 			until: now.Time(),
+			// Saturday is on target too, the next gap is in the next week
+			miss: Miss{Reason: CaughtUp, Day: friday, Actual: 10, Target: 10, Next: sunday.Day(27).Hour(5).Time()},
 		},
 		"anchor is now on a gap": {
 			heats:    week(5, 5, 5, 5, 5, 3),
@@ -169,16 +175,25 @@ func TestSuggest_Bounds(t *testing.T) {
 			heats: week(5, 5, 5, 5, 5, 5), // Saturday is a gap, but in the future
 			since: now.Time(),
 			until: now.Time(),
+			miss:  Miss{Reason: CaughtUp, Day: friday, Actual: 5, Target: 5, Next: saturday},
+		},
+		"pending over closed": {
+			heats: week(19, 20, 20, 20, 20, 0), // Sunday is a gap, but its schedule is over by the anchor
+			since: sunday.Hour(20).Time(),
+			until: now.Hour(3).Time(),
+			miss:  Miss{Reason: Pending, Day: friday, Actual: 0, Target: 20, Next: now.Hour(5).Minute(0).Second(0).Time()},
 		},
 		"anchor is now before the schedule": {
 			heats: week(5, 5, 5, 5, 5, 0),
 			since: now.Hour(3).Time(),
 			until: now.Hour(3).Time(),
+			miss:  Miss{Reason: Pending, Day: friday, Actual: 0, Target: 5, Next: now.Hour(5).Minute(0).Second(0).Time()},
 		},
 		"anchor is now after the schedule": {
 			heats: week(5, 5, 5, 5, 5, 0),
 			since: now.Hour(20).Time(),
 			until: now.Hour(20).Time(),
+			miss:  Miss{Reason: Closed, Day: friday, Actual: 0, Target: 5, Next: saturday},
 		},
 		"anchor an hour ahead": {
 			heats: week(5, 5, 5, 5, 5, 0),
@@ -200,6 +215,9 @@ func TestSuggest_Bounds(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			suggestion := Suggest(test.heats, test.since, test.until, hours, basis)
 			assert.Equal(t, test.expected, suggestion)
+			if !test.since.After(test.until) { // an anchor ahead is declined before
+				assert.Equal(t, test.miss, Explain(test.heats, test.since, test.until, hours, basis))
+			}
 			if suggestion.Time.IsZero() {
 				return
 			}
@@ -207,6 +225,43 @@ func TestSuggest_Bounds(t *testing.T) {
 			assert.False(t, suggestion.Time.After(test.until), "after now")
 			assert.False(t, hours.End(suggestion.Time).IsZero(), "outside the schedule")
 			assert.Equal(t, test.heats.Count(xtime.TruncateToDay(suggestion.Time)), suggestion.Actual)
+		})
+	}
+}
+
+func TestRaise(t *testing.T) {
+	sunday := xtime.UTC().Year(2026).Month(time.September).Day(20)
+	now := sunday.Day(25).Hour(12) // Friday
+	hours := xtime.Everyday(xtime.Hours(5, 19, 0))
+	week := func(counts ...uint) HeatMap {
+		chm := make(HeatMap)
+		for i, count := range counts {
+			chm.SetCount(sunday.Day(20+i).Time(), count)
+		}
+		return chm
+	}
+
+	tests := map[string]struct {
+		heats HeatMap
+		since time.Time
+		until time.Time
+		basis uint
+
+		expected uint
+	}{
+		"caught up":                 {week(20, 20, 20, 20, 20, 20), sunday.Time(), now.Time(), 5, 21},
+		"the least count is closed": {week(20, 25, 25, 25, 25, 25), sunday.Hour(20).Time(), now.Time(), 5, 26},
+		"a day before the anchor":   {week(7, 20, 20, 20, 20, 20), sunday.Day(21).Time(), now.Time(), 5, 21},
+		"no schedule left":          {week(5, 5, 5, 5, 5, 5), now.Hour(20).Time(), now.Hour(21).Time(), 5, 0},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			raised := Raise(test.heats, test.since, test.until, hours, test.basis)
+			assert.Equal(t, test.expected, raised)
+			if raised > 0 {
+				assert.False(t, Suggest(test.heats, test.since, test.until, hours, raised).Time.IsZero())
+				assert.True(t, Suggest(test.heats, test.since, test.until, hours, raised-1).Time.IsZero())
+			}
 		})
 	}
 }

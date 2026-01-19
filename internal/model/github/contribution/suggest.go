@@ -1,6 +1,8 @@
 package contribution
 
 import (
+	"maps"
+	"slices"
 	"time"
 
 	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
@@ -66,6 +68,126 @@ func Suggest(
 		return Suggestion{Time: suggestion, Actual: dist[day.Weekday()], Target: value}
 	}
 	return Suggestion{}
+}
+
+// Reason tells why there is no suggestion.
+type Reason uint8
+
+const (
+	// CaughtUp means every day of the window has what its week requires.
+	CaughtUp Reason = iota + 1
+	// Closed means a day short of its week has no schedule left after since.
+	Closed
+	// Pending means the schedule of a day short of its week opens after until.
+	// It takes precedence over Closed: it is the one to wait for.
+	Pending
+)
+
+// Miss explains the zero Suggestion: why there is no moment
+// between since and until, and when a day short of its week opens.
+type Miss struct {
+	Reason Reason
+	// Day is the day short of its week for Closed and Pending,
+	// and the day of until for CaughtUp.
+	Day    time.Time
+	Actual uint
+	Target uint
+	// Next is the first moment after until within the schedule
+	// on a day short of its week; zero if there is none within a week.
+	Next time.Time
+}
+
+// Explain tells why Suggest has no moment between since and until,
+// both inclusive, and when there is one after until. It returns the zero
+// Miss if there is a moment to suggest.
+//
+// Will normalize dates to UTC.
+func Explain(
+	heats HeatMap,
+	since, until time.Time,
+	hours xtime.Schedule,
+	basis uint,
+) Miss {
+	assert.True(func() bool { return heats != nil })
+	assert.True(func() bool { return !since.IsZero() })
+	assert.True(func() bool { return hours != nil })
+	assert.True(func() bool { return basis > 0 })
+
+	// normalize dates to UTC
+	since, until = since.UTC(), until.UTC()
+
+	var (
+		dist WeekDistribution
+		week time.Time
+	)
+	miss := Miss{Reason: CaughtUp}
+	last := xtime.TruncateToDay(until)
+	// a day after until has no contributions yet, so it is short of its week,
+	// and a schedule that is not empty opens on one of them within a week
+	horizon := last.Add(xtime.Week)
+	for day := xtime.TruncateToDay(since); !day.After(horizon); day = day.Add(xtime.Day) {
+		// a Gregorian week starts on Sunday
+		if sunday := day.AddDate(0, 0, -int(day.Weekday())); !sunday.Equal(week) {
+			week = sunday
+			for i := time.Sunday; i <= time.Saturday; i++ {
+				dist[i] = heats.Count(week.AddDate(0, 0, int(i)))
+			}
+		}
+
+		suggested, value := dist.Suggest(day.Weekday(), basis)
+		if day.Equal(last) && miss.Reason == CaughtUp {
+			miss.Day, miss.Actual, miss.Target = day, dist[day.Weekday()], value
+		}
+		if suggested != day.Weekday() {
+			continue
+		}
+		moment := day
+		if moment.Before(since) {
+			moment = since
+		}
+		moment = hours.Suggest(moment)
+		if moment.IsZero() {
+			if !day.After(last) && miss.Reason == CaughtUp {
+				miss = Miss{Reason: Closed, Day: day, Actual: dist[day.Weekday()], Target: value}
+			}
+			continue
+		}
+		if !moment.After(until) {
+			return Miss{} // there is a moment to suggest
+		}
+		if !day.After(last) {
+			miss = Miss{Reason: Pending, Day: day, Actual: dist[day.Weekday()], Target: value}
+		}
+		miss.Next = moment
+		return miss
+	}
+	return miss
+}
+
+// Raise returns the least basis above the given one that has a moment
+// to suggest between since and until, both inclusive, or zero if there is
+// none: a day becomes short of its week as the basis exceeds its count.
+//
+// Will normalize dates to UTC.
+func Raise(
+	heats HeatMap,
+	since, until time.Time,
+	hours xtime.Schedule,
+	basis uint,
+) uint {
+	// normalize dates to UTC
+	since, until = since.UTC(), until.UTC()
+
+	counts := make(map[uint]struct{})
+	for day := xtime.TruncateToDay(since); !day.After(until); day = day.Add(xtime.Day) {
+		counts[heats.Count(day)] = struct{}{}
+	}
+	for _, count := range slices.Sorted(maps.Keys(counts)) {
+		if raised := count + 1; raised > basis && !Suggest(heats, since, until, hours, raised).Time.IsZero() {
+			return raised
+		}
+	}
+	return 0
 }
 
 type WeekDistribution [7]uint
