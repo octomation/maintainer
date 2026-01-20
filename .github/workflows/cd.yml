@@ -70,7 +70,7 @@ jobs:
       - name: Run fast check and tests
         run: make release-verify test TIMEOUT=2m
       - name: Publish the release
-        uses: goreleaser/goreleaser-action@v7.2.3
+        uses: goreleaser/goreleaser-action@v7.3.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
           HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
