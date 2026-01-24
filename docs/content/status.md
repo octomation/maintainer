@@ -16,7 +16,7 @@ description: Inspect branches, uncommitted changes and divergence across local c
 Status reads the same `fetch.toml` / `fetch.yaml` and state as
 [`maintainer fetch`](/fetch/), using the same [workspace](/workspace/) layout
 and pins. It includes eligible remembered paths and explicitly pinned checkouts
-such as `~/.dotfiles`. It needs Git on
+such as `~/.dotfiles`. It needs Git 2.18 or newer on
 PATH, but no token or network. It never fetches, modifies the index/worktree,
 or writes state. Ahead/behind counts describe **local upstream refs**; run
 `maintainer fetch --apply` separately to refresh them.
@@ -57,11 +57,21 @@ JSON `path` and the selected-path footer retain the full path.
 
 `*` marks the default branch from local `origin/HEAD`, falling back to cached
 fetch metadata. `+/-` counts tracked lines from HEAD to the combined current
-index/worktree, with rename detection disabled. Rename-only changes therefore
-count removed/added lines and remain visible. `f` counts changed tracked files;
-`?` counts untracked files, `!` counts conflicted files. Binary changes have
-their own count. In an unborn repository the line count describes staged files
-against the empty tree. Untracked file contents are not added to line counts.
+index/worktree. `f` counts changed tracked files; `?` counts untracked files,
+`!` counts conflicted files. Binary changes have their own count. In an unborn
+repository the line count describes staged files against the empty tree.
+Untracked file contents are not added to line counts.
+
+`f`, `+/-` and the binary count detect renames as Git does by default,
+regardless of the `status.renames` and `diff.renames` settings. A staged rename
+is one file in `f`, only its content changes reach `+/-`, and a renamed binary
+file is one binary change, so a pure rename reads `+0/-0 · 1f`. Git pairs only
+paths it tracks: a file moved without `git add` (`git add -N` is enough) is a
+deleted file plus an untracked one, and a file rewritten beyond the similarity
+threshold (50% by default) is a deleted file plus an added one. `+/-` compares
+the worktree, so a staged rename whose working copy is then rewritten that far
+stays one file in `f` but counts all of its lines as removed and added. Copies
+count as added files.
 
 `synced` means the current branch matches its upstream; it can still have
 uncommitted work. A branch can be both ahead and behind. Detached HEAD,

@@ -94,30 +94,13 @@ func Inspect(ctx context.Context, row Row) Row {
 	if raw, err := git(ctx, row.Path, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"); err == nil {
 		row.DefaultBranch = strings.TrimPrefix(strings.TrimSpace(raw), "refs/remotes/origin/")
 	}
-	raw, err := git(ctx, row.Path, "status", "--porcelain=v2", "--branch", "-z", "--untracked-files=all", "--ignore-submodules=none")
+	// Renames are detected explicitly, as in the line count below, so that
+	// status.renames and diff.renames cannot change a row.
+	raw, err := git(ctx, row.Path, "status", "--porcelain=v2", "--branch", "-z", "--find-renames", "--untracked-files=all", "--ignore-submodules=none")
 	if err != nil {
 		return fail(err)
 	}
-	entries := strings.Split(raw, "\x00")
-	for i := 0; i < len(entries); i++ {
-		entry := entries[i]
-		switch {
-		case strings.HasPrefix(entry, "# branch.oid "):
-			row.Commit = strings.TrimPrefix(entry, "# branch.oid ")
-		case strings.HasPrefix(entry, "# branch.head "):
-			row.Branch = strings.TrimPrefix(entry, "# branch.head ")
-		case strings.HasPrefix(entry, "? "):
-			row.Untracked++
-		case strings.HasPrefix(entry, "u "):
-			row.Conflicts++
-			row.Changed++
-		case strings.HasPrefix(entry, "1 "), strings.HasPrefix(entry, "2 "):
-			row.Changed++
-			if entry[0] == '2' {
-				i++
-			} // rename's original pathname is another NUL field
-		}
-	}
+	countStatus(&row, raw)
 	row.Status = "no upstream"
 	unborn := row.Commit == "(initial)"
 	switch {
@@ -154,7 +137,7 @@ func Inspect(ctx context.Context, row Row) Row {
 			}
 		}
 	}
-	args := []string{"diff", "--no-ext-diff", "--no-textconv", "--no-renames", "--numstat", "-z", "--ignore-submodules=none"}
+	args := []string{"diff", "--no-ext-diff", "--no-textconv", "--find-renames", "--numstat", "-z", "--ignore-submodules=none"}
 	if unborn {
 		args = append(args, "--cached")
 	} else {
@@ -165,13 +148,54 @@ func Inspect(ctx context.Context, row Row) Row {
 	if err != nil {
 		return fail(err)
 	}
-	for _, entry := range strings.Split(stats, "\x00") {
-		if entry == "" {
+	if err := countLines(&row, stats); err != nil {
+		return fail(err)
+	}
+	return row
+}
+
+// countStatus adds the entries of git status --porcelain=v2 --branch -z to row.
+func countStatus(row *Row, raw string) {
+	entries := strings.Split(raw, "\x00")
+	for i := 0; i < len(entries); i++ {
+		entry := entries[i]
+		switch {
+		case strings.HasPrefix(entry, "# branch.oid "):
+			row.Commit = strings.TrimPrefix(entry, "# branch.oid ")
+		case strings.HasPrefix(entry, "# branch.head "):
+			row.Branch = strings.TrimPrefix(entry, "# branch.head ")
+		case strings.HasPrefix(entry, "? "):
+			row.Untracked++
+		case strings.HasPrefix(entry, "u "):
+			row.Conflicts++
+			row.Changed++
+		case strings.HasPrefix(entry, "1 "), strings.HasPrefix(entry, "2 "):
+			row.Changed++
+			if entry[0] == '2' {
+				i++
+			} // rename's original pathname is another NUL field
+		}
+	}
+}
+
+// countLines adds the records of git diff --numstat -z to row. A rename leaves
+// the path field empty and names the original and new paths in the next two
+// NUL fields; it counts as one record.
+func countLines(row *Row, raw string) error {
+	records := strings.Split(raw, "\x00")
+	for i := 0; i < len(records); i++ {
+		if records[i] == "" {
 			continue
 		}
-		fields := strings.SplitN(entry, "\t", 3)
+		fields := strings.SplitN(records[i], "\t", 3)
 		if len(fields) != 3 {
-			return fail(fmt.Errorf("invalid Git numstat"))
+			return fmt.Errorf("invalid Git numstat")
+		}
+		if fields[2] == "" {
+			if i+2 >= len(records) || records[i+1] == "" || records[i+2] == "" {
+				return fmt.Errorf("invalid Git numstat")
+			}
+			i += 2
 		}
 		if fields[0] == "-" {
 			row.Binary++
@@ -180,12 +204,12 @@ func Inspect(ctx context.Context, row Row) Row {
 		add, e1 := strconv.Atoi(fields[0])
 		del, e2 := strconv.Atoi(fields[1])
 		if e1 != nil || e2 != nil {
-			return fail(fmt.Errorf("invalid Git line counts"))
+			return fmt.Errorf("invalid Git line counts")
 		}
 		row.Added += add
 		row.Deleted += del
 	}
-	return row
+	return nil
 }
 
 // pushLocked recognizes the marker written by git lock [remote]. Read through

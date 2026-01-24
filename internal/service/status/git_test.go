@@ -220,8 +220,8 @@ func TestInspectRenameAndConflict(t *testing.T) {
 	row := Inspect(context.Background(), Row{Path: path})
 	assert.Empty(t, row.Error)
 	assert.Equal(t, 1, row.Changed)
-	assert.Equal(t, 2, row.Added)
-	assert.Equal(t, 2, row.Deleted)
+	assert.Zero(t, row.Added)
+	assert.Zero(t, row.Deleted)
 	runGit(t, path, "commit", "-m", "rename")
 	runGit(t, path, "checkout", "-b", "conflict")
 	write(t, filepath.Join(path, "renamed\nfile"), "other\n")
@@ -237,4 +237,158 @@ func TestInspectRenameAndConflict(t *testing.T) {
 	assert.Empty(t, row.Error)
 	assert.Equal(t, 1, row.Conflicts)
 	assert.Equal(t, 1, row.Changed)
+}
+
+func TestInspectRenames(t *testing.T) {
+	type counts struct{ changed, added, deleted, binary, untracked int }
+	move := func(from, to string) func(*testing.T, string) {
+		return func(t *testing.T, path string) { runGit(t, path, "mv", "--", from, to) }
+	}
+	for _, tc := range []struct {
+		name  string
+		setup []func(*testing.T, string)
+		want  counts
+	}{
+		{name: "pure rename", setup: []func(*testing.T, string){move("text", "renamed")},
+			want: counts{changed: 1}},
+		{name: "binary rename", setup: []func(*testing.T, string){move("binary", "logo")},
+			want: counts{changed: 1, binary: 1}},
+		{name: "text and binary renames", setup: []func(*testing.T, string){move("text", "main"), move("binary", "logo")},
+			want: counts{changed: 2, binary: 1}},
+		{name: "staged rename with edit", setup: []func(*testing.T, string){move("text", "renamed"), func(t *testing.T, path string) {
+			write(t, filepath.Join(path, "renamed"), "one\ntwo\nthree\n")
+			runGit(t, path, "add", "renamed")
+		}}, want: counts{changed: 1, added: 1}},
+		{name: "staged rename edited in worktree", setup: []func(*testing.T, string){move("text", "renamed"), func(t *testing.T, path string) {
+			write(t, filepath.Join(path, "renamed"), "one\ntwo\nthree\n")
+		}}, want: counts{changed: 1, added: 1}},
+		{name: "new paths with newline and tab", setup: []func(*testing.T, string){move("text", "renamed\nwith\ttab"), move("binary", "bin\tary\nlogo")},
+			want: counts{changed: 2, binary: 1}},
+		{name: "new paths that look like records", setup: []func(*testing.T, string){move("text", "u old\nfile"), move("binary", "1 x")},
+			want: counts{changed: 2, binary: 1}},
+		{name: "original paths that look like records", setup: []func(*testing.T, string){func(t *testing.T, path string) {
+			write(t, filepath.Join(path, "u old\nfile"), "alpha\nbeta\n")
+			write(t, filepath.Join(path, "1\t2\tx"), "gamma\ndelta\n")
+			write(t, filepath.Join(path, "? y"), "epsilon\nzeta\n")
+			write(t, filepath.Join(path, "-\t-\tz"), "\x00zz")
+			runGit(t, path, "add", ".")
+			runGit(t, path, "commit", "-m", "hostile")
+		}, move("u old\nfile", "a"), move("1\t2\tx", "b"), move("? y", "c"), move("-\t-\tz", "d")},
+			want: counts{changed: 4, binary: 1}},
+		// Git cannot pair a deletion with a file that is not in the index.
+		{name: "moved without add", setup: []func(*testing.T, string){func(t *testing.T, path string) {
+			require.NoError(t, os.Rename(filepath.Join(path, "text"), filepath.Join(path, "moved")))
+		}}, want: counts{changed: 1, deleted: 2, untracked: 1}},
+		{name: "moved with intent to add", setup: []func(*testing.T, string){func(t *testing.T, path string) {
+			require.NoError(t, os.Rename(filepath.Join(path, "text"), filepath.Join(path, "moved")))
+			runGit(t, path, "add", "--intent-to-add", "moved")
+		}}, want: counts{changed: 1}},
+		// Below the similarity threshold a rename is a deletion and an addition.
+		{name: "rename rewritten beyond similarity", setup: []func(*testing.T, string){move("text", "renamed"), func(t *testing.T, path string) {
+			write(t, filepath.Join(path, "renamed"), "alpha\nbeta\ngamma\n")
+			runGit(t, path, "add", "renamed")
+		}}, want: counts{changed: 2, added: 3, deleted: 2}},
+		// The index keeps the rename, the worktree content no longer matches it.
+		{name: "staged rename rewritten in worktree", setup: []func(*testing.T, string){move("text", "renamed"), func(t *testing.T, path string) {
+			write(t, filepath.Join(path, "renamed"), "alpha\nbeta\ngamma\n")
+		}}, want: counts{changed: 1, added: 3, deleted: 2}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			path := checkout(t, t.TempDir())
+			for _, setup := range tc.setup {
+				setup(t, path)
+			}
+			row := Inspect(context.Background(), Row{Path: path})
+			require.Empty(t, row.Error)
+			assert.Equal(t, tc.want, counts{row.Changed, row.Added, row.Deleted, row.Binary, row.Untracked})
+			assert.Zero(t, row.Conflicts)
+		})
+	}
+}
+
+func TestInspectRenamesIgnoreRenameConfig(t *testing.T) {
+	path := checkout(t, t.TempDir())
+	runGit(t, path, "mv", "text", "main")
+	runGit(t, path, "mv", "binary", "logo")
+	write(t, filepath.Join(path, "copy"), "one\ntwo\n")
+	runGit(t, path, "add", "copy")
+	for _, key := range []string{"status.renames", "diff.renames"} {
+		for _, value := range []string{"false", "true", "copies"} {
+			t.Run(key+"="+value, func(t *testing.T) {
+				runGit(t, path, "config", key, value)
+				defer runGit(t, path, "config", "--unset", key)
+				row := Inspect(context.Background(), Row{Path: path})
+				require.Empty(t, row.Error)
+				assert.Equal(t, 3, row.Changed)
+				assert.Equal(t, 2, row.Added)
+				assert.Zero(t, row.Deleted)
+				assert.Equal(t, 1, row.Binary)
+			})
+		}
+	}
+}
+
+func TestCountStatus(t *testing.T) {
+	const oid = "0123456789012345678901234567890123456789"
+	ordinary := "1 .M N... 100644 100644 100644 " + oid + " " + oid + " "
+	renamed := "2 R. N... 100644 100644 100644 " + oid + " " + oid + " R100 "
+	for _, tc := range []struct {
+		name                          string
+		raw                           string
+		changed, untracked, conflicts int
+		branch, commit                string
+	}{
+		{name: "empty"},
+		{name: "branch", raw: "# branch.oid " + oid + "\x00# branch.head main\x00", branch: "main", commit: oid},
+		{name: "ordinary with newline", raw: ordinary + "a\nb\x00", changed: 1},
+		{name: "untracked that looks like records", raw: "? u x\n1 y\x00", untracked: 1},
+		{name: "rename", raw: renamed + "new\x00old\x00", changed: 1},
+		{name: "rename with newline and tab", raw: renamed + "new\nname\x00old\tname\x00", changed: 1},
+		{name: "original like conflict", raw: renamed + "new\x00u old\nfile\x00", changed: 1},
+		{name: "original like ordinary", raw: renamed + "new\x001 x\x00", changed: 1},
+		{name: "original like rename", raw: renamed + "new\x002 x\x00" + renamed + "b\x00a\x00", changed: 2},
+		{name: "original like untracked", raw: renamed + "new\x00? y\x00", changed: 1},
+		{name: "original like header", raw: "# branch.head main\x00" + renamed + "new\x00# branch.head evil\x00", changed: 1, branch: "main"},
+		{name: "conflict", raw: "u UU N... 100644 100644 100644 100644 " + oid + " " + oid + " " + oid + " f\x00", changed: 1, conflicts: 1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var row Row
+			countStatus(&row, tc.raw)
+			assert.Equal(t, Row{Changed: tc.changed, Untracked: tc.untracked, Conflicts: tc.conflicts, Branch: tc.branch, Commit: tc.commit}, row)
+		})
+	}
+}
+
+func TestCountLines(t *testing.T) {
+	for _, tc := range []struct {
+		name                   string
+		raw                    string
+		added, deleted, binary int
+		err                    string
+	}{
+		{name: "empty"},
+		{name: "ordinary with tab", raw: "3\t1\ta\tb\x00", added: 3, deleted: 1},
+		{name: "binary", raw: "-\t-\tlogo\x00", binary: 1},
+		{name: "pure rename", raw: "0\t0\t\x00old\x00new\x00"},
+		{name: "rename with changes", raw: "2\t1\t\x00old\x00new\x00", added: 2, deleted: 1},
+		{name: "binary rename", raw: "-\t-\t\x00logo.png\x00icon.png\x00", binary: 1},
+		{name: "rename with newline and tab", raw: "1\t0\t\x00old\nname\x00new\tname\x00", added: 1},
+		{name: "paths that look like records", raw: "0\t0\t\x005\t5\tx\x00-\t-\ty\x001\t1\tz\x00", added: 1, deleted: 1},
+		{name: "rename between records", raw: "1\t0\ta\x000\t0\t\x00u old\nfile\x00b\x00-\t-\tc\x00", added: 1, binary: 1},
+		{name: "missing fields", raw: "1\t0\x00", err: "invalid Git numstat"},
+		{name: "truncated rename", raw: "1\t0\t\x00old\x00", err: "invalid Git numstat"},
+		{name: "rename without paths", raw: "1\t0\t\x00\x00\x00", err: "invalid Git numstat"},
+		{name: "invalid counts", raw: "x\t0\ta\x00", err: "invalid Git line counts"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var row Row
+			err := countLines(&row, tc.raw)
+			if tc.err != "" {
+				assert.EqualError(t, err, tc.err)
+				return
+			}
+			require.NoError(t, err)
+			assert.Equal(t, Row{Added: tc.added, Deleted: tc.deleted, Binary: tc.binary}, row)
+		})
+	}
 }
