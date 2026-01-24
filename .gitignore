@@ -1,7 +1,11 @@
+# agents
+.agents
+.claude
+.codex
+.mcp.json
+
 # sparkle
 .github/notes
-
-
 
 # goreleaser artifacts
 /dist/
@@ -13,5 +17,6 @@
 /*.out
 
 # sensitive data
-.env
+*.env
+*.hosts
 http-client.private.env.json
