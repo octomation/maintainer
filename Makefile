@@ -80,7 +80,7 @@ LOCAL       ?= $(MODULE)
 MODULE      ?= `go list $(GOFLAGS)`
 PACKAGES    ?= `go list $(GOFLAGS) ./...`
 PATHS       ?= $(shell echo $(PACKAGES) | sed -e "s|$(MODULE)/||g" | sed -e "s|$(MODULE)|$(PWD)/*.go|g")
-TIMEOUT     ?= 1s
+TIMEOUT     ?= 2m
 
 ifeq (, $(GOTEST))
 	GOTEST = go test

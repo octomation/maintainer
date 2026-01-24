@@ -227,7 +227,7 @@ flowchart LR
 
 ```sh
 make tools
-make source-check lint test TIMEOUT=2m
+make source-check lint test
 make deps-tidy tools-tidy generate git-check
 make config-vet release-config-check deps-check
 make tools-check
