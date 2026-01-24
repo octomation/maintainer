@@ -38,7 +38,7 @@ on a day with fewer contributions than its week requires: the most a day
 of the week has, but not less than --target. A moment is within the
 schedule, 05:00-19:00 UTC every day, and a random jitter of less than an
 hour moves it neither after now nor after the schedule. The table of the
-weeks around the suggestion marks its day with "*" in stderr, and stdout
+weeks around the suggestion marks its day with brackets in stderr, and stdout
 gets only the timestamp, e.g., to pass it to git commit --date.
 
 The argument is date[/weeks], the same as lookup has: the date is empty,
@@ -110,10 +110,7 @@ or if there is no suitable moment up to now.
 				if !day.Equal(accent) {
 					return txt
 				}
-				if txt == "-" || txt == "?" {
-					return "*"
-				}
-				return txt + "*"
+				return "[" + txt + "]"
 			})
 		}
 		cmd.PrintErr("Suggestion is ")
