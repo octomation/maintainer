@@ -1,0 +1,42 @@
+---
+code: MAIN-67
+id: I_kwDOE2M9Zc5NfBpZ
+databaseId: 1299978841
+number: 67
+url: https://github.com/octomation/maintainer/issues/67
+title: "github: contribution: suggest doesn't work on last week with Sunday"
+issueType: null
+labels:
+  - "scope: code"
+assignees:
+  - kamilsk
+milestone: "[[MAIN-M1]]"
+parent: null
+issueFields: {}
+state: CLOSED
+stateReason: COMPLETED
+duplicateOf: null
+createdAt: 2022-07-10T17:51:04Z
+updatedAt: 2026-09-25T05:13:16Z
+lastEditedAt: 2026-09-25T05:13:16Z
+closedAt: 2022-07-10T19:11:06Z
+---
+
+# github: contribution: suggest doesn't work on last week with Sunday
+
+Fix suggest at the Sunday boundary of the available calendar: instead of a sensible date the command returned a zero date and an enormous negative delta. Such output must not be passed into a Git wrapper.
+
+The original reproduction:
+
+```bash
+maintainer github contribution suggest --delta 2022-07-10
+# Suggestion is 0001-01-01: -106751d, 0 -> 0
+```
+
+A valid day from the chosen period is expected, Sunday 10 July included, or else a clear message that there is no candidate. `0001-01-01` is not a user-facing suggestion, and the table must not jump to unrelated winter weeks.
+
+Related: the missing Sunday in lookup [[MAIN-66]], a future HEAD date [[MAIN-110]].
+
+<!-- 2022-07-10T19:11Z https://github.com/octomation/maintainer/issues/67#issuecomment-1179782513
+https://github.com/octomation/maintainer/commit/294366c4b28fb63f5c20fe3c6bdbd44ecfd559d2
+-->

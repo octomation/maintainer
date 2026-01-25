@@ -1,0 +1,359 @@
+---
+code: MAIN-P1
+id: PVT_kwDOAuheaM4ABq6c
+fullDatabaseId: "437916"
+number: 1
+url: https://github.com/orgs/octomation/projects/1
+owner:
+  id: MDEyOk9yZ2FuaXphdGlvbjQ4NzgyOTUy
+  login: "octomation"
+  type: Organization
+title: "🏗 Platform"
+shortDescription: "OctoLab Platform development."
+public: true
+closed: false
+createdAt: 2022-05-07T06:25:58Z
+updatedAt: 2026-10-19T07:22:54Z
+closedAt: null
+---
+
+# 🏗 Platform
+
+> # 🏗 OctoLab Platform
+>
+> Inventory development for internal ecosystem and automation.
+
+![Image](https://user-images.githubusercontent.com/1165416/167242144-47241efe-a94e-4884-a3ae-7d24000c41bd.png)
+
+## Backlog
+
+- [ ] draft: Taskfiles core concept
+- [ ] octomation/go-tool#20 — ci/cd: sign commits from goreleaser
+- [ ] octomation/go-tool#6 — boilerplate: graceful wrap panic stack trace
+- [ ] octomation/go-service#34 — specs: codegen: smokes: integrate apideck/portman
+- [ ] octomation/go-service#30 — boilerplate: define health endpoint
+- [ ] octomation/go-service#25 — boilerplate: codegen: smokes: configure tools and automate process
+- [ ] octomation/go-service#18 — dist: support docker publishing
+- [ ] octomation/go-service#6 — dist: docker: compare distroless image with alpine
+- [ ] octomation/go-tool#5 — boilerplate: basic features
+- [ ] [[MAIN-4]] — how to warmup godoc and vanity url
+- [ ] [[MAIN-19]] — transition entity
+- [ ] [[MAIN-21]] — improve vanity support
+- [ ] [[MAIN-31]] — command: github backup repository
+- [ ] octomation/go-tool#18 — docs: readme: describe template and its purpose
+- [ ] octomation/go-service#41 — docs: readme: describe template and its purpose
+- [ ] octomation/go-service#43 — dev: add k8s
+- [ ] octomation/go-service#45 — boilerplate: bootstrap: quick usage examples and best practices
+- [ ] [[MAIN-52]] — tools: experimental: integrate slides and describe v0.1.x using it
+- [ ] [[MAIN-53]] — tools: experimental: investigate cli dashboard for GitHub
+- [ ] octomation/go-tool#23 — build: compiled feature set
+- [ ] octomation/app#1 — env: activate: add node_modules/.bin and vendor/bin to path
+- [ ] octomation/app#2 — env: editor: support editorconfig
+- [ ] [[MAIN-64]] — github: api: switch to graphql
+- [ ] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
+- [ ] [[MAIN-70]] — github: contribution: refactor diff command
+- [ ] octomation/go-service#50 — boilerplate: fetch latest changes from go-tool
+- [ ] octomation/goimports-action#11 — action: implement goimports runner
+- [ ] octomation/go-service#53 — ci/cd: add linter for dotenv
+- [ ] [[MAIN-77]] — github: contribution: snapshot and diff must support multiple date input
+- [ ] [[MAIN-78]] — github: contribution: tips and tricks, daily snapshot
+- [ ] [[MAIN-79]] — github: contribution: extend suggest command by stats
+- [ ] octomation/go-service#55 — ci/cd: sign commits from goreleaser
+- [ ] [[MAIN-81]] — makefile: build: allow include recursively
+- [ ] octomation/go-module#56 — ci/cd: replace settings bot by github action
+- [ ] octomation/settings-action#16 — action: implement settings runner
+- [ ] octomation/go-service#72 — dev: use cdk8s for k8s
+- [ ] octomation/go-service#75 — dev: protobuf: support Buf Studio
+- [ ] octomation/go-service#76 — dev: env: try okteto
+- [ ] octopot/fiddle#2 — feed: add Calendly blog
+- [ ] octopot/fiddle#3 — feed: add Dopt blog
+- [ ] octopot/fiddle#1 — core: concept
+- [ ] octopot/fiddle#4 — feed: build RSS for Dear Architects
+- [ ] octopot/fiddle#5 — core: support Airseat and Airtable as data provider
+- [ ] octomation/go-tool#45 — dist: publish download script together with docs
+- [ ] octopot/fiddle#6 — feed: add Qatalog blog
+- [ ] octopot/fiddle#7 — feed: add Loom blog
+- [ ] [[MAIN-88]] — git: stats: provide local-based statistics
+- [ ] [[MAIN-91]] — github: cli: support extension mechanism
+- [ ] [[MAIN-92]] — github: setup: add command to manage all available projects and repositories
+- [ ] octomation/go-service#98 — dev: support code coverage for integration tests
+- [ ] draft: Go Module: notes and debt
+- [ ] octomation/go-module#98 — dev: add git flow targets
+- [ ] [[MAIN-101]] — github: contribution: resolve all related to the scope todos
+- [ ] [[MAIN-102]] — github: contribution: support preset for suggestion
+- [ ] [[MAIN-103]] — github: contribution: calculate contrib to define better day for commits
+- [ ] [[MAIN-104]] — github: contribution: refactor histogram command
+- [ ] [[MAIN-105]] — linear: generate client
+- [ ] [[MAIN-106]] — github: contribution: suggest for cmm
+- [ ] [[MAIN-107]] — go: vanity: build from git submodules and go.work instead of modules.yml
+- [ ] [[MAIN-108]] — go: rename: command to rename current module and others
+- [ ] [[MAIN-109]] — github: contribution: incorrect suggest for today
+- [ ] octomation/go-tool#68 — go: support coverage profiling for integration tests
+- [ ] octomation/go-tool#72 — go: cli: provide boilerplate for better TUI
+- [ ] octomation/watchub#1 — ci/cd: configure docker image publishing
+- [ ] octomation/go-module#130 — ci/cd: disable some actions by default
+- [ ] octomation/tablo#1 — core: gitboard port
+- [ ] octomation/tablo#2 — core: watchub port
+- [ ] octomation/tablo#3 — core: rethink tablo
+- [ ] octomation/tablo#4 — core: workflow flags
+- [ ] octomation/go-tool#91 — ci/cd: speed up works with tools
+- [ ] octomation/go-service#109 — dev: gitops with argocd and crossplane
+- [ ] [[MAIN-110]] — github: contribution: edge case for contrib suggestion
+- [ ] [[MAIN-112]] — template: go new support
+- [ ] octomation/go-module#145 — docs: provide example for go new
+- [ ] [[MAIN-113]] — github: contribution: simplify arguments format
+- [ ] octomation/install#9 — ci/cd: find way to trigger checking workflows when homebrew-tap was updated
+- [ ] octomation/install#10 — ci/cd: find way to regenerate install scripts after godownloader update
+- [ ] octomation/makefiles#72 — go: support GODEBUG
+- [ ] octomation/makefiles#73 — go: support GOTOOLCHAIN
+- [ ] octomation/go-module#165 — ci/cd: notification failed
+- [ ] octomation/install#14 — dev: fake static api
+- [ ] octomation/taskfiles#3 — utility: notify if a run is longer than X sec
+- [ ] octomation/makefiles#75 — go: docker: change entrypoint name
+- [ ] octomation/go-module#171 — ci/cd: docs workflow doesn't work properly for non-custom github pages domain
+- [ ] octomation/makefiles#76 — go: goreleaser: replace --skip-publish flag
+- [ ] octomation/install#19 — ci/cd: fragile pipelines
+- [ ] octomation/go-module#176 — docs: experiment with readme
+- [ ] octomation/go-module#179 — ci/cd: there is no workflow triggering for dependabot update
+- [ ] octomation/makefiles#77 — go: service: buf integration
+- [ ] [[MAIN-116]] — maintainance: sync with the go-tool template
+- [ ] octopot/stub#10 — ci/cd: add integration tests
+- [ ] octomation/go-service#173 — ci/cd: broken builds
+- [ ] octomation/install#38 — deps: remove okteto
+- [ ] octomation/go-module#191 — dev: drop unsupported go versions
+- [ ] [[MAIN-117]] — github: contribution: suggest doesn't work properly in headless mode
+- [ ] [[MAIN-118]] — github: suggestion: reduce jitter
+- [ ] [[MAIN-119]] — insights: deps: fetch data from deps.dev
+- [ ] octomation/go-module#247 — ci/cd: add renovate as alternative to dependabot
+- [ ] octomation/go-module#262 — tools: remove goimports and test golangci-lint as replacement
+- [ ] octomation/go-service#306 — deps: broken go.mod
+- [ ] octomation/go-module#394 — dev: support agents.md
+- [ ] octomation/go-module#395 — dev: support new schedule for dependabot
+
+## To do
+
+- [ ] [[MAIN-44]] — github: contribution: refactor command and view
+- [ ] [[MAIN-45]] — github: contribution: extend support lookup for a month
+- [ ] [[MAIN-48]] — ci/cd: tools: test act for local development
+
+## In progress
+
+- [ ] [[MAIN-39]] — org: review and classify issues
+- [ ] [[MAIN-30]] — org: prepare release v0.1.0
+- [ ] [[MAIN-50]] — command: separate command structure and command execution
+- [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
+
+## Done
+
+- [x] [[MAIN-33]] — provide github access token by command flag
+- [x] [[MAIN-26]] — implement github contribution lookup command
+- [x] [[MAIN-38]] — github: contribution: lookup shows incorrect scope for 1 week with now ts
+- [x] [[MAIN-41]] — github: contribution: lookup forward/backward
+- [x] octomation/go-tool#13 — quality: review codeclimate issues
+- [x] octomation/go-service#33 — quality: review codeclimate issues
+- [x] octomation/go-module#30 — ci/cd: add new linters support from v1.46.0 and up golangci-lint to v1.46.2
+- [x] octomation/go-module#27 — ci/cd: github: investigate new apps for automation
+- [x] octomation/go-module#28 — docs: readme: describe template and its purpose
+- [x] octomation/breakout#1 — add openvpn alternative
+- [x] [[MAIN-6]] — issue with modules without go files on the root
+- [x] [[MAIN-14]] — add dry-run option for github labels
+- [x] [[MAIN-15]] — extend octolab preset by other repositories
+- [x] [[MAIN-16]] — org: prepare release v0.2.0
+- [x] [[MAIN-32]] — command: labels classify issue
+- [x] octomation/go-service#38 — deps: tools: up grpc-gateway to v2.10.1
+- [x] [[MAIN-29]] — implement github contribution histogram command
+- [x] [[MAIN-43]] — github: contribution: expand heat map by merging with neighbors
+- [x] [[MAIN-24]] — use contributions chart for git at suggestion
+- [x] [[MAIN-42]] — deps: up go-github to v45.0.0
+- [x] [[MAIN-40]] — github: contribution: extend heat map by .From(), .To(), and .Range()
+- [x] [[MAIN-27]] — implement github contribution snapshot command
+- [x] [[MAIN-28]] — implement github contribution diff command
+- [x] octomation/go-service#40 — deps: tools: up grpc-gateway to v2.10.2
+- [x] octomation/go-service#42 — dev: add docker compose
+- [x] octomation/go-module#35 — org: define basic labels
+- [x] octomation/go-service#44 — ci/cd: add new linters support from v1.46.0 and up golangci-lint to v1.46.2
+- [x] octomation/go-module#31 — ci/cd: add dependabot
+- [x] octomation/go-module#32 — ci/cd: potential problem with checkout@v3
+- [x] octomation/go-module#33 — ci/cd: add settings
+- [x] octomation/go-tool#19 — ci/cd: add new linters support from v1.46.0 and up golangci-lint to v1.46.2
+- [x] octomation/go-module#36 — ci/cd: run simple go fmt on ci stage
+- [x] [[MAIN-46]] — github: contribution: show datetime on the right side of lookup
+- [x] octomation/go-service#46 — deps: tools: up grpc-gateway to v2.10.3
+- [x] [[MAIN-47]] — org: define milestones
+- [x] [[MAIN-49]] — deps: up go-github to v45.1.0
+- [x] [[MAIN-54]] — ci/cd: invalid workflow file: .github/workflows/cd.yml#L38
+- [x] octomation/go-tool#21 — ci/cd: invalid workflow file: .github/workflows/cd.yml#L38
+- [x] [[MAIN-55]] — ci/cd: rename coverage to report
+- [x] octomation/go-tool#22 — ci/cd: rename coverage to report
+- [x] [[MAIN-56]] — github: contribution: support --short for suggest
+- [x] [[MAIN-57]] — github: contribution: refactor logic of suggest command
+- [x] [[MAIN-58]] — github: contribution: add --auto flag to suggest command
+- [x] [[MAIN-59]] — github: contribution: prevent caching of github contribution calendar
+- [x] [[MAIN-60]] — github: contribution: replace --weeks by /weeks argument format for suggest
+- [x] [[MAIN-61]] — text: replace -> by →
+- [x] [[MAIN-62]] — deps: up github.com/google/go-github to v45.2.0
+- [x] [[MAIN-63]] — github: contribution: highlight suggested day
+- [x] octomation/go-tool#24 — Taskfile: forks: migration style and bulletproof
+- [x] [[MAIN-66]] — github: contribution: lookup doesn't show last week on Sunday
+- [x] [[MAIN-67]] — github: contribution: suggest doesn't work on last week with Sunday
+- [x] octomation/go-module#43 — ci/cd: rename coverage to report
+- [x] octomation/go-service#47 — deps: tools: up grpc-gateway to v2.11.0
+- [x] [[MAIN-68]] — github: contribution: invalid suggestion for edge case with zero
+- [x] [[MAIN-71]] — pkg: file: register encoders for specific formats
+- [x] [[MAIN-72]] — github: contribution: bad suggestion with Sunday shift
+- [x] [[MAIN-73]] — github: contribution: suggest command has regression with weeks arg
+- [x] [[MAIN-74]] — internal: pkg: remove golden package
+- [x] [[MAIN-75]] — github: contribution: suggest shows future
+- [x] [[MAIN-76]] — github: contribution: support strict ISO 8601 format as input date
+- [x] octomation/go-service#48 — deps: tools: up grpc-gateway to v2.11.1
+- [x] octomation/go-module#44 — ci/cd: fix broken build by go-tools
+- [x] octomation/go-module#45 — deps: tools: remove gorelease
+- [x] octomation/go-tool#25 — deps: tools: sync with go-module
+- [x] octomation/go-module#46 — go: support 1.19
+- [x] octomation/go-tool#26 — go: support 1.19
+- [x] octomation/go-service#49 — go: support 1.19
+- [x] octomation/makefiles#60 — go: support 1.19
+- [x] octomation/go-tool#27 — boilerplate: fetch latest changes from go-module
+- [x] octomation/goimports-action#10 — action: configure and cleanup
+- [x] octomation/go-service#51 — deps: tools: up grpc-gateway to v2.11.2
+- [x] octomation/go-service#54 — deps: tools: cleanup unnecessary refs
+- [x] octomation/go-tool#29 — go: extended support of go version since 1.18
+- [x] octomation/makefiles#61 — go: support -fuzzcache by go clean
+- [x] octomation/go-tool#31 — ci/cd: fix broken build with make pre-push
+- [x] octomation/makefiles#62 — go: work: makefiles for go don't support workspace
+- [x] octomation/makefiles#63 — go: goimports and golangci-lint are required
+- [x] octomation/makefiles#64 — go: prepare makefiles for multilingual environment
+- [x] octomation/go-module#49 — ci/cd: exclude notification from pull requests
+- [x] octomation/go-module#50 — ci/cd: update ubuntu image
+- [x] octomation/go-module#51 — ci/cd: add step `verify` to check consistency
+- [x] [[MAIN-80]] — github: labels: remove scope
+- [x] octomation/makefiles#65 — go: review check, clean, verify, and others
+- [x] octomation/go-module#53 — docs: add stubs as a good starting point
+- [x] octomation/settings-action#14 — ci/cd: fix broken build
+- [x] octomation/goimports-action#27 — ci/cd: fix broken build
+- [x] octomation/go-module#54 — deps: docs: up mdx to 2.1.3
+- [x] octomation/go-module#55 — ci/cd: extend dependabot config by labels
+- [x] [[MAIN-82]] — deps: up go-github to v46.0.0
+- [x] octomation/go-service#56 — grpc: integrate google implementation
+- [x] octomation/go-service#57 — deps: tools: up grpc-gateway to v2.11.3
+- [x] [[MAIN-83]] — deps: up go-github top v47.0.0
+- [x] octomation/go-module#60 — ci/cd: remove oldname for labels in settings
+- [x] octomation/go-tool#32 — ci/cd: add settings
+- [x] octomation/go-service#58 — ci/cd: add settings
+- [x] octomation/go-tool#33 — ci/cd: add dependabot
+- [x] [[MAIN-84]] — github: contribution: invalid suggestion for past
+- [x] octomation/go-module#61 — tools: add govulncheck
+- [x] octomation/makefiles#66 — go: support govulncheck
+- [x] [[MAIN-85]] — deps: up go-github to v47.1.0
+- [x] octomation/makefiles#67 — go: something wrong with go targets
+- [x] octomation/go-module#65 — ci/cd: dependabot: change commit message
+- [x] octomation/go-tool#37 — ci/cd: dependabot: change commit message
+- [x] octomation/go-service#66 — ci/cd: dependabot: change commit message
+- [x] octomation/goimports-action#69 — ci/cd: dependabot: change commit message
+- [x] octomation/settings-action#53 — ci/cd: dependabot: change commit message
+- [x] octomation/goimports-action#74 — ci/cd: dependabot: invalid prefix
+- [x] [[MAIN-86]] — deps: up go-github to v48.0.0
+- [x] octomation/go-module#69 — ci/cd: linter: add new from v1.48.0
+- [x] octomation/go-module#70 — ci/cd: linter: add new from v1.49.0
+- [x] octomation/go-module#71 — ci/cd: linter: add new from v1.50.0
+- [x] octomation/go-service#73 — dev: integrate with buf and connect
+- [x] octomation/go-service#74 — dev: protobuf: use buf instead of protoc
+- [x] octomation/go-module#72 — ci/cd: dependabot: setup time and timezone
+- [x] octomation/go-tool#44 — ci/cd: dependabot: setup time and timezone
+- [x] octomation/go-service#79 — ci/cd: dependabot: setup time and timezone
+- [x] octomation/settings-action#77 — ci/cd: dependabot: setup time and timezone
+- [x] octomation/goimports-action#95 — ci/cd: dependabot: setup time and timezone
+- [x] octomation/go-module#73 — ci/cd: setup cache
+- [x] [[MAIN-87]] — deps: up go-github to v48.2.0
+- [x] octomation/go-module#74 — ci/cd: fix broken build related to caching
+- [x] [[MAIN-89]] — git: config: contribution since
+- [x] [[MAIN-90]] — github: contribution: lookup call throw panic
+- [x] octomation/go-module#78 — ci/cd: allow dispatch some workflows
+- [x] octomation/go-module#79 — ci/cd: run dependabot on weekends
+- [x] [[MAIN-93]] — github: contribution: invalid suggestion for 2022 year
+- [x] octomation/go-module#83 — ci/cd: docs: configure environment
+- [x] octomation/makefiles#68 — go: support 1.20
+- [x] octomation/go-module#84 — dev: support go 1.20
+- [x] octomation/go-tool#58 — dev: support go 1.20
+- [x] octomation/go-service#99 — dev: support go 1.20
+- [x] octomation/go-module#85 — dev: improve activate script
+- [x] octomation/go-module#86 — tools: update versions
+- [x] octomation/go-module#87 — ci/cd: docs: switch from deployment from a branch into GitHub Actions
+- [x] octomation/go-module#88 — dev: cleanup linters
+- [x] octomation/go-module#89 — docs: prepare v1.0.0 release
+- [x] octomation/go-module#90 — ci/cd: check cronjob for cache invalidation
+- [x] octomation/go-module#91 — ci/cd: configure qodana as experimental tool
+- [x] octomation/go-module#93 — ci/cd: adopt to new setup-go v4 release
+- [x] octomation/go-module#94 — docs: describe misc integrations
+- [x] octomation/go-module#95 — ci/cd: sonarcloud: exclude docs from scan
+- [x] octomation/go-module#96 — ci/cd: docs: fix broken links
+- [x] octomation/go-module#97 — dev: add setup target
+- [x] octomation/go-module#99 — ci/cd: replace stale by actions/stale
+- [x] octomation/go-module#100 — ci/cd: add CodeQL stub
+- [x] [[MAIN-94]] — github: contribution: invalid suggestion for specific date
+- [x] [[MAIN-95]] — ci/cd: fix broken build
+- [x] [[MAIN-96]] — github: contribution: lookup command is corrupted
+- [x] [[MAIN-97]] — github: contribution: suggest works incorrectly after refactoring
+- [x] octomation/go-module#103 — ci/cd: extend Notifying
+- [x] [[MAIN-98]] — github: contribution: suggest and lookup paniced on Sunday
+- [x] [[MAIN-99]] — github: contribution: suggest use incorrect center
+- [x] [[MAIN-100]] — github: contribution: incorrect shows stats for future
+- [x] octomation/vanity#9 — ci/cd: switch GitHub Pages from branch to GitHub Actions model
+- [x] octomation/vanity#10 — dev: add go-module as first git module and configure dependabot
+- [x] octomation/go-module#105 — docs: edit links are incorrect
+- [x] octomation/vanity#11 — dev: define multi-module workspace
+- [x] octomation/vanity#12 — dev: integrate go-tool
+- [x] octomation/vanity#13 — dev: integrate go-service
+- [x] octomation/vanity#8 — cd/cd: automation based on submodules
+- [x] octomation/go-module#106 — dev: maintainer and module renaming
+- [x] octomation/makefiles#69 — go: tool: adopt makefile from module
+- [x] octomation/makefiles#70 — go: service: adopt makefile from module
+- [x] octomation/go-module#109 — docs: reorg structure
+- [x] octomation/go-module#125 — dev: split Taskfile and prepare to autogenerate it
+- [x] octomation/go-module#128 — dev: move docs research outside the codebase and create a discussion for that
+- [x] octomation/go-module#131 — docs: fix broken cover image
+- [x] octomation/install#1 — research: brew installation
+- [x] [[MAIN-111]] — github: contribution: broken heatmap
+- [x] octomation/install#2 — ci/cd: use dist, not root for publishing
+- [x] octomation/install#3 — vendor: port installation scripts
+- [x] octomation/install#4 — ci/cd: add healthcheck scripts
+- [x] octomation/install#5 — docs: readme: update description and link it with homebrew-taps
+- [x] octomation/install#6 — dev: add inventory to manage workflows
+- [x] octomation/install#7 — dev: add hidden description how to install vendor packages
+- [x] octomation/vanity#192 — perf: avoid downloading deps
+- [x] octopot/stub#2 — ci/cd: build docker image
+- [x] octopot/stub#1 — poc: simple traefik application with top-level domains for redirects
+- [x] octomation/install#8 — ci/cd: change goimports check script
+- [x] octomation/go-tool#109 — ci/cd: support go 1.21
+- [x] octomation/go-service#126 — ci/cd: support go 1.21
+- [x] octomation/makefiles#71 — dev: support go 1.21
+- [x] octomation/go-module#147 — ci/cd: support go 1.21
+- [x] octopot/stub#3 — feat: use dynamic config instead of static
+- [x] octomation/taskfiles#1 — sync: update latest changes from forks
+- [x] [[MAIN-114]] — github: up google/go-github to v55.0.0
+- [x] octomation/install#13 — dev: add atlas installation
+- [x] octomation/install#12 — dev: up github cli to v2.35.0
+- [x] octomation/go-module#166 — ci/cd: support Cloudflare pages
+- [x] octomation/go-module#169 (PR) — fix #166: ci/cd: support Cloudflare pages
+- [x] octomation/go-service#152 — boilerplate: stub server with whoami
+- [x] octomation/install#15 — docs: remove -L option and provide wget example
+- [x] [[MAIN-115]] — github: contribution: html markup was changed
+- [x] [[MAIN-120]] — ci/cd: Continuous integration healthcheck doesn't work properly
+- [x] [[MAIN-121]] — github: contributions: GitHub changed a way to provide data
+
+## Won't do
+
+- [x] octomation/go-service#15 — octomate service creation
+- [x] octomation/go-service#8 — up service boilerplate
+- [x] octomation/go-service#7 — describe boilerplate api
+- [x] octomation/makefiles#53 — run tests
+- [x] octomation/go-module#34 — ci/cd: experimental labeler
+- [x] octomation/go-module#37 — deps: tools: add benchcmp
+- [x] octomation/go-module#38 — deps: tools: add gomvpkg
+- [x] octomation/go-module#39 — deps: tools: add gorename
+- [x] octomation/go-module#40 — deps: tools: add marwan-at-work/mod
+- [x] octomation/go-module#41 — deps: tools: add git-vertag
+- [x] [[MAIN-65]] — github: contribution: lookup has problem with timezone
+- [x] octomation/go-module#47 — ci/cd: add DevSkim as security check step
+- [x] octomation/go-service#52 — ci/cd: add DevSkim as security check step
+- [x] octomation/go-tool#28 — ci/cd: add DevSkim as security check step
