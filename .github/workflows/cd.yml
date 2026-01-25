@@ -77,13 +77,32 @@ jobs:
           echo "RELEASE_TITLE=${title}" >> "${GITHUB_ENV}"
           echo "RELEASE_NOTES=--release-notes ${notes}" >> "${GITHUB_ENV}"
 
-      # make tools dominates the build: share the tools cache with ci.yml vulns
       - name: Set up Go environment
+        id: go
         uses: actions/setup-go@v7.0.0
         with:
           go-version: 1.27.x
-          cache-dependency-path: tools/go.sum
+          cache: false
           check-latest: true
+      # warmup.caches.yml saves it on main: a cache saved from a tag is out of
+      # reach of the next tag; a stale fallback still brings the modules
+      - name: Restore the release build cache
+        id: cache
+        uses: actions/cache/restore@v6.1.0
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: release-${{ runner.os }}-go${{ steps.go.outputs.go-version }}-${{ hashFiles('go.sum', 'tools/go.sum', '.goreleaser.yml', '.github/workflows/warmup.caches.yml') }}
+          restore-keys: |
+            release-${{ runner.os }}-go${{ steps.go.outputs.go-version }}-
+            release-${{ runner.os }}-
+      # only the exact key proves the build cache warm: another go.sum or Go
+      # version means a cold cross-compile of every target
+      - name: Limit build parallelism on a cold cache
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: echo "BUILD_FLAGS=--parallelism 2" >> "${GITHUB_ENV}"
+
       - name: Install tools for release checks
         run: make tools
       - name: Run fast check and tests
@@ -96,13 +115,15 @@ jobs:
         with:
           distribution: goreleaser
           version: v2.18.2
-          args: ${{ startsWith(github.ref, 'refs/tags/v') && format('release --clean {0}', env.RELEASE_NOTES) || 'release --snapshot --clean --skip=publish' }}
+          # four cold cross-compiles in parallel are the peak of the run; a warm
+          # cache needs a fraction of that — see BUILD_FLAGS
+          args: ${{ startsWith(github.ref, 'refs/tags/v') && format('release --clean {0} {1}', env.BUILD_FLAGS, env.RELEASE_NOTES) || format('release --snapshot --clean --skip=publish {0}', env.BUILD_FLAGS) }}
 
   notify:
     name: Notifying
     needs: [ release ]
     runs-on: ubuntu-24.04
-    if: failure() || success()
+    if: ${{ !cancelled() }}
 
     steps:
       - name: Checkout the repository
