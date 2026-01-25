@@ -15,8 +15,7 @@ brews:
   - name: maintainer
     ids: [maintainer]
     commit_author:
-      name: Kamil Samigullin
-      email: kamil@samigullin.info
+      use_github_app_token: true
     description: Maintainer is an indispensable assistant to Open Source contribution.
     directory: Formula
     homepage: https://github.com/octomation/maintainer
@@ -45,8 +44,7 @@ homebrew_casks:
     ids: [maintainer]
     binaries: [maintainer]
     commit_author:
-      name: Kamil Samigullin
-      email: kamil@samigullin.info
+      use_github_app_token: true
     description: Maintainer is an indispensable assistant to Open Source contribution.
     directory: Casks
     homepage: https://github.com/octomation/maintainer
@@ -58,9 +56,9 @@ homebrew_casks:
       executable: maintainer
       shell_parameter_format: cobra
       shells: [bash, zsh, fish]
-    # Homebrew 7 deprecates the preflight hook that `hooks` renders.
-    # Clear the quarantine before completions run the unsigned binary; warn
-    # when the formula already owns the binary link.
+    # Homebrew 7 deprecates the preflight hook that `hooks` renders. Clear the
+    # quarantine before completions run the unsigned binary; warn when the
+    # formula already owns the binary link.
     custom_block: |
       preflight_steps do
         if_path_exists "opt/maintainer", base: :homebrew_prefix do

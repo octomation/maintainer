@@ -4,14 +4,15 @@
 //
 //   release.mjs check  <tag> [--local] [--sha <commit>] [--pushed <branch>=<sha>]...
 //   release.mjs render <tag> --site-url <url> --out <file>   (prints the title)
-//   release.mjs preflight                                    (CI: required secrets are present and usable)
+//   release.mjs preflight                                    (CI: required secrets are present; outputs the tap)
 //   release.mjs doctor                                       (on demand: config vs GitHub, with remediation)
 //   release.mjs pages  <base-url>                            (CI: the Pages URL matches settings.json pages)
 //   release.mjs smoke  <site-url> [--retries <n>]            (CI: the deployed site serves pages and assets)
 //   release.mjs vanity                                       (vanity imports in go.mod resolve over verified HTTPS)
+//   release.mjs signature <tag>                              (CI: GitHub verifies the tag's signature)
 
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 
 const SETTINGS = '.github/settings.json'
 const DEFAULTS = {
@@ -150,6 +151,27 @@ function check(tag, opts) {
     }
   }
   return errors
+}
+
+// A release comes only from a tag GitHub verifies. Checked before anything is
+// published, a bad tag can still be replaced.
+function signature(tag) {
+  const slug = repoSlug()
+  if (!slug) return ['cannot resolve the repository; set GITHUB_REPOSITORY']
+  const fix = `git push --delete origin ${tag}, git tag -s, then push it with the branch`
+  let ref
+  try {
+    ref = JSON.parse(gh('api', `repos/${slug}/git/ref/tags/${encodeURIComponent(tag)}`))
+  } catch (e) {
+    return [`${tag}: not found on ${slug}: ${e.message}`]
+  }
+  if (ref.object.type !== 'tag') return [`${tag}: lightweight tag; replace it with a signed one: ${fix}`]
+  const { object, verification } = JSON.parse(gh('api', `repos/${slug}/git/tags/${ref.object.sha}`))
+  if (object.type !== 'commit') return [`${tag}: points at a ${object.type}, not a commit; replace it: ${fix}`]
+  if (!verification?.verified) {
+    return [`${tag}: GitHub does not verify its signature (${verification?.reason || 'unsigned'}); replace it with one signed by a key your GitHub account has: ${fix}`]
+  }
+  return []
 }
 
 function lint(file, text) {
@@ -346,29 +368,33 @@ function tap() {
   return { owner: field('owner'), name: field('name'), token }
 }
 
+// The tap token is not a secret: cd.yml mints it per run from the OctoLab
+// Releaser GitHub App installed on the tap, so GitHub signs the commits made there.
+const RELEASER_APP = { id: 'OCTOLAB_RELEASER_CLIENT_ID', key: 'OCTOLAB_RELEASER_KEY' }
+
 function secretGuide(name, t) {
-  if (t && t.token === name) {
-    return `create a fine-grained PAT with resource owner ${t.owner}, repository ${t.owner}/${t.name}, ` +
-      `permission Contents: Read and write; save it as secret ${name} ` +
-      `(gh secret set ${name} -o <org> or -R <owner>/<repo>)`
+  const save = `(gh secret set ${name} -o <org> or -R <owner>/<repo>)`
+  if (t && (name === RELEASER_APP.id || name === RELEASER_APP.key)) {
+    const app = `a GitHub App owned by ${t.owner} with no webhook and Repository permissions → Contents: Read and write, ` +
+      `installed on ${t.owner}/${t.name}`
+    return name === RELEASER_APP.id
+      ? `create ${app}; save its Client ID as secret ${name} ${save}`
+      : `generate a private key for ${app}; save the .pem file as secret ${name} ${save}`
   }
-  return `save it as secret ${name} (gh secret set ${name} -o <org> or -R <owner>/<repo>)`
+  return `save it as secret ${name} ${save}`
 }
 
+// Checks the App credentials before anything is built and hands the tap to
+// the step that mints the token; that step fails if the App is not installed
+// on the tap or lacks Contents: write.
 function preflight() {
   const t = tap()
-  const errors = []
-  if (t?.token) {
-    const token = process.env[t.token]
-    if (!token) {
-      errors.push(`secret ${t.token} is empty or not passed to this step; ${secretGuide(t.token, t)}`)
-    } else {
-      try {
-        gh('api', `repos/${t.owner}/${t.name}`, '--silent', { GH_TOKEN: token })
-      } catch (e) {
-        errors.push(`${t.token} cannot read ${t.owner}/${t.name} (${e.message}); ${secretGuide(t.token, t)}`)
-      }
-    }
+  if (!t?.token) return []
+  const errors = Object.values(RELEASER_APP)
+    .filter((name) => !process.env[name])
+    .map((name) => `secret ${name} is empty or not passed to this step; ${secretGuide(name, t)}`)
+  if (!errors.length && process.env.GITHUB_OUTPUT) {
+    appendFileSync(process.env.GITHUB_OUTPUT, `tap-owner=${t.owner}\ntap-name=${t.name}\n`)
   }
   return errors
 }
@@ -435,9 +461,9 @@ async function doctor() {
 
   const t = tap()
   const { secrets } = settings()
-  const names = new Set([...Object.keys(secrets), ...(t?.token ? [t.token] : [])])
+  const names = Object.keys(secrets)
   const workflows = existsSync('.github/workflows')
-    ? readdirSync('.github/workflows').filter((f) => /\.ya?ml$/.test(f)).map((f) => `.github/workflows/${f}`)
+    ? git('ls-files', '.github/workflows').trim().split('\n').filter((f) => existsSync(f))
     : []
   const list = (flag, target) => {
     try { return new Set(JSON.parse(gh('secret', 'list', flag, target, '--json', 'name')).map((s) => s.name)) } catch { return null }
@@ -524,8 +550,13 @@ try {
       }
       process.exit(results.some(([, e]) => e) ? 1 : 0)
     }
+    case 'signature': {
+      const errors = signature(opts._[0])
+      errors.forEach((e) => console.error(`signature: ${e}`))
+      process.exit(errors.length ? 1 : 0)
+    }
     default:
-      console.error('usage: release.mjs check|render|preflight|doctor|pages|smoke|vanity ...')
+      console.error('usage: release.mjs check|render|preflight|doctor|pages|smoke|vanity|signature ...')
       process.exit(2)
   }
 } catch (e) {

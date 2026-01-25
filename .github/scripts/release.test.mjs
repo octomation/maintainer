@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
-import { chmodSync, copyFileSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { chmodSync, copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import test from 'node:test'
@@ -10,11 +10,13 @@ function fixture(fn) {
   const cwd = mkdtempSync(join(tmpdir(), 'maintainer-release-'))
   mkdirSync(join(cwd, '.github'))
   const settings = (pages = {}) => writeFileSync(join(cwd, '.github/settings.json'), JSON.stringify({ pages }))
+  let extra = {}
   const run = (...args) => spawnSync(process.execPath, [script, ...args], {
     cwd, encoding: 'utf8',
-    env: { ...process.env, GITHUB_REPOSITORY: 'octomation/maintainer', HOMEBREW_TAP_TOKEN: '' },
+    env: { ...process.env, GITHUB_REPOSITORY: 'octomation/maintainer', GITHUB_OUTPUT: '', OCTOLAB_RELEASER_CLIENT_ID: '', OCTOLAB_RELEASER_KEY: '', ...extra },
   })
-  try { fn({ cwd, settings, run }) } finally { rmSync(cwd, { recursive: true, force: true }) }
+  const withEnv = (env) => { extra = env }
+  try { fn({ cwd, settings, run, withEnv }) } finally { rmSync(cwd, { recursive: true, force: true }) }
 }
 
 test('Pages preview resolves default and custom domains and rejects drift', () => fixture(({ settings, run }) => {
@@ -45,11 +47,19 @@ test('release notes render site links but preserve code examples', () => fixture
   assert.equal(run('render', 'v9.9.9', '--site-url', 'https://example.com', '--out', output).status, 1)
 }))
 
-test('preflight refuses a missing tap token before contacting GitHub', () => fixture(({ cwd, run }) => {
+test('preflight refuses missing App credentials and hands the tap to the token step', () => fixture(({ cwd, run, withEnv }) => {
   writeFileSync(join(cwd, '.goreleaser.yml'), 'homebrew_casks:\n  - name: maintainer\n    repository:\n      owner: octolab\n      name: homebrew-tap\n      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"\n')
-  const result = run('preflight')
-  assert.equal(result.status, 1)
-  assert.match(result.stderr, /HOMEBREW_TAP_TOKEN is empty/)
+  const output = join(cwd, 'github-output')
+  withEnv({ GITHUB_OUTPUT: output })
+  const missing = run('preflight')
+  assert.equal(missing.status, 1)
+  assert.match(missing.stderr, /OCTOLAB_RELEASER_CLIENT_ID is empty/)
+  assert.match(missing.stderr, /OCTOLAB_RELEASER_KEY is empty/)
+  assert.equal(existsSync(output), false)
+  withEnv({ GITHUB_OUTPUT: output, OCTOLAB_RELEASER_CLIENT_ID: 'Iv1.fixture', OCTOLAB_RELEASER_KEY: 'fixture' })
+  const ready = run('preflight')
+  assert.equal(ready.status, 0, ready.stderr)
+  assert.equal(readFileSync(output, 'utf8'), 'tap-owner=octolab\ntap-name=homebrew-tap\n')
 }))
 
 test('missing release tags fail without creating Git refs', () => fixture(({ run }) => {

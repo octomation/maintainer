@@ -5,9 +5,8 @@
     "branches": []
   },
   "secrets": {
-    "HOMEBREW_TAP_TOKEN": {
-      "scope": "organization"
-    }
+    "OCTOLAB_RELEASER_CLIENT_ID": { "scope": "organization" },
+    "OCTOLAB_RELEASER_KEY": { "scope": "organization" }
   },
   "pages": {
     "cname": "maintainer.octolab.org",

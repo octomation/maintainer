@@ -28,17 +28,36 @@ jobs:
         uses: actions/checkout@v7.0.1
         with: { fetch-depth: 0 }
 
-      # Validate the tag and its committed release note before any build.
+      # seconds-level safety net for bypassed local hooks, before any build
       - name: Check the release tag
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: node .github/scripts/release.mjs check "${GITHUB_REF_NAME}"
-      - name: Check release secrets
+      # a release comes only from a tag GitHub verifies; checked before anything
+      # is published, a bad tag can still be replaced
+      - name: Check the tag signature
         if: startsWith(github.ref, 'refs/tags/v')
         env:
-          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: node .github/scripts/release.mjs signature "${GITHUB_REF_NAME}"
+      - name: Check release secrets
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: preflight
+        env:
+          OCTOLAB_RELEASER_CLIENT_ID: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
+          OCTOLAB_RELEASER_KEY: ${{ secrets.OCTOLAB_RELEASER_KEY }}
         run: node .github/scripts/release.mjs preflight
+      - name: Mint the tap token
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: tap
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
+          private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
+          owner: ${{ steps.preflight.outputs.tap-owner }}
+          repositories: ${{ steps.preflight.outputs.tap-name }}
+          permission-contents: write
       - name: Set up GitHub Pages
         if: startsWith(github.ref, 'refs/tags/v')
         id: pages
@@ -73,7 +92,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v7.3.0
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          HOMEBREW_TAP_TOKEN: ${{ steps.tap.outputs.token }}
         with:
           distribution: goreleaser
           version: v2.18.2

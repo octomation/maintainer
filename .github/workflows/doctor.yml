@@ -42,6 +42,17 @@ jobs:
         run: node .github/scripts/release.mjs doctor
       - name: Check release secrets
         if: success() || failure()
+        id: preflight
         env:
-          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          OCTOLAB_RELEASER_CLIENT_ID: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
+          OCTOLAB_RELEASER_KEY: ${{ secrets.OCTOLAB_RELEASER_KEY }}
         run: node .github/scripts/release.mjs preflight
+      - name: Mint the tap token
+        if: (success() || failure()) && steps.preflight.outcome == 'success'
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
+          private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
+          owner: ${{ steps.preflight.outputs.tap-owner }}
+          repositories: ${{ steps.preflight.outputs.tap-name }}
+          permission-contents: write
