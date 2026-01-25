@@ -5,19 +5,7 @@ description: See your open source contribution pace and plan your next session f
 
 import Link from 'next/link'
 
-<div className="hero">
-  <p className="eyebrow">OPEN SOURCE TOOLKIT · v0.1.0</p>
-  <h1>Keep the little things moving.</h1>
-  <p className="hero-lede">See your recent open source activity, spot lighter days, and choose a contribution target for your next session. Turn the GitHub calendar into a practical plan.</p>
-  <div className="hero-actions">
-    <Link className="button button-primary" href="/quickstart/">Get started <span aria-hidden="true">↗</span></Link>
-    <Link className="button button-quiet" href="/changelog/v0.1.0/">What’s in v0.1.0 <span aria-hidden="true">→</span></Link>
-  </div>
-</div>
-
-<div className="terminal" aria-label="A contribution planning example">
-  <div className="terminal-top"><span className="terminal-dots">● ● ●</span><span>plan a contribution · example run</span></div>
-  <pre>{`$ maintainer github contribution suggest --target 25 git/3
+export const suggestRun = ` maintainer github contribution suggest --target 25 git/3
 
  Day / Week   #02   #03   #04    Date
 ------------ ----- ----- ----- --------
@@ -31,22 +19,41 @@ import Link from 'next/link'
 ------------ ----- ----- ----- --------
     distribution{15: 12, 17: 1, 25: 8}
 
-Suggestion is 2026-01-12T09:34:23+03:00, 17 → 25`}</pre>
+Suggestion is 2026-01-12T09:34:23+03:00, 17 → 25`
+
+<div className="home">
+  <section className="hero">
+    <div className="hero-copy">
+      <Link className="release-pill" href="/changelog/v0.1.0/">Latest release · v0.1.0 <span aria-hidden="true">↗</span></Link>
+      <p className="eyebrow">OPEN SOURCE TOOLKIT</p>
+      <h1>Keep the little things <em>moving.</em></h1>
+      <p className="hero-lead">See your recent open source activity, spot lighter days, and choose a contribution target for your next session. Turn the GitHub calendar into a practical plan.</p>
+      <div className="hero-actions">
+        <Link className="button-primary" href="/quickstart/">Get started <span aria-hidden="true">→</span></Link>
+        <Link className="button-text" href="/changelog/v0.1.0/">What’s in v0.1.0 <span aria-hidden="true">↗</span></Link>
+      </div>
+      <p className="hero-note">One CLI · macOS & Linux · Open source, MIT</p>
+    </div>
+    <div className="terminal" aria-label="A contribution planning example">
+      <div className="terminal-bar"><span className="terminal-dots">● ● ●</span><span>plan a contribution · example run</span></div>
+      <div className="terminal-body">
+        <pre><span>$</span>{suggestRun}</pre>
+      </div>
+      <p className="terminal-caption">A real run in a checkout whose latest commit is dated 12 January 2026. The star marks the suggested day: 17 contributions toward a target of 25, and the suggested moment is never later than now. Your counts and suggested time will differ.</p>
+    </div>
+  </section>
+
+  <div className="flow-strip" aria-label="The contribution planning workflow"><span>01 <b>Look up recent weeks</b></span><span aria-hidden="true">→</span><span>02 <b>Choose a target</b></span><span aria-hidden="true">→</span><span>03 <b>Date your next commit</b></span></div>
+
+  <section className="use-cases">
+    <div className="section-heading"><p className="eyebrow">START WITH YOUR CONTRIBUTION PACE</p><h2>Plan with the calendar.<br />Also in maintainer: small tools for upkeep.</h2></div>
+    <div className="use-case-grid">
+      <Link className="use-case" href="/contributions/"><span className="card-number">01 / GITHUB</span><h3>Understand your productivity</h3><p>See active and quiet weeks, then choose a realistic target for your next open source session.</p><span className="card-link">Plan with the calendar <span aria-hidden="true">↗</span></span></Link>
+      <Link className="use-case" href="/vanity/"><span className="card-number">02 / GO</span><h3>Own your Go namespace</h3><p>Keep a branded import space such as go.octolab.org with static pages you can host on GitHub Pages.</p><span className="card-link">View the guide <span aria-hidden="true">↗</span></span></Link>
+      <Link className="use-case" href="/makefiles/"><span className="card-number">03 / MAKE</span><h3>Assemble Makefiles</h3><p>Compose small, focused build fragments into one Makefile you can share.</p><span className="card-link">View the guide <span aria-hidden="true">↗</span></span></Link>
+    </div>
+  </section>
+
+  <section className="release-band"><div><p className="eyebrow">THE LATEST RELEASE</p><h2>v0.1.0 — Find your rhythm</h2><p>A small, practical release that starts with the contribution planning flow. The calendar guide explains dates, targets, and the other ways to inspect your activity; the Go and Makefile guides cover the smaller tools around your projects.</p></div><Link className="button-primary" href="/changelog/v0.1.0/">Read the release <span aria-hidden="true">→</span></Link></section>
+  <p className="scope-note">Maintainer works on the authenticated GitHub account for contribution commands. It reads the calendar; it does not create contributions or change your repositories. <Link href="/contributions/">The calendar guide</Link> covers dates, targets, and snapshots.</p>
 </div>
-
-<p className="terminal-note">A real run in a checkout whose latest commit is dated 12 January 2026. The star marks the suggested day: 17 contributions toward a target of 25, and the suggested moment is never later than now. Your counts and suggested time will differ.</p>
-
-## Start with your contribution pace
-
-<div className="feature-grid">
-  <Link className="feature-card feature-card-primary" href="/contributions/"><span className="feature-kicker">01 / GITHUB</span><strong>Understand your productivity</strong><span>See active and quiet weeks, then choose a realistic target for your next open source session.</span><em>Plan with the calendar →</em></Link>
-  <p className="feature-divider">Also in maintainer</p>
-  <Link className="feature-card" href="/vanity/"><span className="feature-kicker">02 / GO</span><strong>Own your Go namespace</strong><span>Keep a branded import space such as go.octolab.org with static pages you can host on GitHub Pages.</span><em>View the guide →</em></Link>
-  <Link className="feature-card" href="/makefiles/"><span className="feature-kicker">03 / MAKE</span><strong>Assemble Makefiles</strong><span>Compose small, focused build fragments into one Makefile you can share.</span><em>View the guide →</em></Link>
-</div>
-
-## A small, practical release
-
-The [v0.1.0 release](/changelog/v0.1.0/) starts with the contribution planning flow. The [calendar guide](/contributions/) explains dates, targets, and the other ways to inspect your activity; the Go and Makefile guides cover the smaller tools around your projects.
-
-Maintainer works on the authenticated GitHub account for contribution commands. It reads the calendar; it does not create contributions or change your repositories.

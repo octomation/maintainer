@@ -1,0 +1,15 @@
+/*
+ * maintainer brand, loaded after globals.css, which is kept byte-identical to
+ * octopot/indexit. Only the tokens and the terminal prompt differ.
+ *
+ * Both blocks restate every token they change: :root and .dark have the same
+ * specificity, so a :root rule here would also win over the dark theme.
+ * Contrast (WCAG): accent 4.74:1 on paper, 4.95:1 on card; muted 5.28:1 on
+ * paper, 4.77:1 on wash; dark accent 14.4:1 on paper. Accent text does not sit
+ * on wash in light mode (4.28:1).
+ */
+:root { --ink: #17302e; --muted: #5f6b65; --accent: #4d7c0f; }
+.dark { --ink: #ebeee8; --muted: #a5b3aa; --accent: #d5f45a; }
+.terminal-body pre > span { color: #d5f45a; }
+/* The hero terminal is a grid item: let its long lines scroll, not widen the page. */
+.hero .terminal { min-width: 0; }

@@ -1,6 +1,6 @@
 import nextra from 'nextra'
 
-const withNextra = nextra({})
+const withNextra = nextra({ defaultShowCopyCode: true })
 const staticExport = process.env.TARGET === 'static'
 
 export default withNextra({
