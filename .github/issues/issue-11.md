@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2021-03-06T16:28:34Z
-updatedAt: 2026-09-25T05:09:40Z
-lastEditedAt: 2026-09-25T05:09:40Z
+updatedAt: 2026-09-28T10:44:12Z
+lastEditedAt: 2026-09-28T10:44:12Z
 closedAt:
 ---
 
@@ -29,4 +29,4 @@ Result:     the link to the repository mirror
 
 Headings, links and code blocks must be distinguishable, `[name][ref]` links must resolve correctly, and missing mandatory sections must be reported. Text inside a code example must not become project metadata.
 
-The historical candidate is [blackfriday](https://github.com/russross/blackfriday); choosing a library is not the user-facing outcome of this task. The motivation and the storage options are covered in [Repository Metadata](<../notes/Repository Metadata.md>); related scenarios are [[issue-2]] and [[issue-5]].
+The historical candidate is [blackfriday](https://github.com/russross/blackfriday); choosing a library is not the user-facing outcome of this task. Related scenarios are [[issue-2]] and [[issue-5]].

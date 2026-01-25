@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2021-03-06T16:24:19Z
-updatedAt: 2026-09-25T05:09:38Z
-lastEditedAt: 2026-09-25T05:09:38Z
+updatedAt: 2026-09-28T10:44:09Z
+lastEditedAt: 2026-09-28T10:44:09Z
 closedAt:
 ---
 
@@ -19,7 +19,7 @@ closedAt:
 
 Automate updating a project created from a GitHub template once the template itself has changed. Today shared improvements to CI, the build and service files have to be carried over by hand, at the risk of overwriting adaptations specific to the project.
 
-The source template and the comparison point need to be identified, the changes shown, and a proposal prepared for review. A prototype of the interface from the [idea draft](<../notes/Maintainer draft idea.md>):
+The source template and the comparison point need to be identified, the changes shown, and a proposal prepared for review. A prototype of the interface:
 
 ```bash
 maintainer layer template sync

@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-05-15T19:11:31Z
-updatedAt: 2026-09-25T05:12:02Z
-lastEditedAt: 2026-09-25T05:12:02Z
+updatedAt: 2026-09-28T10:44:37Z
+lastEditedAt: 2026-09-28T10:44:37Z
 closedAt:
 ---
 
@@ -30,5 +30,3 @@ org: ...                  → an organizational outcome and release boundaries
 ```
 
 Readiness means every task has an understandable motivation, an expected outcome, and its relations; duplicates explain where the work continues. External statuses and projects are changed by a separate action — editing Markdown locally does not update them.
-
-Additional context on a centralized inbox and prioritization: [delayed automation](<../notes/Issues/delayed automation.md>).

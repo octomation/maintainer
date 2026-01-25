@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-05-11T14:06:20Z
-updatedAt: 2026-09-25T05:11:43Z
-lastEditedAt: 2026-09-25T05:11:42Z
+updatedAt: 2026-09-28T10:44:32Z
+lastEditedAt: 2026-09-28T10:44:31Z
 closedAt:
 ---
 
@@ -40,4 +40,4 @@ The full contents of the copy have to be defined, preserving the relations betwe
 
 This is not part of fetch: its specification excludes downloading issues and projects, and excludes mirroring.
 
-Related: [fetch specification](<../notes/Specs/GitHub fetcher, PoC implementation plan.md>), [Repository Metadata](<../notes/Repository Metadata.md>), [raw dumps](<../notes/Issues/maintainer as raw.md>).
+Related: [the fetch guide](https://maintainer.octolab.org/fetch/).

@@ -14,12 +14,12 @@ labels:
   - "impact: high"
   - "effort: medium"
 milestone:
-state: OPEN
-stateReason:
+state: CLOSED
+stateReason: COMPLETED
 createdAt: 2026-09-25T06:41:22Z
-updatedAt: 2026-09-25T06:42:12Z
+updatedAt: 2026-09-25T06:47:46Z
 lastEditedAt:
-closedAt:
+closedAt: 2026-09-25T06:47:46Z
 ---
 
 # github: contribution: calendar counts are read from an inconsistent source

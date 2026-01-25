@@ -13,8 +13,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2022-06-11T10:02:54Z
-updatedAt: 2026-09-25T05:12:40Z
-lastEditedAt: 2026-09-25T05:12:40Z
+updatedAt: 2026-09-28T10:44:45Z
+lastEditedAt: 2026-09-28T10:44:45Z
 closedAt:
 ---
 
@@ -26,6 +26,6 @@ The reference is [gh-dash](https://github.com/dlvhdr/gh-dash). A prototype of th
 
 The research must answer whether this scenario can be embedded into the `gh` environment — including how its extension mechanics work — how a user installs it, and what advantages it offers over the current commands. A minimal working example, or a justified decision not to proceed, is required; a list of libraries is not enough.
 
-The local checkout-status table from the [status specification](<../notes/Specs/Repository status, PoC implementation plan.md>) serves a different scenario and should not be folded into this experiment automatically.
+The local checkout-status table of [`maintainer status`](https://maintainer.octolab.org/status/) serves a different scenario and should not be folded into this experiment automatically.
 
 Related: [[issue-97]].

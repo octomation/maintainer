@@ -11,8 +11,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2021-08-27T20:30:43Z
-updatedAt: 2026-09-25T05:10:56Z
-lastEditedAt: 2026-09-25T05:10:56Z
+updatedAt: 2026-09-28T10:44:26Z
+lastEditedAt: 2026-09-28T10:44:26Z
 closedAt:
 ---
 
@@ -34,4 +34,4 @@ For the user the plan reads as "rename x to y; keep the remaining properties". I
 
 This task defines the general meaning of a change plan; it does not require bringing labels back or introducing a particular internal structure.
 
-Related: comparing configurations [[issue-25]], the change plan in the [fetch specification](<../notes/Specs/GitHub fetcher, PoC implementation plan.md>), label scope removal [[issue-80]].
+Related: comparing configurations [[issue-25]], the [fetch guide](https://maintainer.octolab.org/fetch/), label scope removal [[issue-80]].

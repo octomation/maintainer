@@ -10,8 +10,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2021-01-06T09:33:18Z
-updatedAt: 2026-09-25T05:12:30Z
-lastEditedAt: 2026-09-25T05:12:30Z
+updatedAt: 2026-09-28T10:44:42Z
+lastEditedAt: 2026-09-28T10:44:42Z
 closedAt:
 ---
 
@@ -27,4 +27,4 @@ The reference is [embedmd](https://github.com/campoy/embedmd): the document stor
 
 Either integrating the existing tool or implementing compatible behaviour in maintainer is acceptable. The user must be able to refresh the insertions and to see divergences without modifying the file; a bad path or fragment boundary must produce a clear error. Text around the insertions is preserved, and a re-run without changes produces no diff.
 
-Related: Markdown processing [[issue-11]], the idea of generating documents from a single source in [Repository Metadata](<../notes/Repository Metadata.md>).
+Related: Markdown processing [[issue-11]].

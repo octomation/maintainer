@@ -11,8 +11,8 @@ milestone: "[[milestone-1]]"
 state: OPEN
 stateReason:
 createdAt: 2023-11-18T09:14:11Z
-updatedAt: 2026-09-25T05:10:49Z
-lastEditedAt: 2026-09-25T05:10:49Z
+updatedAt: 2026-09-28T10:44:23Z
+lastEditedAt: 2026-09-28T10:44:23Z
 closedAt:
 ---
 
@@ -24,4 +24,4 @@ The result must include a reviewable diff of the template settings and must pres
 
 The advertised support, the toolchain actually selected, the generation and the delivery all have to be brought into agreement — rather than declaring some old version number the proven cause of a historical failure.
 
-Readiness means the mandatory jobs are verified and the intentional differences from the chosen template revision are understood. General automation of synchronization is [[issue-10]], the earlier release preparation is [[issue-69]], and the workflow-management context is [this note](<../notes/Issues/work with workflows.md>).
+Readiness means the mandatory jobs are verified and the intentional differences from the chosen template revision are understood. General automation of synchronization is [[issue-10]], and the earlier release preparation is [[issue-69]].

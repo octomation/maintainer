@@ -13,12 +13,12 @@ labels:
   - "impact: high"
   - "effort: medium"
 milestone:
-state: OPEN
-stateReason:
+state: CLOSED
+stateReason: COMPLETED
 createdAt: 2026-08-13T15:21:42Z
-updatedAt: 2026-08-13T15:28:43Z
+updatedAt: 2026-09-26T06:48:17Z
 lastEditedAt:
-closedAt:
+closedAt: 2026-09-26T06:48:16Z
 ---
 
 # fetch: prevent destructive clone reconciliation for occupied targets

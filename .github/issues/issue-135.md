@@ -14,8 +14,8 @@ milestone:
 state: OPEN
 stateReason:
 createdAt: 2023-04-18T11:32:08Z
-updatedAt: 2026-09-25T05:10:21Z
-lastEditedAt: 2026-09-25T05:10:21Z
+updatedAt: 2026-09-28T10:44:20Z
+lastEditedAt: 2026-09-28T10:44:20Z
 closedAt:
 ---
 
@@ -32,4 +32,4 @@ maintainer go rename github.com/vendor/pkg github.com/vendor/pkg/v2
 
 The first scenario changes the module path of the project and its internal imports; the second changes a chosen dependency path. Subpackages must keep their relative path, and similar strings in ordinary text must not be replaced blindly. A reviewable diff, clear boundaries for the affected modules, and a build check of the result are required.
 
-The original candidates: [mod](https://github.com/marwan-at-work/mod), [go-imports-rename](https://github.com/sirkon/go-imports-rename), [gopls](https://github.com/golang/tools/tree/master/gopls), [gorename](https://github.com/golang/tools/tree/master/cmd/gorename). Related: [[issue-153]], the [dependency-update idea](<../notes/Maintainer draft idea.md>).
+The original candidates: [mod](https://github.com/marwan-at-work/mod), [go-imports-rename](https://github.com/sirkon/go-imports-rename), [gopls](https://github.com/golang/tools/tree/master/gopls), [gorename](https://github.com/golang/tools/tree/master/cmd/gorename). Related: [[issue-153]].

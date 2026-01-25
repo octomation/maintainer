@@ -13,12 +13,12 @@ labels:
   - "impact: medium"
   - "effort: easy"
 milestone:
-state: OPEN
-stateReason:
+state: CLOSED
+stateReason: COMPLETED
 createdAt: 2026-08-13T15:42:23Z
-updatedAt: 2026-08-13T15:48:50Z
+updatedAt: 2026-09-26T06:49:01Z
 lastEditedAt:
-closedAt:
+closedAt: 2026-09-26T06:49:01Z
 ---
 
 # fetch: treat an empty upstream as a successful no-op

@@ -10,8 +10,8 @@ milestone:
 state: CLOSED
 stateReason: NOT_PLANNED
 createdAt: 2022-05-11T14:08:29Z
-updatedAt: 2026-09-25T05:11:45Z
-lastEditedAt: 2026-09-25T05:11:45Z
+updatedAt: 2026-09-28T10:44:34Z
+lastEditedAt: 2026-09-28T10:44:34Z
 closedAt: 2023-03-31T15:32:01Z
 ---
 
@@ -30,4 +30,4 @@ Proposal: type: bug, scope: code, impact: medium
 
 The form must explain what the categories mean, show the resulting set, and allow the answers to be corrected before anything is applied. Task type, scope, impact and effort must stay distinguishable rather than be assigned automatically from a single answer.
 
-Related: [[issue-80]], [delayed automation](<../notes/Issues/delayed automation.md>), [delayed draft](<../notes/Issues/delayed draft.md>).
+Related: [[issue-80]].
