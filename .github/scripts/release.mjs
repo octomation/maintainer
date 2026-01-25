@@ -418,7 +418,7 @@ async function doctor() {
     if (pages.build_type === (want.build_type || 'workflow')) ok(`Pages publishes ${pages.html_url} from GitHub Actions`)
     else fail(`Pages builds from a branch; set Settings → Pages → Source: GitHub Actions (${where})`)
     if ((pages.cname || null) === (want.cname || null)) ok(`Pages domain ${pages.cname || 'default'} matches ${SETTINGS}`)
-    else fail(`Pages domain is ${pages.cname || 'default'}, ${SETTINGS} says ${want.cname || 'default'}; align them (${where}), then rebuild the docs: gh workflow run docs.yml`)
+    else fail(`Pages domain is ${pages.cname || 'default'}, ${SETTINGS} says ${want.cname || 'default'}; align them (${where}), then rebuild the docs: gh workflow run cd.docs.yml`)
     if (want.https_enforced !== undefined) {
       if (pages.https_enforced === want.https_enforced) ok(`Pages HTTPS enforcement is ${pages.https_enforced ? 'on' : 'off'}`)
       else fail(`Pages HTTPS enforcement is ${pages.https_enforced ? 'on' : 'off'}, ${SETTINGS} wants ${want.https_enforced ? 'on' : 'off'}; toggle Enforce HTTPS (${where})`)

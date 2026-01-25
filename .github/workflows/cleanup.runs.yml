@@ -2,7 +2,9 @@ name: Workflow runs cleanup
 
 on:
   schedule:
-    - cron: 0 6 1 * * # at 06:00 on day-of-month 1, UTC
+    # a day after the caches cleanup, so its run and the warmup stay readable
+    # until then
+    - cron: 0 6 2 * * # at 06:00 on day-of-month 2, UTC
 
   workflow_call:
 
@@ -16,7 +18,9 @@ on:
           - Continuous delivery
           - Continuous integration
           - Documentation delivery
+          - Pull request caches cleanup
           - Repository doctor
+          - Stale issues cleanup
           - Tools validation
           - Workflow caches cleanup
           - Workflow caches warmup

@@ -1,4 +1,4 @@
-// The public origin of the site, derived at build time: docs.yml passes the
+// The public origin of the site, derived at build time: cd.docs.yml passes the
 // GitHub Pages URL as SITE_URL, so a domain change needs no edits here.
 // A static export without it would ship localhost links in canonical and OG tags.
 if (process.env.TARGET === 'static' && !process.env.SITE_URL) {

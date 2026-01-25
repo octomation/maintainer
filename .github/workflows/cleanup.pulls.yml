@@ -1,0 +1,54 @@
+name: Pull request caches cleanup
+
+on:
+  # caches of a pull request are of no use once it is closed; the target
+  # event keeps a writable token when Dependabot closes its own pull request
+  pull_request_target:
+    types: [ closed ]
+
+  # a run still in progress saves its caches after the close: sweep them up
+  schedule:
+    - cron: 0 6 * * * # at 06:00 every day, UTC
+
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: The reason for dispatching it manually.
+        type: string
+        default: manual healthcheck
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  delete:
+    name: Deleting
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+      pull-requests: read
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+
+    steps:
+      - name: Cleanup caches of the pull request
+        if: github.event_name == 'pull_request_target'
+        env:
+          REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: gh cache delete --all --ref "$REF" --succeed-on-no-caches -R "$GITHUB_REPOSITORY"
+      - name: Cleanup caches of closed pull requests
+        if: github.event_name != 'pull_request_target'
+        # pipefail: a failed listing must fail the run, not sweep nothing
+        shell: bash
+        run: |
+          gh cache list -R "$GITHUB_REPOSITORY" -L 1000 --json ref -q '.[].ref' |
+            sed -nE '/^refs\/pull\/[0-9]+\/merge$/p' | sort -u |
+            while read -r ref; do
+              number="${ref#refs/pull/}" number="${number%/merge}"
+              # an unreadable state keeps the caches, as for an open one
+              state="$(gh pr view "$number" -R "$GITHUB_REPOSITORY" --json state -q .state || echo UNKNOWN)"
+              if [ "$state" = CLOSED ] || [ "$state" = MERGED ]; then
+                gh cache delete --all --ref "$ref" --succeed-on-no-caches -R "$GITHUB_REPOSITORY"
+              fi
+            done

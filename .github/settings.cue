@@ -21,7 +21,7 @@ package settings
 	secrets?: [Name=string & =~"^[A-Z_][A-Z0-9_]*$"]: #Secret
 
 	// GitHub Pages as the REST API reports it (GET /repos/{owner}/{repo}/pages).
-	// The docs build bakes the site URL in, so docs.yml and cd.yml refuse
+	// The docs build bakes the site URL in, so cd.docs.yml and cd.yml refuse
 	// to build when Pages disagrees, and `make doctor` reports the drift.
 	pages?: #Pages
 
@@ -54,7 +54,7 @@ package settings
 
 	https_enforced?: bool
 
-	// The docs are built by docs.yml, not from a branch.
+	// The docs are built by cd.docs.yml, not from a branch.
 	build_type?: "workflow"
 }
 

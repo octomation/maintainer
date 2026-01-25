@@ -4,21 +4,23 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - '.github/scripts/**'
+      - '.github/scripts/release.mjs'
       - '.github/settings.json'
-      - '.github/workflows/docs.yml'
+      - '.github/workflows/cd.docs.yml'
       - 'docs/**'
       - 'Taskfile'
+      - 'bin/lib/**'
       - '.github/actions/**'
 
   push:
     branches: [ main ]
     paths:
-      - '.github/scripts/**'
+      - '.github/scripts/release.mjs'
       - '.github/settings.json'
-      - '.github/workflows/docs.yml'
-      - 'docs/**'
+      - '.github/workflows/cd.docs.yml'
+      - 'docs/**/*'
       - 'Taskfile'
+      - 'bin/lib/**'
       - '.github/actions/**'
 
   schedule:
