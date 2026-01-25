@@ -119,13 +119,13 @@ test('pre-push checks annotated tags and destination branches, deletions and tag
   // A tag alone cannot introduce a commit absent from the remote branch.
   assert.equal(push(tag).status, 1)
   assert.equal(push(`refs/heads/release ${sha} refs/heads/main ${base}\n${tag}`).status, 0)
-  assert.equal(readFileSync(makeLog, 'utf8').trim(), 'deps-tidy verify')
+  assert.equal(readFileSync(makeLog, 'utf8').trim(), 'go-deps-tidy verify')
   assert.equal(push(`refs/heads/main ${sha} refs/heads/unrelated ${base}\n${tag}`).status, 1)
   assert.equal(push(`(delete) ${zero} refs/tags/v9.9.9 ${sha}\n`).status, 0)
-  assert.equal(readFileSync(makeLog, 'utf8').trim(), 'deps-tidy verify')
+  assert.equal(readFileSync(makeLog, 'utf8').trim(), 'go-deps-tidy verify')
   git('update-ref', 'refs/remotes/origin/main', sha)
   assert.equal(push(tag).status, 0)
-  assert.equal(readFileSync(makeLog, 'utf8').trim(), 'deps-tidy verify')
+  assert.equal(readFileSync(makeLog, 'utf8').trim(), 'go-deps-tidy verify')
 }))
 
 
@@ -143,12 +143,12 @@ test('hooks are wired in place through the local core.hooksPath and leave shared
   const make = (target) => spawnSync('make', ['-f', resolve('Makefile'), target], { cwd, env, encoding: 'utf8' })
   const hooksPath = () => spawnSync('git', ['config', 'core.hooksPath'], { cwd, env, encoding: 'utf8' }).stdout.trim()
   assert.equal(hooksPath(), join(cwd, 'shared-hooks'))
-  const installed = make('hooks')
+  const installed = make('git-hooks')
   assert.equal(installed.status, 0, installed.stderr)
   assert.equal(hooksPath(), '.github/hooks')
-  assert.equal(make('unhook').status, 0)
+  assert.equal(make('git-unhook').status, 0)
   assert.equal(hooksPath(), join(cwd, 'shared-hooks'))
-  assert.equal(make('unhook').status, 0)
+  assert.equal(make('git-unhook').status, 0)
   assert.match(readFileSync(globalConfig, 'utf8'), /shared-hooks/)
   for (const name of ['pre-commit', 'pre-push', 'post-merge']) {
     assert.equal(readFileSync(join(cwd, 'shared-hooks', name), 'utf8'), 'shared hook: keep me')

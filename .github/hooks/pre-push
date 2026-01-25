@@ -25,4 +25,4 @@ done
 [[ ${status} -eq 0 ]] || exit "${status}"
 
 # Application checks for every push.
-make deps-tidy verify
+make go-deps-tidy verify
