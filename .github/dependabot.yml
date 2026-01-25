@@ -1,29 +1,41 @@
-# Dependabot. The application allows automating dependencies updates.
-# It provides information to Dependabot about used package ecosystems.
-#
-# Docs: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/about-dependabot-version-updates.
 version: 2
+
 updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+      time: '05:00'
+      timezone: UTC
+    labels:
+      - 'type: improvement'
+      - 'scope: inventory'
+      - 'scope: deps'
+    commit-message:
+      prefix: 'ci/cd'
+      include: 'scope'
+    open-pull-requests-limit: 30
+
   - package-ecosystem: gomod
     directory: /
     schedule:
       interval: daily
-      time: '06:00'
+      time: '05:00'
       timezone: UTC
     labels:
-      - 'type: improvement'
+      - 'type: feature'
       - 'scope: code'
       - 'scope: deps'
     commit-message:
       prefix: 'feat'
       include: 'scope'
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 30
 
   - package-ecosystem: npm
     directory: /docs/
     schedule:
       interval: daily
-      time: '06:00'
+      time: '05:00'
       timezone: UTC
     labels:
       - 'type: improvement'
@@ -32,15 +44,17 @@ updates:
     commit-message:
       prefix: 'docs'
       include: 'scope'
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 30
 
+  # the go tool directive requires tool modules as // indirect, which version
+  # updates skip, so this entry only raises security updates; a native fix is
+  # dependabot/dependabot-core#12050 (tracked in octomation/go-module#546),
+  # until then update with `make go-tools-update`
   - package-ecosystem: gomod
-    # Tool directives are indirect: dependabot/dependabot-core#12050.
-    # Keep security updates; use make tools-update for version updates.
     directory: /tools/
     schedule:
       interval: daily
-      time: '06:00'
+      time: '05:00'
       timezone: UTC
     labels:
       - 'type: improvement'
@@ -50,18 +64,3 @@ updates:
       prefix: 'tools'
       include: 'scope'
     open-pull-requests-limit: 0
-
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: daily
-      time: '06:00'
-      timezone: UTC
-    labels:
-      - 'type: improvement'
-      - 'scope: inventory'
-      - 'scope: deps'
-    commit-message:
-      prefix: 'ci/cd'
-      include: 'scope'
-    open-pull-requests-limit: 10

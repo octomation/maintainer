@@ -54,9 +54,9 @@ jobs:
         run: make tools && [ "$(find bin/linux -mindepth 2 -type f | wc -l)" = "$(cd tools && go list tool | wc -l)" ]
 
       - name: Check git state
-        run: make tools-tidy generate git-check
+        run: make go-tools-tidy generate git-check
       - name: Check tools
-        run: make tools-check
+        run: make go-tools-check
 
   notify:
     name: Notifying

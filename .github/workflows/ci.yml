@@ -85,17 +85,20 @@ jobs:
         uses: actions/setup-go@v7.0.0
         with:
           go-version: 1.27.x
-          cache-dependency-path: tools/go.sum
+          cache-dependency-path: |
+            go.sum
+            tools/go.sum
           check-latest: true
 
-      # The application dependency gate is shared with release-verify in cd.yml.
+      # the release helpers and the GoReleaser config fail here, not on a tag
       - name: Set up Node.js environment
         uses: actions/setup-node@v7.1.0
         with: { node-version: 24, package-manager-cache: false }
       - name: Check release helpers
         run: node --test .github/scripts/*.test.mjs
+      # the same gate as release-verify in cd.yml
       - name: Check dependencies
-        run: make tools config-vet release-config-check deps-check generate git-check
+        run: make tools config-vet release-config-check go-deps-check generate git-check
 
   test:
     name: Testing
@@ -118,13 +121,13 @@ jobs:
           go-version: '${{ matrix.go }}'
           check-latest: true
       - name: Set up environment
-        run: make env deps-fetch
+        run: make env deps
 
       - name: Run fast check source code
         run: make source-check
-      # Reject an untidy go.mod before it reaches a release tag.
+      # cd.yml runs release-verify on a tag: an untidy go.mod must fail here first
       - name: Check that modules are tidy
-        run: make deps-tidy git-check
+        run: make go-deps-tidy git-check
       - name: Run tests
         run: make test
         if: matrix.go != '1.27.x'
