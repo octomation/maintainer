@@ -1,18 +1,18 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5JsYPz
 databaseId: 1236370419
 number: 39
 url: https://github.com/octomation/maintainer/issues/39
 title: "org: review and classify issues"
 labels: []
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2022-05-15T19:11:31Z
-updatedAt: 2026-09-28T10:44:37Z
-lastEditedAt: 2026-09-28T10:44:37Z
-closedAt:
+updatedAt: 2026-10-19T07:22:40Z
+lastEditedAt: 2026-10-19T07:22:40Z
+closedAt: null
 ---
 
 # org: review and classify issues

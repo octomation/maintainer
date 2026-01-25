@@ -1,23 +1,29 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc8AAAABUVq71Q
 databaseId: 5659868117
 number: 466
 url: https://github.com/octomation/maintainer/issues/466
 title: "fetch: remotes: configure upstream for forks and check remote consistency"
+issueType: null
 labels:
-  - "effort: medium"
-  - "impact: medium"
   - "scope: code"
   - "scope: test"
   - "type: feature"
-milestone:
+  - "impact: medium"
+  - "effort: medium"
+assignees:
+  - kamilsk
+milestone: null
+parent: null
+issueFields: {}
 state: OPEN
-stateReason:
+stateReason: null
+duplicateOf: null
 createdAt: 2026-10-01T09:17:25Z
-updatedAt: 2026-10-01T11:54:34Z
+updatedAt: 2026-10-16T16:16:39Z
 lastEditedAt: 2026-10-01T11:54:31Z
-closedAt:
+closedAt: null
 ---
 
 # fetch: remotes: configure upstream for forks and check remote consistency

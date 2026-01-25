@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: MDU6SXNzdWU4MjY0NzQ3MzY=
 databaseId: 826474736
 number: 12
@@ -7,12 +7,12 @@ url: https://github.com/octomation/maintainer/issues/12
 title: "fetch current state of labels of all repositories"
 labels:
   - "help wanted"
-milestone:
+milestone: null
 state: CLOSED
 stateReason: COMPLETED
 createdAt: 2021-03-09T18:58:04Z
-updatedAt: 2026-09-28T10:44:15Z
-lastEditedAt: 2026-09-28T10:44:15Z
+updatedAt: 2026-10-19T07:22:21Z
+lastEditedAt: 2026-10-19T07:22:21Z
 closedAt: 2021-03-17T10:11:17Z
 ---
 

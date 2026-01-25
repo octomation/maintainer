@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: MDU6SXNzdWU5ODE1NzYwNzU=
 databaseId: 981576075
 number: 19
@@ -7,13 +7,13 @@ url: https://github.com/octomation/maintainer/issues/19
 title: "transition entity"
 labels:
   - "scope: code"
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2021-08-27T20:30:43Z
-updatedAt: 2026-09-28T10:44:26Z
-lastEditedAt: 2026-09-28T10:44:26Z
-closedAt:
+updatedAt: 2026-10-19T07:22:31Z
+lastEditedAt: 2026-10-19T07:22:31Z
+closedAt: null
 ---
 
 # transition entity

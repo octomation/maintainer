@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5biw_k
 databaseId: 1535840228
 number: 98
@@ -10,13 +10,13 @@ labels:
   - "type: feature"
   - "impact: high"
   - "effort: hard"
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2023-01-17T06:23:16Z
-updatedAt: 2026-09-28T10:44:52Z
-lastEditedAt: 2026-09-28T10:44:52Z
-closedAt:
+updatedAt: 2026-10-19T07:22:52Z
+lastEditedAt: 2026-10-19T07:22:52Z
+closedAt: null
 ---
 
 # github: setup: add command to manage all available projects and repositories

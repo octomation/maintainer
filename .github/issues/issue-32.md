@@ -1,17 +1,17 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5JeZL9
 databaseId: 1232704253
 number: 32
 url: https://github.com/octomation/maintainer/issues/32
 title: "command: labels classify issue"
 labels: []
-milestone:
+milestone: null
 state: CLOSED
 stateReason: NOT_PLANNED
 createdAt: 2022-05-11T14:08:29Z
-updatedAt: 2026-09-28T10:44:34Z
-lastEditedAt: 2026-09-28T10:44:34Z
+updatedAt: 2026-10-19T07:22:38Z
+lastEditedAt: 2026-10-19T07:22:38Z
 closedAt: 2023-03-31T15:32:01Z
 ---
 

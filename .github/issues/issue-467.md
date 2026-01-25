@@ -1,24 +1,30 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc8AAAABUXahqg
 databaseId: 5661696426
 number: 467
 url: https://github.com/octomation/maintainer/issues/467
 title: "fetch: adopt: keep adoption of a pinned checkout additive"
+issueType: null
 labels:
-  - "effort: small"
-  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: medium"
+  - "effort: small"
+assignees:
+  - kamilsk
 milestone: "[[milestone-3]]"
+parent: null
+issueFields: {}
 state: OPEN
-stateReason:
+stateReason: null
+duplicateOf: null
 createdAt: 2026-10-01T11:53:51Z
-updatedAt: 2026-10-01T11:53:51Z
-lastEditedAt:
-closedAt:
+updatedAt: 2026-10-16T16:16:38Z
+lastEditedAt: null
+closedAt: null
 ---
 
 # fetch: adopt: keep adoption of a pinned checkout additive

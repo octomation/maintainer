@@ -1,18 +1,18 @@
 ---
-code:
+code: null
 id: MDU6SXNzdWU4MjM2ODc5MjU=
 databaseId: 823687925
 number: 11
 url: https://github.com/octomation/maintainer/issues/11
 title: "integrate markdown parser"
 labels: []
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2021-03-06T16:28:34Z
-updatedAt: 2026-09-28T10:44:12Z
-lastEditedAt: 2026-09-28T10:44:12Z
-closedAt:
+updatedAt: 2026-10-19T07:22:19Z
+lastEditedAt: 2026-10-19T07:22:19Z
+closedAt: null
 ---
 
 # integrate markdown parser

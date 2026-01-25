@@ -1,18 +1,18 @@
 ---
-code:
+code: null
 id: MDU6SXNzdWU3ODAzNzI0NTg=
 databaseId: 780372458
 number: 5
 url: https://github.com/octomation/maintainer/issues/5
 title: "integrate or implement embedmd"
 labels: []
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2021-01-06T09:33:18Z
-updatedAt: 2026-09-28T10:44:42Z
-lastEditedAt: 2026-09-28T10:44:42Z
-closedAt:
+updatedAt: 2026-10-19T07:22:45Z
+lastEditedAt: 2026-10-19T07:22:45Z
+closedAt: null
 ---
 
 # integrate or implement embedmd

@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc58tL2F
 databaseId: 2092219781
 number: 197
@@ -10,13 +10,13 @@ labels:
   - "type: feature"
   - "impact: high"
   - "effort: medium"
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2024-01-20T19:51:39Z
-updatedAt: 2026-09-28T10:44:29Z
-lastEditedAt: 2026-09-28T10:44:29Z
-closedAt:
+updatedAt: 2026-10-19T07:22:33Z
+lastEditedAt: 2026-10-19T07:22:33Z
+closedAt: null
 ---
 
 # insights: deps: fetch data from deps.dev

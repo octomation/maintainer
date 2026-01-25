@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5jGx7W
 databaseId: 1662721750
 number: 132
@@ -13,11 +13,11 @@ labels:
   - "effort: medium"
 milestone: "[[milestone-2]]"
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2023-04-11T15:13:16Z
-updatedAt: 2026-09-28T10:44:17Z
-lastEditedAt: 2026-09-28T10:44:17Z
-closedAt:
+updatedAt: 2026-10-19T07:22:24Z
+lastEditedAt: 2026-10-19T07:22:24Z
+closedAt: null
 ---
 
 # linear: generate client

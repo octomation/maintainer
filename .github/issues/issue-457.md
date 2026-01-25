@@ -1,10 +1,11 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc8AAAABTIw0fw
 databaseId: 5579224191
 number: 457
 url: https://github.com/octomation/maintainer/issues/457
 title: "github: contribution: calendar counts are read from an inconsistent source"
+issueType: null
 labels:
   - "scope: code"
   - "scope: test"
@@ -13,12 +14,17 @@ labels:
   - "scope: deps"
   - "impact: high"
   - "effort: medium"
-milestone:
+assignees:
+  - kamilsk
+milestone: null
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
+duplicateOf: null
 createdAt: 2026-09-25T06:41:22Z
-updatedAt: 2026-09-25T06:47:46Z
-lastEditedAt:
+updatedAt: 2026-10-16T16:17:12Z
+lastEditedAt: null
 closedAt: 2026-09-25T06:47:46Z
 ---
 

@@ -1,25 +1,31 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc8AAAABUzHaGA
 databaseId: 5690743320
 number: 468
 url: https://github.com/octomation/maintainer/issues/468
 title: "status: inspection: detect renames the same way in every count"
+issueType: null
 labels:
-  - "effort: easy"
-  - "impact: medium"
-  - "scope: code"
   - "scope: docs"
+  - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: medium"
+  - "effort: easy"
+assignees:
+  - kamilsk
 milestone: "[[milestone-3]]"
-state: OPEN
-stateReason:
+parent: null
+issueFields: {}
+state: CLOSED
+stateReason: COMPLETED
+duplicateOf: null
 createdAt: 2026-10-03T14:58:12Z
-updatedAt: 2026-10-03T14:58:12Z
-lastEditedAt:
-closedAt:
+updatedAt: 2026-10-19T07:11:01Z
+lastEditedAt: null
+closedAt: 2026-10-19T07:11:01Z
 ---
 
 # status: inspection: detect renames the same way in every count

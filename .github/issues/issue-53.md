@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5Ll5Od
 databaseId: 1268224925
 number: 53
@@ -9,13 +9,13 @@ labels:
   - "scope: docs"
   - "scope: code"
   - "scope: test"
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2022-06-11T10:02:54Z
-updatedAt: 2026-09-28T10:44:45Z
-lastEditedAt: 2026-09-28T10:44:45Z
-closedAt:
+updatedAt: 2026-10-19T07:22:48Z
+lastEditedAt: 2026-10-19T07:22:48Z
+closedAt: null
 ---
 
 # tools: experimental: investigate cli dashboard for GitHub

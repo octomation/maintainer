@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5jtr7k
 databaseId: 1672920804
 number: 135
@@ -10,13 +10,13 @@ labels:
   - "type: feature"
   - "impact: high"
   - "effort: hard"
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2023-04-18T11:32:08Z
-updatedAt: 2026-09-28T10:44:20Z
-lastEditedAt: 2026-09-28T10:44:20Z
-closedAt:
+updatedAt: 2026-10-19T07:22:26Z
+lastEditedAt: 2026-10-19T07:22:26Z
+closedAt: null
 ---
 
 # go: rename: command to rename current module and others

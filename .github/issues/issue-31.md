@@ -1,18 +1,18 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5JeYHg
 databaseId: 1232699872
 number: 31
 url: https://github.com/octomation/maintainer/issues/31
 title: "command: github backup repository"
 labels: []
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2022-05-11T14:06:20Z
-updatedAt: 2026-09-28T10:44:32Z
-lastEditedAt: 2026-09-28T10:44:31Z
-closedAt:
+updatedAt: 2026-10-19T07:22:36Z
+lastEditedAt: 2026-10-19T07:22:36Z
+closedAt: null
 ---
 
 # command: github backup repository

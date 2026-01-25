@@ -8,9 +8,9 @@ title: "Workspace, v0.2"
 state: OPEN
 openIssueCount: 0
 closedIssueCount: 0
-dueOn:
+dueOn: null
 createdAt: 2026-09-26T09:14:44Z
-updatedAt: 2026-09-26T09:14:44Z
+updatedAt: 2026-10-19T07:25:46Z
 closedAt:
 ---
 

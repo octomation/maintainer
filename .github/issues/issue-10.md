@@ -1,18 +1,18 @@
 ---
-code:
+code: null
 id: MDU6SXNzdWU4MjM2ODY5OTA=
 databaseId: 823686990
 number: 10
 url: https://github.com/octomation/maintainer/issues/10
 title: "template: automate sync with upstream"
 labels: []
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2021-03-06T16:24:19Z
-updatedAt: 2026-09-28T10:44:09Z
-lastEditedAt: 2026-09-28T10:44:09Z
-closedAt:
+updatedAt: 2026-10-19T07:22:17Z
+lastEditedAt: 2026-10-19T07:22:17Z
+closedAt: null
 ---
 
 # template: automate sync with upstream

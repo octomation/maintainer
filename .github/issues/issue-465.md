@@ -1,10 +1,11 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc8AAAABToAC8Q
 databaseId: 5611979505
 number: 465
 url: https://github.com/octomation/maintainer/issues/465
 title: "ci/cd: verification: restore reliable CI and local gates"
+issueType: null
 labels:
   - "scope: test"
   - "type: bug"
@@ -13,13 +14,18 @@ labels:
   - "scope: inventory"
   - "impact: high"
   - "effort: easy"
+assignees:
+  - kamilsk
 milestone: "[[milestone-3]]"
-state: OPEN
-stateReason:
+parent: null
+issueFields: {}
+state: CLOSED
+stateReason: COMPLETED
+duplicateOf: null
 createdAt: 2026-09-28T08:58:35Z
-updatedAt: 2026-09-28T09:25:42Z
-lastEditedAt:
-closedAt:
+updatedAt: 2026-10-19T06:30:38Z
+lastEditedAt: null
+closedAt: 2026-10-19T06:30:38Z
 ---
 
 # ci/cd: verification: restore reliable CI and local gates

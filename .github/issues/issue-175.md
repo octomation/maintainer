@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc53Oqve
 databaseId: 2000333790
 number: 175
@@ -9,11 +9,11 @@ labels:
   - "effort: easy"
 milestone: "[[milestone-1]]"
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2023-11-18T09:14:11Z
-updatedAt: 2026-09-28T10:44:23Z
-lastEditedAt: 2026-09-28T10:44:23Z
-closedAt:
+updatedAt: 2026-10-19T07:22:29Z
+lastEditedAt: 2026-10-19T07:22:29Z
+closedAt: null
 ---
 
 # maintainance: sync with the go-tool template

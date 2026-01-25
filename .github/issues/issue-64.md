@@ -1,5 +1,5 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5NDnsu
 databaseId: 1292794670
 number: 64
@@ -7,13 +7,13 @@ url: https://github.com/octomation/maintainer/issues/64
 title: "github: api: switch to graphql"
 labels:
   - "scope: code"
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2022-07-04T08:10:52Z
-updatedAt: 2026-09-28T10:44:48Z
-lastEditedAt: 2026-09-28T10:44:48Z
-closedAt:
+updatedAt: 2026-10-19T07:22:50Z
+lastEditedAt: 2026-10-19T07:22:50Z
+closedAt: null
 ---
 
 # github: api: switch to graphql

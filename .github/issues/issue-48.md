@@ -1,18 +1,18 @@
 ---
-code:
+code: null
 id: I_kwDOE2M9Zc5LKhhd
 databaseId: 1261049949
 number: 48
 url: https://github.com/octomation/maintainer/issues/48
 title: "ci/cd: tools: test act for local development"
 labels: []
-milestone:
+milestone: null
 state: OPEN
-stateReason:
+stateReason: null
 createdAt: 2022-06-05T13:29:43Z
-updatedAt: 2026-09-28T10:44:40Z
-lastEditedAt: 2026-09-28T10:44:40Z
-closedAt:
+updatedAt: 2026-10-19T07:22:43Z
+lastEditedAt: 2026-10-19T07:22:43Z
+closedAt: null
 ---
 
 # ci/cd: tools: test act for local development
