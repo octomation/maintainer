@@ -8,7 +8,7 @@ title: "release: publishing: write the tap through the OctoLab Releaser App"
 labels:
   - "type: improvement"
   - "scope: inventory"
-milestone: null
+milestone: "[[MAIN-M3]]"
 state: OPEN
 stateReason: null
 createdAt: null

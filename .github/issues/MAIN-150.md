@@ -15,7 +15,7 @@ labels:
   - "effort: medium"
 assignees:
   - kamilsk
-milestone: null
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
 state: OPEN
