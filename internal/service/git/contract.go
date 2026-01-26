@@ -36,7 +36,8 @@ type CloneInfo struct {
 }
 
 // GitSync is the port the fetcher drives for all disk-mutating Git work (§2.3).
-// The default implementation wraps go-git; a future shell-out fallback can
+// The default implementation wraps go-git and edits the config through the
+// git CLI; a future shell-out fallback can
 // replace it without touching the Planner.
 type GitSync interface {
 	// Clone materialises opt.URL into opt.Path (no submodules, no working-tree

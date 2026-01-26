@@ -231,7 +231,8 @@ an unexpected partial checkout is retained with an error for manual inspection.
 Repository identity comes only from `remote.origin.url` (the fetch endpoint).
 `remote.origin.pushurl` is orthogonal: push locks such as a deliberately invalid
 push URL neither create an ambiguous checkout nor get removed by
-`update_remote`.
+`update_remote`. It changes only `remote.origin.url` through Git, so it needs
+`git` on PATH; the rest of `.git/config` stays as written.
 
 An accessible upstream with no refs is a valid fetch no-op. It is retried on
 every run, so the first ref created later is discovered automatically.

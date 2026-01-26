@@ -5,7 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"slices"
+	"strings"
 	"syscall"
 
 	"github.com/go-git/go-git/v5"
@@ -18,7 +21,8 @@ import (
 // defaultRefSpec fetches remote-tracking refs only, never local branches (§16).
 const defaultRefSpec config.RefSpec = "+refs/heads/*:refs/remotes/origin/*"
 
-// Sync is the go-git implementation of the GitSync port.
+// Sync is the go-git implementation of the GitSync port; UpdateRemote edits
+// the config through the git CLI.
 type Sync struct{}
 
 // NewSync returns a go-git-backed GitSync.
@@ -143,34 +147,75 @@ func (s *Sync) Move(from, to string) error {
 	return nil
 }
 
-// UpdateRemote rewrites origin's URL.
+// UpdateRemote rewrites origin's fetch URL. It goes through Git rather than
+// go-git's SetConfig, which re-encodes the whole file: Git replaces only the
+// remote.origin.url lines, so push URLs (including a `git lock` sentinel),
+// other remotes, valueless keys, comments and insteadOf rules stay as written.
+// The raw value is read back the way Inspect reads it, without insteadOf.
 func (s *Sync) UpdateRemote(path, url string) error {
-	repo, err := git.PlainOpen(path)
-	if err != nil {
-		return fmt.Errorf("open %s: %w", path, err)
-	}
-	cfg, err := repo.Config()
+	const key = "remote." + git.DefaultRemoteName + ".url"
+	urls, err := localValues(path, key)
 	if err != nil {
 		return fmt.Errorf("read config %s: %w", path, err)
 	}
-	remote, ok := cfg.Remotes[git.DefaultRemoteName]
-	if !ok {
+	if len(urls) == 0 {
 		return fmt.Errorf("%s has no %q remote", path, git.DefaultRemoteName)
 	}
-	// go-git exposes remote.*.url and remote.*.pushurl in one URLs slice.
-	// Rewrite the fetch endpoint only and leave push endpoints (including a
-	// `git lock` sentinel) untouched in the raw config.
-	remote.URLs = []string{url}
-	if cfg.Raw != nil && cfg.Raw.HasSection("remote") {
-		section := cfg.Raw.Section("remote")
-		if section.HasSubsection(git.DefaultRemoteName) {
-			section.Subsection(git.DefaultRemoteName).SetOption("url", url)
-		}
+	if slices.Equal(urls, []string{url}) {
+		return nil
 	}
-	if err := repo.SetConfig(cfg); err != nil {
+	if _, err := localConfig(path, "--replace-all", "--", key, url); err != nil {
 		return fmt.Errorf("update remote %s: %w", path, err)
 	}
+	urls, err = localValues(path, key)
+	if err != nil {
+		return fmt.Errorf("update remote %s: read back: %w", path, err)
+	}
+	if !slices.Equal(urls, []string{url}) {
+		return fmt.Errorf("update remote %s: %s is %q after the update, want %q", path, key, urls, url)
+	}
 	return nil
+}
+
+// localValues returns every raw value of key in the repository's own config
+// file, without includes or insteadOf rewriting; a missing key yields none.
+func localValues(path, key string) ([]string, error) {
+	out, err := localConfig(path, "--null", "--get-all", "--", key)
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+		return nil, nil // no matching configuration entry
+	}
+	if err != nil {
+		return nil, err
+	}
+	return strings.Split(strings.TrimSuffix(out, "\x00"), "\x00"), nil
+}
+
+// localConfig runs `git config --local` on the repository at path. The
+// explicit --git-dir disables discovery, so a path without its own .git never
+// reaches a parent repository; variables that a Git hook exports and that
+// would redirect the command to another repository or file are dropped.
+func localConfig(path string, args ...string) (string, error) {
+	argv := append([]string{"--git-dir", filepath.Join(path, ".git"), "config", "--local"}, args...)
+	cmd := exec.Command("git", argv...)
+	for _, env := range os.Environ() {
+		key, _, _ := strings.Cut(env, "=")
+		switch key {
+		case "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_CONFIG":
+			continue
+		}
+		cmd.Env = append(cmd.Env, env)
+	}
+	cmd.Env = append(cmd.Env, "LC_ALL=C")
+	out, err := cmd.Output()
+	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) && len(exitErr.Stderr) > 0 {
+			return "", fmt.Errorf("git config: %w: %s", err, strings.TrimSpace(string(exitErr.Stderr)))
+		}
+		return "", fmt.Errorf("git config: %w", err)
+	}
+	return string(out), nil
 }
 
 // Inspect reads origin fetch/push URLs separately and the short HEAD sha.
