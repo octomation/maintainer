@@ -28,6 +28,7 @@ closedAt: null
 **Requirements**
 
 - A 401, 403 or 451 while resolving one clone by name yields id 0 with a per-clone error, so that checkout becomes a conflict row and the rest of the run proceeds.
+- A checkout whose origin owner and name match an `ignore` rule is not resolved at all, so an ignored repository cannot fail the scan.
 - RateGuard distinguishes three classes and treats nothing else as retryable:
   - primary limit — 403 or 429 with `x-ratelimit-remaining: 0`: one wait until `x-ratelimit-reset`, then one retry;
   - secondary limit — 403 or 429 with `Retry-After`, or without it when the body names the secondary rate limit: one wait of `Retry-After` or at least 60 seconds with backoff, then one retry;
@@ -35,7 +36,7 @@ closedAt: null
   An ordinary 403 (permissions, SSO) is never retried. When the required wait exceeds the guard's maximum wait or the remaining `--timeout` budget, the call fails with a message that names the wait; it never retries earlier. Permanent transport errors (DNS `NXDOMAIN`, TLS failures) are not retried.
 - Tests with a fake clock and a fake transport: an ordinary 403; a headerless secondary limit; an oversized `Retry-After`; a primary lockout with the reset beyond the budget; a transient 503; a permanent transport failure; a 403 while resolving one clone with a plan for the rest.
 
-**Evidence:** findings 11 (`internal/service/fetch/service.go:562`, `adopter.go:126`) and 12 (`internal/service/github/rate.go:94`, `rate.go:151`) of [the code review](../reviews/20260926T071417Z.md), reproduced with scratch probes, and C10a of [the review of 2026-07-09](../reviews/20260709T132530Z.md) (`rate.go:66`), still open on `932b9c8`. GitHub's documentation of primary and secondary limits is the reference for the classes above.
+**Evidence:** findings 11 (`internal/service/fetch/service.go:562`, `adopter.go:126`) and 12 (`internal/service/github/rate.go:94`, `rate.go:151`) of [the code review](../reviews/20260926T071417Z.md), reproduced with scratch probes, and C10a of [the review of 2026-07-09](../reviews/20260709T132530Z.md) (`rate.go:66`), still open on `932b9c8`; the `ignore` case comes from [the issue review of 2026-10-19](../reviews/20261019T105848Z.md#main-134-discovery-failures-and-rate-limits). GitHub's documentation of primary and secondary limits is the reference for the classes above.
 
 **PoC**
 
@@ -50,7 +51,7 @@ ordinary 403 (SSO)                           expected: no retry, error after 1 a
 dial tcp: no such host                       today: 6 attempts                             expected: 1 attempt
 ```
 
-And a service test where resolving `sso-org/tool` answers 403: today `scan workspace …: 403 Forbidden` and an empty stdout; expected a conflict row for that checkout and a plan for the rest.
+And a service test where resolving `sso-org/tool` answers 403: today `scan workspace …: 403 Forbidden` and an empty stdout; expected a conflict row for that checkout and a plan for the rest. With an `ignore` rule for `sso-org/tool` the transport records no request for it, and the plan has no row for it.
 
 **Out of scope:** the GraphQL client of the contribution commands; body replay for retried POSTs (C10b), the shared jitter source (C10c) and the shadowed builtin (C10d), which stay recorded in the reviews.
 

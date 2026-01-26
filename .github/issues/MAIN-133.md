@@ -24,7 +24,7 @@ closedAt: null
 
 # fetch: selection: honor owners, profiles and adoption filters
 
-**Motivation:** `--owner`, `--profile`, `--token`, `include_owners` and `[filters]` are the only ways to say which repositories a run may touch. A narrowed run must not silently work across the whole collection or persist a false "not accessible" observation; mixed-case owners must not silently find nothing; filters must gate adoption as documented.
+**Motivation:** `--owner`, `--profile`, `--token`, `include_owners` and `[filters]` are the only ways to say which repositories a run may touch. A narrowed run must not silently work across the whole collection or persist a false "not accessible" observation; mixed-case owners must not silently find nothing; filters must gate adoption, not only new clones. v0.2.0 ships without this work and documents what it does: `--owner` and `--profile` narrow the discovery of new repositories, and filters gate new clones only ([[MAIN-132]]). This task makes the code do what the contract below says, and the help, the guide and the template follow it.
 
 **Contract**: configured `include_owners` selects the discovery of new remote repositories and keeps the full-run behaviour of [the fetch guide](https://maintainer.octolab.org/fetch/), in which existing checkouts and pins outside those owners are still verified and managed. Explicit `--owner` and `--profile` narrow *this invocation*. The guarantee is about per-repository requests — confirmation by id, resolution by name, clone, fetch — and about mutation and persisted observations; a bulk listing may return repositories that are filtered out afterwards.
 
@@ -41,10 +41,10 @@ closedAt: null
 - A 404 by id counts as "not accessible by id: deleted or access lost" only when it comes from the record's own profile token; with another token the record is left unverified, nothing is persisted, and the plan says why.
 - Owners are compared case-insensitively everywhere: endpoint choice, memberships, allowlist, owner overrides, repo matches and ignore rules.
 - `--token` applies after profile selection, to the first selected profile, never to every profile.
-- Filtered snapshots are neither cloned nor adopted; tracked repositories stay tracked.
-- Help, `fetch.md` and the specification say the same thing.
+- Filtered snapshots are neither cloned nor adopted, on every path that can adopt an untracked checkout: an ordinary workspace checkout, a per-repository pin and a checkout under a workspace pin. Tracked repositories stay tracked.
+- Help, `fetch.md`, the template of `maintainer fetch config init` and the specification say the same thing.
 
-**Evidence:** findings 6 (`internal/service/fetch/service.go:402`), 8 (`internal/service/github/discovery_rest.go:122`, `internal/command/fetch/profiles.go:50`), 20 (`internal/service/fetch/planner.go:288` against `docs/content/fetch.md:81`) and 21 (`internal/command/fetch/root.go:56`, `service.go:176`, `docs/content/fetch.md:122` against `:125`) of [the code review](../reviews/20260926T071417Z.md), and G2 of [the review of 2026-07-10](../reviews/20260710T095546Z.md) (`internal/command/fetch/profiles.go:42`), reproduced on `932b9c8`.
+**Evidence:** findings 6 (`internal/service/fetch/service.go:402`), 8 (`internal/service/github/discovery_rest.go:122`, `internal/command/fetch/profiles.go:50`), 20 (`internal/service/fetch/planner.go:288` against `docs/content/fetch.md:81`) and 21 (`internal/command/fetch/root.go:56`, `service.go:176`, `docs/content/fetch.md:122` against `:125`) of [the code review](../reviews/20260926T071417Z.md), and G2 of [the review of 2026-07-10](../reviews/20260710T095546Z.md) (`internal/command/fetch/profiles.go:42`), reproduced on `932b9c8`; the pinned adoption paths and the reproductions of 2026-10-19 are in [the issue review of 2026-10-19](../reviews/20261019T105848Z.md#main-133-owners-profiles-and-adoption-filters).
 
 **PoC**
 
@@ -54,13 +54,13 @@ A service test with a fake transport that records every request and answers case
 - `--owner acme --apply` must leave the request log without any `/repositories/{id}` or fetch for `other/*`, leave their records byte-identical, and list them as `noop` with the reason in JSON; today they are confirmed and fetched;
 - `--profile beta --apply` with a private record of `primary` must persist no `remote_status`; today it persists `"gone"`;
 - `--profile beta --token T` must reach `beta`, not the profile at index 0;
-- `exclude_forks = true` with an existing fork checkout must plan no `adopt`;
+- `exclude_forks = true` with an existing fork checkout must plan no `adopt`, for a workspace checkout, for a per-repository pin and for a checkout under a workspace pin alike;
 - `--profile beta --owner acme` together: a repository of `other` returned by `beta`'s listing gets no request, no mutation and no state change;
 - the table above: one case per row.
 
 **Out of scope:** GitHub App or device-flow authentication; a second profile for the owner's collection.
 
-Related: [[MAIN-135]], [[MAIN-137]], [[MAIN-132]].
+Related: [[MAIN-150]], [[MAIN-137]], [[MAIN-132]].
 
 <!-- 2026-10-01T12:25Z
 Preparation for implementation, from the spec reviews of #466 (2026-10-01): reconfirmed on `main` — `planner.go:291-299` adopts before the filter check at `planner.go:304`, so `exclude_forks = true` still adopts a fork checkout. The fork-remote specification now also relies on this filter: with `exclude_forks = true` already tracked forks stay tracked, but `upstream` is neither configured nor checked. The onboarding config in `docs/content/fetch.md:316` sets `exclude_forks = true`, so fixing the order changes what a new user sees.

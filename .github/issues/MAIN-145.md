@@ -50,4 +50,4 @@ The phantom-conflict and single-render cases are reconstructed as regression tes
 
 **Out of scope:** new template functions; moving pinned checkouts; multiple workspaces.
 
-Related: [[MAIN-135]], [[MAIN-144]], [[MAIN-141]].
+Related: [[MAIN-150]], [[MAIN-144]], [[MAIN-141]].

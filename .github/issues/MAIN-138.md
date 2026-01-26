@@ -22,24 +22,20 @@ closedAt: null
 
 # org: release: prepare v0.2.0
 
-Publish v0.2.0, the first release of `maintainer fetch` and `maintainer status`, so that a user can install it from every documented channel, refresh a multi-owner collection of checkouts and inspect its state, with existing branches and working files preserved. The requirements and the scope are the tasks of [[MAIN-M3]]; this task is the release path itself.
+Publish v0.2.0, the first release of `maintainer fetch` and `maintainer status`, directly as a stable release, so that a user can install it from every documented channel, refresh a multi-owner collection of checkouts and inspect its state, with existing branches and working files preserved. There is no release candidate: the tag is `v0.2.0`, and the defects that do not block it follow in v0.2.x patches. The requirements and the scope are the tasks of [[MAIN-M3]]; this task is the release path itself, as [the release guide](../../AGENTS.md#releasing) describes it.
 
-**Before the release candidate**
+**Before the tag**
 
-- The milestone [[MAIN-M3]] holds every task of the pool, created on GitHub from the local files.
-- Scope freeze: decide whether [[MAIN-136]] ships, and align the documentation and the milestone text with that decision.
-- On the candidate commit: `make test-integration` with a token, `make dist-check`, a read-only `status` and `fetch` on the real collection, then `fetch --apply` and the preservation check — local branch tips, HEAD, index, working files and push URLs of existing checkouts unchanged; refs, state and the planned paths and origins updated — and the convergence check: after at most two successful applies against unchanged inputs, the following plan contains no executable reconciliation action — no adopt, relocate, move, update_remote or clone — only routine `fetch` and report-only orphan or noop rows.
+- The milestone [[MAIN-M3]] holds the tasks of the release and of the patches after it, and [the issue review of 2026-10-19](../reviews/20261019T105848Z.md) says which task goes into v0.2.0; the local-only tasks of the milestone are created on GitHub from the local files.
+- Scope: the only fix of behaviour before the tag is an origin update that leaves the rest of the Git configuration intact ([[MAIN-135]]); the guides, the help texts, the config template and the note describe the release binary ([[MAIN-132]]). [[MAIN-136]] does not ship, and the documentation keeps the second apply.
+- On the release commit: the checks of the release guide — `make verify`, `make go-integration-test` with a token, `make go-dist-check`, `make release-config-check`, and `make doctor` with no `fail` — then a read-only `status` and `fetch` on the real collection, then `fetch --apply` and the preservation check — local branch tips, HEAD, index, working files and push URLs of existing checkouts unchanged; refs, state and the planned paths and origins updated — and the convergence check: after at most two successful applies against unchanged inputs, the following plan contains no executable reconciliation action — no adopt, relocate, move, update_remote or clone — only routine `fetch` and report-only orphan or noop rows.
 - Existing practice survives: the current config and state load without manual migration, the four active pins and their inactive duplicates stay distinguished, and a `git-contrib` invocation keeps its stdout contract.
-- The candidate note `docs/content/changelog/v0.2.0-rc1.md` exists and renders; the tag is created locally, `make release-check TAG=v0.2.0-rc1` passes, then `git push --atomic origin main v0.2.0-rc1` after the push lock is lifted.
-
-**The release candidate**
-
-- `v0.2.0-rc1` must be published as a prerelease that leaves the stable channels untouched: *Latest* and the tap contents compared before and after ([[MAIN-139]]).
-- The owner runs the candidate on the real collection for at least one weekly cycle. One candidate is the expected path, not a maximum: a fix found during the trial needs another candidate and the relevant checks again.
+- The note `docs/content/changelog/v0.2.0.md` exists and renders ([[MAIN-132]]).
 
 **The release**
 
-- The note `docs/content/changelog/v0.2.0.md` exists and renders ([[MAIN-132]]); the tag is created locally, `make release-check TAG=v0.2.0` passes, then `git push --atomic origin main v0.2.0`.
+- The tag is created locally and signed, `make release-check TAG=v0.2.0` passes, then `git push --atomic origin main v0.2.0` after the push lock is lifted.
+- v0.2.0 becomes *Latest*, and the tap receives the Formula and the Cask 0.2.0 in verified commits signed as the OctoLab Releaser App ([[MAIN-140]]).
 
 **After publication**
 
@@ -48,6 +44,6 @@ Publish v0.2.0, the first release of `maintainer fetch` and `maintainer status`,
 - The deployed site describes the release.
 - Then the bookkeeping: [[MAIN-92]] is closed with a resolution that names what shipped and links [[MAIN-128]] for the transferred requirement; closing [[MAIN-64]] for its calendar part is independent housekeeping, not a step of this release.
 
-**Out of scope:** closing the milestone "GCC, v0.1" and [[MAIN-30]]; any feature outside the plan.
+**Out of scope:** a release candidate, and keeping later prereleases out of the stable channels ([[MAIN-139]]); closing the milestone "GCC, v0.1" and [[MAIN-30]]; any feature outside the plan.
 
 Related: [[MAIN-30]] for the release path this one repeats, [[MAIN-127]].

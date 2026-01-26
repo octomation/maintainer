@@ -69,7 +69,7 @@ Working-tree updates (fast-forward), `upstream` remotes ([[MAIN-128]]), multiple
 - [ ] [[MAIN-132]] — docs: workspace: publish the fetch and status workflows
 - [ ] [[MAIN-133]] — fetch: selection: honor owners, profiles and adoption filters
 - [ ] [[MAIN-134]] — fetch: discovery: isolate repository failures and respect rate limits
-- [ ] [[MAIN-135]] — fetch: identity: preserve checkout identity through repository changes
+- [ ] [[MAIN-135]] — fetch: remote: change only the origin URL when updating a remote
 - [ ] [[MAIN-136]] — fetch: apply: refresh successfully reconciled checkouts in the same run
 - [ ] [[MAIN-137]] — fetch: state: honor config selection and preserve uncertain records
 - [ ] [[MAIN-138]] — org: release: prepare v0.2.0

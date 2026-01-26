@@ -33,7 +33,7 @@ closedAt: null
 - A plan-only run shows the dependent fetch as part of the plan; JSON keeps listing every action.
 - `fetch.md`, "Onboarding an existing tree", describes one apply and the second, idempotent one. If the change turns out to require rewriting the executor, the whole issue is deferred and the documentation keeps the second invocation.
 
-**Evidence:** `internal/service/fetch/applier.go:40` executes one action per repository, `planner.go:396` plans `fetch` only for an unchanged record, `action.go` orders `fetch` last; the adoption-before-move order is at `planner.go:288` and the relocation at `planner.go:324`. The failure cases of a move followed by a failed remote update belong to [[MAIN-135]], and a failed state save to [[MAIN-137]].
+**Evidence:** `internal/service/fetch/applier.go:40` executes one action per repository, `planner.go:396` plans `fetch` only for an unchanged record, `action.go` orders `fetch` last; the adoption-before-move order is at `planner.go:288` and the relocation at `planner.go:324`. The failure cases of a move followed by a failed remote update belong to [[MAIN-150]], and a failed state save to [[MAIN-137]].
 
 **PoC**
 
@@ -47,7 +47,7 @@ Today the first apply reports `adopt=1 fetch=0` and the remote-tracking ref stay
 
 **Out of scope:** updating local branches or working trees; new action kinds; chaining a move after an adoption in one apply; retrying failed prerequisites automatically.
 
-Related: [[MAIN-135]], [[MAIN-137]], [[MAIN-132]], [[MAIN-92]].
+Related: [[MAIN-150]], [[MAIN-137]], [[MAIN-132]], [[MAIN-92]].
 
 <!-- 2026-10-01T12:25Z
 Preparation for implementation, from the spec reviews of #466 (2026-10-01): the dependent fetch is still absent on `main` — `service.go:475-479` runs fixed passes with only a failure counter (`service.go:435-440`), `applier.go:43-54` records an adoption without a fetch — and the user documentation says the opposite of the requirement: `docs/content/fetch.md:172` ("adoption/remote update fetch refs on the next invocation") and `:328` (a separate third command). The docs task must flip both lines when this lands. #466 deliberately does not build on this mechanism: `upstream` after clone or adopt is a second stage of the same action, like the origin update of `move`.

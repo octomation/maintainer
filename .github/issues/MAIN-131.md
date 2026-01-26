@@ -28,10 +28,10 @@ closedAt: null
 **Requirements**
 
 - An unknown subcommand of any group is a usage error: a message in stderr naming the command and exit `2`; `main_test.go` asserts that `exit` is called with the code.
-- A flag parse error and an invalid argument exit `2`; a negative `--concurrency` is rejected by both commands instead of being replaced by the config value.
-- The exit-code tables in `fetch.md` and `status.md` stay true.
+- A flag parse error and an invalid argument exit `2`; a negative `--concurrency` is rejected by both commands instead of being replaced by the config value; an unknown `--format` is rejected by `fetch` as it is by `status`, before any request, instead of falling back to the human output.
+- The exit-code tables in `fetch.md` and `status.md` promise `2` for every usage error and stay true.
 
-**Evidence:** findings 17 (`internal/command/root.go:20`, `main_test.go:21`) and 18 (`main.go:59`, `internal/command/fetch/root.go:104`, `docs/content/fetch.md:299`, `docs/content/status.md:217`) of [the code review](../reviews/20260926T071417Z.md), reproduced on `932b9c8`.
+**Evidence:** findings 17 (`internal/command/root.go:20`, `main_test.go:21`) and 18 (`main.go:59`, `internal/command/fetch/root.go:104`, `docs/content/fetch.md:299`, `docs/content/status.md:217`) of [the code review](../reviews/20260926T071417Z.md), reproduced on `932b9c8`; the `--format` case comes from [the issue review of 2026-10-19](../reviews/20261019T105848Z.md#main-131-exit-codes-of-usage-errors).
 
 **PoC**
 
@@ -40,6 +40,7 @@ maintainer fecth; echo "exit=$?"                    # help and 0 today — expec
 maintainer status --concurrency=abc; echo "exit=$?"  # 1 today — expected: 2
 maintainer fetch --timeout=soon; echo "exit=$?"      # 1 today — expected: 2
 maintainer fetch --concurrency=-1; echo "exit=$?"    # silently uses the config today — expected: rejected, 2
+maintainer fetch --format=jsno; echo "exit=$?"       # human output today — expected: rejected before any request, 2
 ```
 
 **Out of scope:** the stdout/stderr split of `lookup` and `histogram` (finding 30), deferred to a separate contribution fix with output-contract tests.

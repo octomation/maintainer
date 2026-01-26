@@ -49,4 +49,4 @@ maintainer status --config="" --root "$ws" --format=json | jq -c '.[] | {reposit
 
 **Out of scope:** following symlinks during discovery; vendor-directory exclusion lists; a depth bound for pins.
 
-Related: [[MAIN-123]], [[MAIN-135]], [[MAIN-145]].
+Related: [[MAIN-123]], [[MAIN-150]], [[MAIN-145]].
