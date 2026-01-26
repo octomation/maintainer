@@ -281,6 +281,8 @@ async function smokeOnce(site) {
     expect(og.startsWith(site), `og:image ${og} is outside ${site}; SITE_URL is stale, rebuild the site`)
     const r = await probe(og, { method: 'HEAD' })
     expect(r.status === 200 && r.type.startsWith('image/'), `${og}: ${show(r)}, want an image`)
+  } else {
+    errors.push(`${site}: no og:image`)
   }
 
   const nested = await probe(new URL('changelog/', site).href)

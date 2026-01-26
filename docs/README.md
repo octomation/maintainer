@@ -60,6 +60,41 @@ Get started lives at `/quickstart/`; the guides stay at the top level, such as `
 
 Changelog is a section of the same sidebar, with All releases first. `navigation.mjs` groups release pages into expandable `v0.1.x`, `v0.2.x`, and later branches, newest first. Add each release note and its label to `content/changelog/_meta.js` as before; the version group is created automatically. A prerelease note, such as `v0.2.0-rc1`, is not grouped: add it with `display: 'hidden'`, so its page exists for the GitHub release but the sidebar shows stable releases only. Keep the notes at `content/changelog/{tag}.md` so published links and the release workflow stay valid. Top-level navbar links use separate `type: 'page'` aliases; the changelog folder uses `display: 'children'` to keep the full sidebar available across guides and releases.
 
+## Social preview image
+
+`public/og.png`, 1733×908, is the social preview of the home page; other pages share a link without an image (`app/[[...mdxPath]]/page.jsx`). On warm, lightly textured off-white paper, it shows the `maintainer` wordmark in heavy lowercase ink with a green dot over the first i, the slogan "Keep the little things moving.", the monospaced line "See your pace. Plan your next contribution." and the green version label `v0.1.0` at the bottom left. On the right, a thin terminal frame holds a seven-row contribution calendar with one suggested square.
+
+Each release patches only the changed characters of the version label, so the rest of the image stays byte-for-byte as it was: see [AGENTS.md](../AGENTS.md#2-social-preview-image), which also has the diff check. Coordinates are pixels from the top left as (x, y, width, height), right and bottom edges exclusive:
+
+| Part | Geometry |
+| --- | --- |
+| Visible label | (100, 739, 135, 29) |
+| Editing box | (97, 735, 141, 37) |
+| Cell boundaries | x=97, 121, 144, 168, 191, 215, 238: about 23.5 px, alternating 24 and 23 px |
+| Baseline | y=768 |
+| Clean background donor strip | (260, 735, 141, 37) |
+| Label type | monospaced, close to Overpass Mono at about 40 px, weight 450, `#4d7c0f` |
+
+Regenerate the image in full only when the wordmark, the slogan, the monospaced line or the brand colors change. Give Codex `gpt-6-astra` at `high` effort with image generation the current image, or the indexit one it was modeled on (`octopot/indexit`, `docs/public/og.png`), as the reference, with this prompt, updated to the new text:
+
+```text
+Use case: ads-marketing.
+Create the final social preview banner for maintainer, a sibling CLI to indexit. The provided indexit image is a visual reference: closely mirror its layout, typographic character, warm off-white lightly textured paper, dark ink, thin line-art and generous whitespace, but replace its content as specified below. Wide canvas, aspect ratio 1733:908. Entire image is the artwork, no mockup or border.
+
+Use positions in a 1733 x 908 coordinate system. Keep the left margin around x=99. Left typography occupies roughly 65% of the width, right illustration roughly 30%. Wordmark around y=220..462: "maintainer", spelled m a i n t a i n e r, all lowercase, very heavy geometric sans like the reference. Fit the longer word within x=99..1170 without squeezing the letters unnaturally. Ink #17302e, except the dot over its first i is green #4d7c0f. Only one accent dot in the wordmark.
+Under the wordmark, a bold sans slogan on ONE line, exact text: "Keep the little things moving." Use dark ink #17302e, fit in the left area, around y=525..596.
+Below that, ONE line in a monospaced font, dark ink #17302e, exact text: "See your pace. Plan your next contribution." Around x=99, y=644..675. Keep comfortably separated from the illustration.
+Bottom left version label, exact text: "v0.1.0". Match reference label position (visible glyphs around x=100, y=739..768) and size (approximately 40px font, approximately 23px fixed character cells). Use crisp regular/medium monospaced type close to Overpass Mono weight 450, green #4d7c0f. All six characters on one baseline, evenly spaced. Keep it isolated on a clean patch of the same off-white paper with no nearby marks so future releases can replace just the glyphs.
+
+Right-hand illustration around x=1330..1680: thin dark ink terminal frame, a green > prompt, and a small contribution-calendar grid INSIDE the terminal frame. Grid must have exactly SEVEN rows of evenly spaced square cells, about eight columns. Most cells empty or faint neutral outlines, some filled #4d7c0f, a few lime #d5f45a highlights. One suggested-next-contribution square has a clear extra outline with a short dotted leader. Include the reference's sparse green accent squares, dotted vertical leaders, and minimal thin framing strokes above and below. No letters, numerals or data labels in illustration; only > prompt, squares, lines and dots. Keep its visual weight lighter than the wordmark. Optional thin green arc at lower right like the reference.
+
+Render all four text elements exactly as quoted, sharp and legible. No other text, no indexit wording, no logos of GitHub or other brands, no people, no watermark. Flat artwork, RGB appearance, opaque off-white background.
+```
+
+The first pass of the current image drew six calendar rows; a second edit pass asked for exactly one change, a seventh row below the sixth, and to preserve everything else. Check every text element and the row count before accepting a result.
+
+Post-process with Pillow: convert to RGB, resize to exactly 1733×908 (LANCZOS; the tool returned 1732×908), and save as PNG with `optimize=True, compress_level=9`, no alpha or palette. Keep the file under 1 MB: if it is larger, round each channel to an even value, at most one level of 255, and save again. Then measure the label anew, update the geometry above and in AGENTS.md, and check `width`, `height` and `alt` in `app/[[...mdxPath]]/page.jsx`.
+
 ## Change the domain
 
 The site is served from the custom domain `maintainer.octolab.org`; `octomation.github.io/maintainer/` redirects to it, keeping the path. The build bakes the domain into asset paths and metadata, and changing it in Settings → Pages triggers no rebuild. To change it:

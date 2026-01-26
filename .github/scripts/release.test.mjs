@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
-import { spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { chmodSync, copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import test from 'node:test'
@@ -61,6 +62,42 @@ test('preflight refuses missing App credentials and hands the tap to the token s
   assert.equal(ready.status, 0, ready.stderr)
   assert.equal(readFileSync(output, 'utf8'), 'tap-owner=octolab\ntap-name=homebrew-tap\n')
 }))
+
+// A local site stands in for Pages: smoke must not reach the network, so no
+// repository is set and the default-domain redirect check is skipped.
+test('smoke requires an og:image on the site', async () => {
+  let og = ''
+  const server = createServer((req, res) => {
+    const html = (status, body) => { res.writeHead(status, { 'content-type': 'text/html' }); res.end(body) }
+    if (req.url === '/') return html(200, `<link href="/_next/static/a.css"><script src="/_next/static/b.js"></script>${og}`)
+    if (req.url.startsWith('/_next/static/')) { res.writeHead(200); return res.end() }
+    if (req.url === '/og.png') { res.writeHead(200, { 'content-type': 'image/png' }); return res.end() }
+    if (req.url === '/changelog/') return html(200, 'changelog')
+    html(404, '<script src="/_next/static/b.js"></script>')
+  })
+  await new Promise((done) => server.listen(0, '127.0.0.1', done))
+  const site = `http://127.0.0.1:${server.address().port}/`
+  const cwd = mkdtempSync(join(tmpdir(), 'maintainer-smoke-'))
+  const smoke = () => new Promise((done) => {
+    const child = spawn(process.execPath, [script, 'smoke', site, '--retries', '0'], {
+      cwd, env: { ...process.env, GITHUB_REPOSITORY: '' },
+    })
+    let stderr = ''
+    child.stderr.on('data', (chunk) => { stderr += chunk })
+    child.on('close', (status) => done({ status, stderr }))
+  })
+  try {
+    const missing = await smoke()
+    assert.equal(missing.status, 1)
+    assert.match(missing.stderr, /no og:image/)
+    og = `<meta property="og:image" content="${site}og.png"/>`
+    const present = await smoke()
+    assert.equal(present.status, 0, present.stderr)
+  } finally {
+    server.close()
+    rmSync(cwd, { recursive: true, force: true })
+  }
+})
 
 test('missing release tags fail without creating Git refs', () => fixture(({ run }) => {
   const result = run('check', 'v9.9.9')

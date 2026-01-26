@@ -10,12 +10,17 @@ export async function generateMetadata({ params }) {
   const { title, description } = page.metadata
   const path = mdxPath?.length ? `${mdxPath.join('/')}/` : ''
   const url = `${siteUrl}${path}`
-  const images = []
+  const images = path ? [] : [{
+    url: `${siteUrl}og.png`,
+    width: 1733,
+    height: 908,
+    alt: 'maintainer — Small tools for open source upkeep',
+  }]
   return {
     ...page.metadata,
     alternates: { canonical: url },
     openGraph: { title, description, url, siteName: 'maintainer', type: 'website', images },
-    twitter: { card: 'summary', title, description, images },
+    twitter: { card: path ? 'summary' : 'summary_large_image', title, description, images },
   }
 }
 
