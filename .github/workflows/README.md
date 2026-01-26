@@ -67,7 +67,9 @@ Nothing here is stored in the repository, so a fresh repository or a fork needs 
 4. Activate the repository in Codecov; the upload uses OIDC, no `CODECOV_TOKEN`.
 5. Enable the workflows that were disabled by hand, after pushing the YAML that
    should run: `gh workflow enable <file> -R octomation/maintainer`. The doctor
-   reports every workflow that is not active.
+   reports every workflow that is not active, except those that
+   `workflows` in `.github/settings.json` keeps off on purpose:
+   `cleanup.stale.yml` for now.
 
 Then dispatch ci, tools and docs, run doctor after the first Pages
 deployment (`make workflow-doctor`), and dispatch cd on main for a snapshot.

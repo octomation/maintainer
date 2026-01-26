@@ -12,5 +12,11 @@
     "cname": "maintainer.octolab.org",
     "https_enforced": true,
     "build_type": "workflow"
+  },
+  "workflows": {
+    "cleanup.stale.yml": {
+      "state": "disabled_manually",
+      "reason": "off until the open issues and PRs to keep have an assignee, a milestone or status: pending"
+    }
   }
 }

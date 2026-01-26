@@ -25,6 +25,10 @@ package settings
 	// to build when Pages disagrees, and `make doctor` reports the drift.
 	pages?: #Pages
 
+	// Workflows kept off on purpose, by file name. `make doctor` expects
+	// these in the declared state and every other workflow active.
+	workflows?: [File=string & =~"^[A-Za-z0-9._-]+\\.ya?ml$"]: #Workflow
+
 	...
 }
 
@@ -56,6 +60,15 @@ package settings
 
 	// The docs are built by cd.docs.yml, not from a branch.
 	build_type?: "workflow"
+}
+
+#Workflow: {
+	// The state as the REST API reports it
+	// (GET /repos/{owner}/{repo}/actions/workflows).
+	state: "disabled_manually"
+
+	// Why it is off; `make doctor` prints it.
+	reason?: string
 }
 
 #Secret: {

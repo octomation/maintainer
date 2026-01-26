@@ -45,7 +45,7 @@ function gh(...args) {
 function settings(sha) {
   const raw = sha ? tryGit('show', `${sha}:${SETTINGS}`) : (existsSync(SETTINGS) ? readFileSync(SETTINGS, 'utf8') : null)
   const cfg = raw ? JSON.parse(raw) : {}
-  return { release: { ...DEFAULTS, ...(cfg['x-release'] || {}) }, secrets: cfg.secrets || {}, pages: cfg.pages || null }
+  return { release: { ...DEFAULTS, ...(cfg['x-release'] || {}) }, secrets: cfg.secrets || {}, pages: cfg.pages || null, workflows: cfg.workflows || {} }
 }
 
 function args(argv) {
@@ -425,8 +425,17 @@ async function doctor() {
   try {
     const workflows = JSON.parse(gh('api', `repos/${slug}/actions/workflows`, '--paginate', '--slurp'))
       .flatMap((page) => page.workflows)
-    for (const workflow of workflows.filter((w) => w.path.startsWith('.github/workflows/') && w.state !== 'active')) {
-      fail(`${workflow.name} is ${workflow.state}; after pushing the reviewed YAML, run: gh workflow enable ${workflow.path.split('/').at(-1)} -R ${slug}`)
+    const declared = settings().workflows
+    for (const workflow of workflows.filter((w) => w.path.startsWith('.github/workflows/'))) {
+      const file = workflow.path.split('/').at(-1)
+      const want = declared[file]?.state || 'active'
+      if (workflow.state === want) {
+        if (want !== 'active') ok(`${workflow.name} is ${want} on purpose: ${declared[file].reason || SETTINGS}`)
+      } else if (want === 'active') {
+        fail(`${workflow.name} is ${workflow.state}; after pushing the reviewed YAML, run: gh workflow enable ${file} -R ${slug}`)
+      } else {
+        fail(`${workflow.name} is ${workflow.state}, ${SETTINGS} wants ${want}; run: gh workflow disable ${file} -R ${slug}, or drop it from ${SETTINGS}`)
+      }
     }
   } catch (e) {
     skip(`workflow activation state is not readable (${e.message})`)
