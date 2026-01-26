@@ -20,8 +20,8 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2022-05-11T09:50:26Z
-updatedAt: 2026-09-25T05:11:40Z
-lastEditedAt: 2026-09-25T05:11:40Z
+updatedAt: 2026-10-19T16:12:15Z
+lastEditedAt: 2026-10-19T16:12:15Z
 closedAt: null
 ---
 
@@ -31,7 +31,7 @@ Prepare a stable v0.1.0 release covering the main GitHub Contributions Calendar 
 
 The release includes verifying the available commands and their examples, describing the limitations, building the distributed binaries, and writing release notes. The typical verification path: store a snapshot → read the calendar → pick a date → compare snapshots.
 
-Related: the quality of the contribution commands [[MAIN-44]], the template before the release [[MAIN-69]], the [changelog](../../docs/content/changelog/index.md), the [historical release draft](https://github.com/octomation/maintainer/releases/tag/untagged-b3dd1d314e99b98d5cdf).
+Related: the quality of the contribution commands [[MAIN-44]], the template before the release [[MAIN-69]], the [changelog](../../docs/content/changelog/index.mdx), the [historical release draft](https://github.com/octomation/maintainer/releases/tag/untagged-b3dd1d314e99b98d5cdf).
 
 <!-- 2022-05-19T18:20Z https://github.com/octomation/maintainer/issues/30#issuecomment-1132045246
 good examples:
