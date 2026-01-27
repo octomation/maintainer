@@ -54,12 +54,12 @@ maintainer github contribution suggest --target 25 2026-01-12/-1
 Without an argument, `lookup` shows the week of the latest commit in the current repository and the week before it, or the current week outside a repository. A real excerpt from `suggest`, anchored at a past date:
 
 ```text
- Day / Week    #02    #03    Date
- Monday         25    17*   Jan 12
+ Day / Week    #04   #05     Date
+ Monday        25    [20]   Jan 26
 
-Suggestion is 2026-01-12T08:09:16+03:00, 17 → 25
+Suggestion is 2026-01-26T08:51:27+03:00, 20 → 25
 ```
 
-`suggest` looks for the first moment from the anchor up to now, between 05:00 and 19:00 UTC, on a day below its target, and marks that day with `*`: this example shows 17 contributions toward a minimum target of 25. Your counts and suggested time will differ, but the time is never later than now; if no such moment exists, `suggest` fails instead. The time is a suggestion; maintainer does **not** create a commit.
+`suggest` looks for the first moment from the anchor up to now, between 05:00 and 19:00 UTC, on a day below its target, and marks that day with brackets: this example shows 20 contributions toward a minimum target of 25. Your counts and suggested time will differ, but the time is never later than now; if no such moment exists, `suggest` says why and exits with `4` instead. The time is a suggestion; maintainer does **not** create a commit.
 
 Next: [read the contribution guide](/contributions/) to choose date ranges, inspect your activity distribution, and compare snapshots when you need a record. The [Go vanity URL](/vanity/) and [Makefile](/makefiles/) guides cover the smaller project helpers.

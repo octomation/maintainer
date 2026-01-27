@@ -47,9 +47,9 @@ maintainer github contribution suggest --short --target 25 2026-01-12
 git commit --date="$(maintainer github contribution suggest)"
 ```
 
-`suggest` takes the same `date[/weeks]` argument, with `5` weeks by default; the date is the anchor. It answers with the first moment from the anchor up to now, within 05:00–19:00 UTC, on a day with fewer contributions than its week requires: the highest count in that week, but not less than `--target` (default `5`). The table goes to stderr with the day marked `*`, and stdout gets only the timestamp, so it can feed `git commit --date`. `--short` hides the table and `--delta` prints the time relative to now.
+`suggest` takes the same `date[/weeks]` argument, with `5` weeks by default; the date is the anchor. It answers with the first moment from the anchor up to now, within 05:00–19:00 UTC, on a day with fewer contributions than its week requires: the highest count in that week, but not less than `--target` (default `5`). The table goes to stderr with the day marked by brackets, such as `[20]`, and stdout gets only the timestamp, so it can feed `git commit --date`. `--short` hides the table and `--delta` prints the time relative to now.
 
-The moment includes a random jitter of less than an hour, so repeat runs differ, but it never moves past now or out of the schedule. If the anchor is in the future or no suitable moment exists up to now, `suggest` fails with a non-zero exit code instead of guessing. Nothing is committed or scheduled.
+The moment includes a random jitter of less than an hour, so repeat runs differ, but it never moves past now or out of the schedule. An anchor in the future or another input error, such as a zero `--target`, exits with `2`. If no suitable moment exists up to now, `suggest` says why in stderr instead of guessing: every day since the anchor has what its week requires, or the day's schedule is over or not open yet. It tells when the next gap opens, proposes a higher `--target` when one has a moment, and exits with `4`. Nothing is committed or scheduled.
 
 ## Keep a baseline, then compare
 

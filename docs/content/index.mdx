@@ -7,19 +7,19 @@ import Link from 'next/link'
 
 export const suggestRun = ` maintainer github contribution suggest --target 25 git/3
 
- Day / Week   #02   #03   #04    Date
------------- ----- ----- ----- --------
- Sunday       25    25    15    Jan 18
- Monday       25    17*   15    Jan 19
- Tuesday      25    15    15    Jan 20
- Wednesday    25    15    15    Jan 21
- Thursday     25    15    15    Jan 22
- Friday       25    15    15    Jan 23
- Saturday     25    15    15    Jan 24
------------- ----- ----- ----- --------
-    distribution{15: 12, 17: 1, 25: 8}
+ Day / Week   #04   #05    #06    Date
+------------ ----- ------ ----- --------
+ Sunday       25     25    15    Feb  1
+ Monday       25    [20]   15    Feb  2
+ Tuesday      25     15    15    Feb  3
+ Wednesday    25     15    15    Feb  4
+ Thursday     25     15    15    Feb  5
+ Friday       25     15    15    Feb  6
+ Saturday     25     15    15    Feb  7
+------------ ----- ------ ----- --------
+     distribution{15: 12, 20: 1, 25: 8}
 
-Suggestion is 2026-01-12T09:34:23+03:00, 17 → 25`
+Suggestion is 2026-01-26T08:53:14+03:00, 20 → 25`
 
 <div className="home">
   <section className="hero">
@@ -39,7 +39,7 @@ Suggestion is 2026-01-12T09:34:23+03:00, 17 → 25`
       <div className="terminal-body">
         <pre><span>$</span>{suggestRun}</pre>
       </div>
-      <p className="terminal-caption">A real run in a checkout whose latest commit is dated 12 January 2026. The star marks the suggested day: 17 contributions toward a target of 25, and the suggested moment is never later than now. Your counts and suggested time will differ.</p>
+      <p className="terminal-caption">A real run in a checkout whose latest commit is dated 12 January 2026. Every day from 12 to 25 January already had 25 contributions, so the brackets mark Monday, 26 January: 20 toward a target of 25. The suggested moment is never later than now; your counts and suggested time will differ.</p>
     </div>
   </section>
 
