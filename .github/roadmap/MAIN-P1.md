@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-19T17:55:49Z
+updatedAt: 2026-10-19T18:23:32Z
 closedAt: null
 ---
 
@@ -191,7 +191,6 @@ closedAt: null
 - [x] octomation/go-module#43 — ci/cd: rename coverage to report
 - [x] octomation/go-service#47 — deps: tools: up grpc-gateway to v2.11.0
 - [x] [[MAIN-68]] — github: contribution: invalid suggestion for edge case with zero
-- [x] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
 - [x] [[MAIN-70]] — github: contribution: refactor diff command
 - [x] [[MAIN-71]] — pkg: file: register encoders for specific formats
 - [x] [[MAIN-72]] — github: contribution: bad suggestion with Sunday shift
@@ -304,7 +303,6 @@ closedAt: null
 - [x] octomation/go-module#106 — dev: maintainer and module renaming
 - [x] octomation/makefiles#69 — go: tool: adopt makefile from module
 - [x] octomation/makefiles#70 — go: service: adopt makefile from module
-- [x] [[MAIN-109]] — github: contribution: incorrect suggest for today
 - [x] octomation/go-module#109 — docs: reorg structure
 - [x] octomation/go-module#125 — dev: split Taskfile and prepare to autogenerate it
 - [x] octomation/go-module#128 — dev: move docs research outside the codebase and create a discussion for that
@@ -354,6 +352,8 @@ closedAt: null
 - [x] octomation/go-module#40 — deps: tools: add marwan-at-work/mod
 - [x] octomation/go-module#41 — deps: tools: add git-vertag
 - [x] [[MAIN-65]] — github: contribution: lookup has problem with timezone
+- [x] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
 - [x] octomation/go-module#47 — ci/cd: add DevSkim as security check step
 - [x] octomation/go-service#52 — ci/cd: add DevSkim as security check step
 - [x] octomation/go-tool#28 — ci/cd: add DevSkim as security check step
+- [x] [[MAIN-109]] — github: contribution: incorrect suggest for today
