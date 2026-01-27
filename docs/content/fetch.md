@@ -17,7 +17,9 @@ description: Reconcile local GitHub checkouts across owners with a plan-first, n
 reconciles a local checkout tree, in the spirit of `terraform plan` / `apply`.
 A local state file (keyed by the stable numeric repo `id`) remembers what was
 materialised, so a rename or transfer on GitHub is detected as a **move**, not
-as a delete-and-reclone.
+as a delete-and-reclone. If a new repository takes the old name before fetch
+sees the rename, the existing checkout is adopted as that new repository and
+the renamed one is cloned again; the checkout and its local work are retained.
 
 It is **plan-only by default**: `--apply` performs clone, fetch refs, move,
 update remote and adopt actions. Existing checkouts and local work are
@@ -177,6 +179,8 @@ return to template-managed moves, provided the checkout belongs to the current
 workspace layout. Removing a workspace tree pin instead suspends its remembered
 checkouts; it does not enable moves. Changing a per-repo pin selects another verified
 existing checkout. Adoption/remote update fetch refs on the next invocation.
+A checkout adopted at the old path of a renamed repository is moved by the
+next invocation and fetched by the one after it.
 
 Use [`maintainer status`](/status/) to inspect local branches and divergence.
 
@@ -360,7 +364,9 @@ disk is adopted like any other checkout and stays tracked.
 
 Adoption matches clones by `remote.origin.url` → stable `id` (following GitHub's
 rename redirect), so existing clones are reconciled in place rather than
-re-cloned. A re-run is idempotent.
+re-cloned. A checkout found at the old path of a renamed repository is moved
+by the second apply, and its refs are fetched by a third. A re-run is
+idempotent.
 
 ## Supported scope
 
