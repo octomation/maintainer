@@ -6,11 +6,11 @@ number: 1
 url: https://github.com/octomation/maintainer/milestone/1
 title: "GCC, v0.1"
 state: OPEN
-openIssueCount: 21
-closedIssueCount: 48
+openIssueCount: 13
+closedIssueCount: 56
 dueOn: null
 createdAt: 2022-06-15T10:12:33Z
-updatedAt: 2024-03-30T17:19:02Z
+updatedAt: 2026-10-19T17:55:39Z
 closedAt: null
 ---
 
@@ -27,7 +27,7 @@ Add commands to work with [GCC](https://docs.github.com/en/account-and-profile/s
 - [x] [[MAIN-27]] — implement github contribution snapshot command
 - [x] [[MAIN-28]] — implement github contribution diff command
 - [x] [[MAIN-29]] — implement github contribution histogram command
-- [ ] [[MAIN-30]] — org: prepare release v0.1.0
+- [x] [[MAIN-30]] — org: prepare release v0.1.0
 - [x] [[MAIN-33]] — provide github access token by command flag
 - [x] [[MAIN-36]] — command: github contribution lookup doesn't work well with now()
 - [x] [[MAIN-38]] — github: contribution: lookup shows incorrect scope for 1 week with now ts
@@ -49,8 +49,8 @@ Add commands to work with [GCC](https://docs.github.com/en/account-and-profile/s
 - [x] [[MAIN-66]] — github: contribution: lookup doesn't show last week on Sunday
 - [x] [[MAIN-67]] — github: contribution: suggest doesn't work on last week with Sunday
 - [x] [[MAIN-68]] — github: contribution: invalid suggestion for edge case with zero
-- [ ] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
-- [ ] [[MAIN-70]] — github: contribution: refactor diff command
+- [x] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
+- [x] [[MAIN-70]] — github: contribution: refactor diff command
 - [x] [[MAIN-71]] — pkg: file: register encoders for specific formats
 - [x] [[MAIN-72]] — github: contribution: bad suggestion with Sunday shift
 - [x] [[MAIN-73]] — github: contribution: suggest command has regression with weeks arg
@@ -79,15 +79,15 @@ Add commands to work with [GCC](https://docs.github.com/en/account-and-profile/s
 - [ ] [[MAIN-102]] — github: contribution: support preset for suggestion
 - [ ] [[MAIN-103]] — github: contribution: calculate contrib to define better day for commits
 - [ ] [[MAIN-104]] — github: contribution: refactor histogram command
-- [ ] [[MAIN-106]] — github: contribution: suggest for cmm
-- [ ] [[MAIN-109]] — github: contribution: incorrect suggest for today
-- [ ] [[MAIN-110]] — github: contribution: edge case for contrib suggestion
+- [x] [[MAIN-106]] — github: contribution: suggest for cmm
+- [x] [[MAIN-109]] — github: contribution: incorrect suggest for today
+- [x] [[MAIN-110]] — github: contribution: edge case for contrib suggestion
 - [x] [[MAIN-111]] — github: contribution: broken heatmap
-- [ ] [[MAIN-113]] — github: contribution: simplify arguments format
+- [x] [[MAIN-113]] — github: contribution: simplify arguments format
 - [x] [[MAIN-114]] — github: up google/go-github to v55.0.0
 - [x] [[MAIN-115]] — github: contribution: html markup was changed
 - [ ] [[MAIN-116]] — maintainance: sync with the go-tool template
-- [ ] [[MAIN-117]] — github: contribution: suggest doesn't work properly in headless mode
+- [x] [[MAIN-117]] — github: contribution: suggest doesn't work properly in headless mode
 - [ ] [[MAIN-118]] — github: suggestion: reduce jitter
 - [x] [[MAIN-120]] — ci/cd: Continuous integration healthcheck doesn't work properly
 - [x] [[MAIN-121]] — github: contributions: GitHub changed a way to provide data

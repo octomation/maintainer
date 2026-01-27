@@ -16,13 +16,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2022-07-21T08:20:55Z
-updatedAt: 2026-09-25T05:13:21Z
+updatedAt: 2026-10-19T17:55:36Z
 lastEditedAt: 2026-09-25T05:13:21Z
-closedAt: null
+closedAt: 2026-10-19T17:55:36Z
 ---
 
 # boilerplate: fetch latest changes from go-tool before publishing v0.1.0

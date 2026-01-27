@@ -12,8 +12,8 @@ labels:
   - "impact: high"
   - "effort: medium"
 milestone: "[[MAIN-M3]]"
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 createdAt: 2026-09-26T09:33:00Z
 updatedAt: 2026-09-26T09:33:00Z
 lastEditedAt: null
@@ -26,7 +26,7 @@ Publish v0.2.0, the first release of `maintainer fetch` and `maintainer status`,
 
 **Before the tag**
 
-- The milestone [[MAIN-M3]] holds the tasks of the release and of the patches after it, and [the issue review of 2026-10-19](../reviews/20261019T105848Z.md) says which task goes into v0.2.0; the local-only tasks of the milestone are created on GitHub from the local files.
+- The milestone [[MAIN-M3]] holds the tasks of the release and of the patches after it, and [the issue review of 2026-10-19](../reviews/20261019T105848Z.md) says which task goes into v0.2.0.
 - Scope: the only fix of behaviour before the tag is an origin update that leaves the rest of the Git configuration intact ([[MAIN-135]]); the guides, the help texts, the config template and the note describe the release binary ([[MAIN-132]]). [[MAIN-136]] does not ship, and the documentation keeps the second apply.
 - On the release commit: the checks of the release guide — `make verify`, `make go-integration-test` with a token, `make go-dist-check`, `make release-config-check`, and `make doctor` with no `fail` — then a read-only `status` and `fetch` on the real collection, then `fetch --apply` and the preservation check — local branch tips, HEAD, index, working files and push URLs of existing checkouts unchanged; refs, state and the planned paths and origins updated — and the convergence check: after at most two successful applies against unchanged inputs, the following plan contains no executable reconciliation action — no adopt, relocate, move, update_remote or clone — only routine `fetch` and report-only orphan or noop rows.
 - Existing practice survives: the current config and state load without manual migration, the four active pins and their inactive duplicates stay distinguished, and a `git-contrib` invocation keeps its stdout contract.

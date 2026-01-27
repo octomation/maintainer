@@ -17,13 +17,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2023-06-25T09:20:51Z
-updatedAt: 2026-09-25T05:10:28Z
+updatedAt: 2026-10-19T17:55:26Z
 lastEditedAt: 2026-09-25T05:10:28Z
-closedAt: null
+closedAt: 2026-10-19T17:55:26Z
 ---
 
 # github: contribution: edge case for contrib suggestion

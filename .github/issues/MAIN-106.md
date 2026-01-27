@@ -18,13 +18,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2023-04-13T10:02:01Z
-updatedAt: 2026-09-25T05:10:16Z
+updatedAt: 2026-10-19T17:55:24Z
 lastEditedAt: 2026-09-25T05:10:16Z
-closedAt: null
+closedAt: 2026-10-19T17:55:24Z
 ---
 
 # github: contribution: suggest for cmm

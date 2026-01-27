@@ -6,8 +6,8 @@ number: 3
 url: https://github.com/octomation/maintainer/milestone/3
 title: "Workspace, v0.2"
 state: OPEN
-openIssueCount: 0
-closedIssueCount: 0
+openIssueCount: 2
+closedIssueCount: 2
 dueOn: null
 createdAt: 2026-09-26T09:14:44Z
 updatedAt: 2026-10-19T16:14:51Z
@@ -60,15 +60,15 @@ A release candidate; working-tree updates (fast-forward), `upstream` remotes ([[
 - [ ] [[MAIN-129]] — fetch: adopt: keep adoption of a pinned checkout additive
 - [x] [[MAIN-130]] — status: inspection: detect renames the same way in every count
 - [ ] [[MAIN-131]] — command: exit codes: enforce the documented codes for usage errors
-- [ ] [[MAIN-132]] — docs: workspace: publish the fetch and status workflows
+- [x] [[MAIN-132]] — docs: workspace: publish the fetch and status workflows
 - [ ] [[MAIN-133]] — fetch: selection: honor owners, profiles and adoption filters
 - [ ] [[MAIN-134]] — fetch: discovery: isolate repository failures and respect rate limits
-- [ ] [[MAIN-135]] — fetch: remote: change only the origin URL when updating a remote
+- [x] [[MAIN-135]] — fetch: remote: change only the origin URL when updating a remote
 - [ ] [[MAIN-136]] — fetch: apply: refresh successfully reconciled checkouts in the same run
 - [ ] [[MAIN-137]] — fetch: state: honor config selection and preserve uncertain records
-- [ ] [[MAIN-138]] — org: release: prepare v0.2.0
+- [x] [[MAIN-138]] — org: release: prepare v0.2.0
 - [ ] [[MAIN-139]] — release: publishing: keep prereleases out of stable channels
-- [ ] [[MAIN-140]] — release: publishing: write the tap through the OctoLab Releaser App
+- [x] [[MAIN-140]] — release: publishing: write the tap through the OctoLab Releaser App
 - [ ] [[MAIN-141]] — status: inventory: preserve distinct checkouts and useful errors
 - [ ] [[MAIN-142]] — status: inspection: recompute counters when a row is inspected again
 - [ ] [[MAIN-143]] — status: overview: summarize the inventory and preserve the selection

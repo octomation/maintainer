@@ -17,13 +17,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2023-08-09T19:54:39Z
-updatedAt: 2026-09-25T05:10:37Z
+updatedAt: 2026-10-19T17:55:28Z
 lastEditedAt: 2026-09-25T05:10:37Z
-closedAt: null
+closedAt: 2026-10-19T17:55:28Z
 ---
 
 # github: contribution: simplify arguments format

@@ -17,13 +17,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2025-01-05T17:04:56Z
-updatedAt: 2026-09-25T05:11:33Z
+updatedAt: 2026-10-19T17:55:34Z
 lastEditedAt: 2026-09-25T05:11:33Z
-closedAt: null
+closedAt: 2026-10-19T17:55:33Z
 ---
 
 # github: contribution: incorrect week number

@@ -13,7 +13,7 @@ shortDescription: "Delayed issues for the next time."
 public: false
 closed: false
 createdAt: 2022-05-13T12:35:53Z
-updatedAt: 2026-09-25T05:13:55Z
+updatedAt: 2026-10-19T17:55:38Z
 closedAt: null
 ---
 
@@ -29,7 +29,7 @@ closedAt: null
 - [x] [[MAIN-40]] — github: contribution: extend heat map by .From(), .To(), and .Range() · project: maintainer
 - [x] [[MAIN-46]] — github: contribution: show datetime on the right side of lookup · project: maintainer
 - [x] [[MAIN-41]] — github: contribution: lookup forward/backward · project: maintainer
-- [ ] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0 · project: maintainer
+- [x] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0 · project: maintainer
 - [ ] [[MAIN-45]] — github: contribution: extend support lookup for a month · project: maintainer
 - [ ] [[MAIN-79]] — github: contribution: extend suggest command by stats · project: maintainer
 - [ ] [[MAIN-78]] — github: contribution: tips and tricks, daily snapshot · project: maintainer

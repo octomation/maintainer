@@ -18,13 +18,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2022-07-23T12:31:24Z
-updatedAt: 2026-09-25T05:13:26Z
+updatedAt: 2026-10-19T17:55:22Z
 lastEditedAt: 2026-09-25T05:13:26Z
-closedAt: null
+closedAt: 2026-10-19T17:55:22Z
 ---
 
 # github: contribution: refactor diff command

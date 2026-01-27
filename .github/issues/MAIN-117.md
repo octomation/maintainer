@@ -16,13 +16,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2024-01-06T13:33:42Z
-updatedAt: 2026-09-25T05:10:54Z
+updatedAt: 2026-10-19T17:55:31Z
 lastEditedAt: 2026-09-25T05:10:54Z
-closedAt: null
+closedAt: 2026-10-19T17:55:31Z
 ---
 
 # github: contribution: suggest doesn't work properly in headless mode

@@ -9,8 +9,8 @@ labels:
   - "type: improvement"
   - "scope: inventory"
 milestone: "[[MAIN-M3]]"
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 createdAt: null
 updatedAt: null
 lastEditedAt: null

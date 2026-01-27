@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-19T07:22:54Z
+updatedAt: 2026-10-19T17:55:49Z
 closedAt: null
 ---
 
@@ -49,9 +49,6 @@ closedAt: null
 - [ ] octomation/go-tool#23 — build: compiled feature set
 - [ ] octomation/app#1 — env: activate: add node_modules/.bin and vendor/bin to path
 - [ ] octomation/app#2 — env: editor: support editorconfig
-- [ ] [[MAIN-64]] — github: api: switch to graphql
-- [ ] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
-- [ ] [[MAIN-70]] — github: contribution: refactor diff command
 - [ ] octomation/go-service#50 — boilerplate: fetch latest changes from go-tool
 - [ ] octomation/goimports-action#11 — action: implement goimports runner
 - [ ] octomation/go-service#53 — ci/cd: add linter for dotenv
@@ -75,7 +72,6 @@ closedAt: null
 - [ ] octopot/fiddle#7 — feed: add Loom blog
 - [ ] [[MAIN-88]] — git: stats: provide local-based statistics
 - [ ] [[MAIN-91]] — github: cli: support extension mechanism
-- [ ] [[MAIN-92]] — github: setup: add command to manage all available projects and repositories
 - [ ] octomation/go-service#98 — dev: support code coverage for integration tests
 - [ ] draft: Go Module: notes and debt
 - [ ] octomation/go-module#98 — dev: add git flow targets
@@ -84,10 +80,8 @@ closedAt: null
 - [ ] [[MAIN-103]] — github: contribution: calculate contrib to define better day for commits
 - [ ] [[MAIN-104]] — github: contribution: refactor histogram command
 - [ ] [[MAIN-105]] — linear: generate client
-- [ ] [[MAIN-106]] — github: contribution: suggest for cmm
 - [ ] [[MAIN-107]] — go: vanity: build from git submodules and go.work instead of modules.yml
 - [ ] [[MAIN-108]] — go: rename: command to rename current module and others
-- [ ] [[MAIN-109]] — github: contribution: incorrect suggest for today
 - [ ] octomation/go-tool#68 — go: support coverage profiling for integration tests
 - [ ] octomation/go-tool#72 — go: cli: provide boilerplate for better TUI
 - [ ] octomation/watchub#1 — ci/cd: configure docker image publishing
@@ -98,10 +92,8 @@ closedAt: null
 - [ ] octomation/tablo#4 — core: workflow flags
 - [ ] octomation/go-tool#91 — ci/cd: speed up works with tools
 - [ ] octomation/go-service#109 — dev: gitops with argocd and crossplane
-- [ ] [[MAIN-110]] — github: contribution: edge case for contrib suggestion
 - [ ] [[MAIN-112]] — template: go new support
 - [ ] octomation/go-module#145 — docs: provide example for go new
-- [ ] [[MAIN-113]] — github: contribution: simplify arguments format
 - [ ] octomation/install#9 — ci/cd: find way to trigger checking workflows when homebrew-tap was updated
 - [ ] octomation/install#10 — ci/cd: find way to regenerate install scripts after godownloader update
 - [ ] octomation/makefiles#72 — go: support GODEBUG
@@ -121,7 +113,6 @@ closedAt: null
 - [ ] octomation/go-service#173 — ci/cd: broken builds
 - [ ] octomation/install#38 — deps: remove okteto
 - [ ] octomation/go-module#191 — dev: drop unsupported go versions
-- [ ] [[MAIN-117]] — github: contribution: suggest doesn't work properly in headless mode
 - [ ] [[MAIN-118]] — github: suggestion: reduce jitter
 - [ ] [[MAIN-119]] — insights: deps: fetch data from deps.dev
 - [ ] octomation/go-module#247 — ci/cd: add renovate as alternative to dependabot
@@ -139,7 +130,6 @@ closedAt: null
 ## In progress
 
 - [ ] [[MAIN-39]] — org: review and classify issues
-- [ ] [[MAIN-30]] — org: prepare release v0.1.0
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
 
@@ -154,6 +144,7 @@ closedAt: null
 - [x] octomation/go-module#30 — ci/cd: add new linters support from v1.46.0 and up golangci-lint to v1.46.2
 - [x] octomation/go-module#27 — ci/cd: github: investigate new apps for automation
 - [x] octomation/go-module#28 — docs: readme: describe template and its purpose
+- [x] [[MAIN-30]] — org: prepare release v0.1.0
 - [x] octomation/breakout#1 — add openvpn alternative
 - [x] [[MAIN-6]] — issue with modules without go files on the root
 - [x] [[MAIN-14]] — add dry-run option for github labels
@@ -193,12 +184,15 @@ closedAt: null
 - [x] [[MAIN-61]] — text: replace -> by →
 - [x] [[MAIN-62]] — deps: up github.com/google/go-github to v45.2.0
 - [x] [[MAIN-63]] — github: contribution: highlight suggested day
+- [x] [[MAIN-64]] — github: api: switch to graphql
 - [x] octomation/go-tool#24 — Taskfile: forks: migration style and bulletproof
 - [x] [[MAIN-66]] — github: contribution: lookup doesn't show last week on Sunday
 - [x] [[MAIN-67]] — github: contribution: suggest doesn't work on last week with Sunday
 - [x] octomation/go-module#43 — ci/cd: rename coverage to report
 - [x] octomation/go-service#47 — deps: tools: up grpc-gateway to v2.11.0
 - [x] [[MAIN-68]] — github: contribution: invalid suggestion for edge case with zero
+- [x] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
+- [x] [[MAIN-70]] — github: contribution: refactor diff command
 - [x] [[MAIN-71]] — pkg: file: register encoders for specific formats
 - [x] [[MAIN-72]] — github: contribution: bad suggestion with Sunday shift
 - [x] [[MAIN-73]] — github: contribution: suggest command has regression with weeks arg
@@ -270,6 +264,7 @@ closedAt: null
 - [x] [[MAIN-90]] — github: contribution: lookup call throw panic
 - [x] octomation/go-module#78 — ci/cd: allow dispatch some workflows
 - [x] octomation/go-module#79 — ci/cd: run dependabot on weekends
+- [x] [[MAIN-92]] — github: setup: add command to manage all available projects and repositories
 - [x] [[MAIN-93]] — github: contribution: invalid suggestion for 2022 year
 - [x] octomation/go-module#83 — ci/cd: docs: configure environment
 - [x] octomation/makefiles#68 — go: support 1.20
@@ -300,6 +295,7 @@ closedAt: null
 - [x] [[MAIN-100]] — github: contribution: incorrect shows stats for future
 - [x] octomation/vanity#9 — ci/cd: switch GitHub Pages from branch to GitHub Actions model
 - [x] octomation/vanity#10 — dev: add go-module as first git module and configure dependabot
+- [x] [[MAIN-106]] — github: contribution: suggest for cmm
 - [x] octomation/go-module#105 — docs: edit links are incorrect
 - [x] octomation/vanity#11 — dev: define multi-module workspace
 - [x] octomation/vanity#12 — dev: integrate go-tool
@@ -308,11 +304,13 @@ closedAt: null
 - [x] octomation/go-module#106 — dev: maintainer and module renaming
 - [x] octomation/makefiles#69 — go: tool: adopt makefile from module
 - [x] octomation/makefiles#70 — go: service: adopt makefile from module
+- [x] [[MAIN-109]] — github: contribution: incorrect suggest for today
 - [x] octomation/go-module#109 — docs: reorg structure
 - [x] octomation/go-module#125 — dev: split Taskfile and prepare to autogenerate it
 - [x] octomation/go-module#128 — dev: move docs research outside the codebase and create a discussion for that
 - [x] octomation/go-module#131 — docs: fix broken cover image
 - [x] octomation/install#1 — research: brew installation
+- [x] [[MAIN-110]] — github: contribution: edge case for contrib suggestion
 - [x] [[MAIN-111]] — github: contribution: broken heatmap
 - [x] octomation/install#2 — ci/cd: use dist, not root for publishing
 - [x] octomation/install#3 — vendor: port installation scripts
@@ -321,6 +319,7 @@ closedAt: null
 - [x] octomation/install#6 — dev: add inventory to manage workflows
 - [x] octomation/install#7 — dev: add hidden description how to install vendor packages
 - [x] octomation/vanity#192 — perf: avoid downloading deps
+- [x] [[MAIN-113]] — github: contribution: simplify arguments format
 - [x] octopot/stub#2 — ci/cd: build docker image
 - [x] octopot/stub#1 — poc: simple traefik application with top-level domains for redirects
 - [x] octomation/install#8 — ci/cd: change goimports check script
@@ -338,6 +337,7 @@ closedAt: null
 - [x] octomation/go-service#152 — boilerplate: stub server with whoami
 - [x] octomation/install#15 — docs: remove -L option and provide wget example
 - [x] [[MAIN-115]] — github: contribution: html markup was changed
+- [x] [[MAIN-117]] — github: contribution: suggest doesn't work properly in headless mode
 - [x] [[MAIN-120]] — ci/cd: Continuous integration healthcheck doesn't work properly
 - [x] [[MAIN-121]] — github: contributions: GitHub changed a way to provide data
 

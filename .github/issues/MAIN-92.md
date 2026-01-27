@@ -16,13 +16,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2023-01-17T06:23:16Z
-updatedAt: 2026-10-19T07:22:52Z
+updatedAt: 2026-10-19T17:55:48Z
 lastEditedAt: 2026-10-19T07:22:52Z
-closedAt: null
+closedAt: 2026-10-19T17:55:47Z
 ---
 
 # github: setup: add command to manage all available projects and repositories
@@ -42,3 +42,7 @@ The expected result: a new repository is offered for cloning; a rename is recogn
 **Boundaries:** fetch updates refs and performs no merge, reset or push; backing up issues and projects is [[MAIN-31]]. Configuring `upstream` remains an original requirement of this umbrella task, but is not automatically part of the first fetch PoC.
 
 Documented behaviour: [fetch](https://maintainer.octolab.org/fetch/), [status](https://maintainer.octolab.org/status/), [workspace](https://maintainer.octolab.org/workspace/).
+
+<!-- 2026-10-19T17:55Z https://github.com/octomation/maintainer/issues/98#issuecomment-6273696546
+Shipped in v0.2.0: `maintainer fetch` discovers repositories across owners, plans clones, adoptions, moves of renamed and transferred repositories by their stable GitHub id and origin updates, and applies them with `--apply`, retaining existing checkouts and local work; `maintainer status` shows uncommitted work, divergence, push locks and inactive duplicates offline. Release notes: https://github.com/octomation/maintainer/releases/tag/v0.2.0. Configuring `upstream` for forks continues in #466.
+-->
