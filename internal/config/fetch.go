@@ -76,7 +76,8 @@ type Defaults struct {
 	StateFile   string `toml:"state_file" yaml:"state_file"`
 }
 
-// Filters gate only new clone/adopt decisions (§4.2).
+// Filters skip clones only; checkouts already on disk, pinned ones included,
+// are still adopted (§4.2).
 type Filters struct {
 	ExcludeArchived  bool `toml:"exclude_archived" yaml:"exclude_archived"`
 	ExcludeForks     bool `toml:"exclude_forks" yaml:"exclude_forks"`

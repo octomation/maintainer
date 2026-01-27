@@ -44,7 +44,8 @@ func New(_ *config.Tool) *cobra.Command {
 		Short: "reconcile local GitHub checkouts",
 		Long: "Discovers GitHub repositories across owners and reconciles a local\n" +
 			"checkout tree. Plan-only by default; --apply performs non-destructive\n" +
-			"actions (clone, fetch, move, update-remote, adopt). It never deletes.",
+			"actions (clone, fetch, move, update-remote, adopt). Existing checkouts\n" +
+			"and local work are retained.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return run(cmd, opts)
 		},
@@ -52,8 +53,8 @@ func New(_ *config.Tool) *cobra.Command {
 
 	set := command.PersistentFlags()
 	set.StringVar(&opts.config, "config", "", "fetch config path (--config=\"\" disables discovery)")
-	set.StringSliceVar(&opts.profiles, "profile", nil, "limit work to these profiles (repeatable)")
-	set.StringSliceVar(&opts.owners, "owner", nil, "limit work to these owners (repeatable)")
+	set.StringSliceVar(&opts.profiles, "profile", nil, "discover new repositories with these profiles only; existing checkouts are still processed (repeatable)")
+	set.StringSliceVar(&opts.owners, "owner", nil, "discover new repositories of these owners only; existing checkouts are still processed (repeatable)")
 	set.StringVar(&opts.format, "format", fetchsvc.FormatHuman, "output format: human|json")
 	set.IntVar(&opts.concurrency, "concurrency", 0, "parallel discovery/clone cap (0 = from config)")
 	set.DurationVar(&opts.timeout, "timeout", 0, "wall-clock budget for the whole command")

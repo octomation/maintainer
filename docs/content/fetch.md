@@ -20,9 +20,10 @@ materialised, so a rename or transfer on GitHub is detected as a **move**, not
 as a delete-and-reclone.
 
 It is **plan-only by default**: `--apply` performs clone, fetch refs, move,
-update remote and adopt actions. Existing branches and working files are not
-merged or reset. Orphan checkouts are retained and reported; they are never
-automatically deleted, fetched or moved.
+update remote and adopt actions. Existing checkouts and local work are
+retained: a fetch updates and prunes only remote-tracking refs, and branches
+and working files are not merged or reset. Orphan checkouts are retained and
+reported; they are never automatically deleted, fetched or moved.
 
 ## Quickstart
 
@@ -78,7 +79,7 @@ clone_url    = "ssh"      # "ssh" | "https"
 concurrency  = 4
 # state_file = "/path/to/state.json"   # default: $XDG_STATE_HOME/maintainer/fetch/state.json
 
-[filters]                 # gate new clone/adopt decisions; tracked repos stay tracked
+[filters]                 # skip clones only; checkouts on disk are still adopted
 exclude_archived  = false
 exclude_forks     = false
 exclude_templates = false
@@ -119,12 +120,13 @@ anyone else → public only) **and** acts as an allowlist applied after discover
 The wildcard expands from your org memberships, so you never enumerate orgs and
 ones you join later are picked up automatically. It does **not** include repos
 you only collaborate on in orgs you are *not* a member of — list those
-explicitly. Narrow a single run with `--owner` (repeatable), e.g. `--owner acme`
-over a `["*"]` config processes only `acme`.
+explicitly.
 
-Owner/profile selection narrows remote discovery for new clones. Existing
-checkouts explicitly included by the workspace or per-repo pins can still be
-verified and managed even when their owner is outside that remote selection.
+`--owner` (repeatable) narrows only the discovery of new repositories for one
+run: `--owner acme` over a `["*"]` config lists only `acme`'s repositories.
+Tracked checkouts and pins of other owners are still confirmed, fetched, moved
+and have their origin updated, and untracked checkouts in the workspace layout
+are still adopted. `--profile` works the same way for profiles.
 
 ### Path templates
 
@@ -188,7 +190,11 @@ profile's credentials/transport are used and recorded.
 - **SSH** — best-effort via a running `ssh-agent` with strict known-hosts;
   `maintainer` does not manage keys.
 
-`--profile <name>` (repeatable) limits a run to a subset of profiles.
+`--profile <name>` (repeatable) discovers new repositories with a subset of
+profiles only; tracked checkouts of the other profiles are still processed,
+checked with the token of the first selected profile. A private repository
+that this token cannot see is reported as `remote-gone` until a run
+discovers it again.
 
 ## Plan & apply
 
@@ -244,8 +250,9 @@ A single JSON document at `$XDG_STATE_HOME/maintainer/fetch/state.json`
 (fallback `~/.local/state/maintainer/fetch/state.json`), `0600`, advisory-locked
 for the run. Plan mode may create the state directory and `.lock` file, but
 does not save repository state or modify checkouts. `id` is the
-primary key; everything else is a last-observed value. `state prune` only forgets
-records whose path is already gone — it never deletes a clone.
+primary key; everything else is a last-observed value. `state prune` forgets
+records whose path it cannot find, including a path under a directory it
+cannot read; the checkouts themselves are retained.
 
 The fetch group also provides these subcommands:
 
@@ -283,8 +290,8 @@ as `<root>/…` and collapses routine fetches into the summary.
 | ----------------------- | ------- | ------------------------------------------------ |
 | `--apply`               | off     | execute the plan (otherwise plan-only)           |
 | `--config <path>`       | auto    | `--config=""` disables discovery                 |
-| `--profile <name>…`     | all     | limit to profiles                                |
-| `--owner <name>…`       | all     | limit to owners                                  |
+| `--profile <name>…`     | all     | discover new repositories with these profiles only |
+| `--owner <name>…`       | all     | discover new repositories of these owners only   |
 | `--token <token>`      | resolved | token override for the first/default profile   |
 | `--format human\|json`  | human   | plan output (logs always go to stderr)           |
 | `--concurrency <n>`     | `0`     | positive parallel discovery/clone/fetch cap; `0` uses config (default `4`) |
@@ -329,6 +336,9 @@ maintainer fetch --apply         # adopt existing checkouts; clone missing repos
 maintainer fetch --apply         # refresh refs of newly adopted checkouts
 maintainer fetch state show | jq '.repos | length'
 ```
+
+Filters skip clones only: a fork or an archived repository that is already on
+disk is adopted like any other checkout and stays tracked.
 
 Adoption matches clones by `remote.origin.url` → stable `id` (following GitHub's
 rename redirect), so existing clones are reconciled in place rather than

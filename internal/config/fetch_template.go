@@ -20,7 +20,8 @@ concurrency  = 4
 # state_file = "/path/to/state.json"  # default: $XDG_STATE_HOME/maintainer/fetch/state.json
 
 [filters]
-# Filters gate only NEW clone/adopt decisions; tracked repos stay tracked.
+# Filters skip clones only: checkouts already on disk are still adopted,
+# pinned ones included, and tracked repos stay tracked.
 exclude_archived  = false
 exclude_forks     = false
 exclude_templates = false
