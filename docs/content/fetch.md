@@ -21,9 +21,10 @@ as a delete-and-reclone.
 
 It is **plan-only by default**: `--apply` performs clone, fetch refs, move,
 update remote and adopt actions. Existing checkouts and local work are
-retained: a fetch updates and prunes only remote-tracking refs, and branches
-and working files are not merged or reset. Orphan checkouts are retained and
-reported; they are never automatically deleted, fetched or moved.
+retained: a fetch updates and prunes remote-tracking refs and adds the tags
+that point into them, while branches and working files are not merged or
+reset. Orphan checkouts are retained and reported; they are never
+automatically deleted, fetched or moved.
 
 ## Quickstart
 
@@ -140,7 +141,11 @@ trees without permitting moves. Adding a new root child does not expand scope.
 Managed templates support scalar `.Owner .Repo .Visibility .DefaultBranch
 .IsFork .IsTemplate .IsArchived`, literals, and `lower`/`upper`; conditionals and
 other non-reversible expressions are rejected. Each scalar stays within one
-path component. Per-repo pins retain the full rendering context including `.Root`.
+path component. Per-repo paths can also use `.Root`. Write a per-repo path
+literally or with only `.Root`, `.Owner` and `.Repo`: other fields are not
+known on every run, so such a pin becomes a conflict after its first apply.
+Status resolves an id-only templated pin only once fetch has recorded it;
+until then it shows an error row.
 Precedence high→low: per-repo → per-owner → `workspace.path`. The rendered path
 is absolute → used as-is; `~` → expanded from `$HOME`; otherwise joined with
 `root`. `workspace.path` and per-owner templates must stay **within `root`**;
@@ -201,12 +206,12 @@ discovers it again.
 | Action          | Trigger                                                                 |
 | --------------- | ----------------------------------------------------------------------- |
 | `clone`         | on the API, no matching checkout, target path absent                    |
-| `fetch`         | tracked & present — `git fetch --prune` (remote-tracking refs only)     |
+| `fetch`         | tracked & present — `git fetch --prune` (remote-tracking refs and their tags) |
 | `move`          | rendered path differs from state (e.g. a rename) — same-volume rename   |
 | `relocate`      | state path missing, the same `id` found at exactly one other location   |
 | `update_remote` | `remote.origin.url` drifted from the canonical URL                      |
 | `adopt`         | a clone on disk matches an API repo with no state record                |
-| `orphan`        | inactive duplicate, remembered checkout outside scope, or cached/confirmed remote disappearance; report only |
+| `orphan`        | inactive duplicate, remembered checkout outside scope, or a repository not accessible by id; report only |
 | `noop`          | no executable change, including filtered or inaccessible repositories; a reason may be shown |
 | `conflict`      | ambiguous identity, missing/foreign pin, occupied target or another condition blocking an action |
 
@@ -223,9 +228,11 @@ remain or any repository action fails.
 
 Orphan rows identify their local path; JSON also includes `orphan_reason` and,
 for inactive copies, `active_path`. Reasons are `duplicate-pin`, `out-of-scope`,
-and `remote-gone`. A missing listing alone is not proof of deletion: remote-gone
-requires a 404 from the repository-ID check. Only apply saves that observation
-for offline status; authentication and transient failures do not establish it.
+and `remote-gone`. `remote-gone` keeps its name for compatibility and means
+*not accessible by id*: the repository-ID check returned 404, because the
+repository was deleted or access to it was lost. A missing listing alone does
+not establish it. Only apply saves that observation, with its check time, for
+offline status; authentication and transient failures do not establish it.
 
 Target handling is fail-closed. Any existing clone or move target must first be
 identified as the expected repository; otherwise the plan reports a `conflict`
@@ -233,6 +240,11 @@ with its path. Apply repeats the existence check immediately before clone/move,
 so a path created after plan review is never overwritten. Clone reserves an
 absent path atomically and never recursively cleans that final path on failure;
 an unexpected partial checkout is retained with an error for manual inspection.
+On a case-insensitive filesystem, as on macOS by default, a rename that changes
+only letter case is reported as a conflict.
+
+A move renames the checkout directory and does not update its linked
+worktrees: run `git worktree repair` in the moved checkout to reconnect them.
 
 Repository identity comes only from `remote.origin.url` (the fetch endpoint).
 `remote.origin.pushurl` is orthogonal: push locks such as a deliberately invalid
@@ -264,7 +276,8 @@ The fetch group also provides these subcommands:
 | `fetch state prune` | Save state after forgetting missing paths; runs immediately, without `--apply` |
 
 State subcommands acquire the same state lock. Use a nonempty `--config` path
-to select a specific config for them.
+to select a specific config for them: `--config=""` does not disable config
+discovery there.
 
 ## JSON output
 
@@ -294,7 +307,7 @@ as `<root>/…` and collapses routine fetches into the summary.
 | `--owner <name>…`       | all     | discover new repositories of these owners only   |
 | `--token <token>`      | resolved | token override for the first/default profile   |
 | `--format human\|json`  | human   | plan output (logs always go to stderr)           |
-| `--concurrency <n>`     | `0`     | positive parallel discovery/clone/fetch cap; `0` uses config (default `4`) |
+| `--concurrency <n>`     | `0`     | positive parallel discovery/clone/fetch cap; `0` or a negative value uses config (default `4`) |
 | `--timeout <dur>`       | `0`     | wall-clock budget                                |
 | `-v`, `--verbose`       | `0`     | repeat to increase verbosity (`-vv`, `-vvv`)     |
 | `-q`, `--quiet`         | off     | suppress routine progress; mutually exclusive with verbose |
@@ -304,8 +317,13 @@ as `<root>/…` and collapses routine fetches into the summary.
 | --- | --- |
 | `0` | Plan rendered successfully, or apply completed without action failures/conflicts |
 | `1` | Transport, Git, state or output error |
-| `2` | User input error, including bad config, missing token or lock contention |
+| `2` | Bad config, missing token or owner, or lock contention |
 | `3` | Apply finished with at least one per-repo failure or unresolved conflict |
+
+An unknown flag, a flag value that does not parse, such as `--timeout=soon`,
+or an unexpected argument exits `1`. A mistyped subcommand of `fetch config` or
+`fetch state` prints the help and exits `0`, and an unknown `--format` value
+falls back to the human output.
 
 A successfully rendered plan exits `0` even when it contains conflicts. For
 automation, inspect `summary.conflict` as well as the exit code.

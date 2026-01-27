@@ -40,8 +40,13 @@ The default `path` matches exactly `{public,private,internal}/<owner>/<repo>`.
 Visibility is a finite set, not a wildcard directory name. Adding `research`,
 `prototyping`, or any future directory beside those branches does not expand
 either command's scope. Out-of-scope branches are pruned before Git inspection
-or identity resolution. Finding a checkout stops descent (no submodule scan).
+or identity resolution. Finding a checkout stops descent (no submodule scan),
+so a repository at an owner or visibility level hides the checkouts below it.
 Directory symlinks are not followed by discovery; use a real explicit path.
+Clone and move do follow a directory symlink inside the root, such as
+`public/acme` linked to another place: they write the checkout through it,
+later fetch runs report it as a conflict, and status no longer lists it. Keep
+the directories of the layout real.
 
 Templates support literals and scalar `.Owner`, `.Repo`, `.Visibility`,
 `.DefaultBranch`, `.IsFork`, `.IsTemplate`, `.IsArchived`, with `lower`/`upper`.

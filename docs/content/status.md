@@ -17,9 +17,12 @@ Status reads the same `fetch.toml` / `fetch.yaml` and state as
 [`maintainer fetch`](/fetch/), using the same [workspace](/workspace/) layout
 and pins. It includes eligible remembered paths and explicitly pinned checkouts
 such as `~/.dotfiles`. It needs Git 2.18 or newer on
-PATH, but no token or network. It never fetches, modifies the index/worktree,
-or writes state. Ahead/behind counts describe **local upstream refs**; run
-`maintainer fetch --apply` separately to refresh them.
+PATH, but no token or network: status performs no remote discovery or fetch
+and writes no state. Its Git inspection disables optional locks, lazy fetch,
+fsmonitor, external diff and text conversion, and otherwise trusts each
+checkout's Git configuration as `git status` does, so configured filters may
+run and have their own side effects. Ahead/behind counts describe **local
+upstream refs**; run `maintainer fetch --apply` separately to refresh them.
 
 ## Usage
 
@@ -42,7 +45,7 @@ another root. This still reads the default fetch state file.
 ```text
 REPOSITORY             │ BRANCH  │ UNCOMMITTED       │ STATUS     │ LOCK │ PATH
 kamilsk/dotfiles        │ main*   │ +39/-0 · 3f       │ synced     │      │ ~/.dotfiles
-kamilsk/mindset         │ main*   │ +0/-0             │ behind 409 │      │ public/kamilsk/mindset
+kamilsk/egg             │ main*   │ +0/-0             │ behind 409 │      │ public/kamilsk/egg
 octomation/maintainer   │ fetcher │ +12/-1 · 2f · ?1  │ ahead 1    │ 🔒   │ public/octomation/maintainer
 ```
 
@@ -130,8 +133,9 @@ The header shows matched/total counts, and an empty result is shown explicitly.
 Enter or Escape leaves the input while keeping the filter. Ctrl+u clears the
 input. Outside the input, Escape clears an active filter; otherwise it exits.
 `q` and Ctrl-C exit from the table; Ctrl-C also exits from the input, where `q`
-is ordinary text. Sorting preserves the selected checkout. If filtering hides
-it, clearing the filter restores it unless a different row was selected.
+is ordinary text. Sorting preserves the selected checkout. While a filter hides
+it, the first matching row is highlighted, also after sorting; clearing the
+filter restores the selected checkout unless a different row was selected.
 All sort/filter state is in memory. Plain/JSON output retains the original
 complete inventory; no repository or fetch state is changed.
 
@@ -146,7 +150,10 @@ remain visible as `orphan`. Their own branch, changes and
 divergence are retained; plain output and TUI details identify the active path.
 Orphan is a management warning, not a replacement for Git status or a read error.
 Without a specific per-repo pin, duplicates remain separate error rows; broad
-workspace pins do not choose a winner. The Path column distinguishes these
+workspace pins do not choose a winner. This includes an orphan row that shares
+its repository with another checkout, and checkouts without a GitHub origin,
+which are named by their directory: two such checkouts with the same directory
+name are reported as duplicates. The Path column distinguishes these
 checkouts; JSON and the selected-path footer also retain their full paths.
 ID-only pins without state can only use their
 local origin for display identity: status cannot verify a GitHub ID offline.
@@ -154,10 +161,11 @@ Fetch performs that verification. If origin contradicts known state, status
 reports the mismatch and suggests fetch. Missing pins remain error rows.
 Ignore rules are respected; archived/fork filters do not hide local work.
 
-An orphan row retains its Git status and adds a management warning. JSON
+An orphan row otherwise retains its Git status and adds a management warning. JSON
 `orphan_reason` distinguishes `duplicate-pin` (another checkout is active),
 `out-of-scope` (a remembered checkout is outside current management rules), and
-`remote-gone` (fetch cached a GitHub 404 by repository ID). The last case includes
+`remote-gone` (fetch cached a GitHub 404 by repository ID: the repository was
+deleted or access to it was lost). The last case includes
 the cached check time. Status never probes GitHub or infers remote deletion
 from stale refs. Search for `orphan` or its reason to find these rows.
 
@@ -217,14 +225,17 @@ List checkouts marked by `git lock`:
 
 ```bash
 maintainer status --owner octomation --format=json | jq -c '.[] | select(.push_locked) | {repository, path}'
-# {"repository":"octomation/maintainer","path":"/Users/kamilsk/Development/public/octomation/maintainer"}
+# {"repository":"octomation/maintainer","path":"/Users/me/Development/public/octomation/maintainer"}
 ```
 
 | Code | Meaning |
 | --- | --- |
 | `0` | Successful snapshot, including dirty, diverged and orphan rows |
 | `1` | Git inspection, discovery, state or output failure |
-| `2` | Invalid configuration or options, including TUI without terminal I/O |
+| `2` | Invalid configuration, `--format` or `--concurrency` value, including TUI without terminal I/O |
+
+An unknown flag, a flag value that does not parse, such as `--concurrency=abc`,
+or an unexpected argument exits `1`.
 
 Individual checkout errors remain in the output alongside successful rows,
 then the command exits with `1`. A fatal configuration, state or discovery
