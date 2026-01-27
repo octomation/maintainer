@@ -5,14 +5,6 @@ description: Inspect branches, uncommitted changes and divergence across local c
 
 # Repository status
 
-> [!NOTE]
-> `maintainer status` is not released yet. To try it, build `maintainer` from a source checkout:
->
-> ```sh
-> git clone https://github.com/octomation/maintainer.git
-> cd maintainer && go install .
-> ```
-
 Status reads the same `fetch.toml` / `fetch.yaml` and state as
 [`maintainer fetch`](/fetch/), using the same [workspace](/workspace/) layout
 and pins. It includes eligible remembered paths and explicitly pinned checkouts

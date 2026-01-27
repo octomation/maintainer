@@ -5,14 +5,6 @@ description: Reconcile local GitHub checkouts across owners with a plan-first, n
 
 # Fetch repositories
 
-> [!NOTE]
-> `maintainer fetch` is not released yet. To try it, build `maintainer` from a source checkout:
->
-> ```sh
-> git clone https://github.com/octomation/maintainer.git
-> cd maintainer && go install .
-> ```
-
 `maintainer fetch` discovers GitHub repositories across several owners and
 reconciles a local checkout tree, in the spirit of `terraform plan` / `apply`.
 A local state file (keyed by the stable numeric repo `id`) remembers what was

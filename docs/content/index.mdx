@@ -1,6 +1,6 @@
 ---
 title: maintainer
-description: See your open source contribution pace and plan your next session from the terminal.
+description: See your open source contribution pace, plan your next session and keep your GitHub checkouts current from the terminal.
 ---
 
 import Link from 'next/link'
@@ -24,13 +24,13 @@ Suggestion is 2026-01-26T08:53:14+03:00, 20 → 25`
 <div className="home">
   <section className="hero">
     <div className="hero-copy">
-      <Link className="release-pill" href="/changelog/v0.1.0/">Latest release · v0.1.0 <span aria-hidden="true">↗</span></Link>
+      <Link className="release-pill" href="/changelog/v0.2.0/">Latest release · v0.2.0 <span aria-hidden="true">↗</span></Link>
       <p className="eyebrow">OPEN SOURCE TOOLKIT</p>
       <h1>Keep the little things <em>moving.</em></h1>
       <p className="hero-lead">See your recent open source activity, spot lighter days, and choose a contribution target for your next session. Turn the GitHub calendar into a practical plan.</p>
       <div className="hero-actions">
         <Link className="button-primary" href="/quickstart/">Get started <span aria-hidden="true">→</span></Link>
-        <Link className="button-text" href="/changelog/v0.1.0/">What’s in v0.1.0 <span aria-hidden="true">↗</span></Link>
+        <Link className="button-text" href="/changelog/v0.2.0/">What’s in v0.2.0 <span aria-hidden="true">↗</span></Link>
       </div>
       <p className="hero-note">One CLI · macOS & Linux · Open source, MIT</p>
     </div>
@@ -54,6 +54,15 @@ Suggestion is 2026-01-26T08:53:14+03:00, 20 → 25`
     </div>
   </section>
 
-  <section className="release-band"><div><p className="eyebrow">THE LATEST RELEASE</p><h2>v0.1.0 — Find your rhythm</h2><p>A small, practical release that starts with the contribution planning flow. The calendar guide explains dates, targets, and the other ways to inspect your activity; the Go and Makefile guides cover the smaller tools around your projects.</p></div><Link className="button-primary" href="/changelog/v0.1.0/">Read the release <span aria-hidden="true">→</span></Link></section>
-  <p className="scope-note">Maintainer works on the authenticated GitHub account for contribution commands. It reads the calendar; it does not create contributions or change your repositories. <Link href="/contributions/">The calendar guide</Link> covers dates, targets, and snapshots.</p>
+  <section className="use-cases">
+    <div className="section-heading"><p className="eyebrow">KEEP YOUR CHECKOUTS CURRENT</p><h2>See where local work needs attention.<br />Refresh the collection from GitHub.</h2></div>
+    <div className="use-case-grid">
+      <Link className="use-case" href="/status/"><span className="card-number">01 / STATUS</span><h3>Inspect local work</h3><p>Uncommitted changes, branches ahead or behind, and push locks across every checkout, offline and without a token.</p><span className="card-link">Inspect your checkouts <span aria-hidden="true">↗</span></span></Link>
+      <Link className="use-case" href="/fetch/"><span className="card-number">02 / FETCH</span><h3>Refresh the collection</h3><p>Review a plan of clones, moves and fetches, then apply it; existing checkouts and local work are retained.</p><span className="card-link">Plan a fetch <span aria-hidden="true">↗</span></span></Link>
+      <Link className="use-case" href="/workspace/"><span className="card-number">03 / WORKSPACE</span><h3>Share one layout</h3><p>One layout and a few pins decide which checkouts both commands work with.</p><span className="card-link">View the guide <span aria-hidden="true">↗</span></span></Link>
+    </div>
+  </section>
+
+  <section className="release-band"><div><p className="eyebrow">THE LATEST RELEASE</p><h2>v0.2.0 — Fetch & Status.</h2><p>Refresh your repository collection and see where local work needs attention. Status inspects every checkout offline; fetch plans clones, moves and fresh refs from GitHub and applies them only when you ask.</p></div><Link className="button-primary" href="/changelog/v0.2.0/">Read the release <span aria-hidden="true">→</span></Link></section>
+  <p className="scope-note">Maintainer helps you keep up your open source contribution: the contribution commands read the calendar of the token’s account, status inspects your checkouts offline, and fetch clones, moves and refreshes them by a plan you review first. <Link href="/contributions/">The calendar guide</Link> and <Link href="/fetch/">the fetch guide</Link> say what each command reads and changes.</p>
 </div>

@@ -19,7 +19,7 @@ The older Homebrew Formula is deprecated on 2026-11-05. If you have it, switch w
 Without Homebrew, the install script puts the latest release into `./bin`; `-b` chooses another directory and a tag pins the version:
 
 ```sh
-curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.1.0
+curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.2.0
 ```
 
 `wget -qO-` works in place of `curl -sSfL`. Archives for macOS and Linux on amd64 and arm64 are also on [GitHub Releases](https://github.com/octomation/maintainer/releases). With Go 1.27 or newer, no checkout is needed:
@@ -62,4 +62,4 @@ Suggestion is 2026-01-26T08:51:27+03:00, 20 → 25
 
 `suggest` looks for the first moment from the anchor up to now, between 05:00 and 19:00 UTC, on a day below its target, and marks that day with brackets: this example shows 20 contributions toward a minimum target of 25. Your counts and suggested time will differ, but the time is never later than now; if no such moment exists, `suggest` says why and exits with `4` instead. The time is a suggestion; maintainer does **not** create a commit.
 
-Next: [read the contribution guide](/contributions/) to choose date ranges, inspect your activity distribution, and compare snapshots when you need a record. The [Go vanity URL](/vanity/) and [Makefile](/makefiles/) guides cover the smaller project helpers.
+Next: [read the contribution guide](/contributions/) to choose date ranges, inspect your activity distribution, and compare snapshots when you need a record. The [Go vanity URL](/vanity/) and [Makefile](/makefiles/) guides cover the smaller project helpers. To see where local work needs attention across your checkouts and refresh them from GitHub, continue with [status](/status/) and [fetch](/fetch/).

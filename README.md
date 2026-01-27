@@ -29,7 +29,7 @@ See [development tools](tools/README.md) and [GitHub workflows](.github/workflow
 `maintainer fetch` discovers GitHub repositories across several owners and
 reconciles a local checkout tree: it plans by default and `--apply` performs
 only non-destructive actions, so renames become moves and vanished repositories
-are kept as orphans. It is not released yet; build from source to try it.
+are kept as orphans.
 
 ```bash
 $ maintainer fetch config init && maintainer fetch   # write ./fetch.toml, then plan
@@ -41,7 +41,6 @@ See the [fetch guide][fetch.page] for configuration, profiles, state and exit co
 
 `maintainer status` shows current and default branches, uncommitted changes and
 ahead/behind counts for every local checkout, offline and without a token.
-It is not released yet; build from source to try it.
 
 ```bash
 $ maintainer status --format=plain
@@ -73,7 +72,7 @@ $ wget -qO-  https://raw.githubusercontent.com/octomation/maintainer/main/bin/in
 The script installs the latest release into `./bin`. Pass `-b` to choose another directory and a tag to pin the version:
 
 ```bash
-$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.1.0
+$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.2.0
 ```
 
 > Don't forget about [security](https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/).

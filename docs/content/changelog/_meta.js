@@ -1,4 +1,5 @@
 export default {
   index: { title: 'All releases', theme: { toc: false, breadcrumb: false } },
+  'v0.2.0': 'v0.2.0 — Fetch & Status.',
   'v0.1.0': 'v0.1.0 — Find your rhythm',
 }
