@@ -4,9 +4,18 @@ import { chmodSync, copyFileSync, existsSync, mkdtempSync, mkdirSync, readFileSy
 import { createServer } from 'node:http'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import test from 'node:test'
 
 const script = resolve('.github/scripts/release.mjs')
+// Fixtures run Git in disposable repositories only: drop the variables that
+// select another repository or configuration, such as GIT_DIR exported to a
+// hook, and ignore the system and global config, such as tag.gpgSign.
+const isolated = {
+  ...Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_'))),
+  GIT_CONFIG_NOSYSTEM: '1',
+  GIT_CONFIG_GLOBAL: '/dev/null',
+}
 function fixture(fn) {
   const cwd = mkdtempSync(join(tmpdir(), 'maintainer-release-'))
   mkdirSync(join(cwd, '.github'))
@@ -14,7 +23,7 @@ function fixture(fn) {
   let extra = {}
   const run = (...args) => spawnSync(process.execPath, [script, ...args], {
     cwd, encoding: 'utf8',
-    env: { ...process.env, GITHUB_REPOSITORY: 'octomation/maintainer', GITHUB_OUTPUT: '', OCTOLAB_RELEASER_CLIENT_ID: '', OCTOLAB_RELEASER_KEY: '', ...extra },
+    env: { ...isolated, GITHUB_REPOSITORY: 'octomation/maintainer', GITHUB_OUTPUT: '', OCTOLAB_RELEASER_CLIENT_ID: '', OCTOLAB_RELEASER_KEY: '', ...extra },
   })
   const withEnv = (env) => { extra = env }
   try { fn({ cwd, settings, run, withEnv }) } finally { rmSync(cwd, { recursive: true, force: true }) }
@@ -80,7 +89,7 @@ test('smoke requires an og:image on the site', async () => {
   const cwd = mkdtempSync(join(tmpdir(), 'maintainer-smoke-'))
   const smoke = () => new Promise((done) => {
     const child = spawn(process.execPath, [script, 'smoke', site, '--retries', '0'], {
-      cwd, env: { ...process.env, GITHUB_REPOSITORY: '' },
+      cwd, env: { ...isolated, GITHUB_REPOSITORY: '' },
     })
     let stderr = ''
     child.stderr.on('data', (chunk) => { stderr += chunk })
@@ -109,7 +118,7 @@ test('missing release tags fail without creating Git refs', () => fixture(({ run
 function releaseFixture(fn) {
   fixture(({ cwd, settings, run }) => {
     const git = (...args) => {
-      const result = spawnSync('git', args, { cwd, encoding: 'utf8' })
+      const result = spawnSync('git', args, { cwd, env: isolated, encoding: 'utf8' })
       assert.equal(result.status, 0, result.stderr)
       return result.stdout.trim()
     }
@@ -158,7 +167,7 @@ test('pre-push checks annotated tags and destination branches, deletions and tag
     rmSync(makeLog, { force: true })
     return spawnSync('/bin/bash', [hook, 'origin', 'unused'], {
       cwd, input, encoding: 'utf8',
-      env: { ...process.env, DEFAULT_BRANCH: 'main', MAKE_LOG: makeLog, PATH: `${join(cwd, 'test-bin')}:${process.env.PATH}` },
+      env: { ...isolated, DEFAULT_BRANCH: 'main', MAKE_LOG: makeLog, PATH: `${join(cwd, 'test-bin')}:${process.env.PATH}` },
     })
   }
   const zero = '0'.repeat(40)
@@ -175,7 +184,6 @@ test('pre-push checks annotated tags and destination branches, deletions and tag
   assert.equal(readFileSync(makeLog, 'utf8').trim(), 'go-deps-tidy verify')
 }))
 
-
 test('hooks are wired in place through the local core.hooksPath and leave shared hooks alone', () => releaseFixture(({ cwd, git }) => {
   mkdirSync(join(cwd, '.github/hooks'), { recursive: true })
   mkdirSync(join(cwd, 'shared-hooks'))
@@ -186,7 +194,7 @@ test('hooks are wired in place through the local core.hooksPath and leave shared
   const globalConfig = join(cwd, 'global.gitconfig')
   writeFileSync(globalConfig, `[core]\n\thooksPath = ${join(cwd, 'shared-hooks')}\n`)
   git('config', '--local', '--unset', 'core.hooksPath')
-  const env = { ...process.env, GIT_CONFIG_GLOBAL: globalConfig }
+  const env = { ...isolated, GIT_CONFIG_GLOBAL: globalConfig }
   const make = (target) => spawnSync('make', ['-f', resolve('Makefile'), target], { cwd, env, encoding: 'utf8' })
   const hooksPath = () => spawnSync('git', ['config', 'core.hooksPath'], { cwd, env, encoding: 'utf8' }).stdout.trim()
   assert.equal(hooksPath(), join(cwd, 'shared-hooks'))
@@ -201,3 +209,24 @@ test('hooks are wired in place through the local core.hooksPath and leave shared
     assert.equal(readFileSync(join(cwd, 'shared-hooks', name), 'utf8'), 'shared hook: keep me')
   }
 }))
+
+test('fixtures ignore the Git repository and config the caller selects', () => {
+  const victim = mkdtempSync(join(tmpdir(), 'maintainer-victim-'))
+  try {
+    const git = (...args) => spawnSync('git', ['-C', victim, ...args], { env: isolated, encoding: 'utf8' }).stdout
+    git('init', '-q')
+    const config = git('config', '--local', '--list')
+    // a nested run of one fixture test, as if a hook ran the suite; without
+    // NODE_TEST_CONTEXT it reports to stdout instead of to this runner
+    const { NODE_TEST_CONTEXT, ...caller } = process.env
+    const inner = spawnSync(process.execPath, ['--test', '--test-reporter=tap', '--test-name-pattern=^local release preparation', fileURLToPath(import.meta.url)], {
+      encoding: 'utf8', env: { ...caller, GIT_DIR: join(victim, '.git') },
+    })
+    assert.equal(inner.status, 0, inner.stdout + inner.stderr)
+    assert.match(inner.stdout, /^# pass 1$/m)
+    assert.equal(git('config', '--local', '--list'), config)
+    assert.equal(git('for-each-ref'), '')
+  } finally {
+    rmSync(victim, { recursive: true, force: true })
+  }
+})
