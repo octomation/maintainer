@@ -86,6 +86,7 @@ git-rmdir:
 	done
 .PHONY: git-rmdir
 
+FUZZTIME    ?= 10s
 GOBIN       ?= $(PWD)/bin/$(OS)/$(ARCH)
 GOFLAGS     ?= -mod=
 GOPRIVATE   ?= go.octolab.org
@@ -142,7 +143,7 @@ go-verbose:
 
 go-deps-check:
 	$(AT) go mod verify
-	$(AT) govulncheck -tags $(GOTAGS) -test ./...
+	$(AT) govulncheck $(if $(strip $(GOTAGS)),-tags $(GOTAGS)) -test ./...
 	$(AT) if command -v egg >/dev/null; then \
 		egg deps check license; \
 		egg deps check version; \
@@ -208,7 +209,7 @@ go-pkg:
 .PHONY: go-pkg
 
 go-check:
-	$(AT) $(GOTEST) -count=1 -test.run=^$(uuidgen) ./...
+	$(AT) $(GOTEST) -count=1 -test.run=^$$(uuidgen) ./...
 .PHONY: go-check
 
 go-test:
@@ -237,7 +238,7 @@ go-test-with-coverage-report: go-test-with-coverage
 go-integration-test: GOTAGS := $(GOTAGS) integration
 go-integration-test:
 	$(AT) $(GOTEST) -race -tags $(GOTAGS) -timeout $(TIMEOUT) $(GOTESTFLAGS) $(PACKAGES)
-.PHONY: go-test-integration-quick
+.PHONY: go-integration-test
 
 go-integration-test-with-coverage: GOTAGS := $(GOTAGS) integration
 go-integration-test-with-coverage:
@@ -256,8 +257,16 @@ go-integration-test-with-coverage-report: go-integration-test-with-coverage
 	$(AT) go tool cover -html c.out
 .PHONY: go-integration-test-with-coverage-report
 
+# go test fuzzes one target of one package at a time, for FUZZTIME each;
+# the assignments fail the recipe when a listing fails
 go-fuzzing-test:
-	$(AT) $(GOTEST) -fuzz $(PACKAGES)
+	$(AT) packages="$(PACKAGES)"; \
+	for package in $$packages; do \
+		targets="$$(go test -list '^Fuzz' $$package)"; \
+		for target in $$(grep '^Fuzz' <<< "$$targets" || true); do \
+			$(GOTEST) -run='^$$' -fuzz="^$$target\$$" -fuzztime=$(FUZZTIME) $(GOTESTFLAGS) $$package; \
+		done; \
+	done
 .PHONY: go-fuzzing-test
 
 go-fuzzing-test-clean:
@@ -265,7 +274,7 @@ go-fuzzing-test-clean:
 .PHONY: go-fuzzing-test-clean
 
 go-performance-test:
-	$(AT) $(GOTEST) -bench=. -run=^$(uuidgen) $(GOTESTFLAGS) $(PACKAGES)
+	$(AT) $(GOTEST) -bench=. -run=^$$(uuidgen) $(GOTESTFLAGS) $(PACKAGES)
 .PHONY: go-performance-test
 
 BINARY  ?= $(GOBIN)/$(shell basename $(MAIN))
