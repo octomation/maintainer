@@ -1,20 +1,25 @@
 ---
 code: MAIN-140
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-bcQ
+databaseId: 5937011569
+number: 490
+url: https://github.com/octomation/maintainer/issues/490
 title: "release: publishing: write the tap through the OctoLab Releaser App"
+issueType: null
 labels:
   - "type: improvement"
   - "scope: inventory"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: null
-updatedAt: null
-lastEditedAt: null
-closedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:25:12Z
+updatedAt: 2026-10-20T06:26:12Z
+lastEditedAt: 2026-10-20T06:26:12Z
+closedAt: 2026-10-20T06:25:14Z
 ---
 
 # release: publishing: write the tap through the OctoLab Releaser App

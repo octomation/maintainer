@@ -1,24 +1,29 @@
 ---
 code: MAIN-133
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-mvQ
+databaseId: 5937014461
+number: 494
+url: https://github.com/octomation/maintainer/issues/494
 title: "fetch: selection: honor owners, profiles and adoption filters"
+issueType: null
 labels:
-  - "type: bug"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: bug"
   - "severity: major"
   - "impact: medium"
   - "effort: medium"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: OPEN
 stateReason: null
-createdAt: 2026-09-26T09:25:00Z
-updatedAt: 2026-09-26T09:25:00Z
-lastEditedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:25:28Z
+updatedAt: 2026-10-20T06:26:20Z
+lastEditedAt: 2026-10-20T06:25:57Z
 closedAt: null
 ---
 
@@ -62,6 +67,6 @@ A service test with a fake transport that records every request and answers case
 
 Related: [[MAIN-150]], [[MAIN-137]], [[MAIN-132]].
 
-<!-- 2026-10-01T12:25Z
+<!-- 2026-10-01T12:25Z https://github.com/octomation/maintainer/issues/494#issuecomment-6284844891
 Preparation for implementation, from the spec reviews of #466 (2026-10-01): reconfirmed on `main` — `planner.go:291-299` adopts before the filter check at `planner.go:304`, so `exclude_forks = true` still adopts a fork checkout. The fork-remote specification now also relies on this filter: with `exclude_forks = true` already tracked forks stay tracked, but `upstream` is neither configured nor checked. The onboarding config in `docs/content/fetch.md:316` sets `exclude_forks = true`, so fixing the order changes what a new user sees.
 -->

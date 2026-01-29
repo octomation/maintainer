@@ -1,24 +1,29 @@
 ---
 code: MAIN-135
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-JBA
+databaseId: 5937006852
+number: 487
+url: https://github.com/octomation/maintainer/issues/487
 title: "fetch: remote: change only the origin URL when updating a remote"
+issueType: null
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: major"
   - "impact: high"
   - "effort: medium"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: 2026-09-26T09:24:00Z
-updatedAt: 2026-09-26T09:24:00Z
-lastEditedAt: null
-closedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:24:47Z
+updatedAt: 2026-10-20T06:26:02Z
+lastEditedAt: 2026-10-20T06:26:02Z
+closedAt: 2026-10-20T06:24:50Z
 ---
 
 # fetch: remote: change only the origin URL when updating a remote

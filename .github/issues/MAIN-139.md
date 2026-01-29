@@ -1,21 +1,26 @@
 ---
 code: MAIN-139
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-gxQ
+databaseId: 5937012933
+number: 491
+url: https://github.com/octomation/maintainer/issues/491
 title: "release: publishing: keep prereleases out of stable channels"
+issueType: null
 labels:
   - "type: improvement"
   - "scope: inventory"
   - "impact: high"
   - "effort: easy"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: OPEN
 stateReason: null
-createdAt: 2026-09-26T09:21:00Z
-updatedAt: 2026-09-26T09:21:00Z
-lastEditedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:25:19Z
+updatedAt: 2026-10-20T06:26:10Z
+lastEditedAt: 2026-10-20T06:26:10Z
 closedAt: null
 ---
 

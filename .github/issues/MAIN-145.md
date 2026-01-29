@@ -1,23 +1,28 @@
 ---
 code: MAIN-145
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-qww
+databaseId: 5937015491
+number: 496
+url: https://github.com/octomation/maintainer/issues/496
 title: "workspace: paths: resolve pins only with sufficient context"
+issueType: null
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: major"
   - "impact: medium"
   - "effort: easy"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: OPEN
 stateReason: null
-createdAt: 2026-09-26T09:27:00Z
-updatedAt: 2026-09-26T09:27:00Z
-lastEditedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:25:34Z
+updatedAt: 2026-10-20T06:26:17Z
+lastEditedAt: 2026-10-20T06:26:17Z
 closedAt: null
 ---
 

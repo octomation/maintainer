@@ -1,22 +1,27 @@
 ---
 code: MAIN-132
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-Omw
+databaseId: 5937008283
+number: 488
+url: https://github.com/octomation/maintainer/issues/488
 title: "docs: workspace: publish the fetch and status workflows"
+issueType: null
 labels:
-  - "type: improvement"
   - "scope: docs"
+  - "type: improvement"
   - "impact: high"
   - "effort: medium"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: 2026-09-26T09:32:00Z
-updatedAt: 2026-09-26T09:32:00Z
-lastEditedAt: null
-closedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:24:55Z
+updatedAt: 2026-10-20T06:25:55Z
+lastEditedAt: 2026-10-20T06:25:54Z
+closedAt: 2026-10-20T06:24:57Z
 ---
 
 # docs: workspace: publish the fetch and status workflows

@@ -1,23 +1,28 @@
 ---
 code: MAIN-134
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-ooA
+databaseId: 5937014944
+number: 495
+url: https://github.com/octomation/maintainer/issues/495
 title: "fetch: discovery: isolate repository failures and respect rate limits"
+issueType: null
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: major"
   - "impact: medium"
   - "effort: medium"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: OPEN
 stateReason: null
-createdAt: 2026-09-26T09:26:00Z
-updatedAt: 2026-09-26T09:26:00Z
-lastEditedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:25:31Z
+updatedAt: 2026-10-20T06:25:59Z
+lastEditedAt: 2026-10-20T06:25:59Z
 closedAt: null
 ---
 

@@ -1,23 +1,28 @@
 ---
 code: MAIN-144
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-i5w
+databaseId: 5937013479
+number: 492
+url: https://github.com/octomation/maintainer/issues/492
 title: "workspace: safety: enforce boundaries and report scan obstructions"
+issueType: null
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: critical"
   - "impact: high"
   - "effort: medium"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: OPEN
 stateReason: null
-createdAt: 2026-09-26T09:22:00Z
-updatedAt: 2026-09-26T09:22:00Z
-lastEditedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:25:22Z
+updatedAt: 2026-10-20T06:26:15Z
+lastEditedAt: 2026-10-20T06:26:15Z
 closedAt: null
 ---
 

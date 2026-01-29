@@ -6,11 +6,11 @@ number: 3
 url: https://github.com/octomation/maintainer/milestone/3
 title: "Workspace, v0.2"
 state: OPEN
-openIssueCount: 2
-closedIssueCount: 2
+openIssueCount: 8
+closedIssueCount: 6
 dueOn: null
 createdAt: 2026-09-26T09:14:44Z
-updatedAt: 2026-10-19T16:14:51Z
+updatedAt: 2026-10-20T06:25:34Z
 closedAt: null
 ---
 
@@ -20,7 +20,7 @@ closedAt: null
 
 First release of `maintainer fetch` and `maintainer status`: discover and refresh a multi-owner collection of GitHub checkouts, reconcile repository moves, and inspect local work. Plan by default; preserve existing local branches and working files; inspect status without contacting GitHub.
 
-The milestone carries the v0.2 line: v0.2.0 and the patches after it. v0.2.0 ships what `main` already carries, directly as a stable release without a release candidate, made trustworthy on a real collection: the only code fix that the owner requires before the tag — an origin update must not rewrite the rest of the checkout's Git configuration — lands, continuous integration is green again, and the documentation, the help and the note describe both commands as released, on the owner's scenarios, claiming only what the release binary does. The other defects that the reviews of 2026-09-26 and the triage of 2026-10-19 found in `fetch`, `status`, the workspace and the release path stay in this milestone and follow in v0.2.x patches; [the issue review of 2026-10-19](../reviews/20261019T105848Z.md) says, in its column Release, which task goes into v0.2.0. The release path and its acceptance: [[MAIN-138]].
+The milestone carries the v0.2 line: v0.2.0 and the patches after it. v0.2.0 ships what `main` already carries, directly as a stable release without a release candidate, made trustworthy on a real collection: the only code fix that the owner requires before the tag — an origin update must not rewrite the rest of the checkout's Git configuration — lands, continuous integration is green again, and the documentation, the help and the note describe both commands as released, on the owner's scenarios, claiming only what the release binary does. The other defects that the reviews of 2026-09-26 and the triage of 2026-10-19 found in `fetch`, `status`, the workspace and the release path stay in this milestone and follow in v0.2.x patches; [the issue review of 2026-10-19](../reviews/20261019T105848Z.md) says, in its column Release, which task goes into v0.2.0. The release path and its acceptance: `MAIN-138`.
 
 ### Value
 
@@ -36,10 +36,10 @@ The milestone carries the v0.2 line: v0.2.0 and the patches after it. v0.2.0 shi
 | --- | --- |
 | CI and local gates reliable again | [[MAIN-127]] |
 | Status counts: renames detected consistently | [[MAIN-130]] |
-| An origin update changes only the origin fetch URL | [[MAIN-135]] |
-| The tap is written through the OctoLab Releaser App, in verified commits | [[MAIN-140]] |
-| Documentation, help and the release note true for the release binary | [[MAIN-132]] |
-| The release itself | [[MAIN-138]] |
+| An origin update changes only the origin fetch URL | `MAIN-135` |
+| The tap is written through the OctoLab Releaser App, in verified commits | `MAIN-140` |
+| Documentation, help and the release note true for the release binary | `MAIN-132` |
+| The release itself | `MAIN-138` |
 
 Every other task of the list below goes into a v0.2.x patch.
 

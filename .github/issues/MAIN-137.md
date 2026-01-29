@@ -1,23 +1,28 @@
 ---
 code: MAIN-137
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-k_Q
+databaseId: 5937014013
+number: 493
+url: https://github.com/octomation/maintainer/issues/493
 title: "fetch: state: honor config selection and preserve uncertain records"
+issueType: null
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: major"
   - "impact: medium"
   - "effort: easy"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: OPEN
 stateReason: null
-createdAt: 2026-09-26T09:23:00Z
-updatedAt: 2026-09-26T09:23:00Z
-lastEditedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:25:25Z
+updatedAt: 2026-10-20T06:26:23Z
+lastEditedAt: 2026-10-20T06:26:04Z
 closedAt: null
 ---
 
@@ -58,6 +63,6 @@ The save failures are service tests with a store whose `Save` fails on demand an
 
 Related: [[MAIN-144]], [[MAIN-133]], [[MAIN-136]].
 
-<!-- 2026-10-01T12:25Z
+<!-- 2026-10-01T12:25Z https://github.com/octomation/maintainer/issues/493#issuecomment-6284845486
 Preparation for implementation, from the spec reviews of #466 (2026-10-01): reconfirmed on `main` — intermediate save errors during apply are discarded at `internal/service/fetch/service.go:453` and `:472`. The fork-remote work (#466) adds a second stage after clone and adopt that runs only after the first stage is saved, so it depends on these errors being surfaced.
 -->

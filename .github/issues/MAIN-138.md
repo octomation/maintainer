@@ -1,23 +1,28 @@
 ---
 code: MAIN-138
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYd-VHw
+databaseId: 5937009951
+number: 489
+url: https://github.com/octomation/maintainer/issues/489
 title: "org: release: prepare v0.2.0"
+issueType: null
 labels:
-  - "type: improvement"
   - "scope: docs"
+  - "type: improvement"
   - "scope: inventory"
   - "impact: high"
   - "effort: medium"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: 2026-09-26T09:33:00Z
-updatedAt: 2026-09-26T09:33:00Z
-lastEditedAt: null
-closedAt: null
+duplicateOf: null
+createdAt: 2026-10-20T06:25:03Z
+updatedAt: 2026-10-20T06:26:07Z
+lastEditedAt: 2026-10-20T06:26:07Z
+closedAt: 2026-10-20T06:25:07Z
 ---
 
 # org: release: prepare v0.2.0
