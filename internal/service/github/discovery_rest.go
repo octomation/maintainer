@@ -190,12 +190,12 @@ func (d *RESTDiscoverer) memberships(ctx context.Context, client *github.Client)
 
 func listSelf(ctx context.Context, client *github.Client) ([]*github.Repository, error) {
 	var all []*github.Repository
-	opt := &github.RepositoryListOptions{
+	opt := &github.RepositoryListByAuthenticatedUserOptions{
 		Affiliation: "owner,collaborator",
 		ListOptions: github.ListOptions{PerPage: perPage},
 	}
 	for {
-		repos, resp, err := client.Repositories.List(ctx, "", opt)
+		repos, resp, err := client.Repositories.ListByAuthenticatedUser(ctx, opt)
 		if err != nil {
 			return nil, err
 		}
