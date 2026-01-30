@@ -11,14 +11,14 @@ labels:
   - "scope: test"
 assignees:
   - kamilsk
-milestone: null
+milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2022-06-07T19:01:10Z
-updatedAt: 2026-09-25T05:12:35Z
+updatedAt: 2026-10-20T07:32:47Z
 lastEditedAt: 2026-09-25T05:12:35Z
 closedAt: null
 ---

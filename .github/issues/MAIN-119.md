@@ -13,14 +13,14 @@ labels:
   - "effort: medium"
 assignees:
   - kamilsk
-milestone: null
+milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2024-01-20T19:51:39Z
-updatedAt: 2026-10-19T07:22:33Z
+updatedAt: 2026-10-20T07:31:05Z
 lastEditedAt: 2026-10-19T07:22:33Z
 closedAt: null
 ---

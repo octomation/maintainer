@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-20T07:01:14Z
+updatedAt: 2026-10-20T07:42:30Z
 closedAt: null
 ---
 
@@ -44,8 +44,6 @@ closedAt: null
 - [ ] octomation/go-service#41 — docs: readme: describe template and its purpose
 - [ ] octomation/go-service#43 — dev: add k8s
 - [ ] octomation/go-service#45 — boilerplate: bootstrap: quick usage examples and best practices
-- [ ] [[MAIN-52]] — tools: experimental: integrate slides and describe v0.1.x using it
-- [ ] [[MAIN-53]] — tools: experimental: investigate cli dashboard for GitHub
 - [ ] octomation/go-tool#23 — build: compiled feature set
 - [ ] octomation/app#1 — env: activate: add node_modules/.bin and vendor/bin to path
 - [ ] octomation/app#2 — env: editor: support editorconfig
@@ -126,7 +124,7 @@ closedAt: null
 - [ ] [[MAIN-44]] — github: contribution: refactor command and view
 - [ ] [[MAIN-45]] — github: contribution: extend support lookup for a month
 - [ ] [[MAIN-48]] — ci/cd: tools: test act for local development
-- [ ] [[MAIN-125]] — release: homebrew: retire the formula in favour of the cask
+- [ ] [[MAIN-125]] — release: homebrew: ship one formula with the service and retire the cask
 - [ ] [[MAIN-129]] — fetch: adopt: keep adoption of a pinned checkout additive
 - [ ] [[MAIN-133]] — fetch: selection: honor owners, profiles and adoption filters
 - [ ] [[MAIN-134]] — fetch: discovery: isolate repository failures and respect rate limits
@@ -136,7 +134,6 @@ closedAt: null
 
 ## In progress
 
-- [ ] [[MAIN-39]] — org: review and classify issues
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
 - [ ] [[MAIN-139]] — release: publishing: keep prereleases out of stable channels
@@ -152,6 +149,7 @@ closedAt: null
 - [x] octomation/go-module#30 — ci/cd: add new linters support from v1.46.0 and up golangci-lint to v1.46.2
 - [x] octomation/go-module#27 — ci/cd: github: investigate new apps for automation
 - [x] octomation/go-module#28 — docs: readme: describe template and its purpose
+- [x] [[MAIN-39]] — org: review and classify issues
 - [x] [[MAIN-30]] — org: prepare release v0.1.0
 - [x] octomation/breakout#1 — add openvpn alternative
 - [x] [[MAIN-6]] — issue with modules without go files on the root
@@ -365,6 +363,8 @@ closedAt: null
 - [x] octomation/go-module#39 — deps: tools: add gorename
 - [x] octomation/go-module#40 — deps: tools: add marwan-at-work/mod
 - [x] octomation/go-module#41 — deps: tools: add git-vertag
+- [x] [[MAIN-52]] — tools: experimental: integrate slides and describe v0.1.x using it
+- [x] [[MAIN-53]] — tools: experimental: investigate cli dashboard for GitHub
 - [x] [[MAIN-65]] — github: contribution: lookup has problem with timezone
 - [x] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
 - [x] octomation/go-module#47 — ci/cd: add DevSkim as security check step

@@ -10,14 +10,14 @@ labels:
   - "effort: easy"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M1]]"
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2023-11-18T09:14:11Z
-updatedAt: 2026-10-19T07:22:29Z
+updatedAt: 2026-10-20T07:31:02Z
 lastEditedAt: 2026-10-19T07:22:29Z
 closedAt: null
 ---

@@ -6,11 +6,11 @@ number: 3
 url: https://github.com/octomation/maintainer/milestone/3
 title: "Workspace, v0.2"
 state: OPEN
-openIssueCount: 8
-closedIssueCount: 6
+openIssueCount: 11
+closedIssueCount: 10
 dueOn: null
 createdAt: 2026-09-26T09:14:44Z
-updatedAt: 2026-10-20T06:25:34Z
+updatedAt: 2026-10-20T07:43:09Z
 closedAt: null
 ---
 
@@ -41,22 +41,29 @@ The milestone carries the v0.2 line: v0.2.0 and the patches after it. v0.2.0 shi
 | Documentation, help and the release note true for the release binary | `MAIN-132` |
 | The release itself | `MAIN-138` |
 
-Every other task of the list below goes into a v0.2.x patch.
+Every other task of the list below goes into a v0.2.x patch, `upstream` remotes for forks ([[MAIN-128]]) included.
 
 ### Acceptance
 
-v0.2.0: every install channel — archives, `bin/install`, `go install …@latest` and `…@v0.2.0`, Homebrew — delivers a binary with both commands, checked by `maintainer version` and `--help`; on the owner's collection `fetch --apply` preserves the local branch tips, HEAD, index, working files and push URLs of existing checkouts while refs, state and the planned paths and origins are updated, and an origin update leaves the rest of the Git configuration as it was; reconciliation converges: after at most two successful applies against unchanged inputs, the following plan contains no executable reconciliation action, only routine `fetch` and report-only rows; every claim of the guides, the help and the note holds on the release binary, and the deferred defects an ordinary user meets are named among the note's limitations; CI is green and v0.2.0 is published as the stable release, *Latest* and the tap; a failed action on one checkout does not stop the others; existing config, state and pins load unchanged. Formula and Cask are accepted separately before and after the Formula retirement ([[MAIN-125]]).
+v0.2.0: every install channel — archives, `bin/install`, `go install …@latest` and `…@v0.2.0`, Homebrew — delivers a binary with both commands, checked by `maintainer version` and `--help`; on the owner's collection `fetch --apply` preserves the local branch tips, HEAD, index, working files and push URLs of existing checkouts while refs, state and the planned paths and origins are updated, and an origin update leaves the rest of the Git configuration as it was; reconciliation converges: after at most two successful applies against unchanged inputs, the following plan contains no executable reconciliation action, only routine `fetch` and report-only rows; every claim of the guides, the help and the note holds on the release binary, and the deferred defects an ordinary user meets are named among the note's limitations; CI is green and v0.2.0 is published as the stable release, *Latest* and the tap; a failed action on one checkout does not stop the others; existing config, state and pins load unchanged.
 
-A patch: its tasks meet their criteria, the guides and the help change with the code they describe, and the configuration, state and pins of v0.2.0 load unchanged — no key that v0.2.0 accepted is rejected. Steps 2–3 of [[MAIN-125]] go out only after 2026-11-05 and once the transition is verified.
+A patch: its tasks meet their criteria, the guides and the help change with the code they describe, and the configuration, state and pins of v0.2.0 load unchanged — no key that v0.2.0 accepted is rejected. The v0.2 line publishes both the Formula and the Cask; a patch before 2026-11-05 lifts the Formula's deprecation, and one Formula with the local service comes with v0.3 ([[MAIN-M2]]).
 
 ### Out of scope
 
-A release candidate; working-tree updates (fast-forward), `upstream` remotes ([[MAIN-128]]), multiple workspaces and linked worktrees, GraphQL discovery, keychain or GitHub App auth, mirror push, submodules and LFS, a fetch TUI, cron mode, a vault transaction journal, the contribution leftovers of milestone 1.
+A release candidate; working-tree updates (fast-forward), multiple workspaces and linked worktrees, GraphQL discovery, keychain or GitHub App auth, mirror push, submodules and LFS, a fetch TUI, cron mode, a vault transaction journal, the contribution leftovers of milestone 1.
 
 ## Issues
 
-- [ ] [[MAIN-125]] — release: homebrew: retire the formula in favour of the cask
+- [ ] [[MAIN-19]] — transition entity
+- [x] [[MAIN-39]] — org: review and classify issues
+- [ ] [[MAIN-48]] — ci/cd: tools: test act for local development
+- [x] [[MAIN-92]] — github: setup: add command to manage all available projects and repositories
+- [ ] [[MAIN-116]] — maintainance: sync with the go-tool template
+- [x] [[MAIN-123]] — fetch: prevent destructive clone reconciliation for occupied targets
+- [x] [[MAIN-124]] — fetch: treat an empty upstream as a successful no-op
 - [x] [[MAIN-127]] — ci/cd: verification: restore reliable CI and local gates
+- [ ] [[MAIN-128]] — fetch: remotes: configure upstream for forks and check remote consistency
 - [ ] [[MAIN-129]] — fetch: adopt: keep adoption of a pinned checkout additive
 - [x] [[MAIN-130]] — status: inspection: detect renames the same way in every count
 - [ ] [[MAIN-131]] — command: exit codes: enforce the documented codes for usage errors
@@ -79,3 +86,4 @@ A release candidate; working-tree updates (fast-forward), `upstream` remotes ([[
 - [ ] [[MAIN-148]] — fetch: clone: do not adopt an interrupted clone as a checkout
 - [ ] [[MAIN-149]] — fetch: config: reject unknown keys and keep a CUE schema next to the config
 - [ ] [[MAIN-150]] — fetch: identity: preserve checkout identity through repository changes
+- [ ] [[MAIN-152]] — release: homebrew: keep the Formula without a deprecation

@@ -18,13 +18,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2022-06-11T09:59:51Z
-updatedAt: 2026-09-25T05:12:38Z
+updatedAt: 2026-10-20T07:40:36Z
 lastEditedAt: 2026-09-25T05:12:37Z
-closedAt: null
+closedAt: 2026-10-20T07:40:36Z
 ---
 
 # tools: experimental: integrate slides and describe v0.1.x using it
@@ -46,4 +46,8 @@ The experiment is ready when the presentation can be reproduced and its examples
 
 <!-- 2023-04-01T14:07Z https://github.com/octomation/maintainer/issues/52#issuecomment-1492980304
 Add `howto` command.
+-->
+
+<!-- 2026-10-20T07:40Z https://github.com/octomation/maintainer/issues/52#issuecomment-6285947099
+Closing as not planned. The goal was a changelog that tells a release as a scenario rather than a list of commands, and the site does that now: the v0.1.0 note walks from `lookup` to dating a commit with `suggest`, the v0.2.0 note describes the weekly `status`/`fetch` loop, and the contribution and workspace guides carry the end-to-end paths with examples checked against the CLI. A separate terminal-slides format for the closed v0.1.x series would duplicate that; the `howto` idea from the comments is served by the guides and the command help.
 -->

@@ -10,14 +10,14 @@ labels:
   - "scope: code"
 assignees:
   - kamilsk
-milestone: null
+milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2022-05-13T18:31:22Z
-updatedAt: 2026-09-25T05:11:57Z
+updatedAt: 2026-10-20T07:32:23Z
 lastEditedAt: 2026-09-25T05:11:57Z
 closedAt: 2022-05-13T19:12:20Z
 ---

@@ -12,16 +12,16 @@ labels:
   - "scope: test"
 assignees:
   - kamilsk
-milestone: null
+milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2022-06-11T10:02:54Z
-updatedAt: 2026-10-19T07:22:48Z
+updatedAt: 2026-10-20T07:40:42Z
 lastEditedAt: 2026-10-19T07:22:48Z
-closedAt: null
+closedAt: 2026-10-20T07:40:42Z
 ---
 
 # tools: experimental: investigate cli dashboard for GitHub
@@ -35,3 +35,7 @@ The research must answer whether this scenario can be embedded into the `gh` env
 The local checkout-status table of [`maintainer status`](https://maintainer.octolab.org/status/) serves a different scenario and should not be folded into this experiment automatically.
 
 Related: [[MAIN-91]].
+
+<!-- 2026-10-20T07:40Z https://github.com/octomation/maintainer/issues/53#issuecomment-6285948488
+Closing as not planned following the Hub milestone's choice of a local web interface for repositories and tasks. The planned interface runs locally through `brew services`, with GitHub synchronization in v0.3 and other trackers later; #456 covers distributing the CLI and the service together. This replaces the proposed terminal dashboard as the product direction, without implying that a contribution-calendar page is already implemented or committed. GitHub CLI extension distribution remains a separate experiment in #97, and `maintainer status` continues to address local checkout inspection.
+-->

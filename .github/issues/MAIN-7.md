@@ -10,14 +10,14 @@ labels:
   - "help wanted"
 assignees:
   - kamilsk
-milestone: null
+milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2021-02-18T13:41:46Z
-updatedAt: 2026-09-25T05:13:24Z
+updatedAt: 2026-10-20T07:33:12Z
 lastEditedAt: 2026-09-25T05:13:24Z
 closedAt: 2021-03-05T19:07:21Z
 ---

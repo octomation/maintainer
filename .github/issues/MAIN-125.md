@@ -4,7 +4,7 @@ id: I_kwDOE2M9Zc8AAAABTIUv1A
 databaseId: 5578764244
 number: 456
 url: https://github.com/octomation/maintainer/issues/456
-title: "release: homebrew: retire the formula in favour of the cask"
+title: "release: homebrew: ship one formula with the service and retire the cask"
 issueType: null
 labels:
   - "type: improvement"
@@ -12,38 +12,43 @@ labels:
   - "effort: easy"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M3]]"
+milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2026-09-25T05:49:59Z
-updatedAt: 2026-10-19T16:12:10Z
-lastEditedAt: null
+updatedAt: 2026-10-20T07:31:20Z
+lastEditedAt: 2026-10-20T07:31:20Z
 closedAt: null
 ---
 
-# release: homebrew: retire the formula in favour of the cask
+# release: homebrew: ship one formula with the service and retire the cask
 
-Distribute maintainer through Homebrew as a cask only. GoReleaser deprecates `brews`, and a formula and a cask of the same name compete for one binary link, a conflict Homebrew cannot declare: a cask's `conflicts_with` accepts only casks, and a formula's only formulae.
+Distribute maintainer through Homebrew as one Formula that carries the CLI, its shell completions and the `brew services` definition of `maintainer service run` ([[MAIN-151]]), as indexit does. The CLI and the service are one binary and upgrade together; a separate formula for the service alone is not an option. `brew services` manages formulae only: a cask has no launchd stanza, and GoReleaser's `homebrew_casks.service` is a macOS Services item, not a launchd job. The only GoReleaser generator of a Formula is `brews`: deprecated, but supported until GoReleaser v3. The Cask, which v0.2.x publishes next to the Formula ([[MAIN-152]]), is retired.
 
-The transition, in three steps:
+The transition, in two steps:
 
-1. Publish both. The formula carries a caveat and
+1. v0.3.0 publishes the Formula through `brews` with `install`, `service`, `caveats` and `test`, still without the `deprecate!` that [[MAIN-152]] lifts. `homebrew_casks` leaves `.goreleaser.yml`, so the Cask stays at its last v0.2.x. `make release-config-check` keeps accepting exactly the `brews` deprecation.
+2. Once that release is out, a separate reviewed change in octolab/homebrew-tap deletes `Casks/maintainer.rb`; GoReleaser does not delete the old Cask. The Cask has no users besides the maintainer, who moves by hand, as the service guide describes:
 
-   ```ruby
-   deprecate! date: "2026-11-05", because: "is replaced by the cask", replacement_cask: "maintainer"
+   ```sh
+   brew uninstall --cask maintainer && brew install --formula octolab/tap/maintainer
    ```
 
-   The cask's `preflight_steps` warn when the formula owns the binary link and clear the quarantine attribute before the completions run the unsigned binary.
-2. Retire the formula after the grace period: replace `deprecate!` with `disable!`, add `tap_migrations.json` with `{"maintainer": "maintainer"}` to octolab/homebrew-tap so that `brew upgrade` moves formula users to the cask, and delete `Formula/maintainer.rb`.
-3. Remove `brews` from `.goreleaser.yml` and the accepted `brews` deprecation from `.github/scripts/goreleaser-check.mjs`; update the README, the documentation site and the workflows guide.
+Formula users get the new Formula with `brew upgrade`; nothing else changes for them.
 
-Expected: `brew upgrade` on a machine with the formula ends with the cask installed, linked and with completions; `make release-config-check` accepts no deprecation.
+Expected: `brew services` runs the local service from the same Formula as the CLI; after the move, the maintainer's machine has the Formula installed and linked, with completions, and no Cask; `make release-config-check` accepts the `brews` deprecation and nothing else.
 
-To confirm along the way: the first release that publishes both lands `Formula/maintainer.rb` and `Casks/maintainer.rb` in the tap, although GoReleaser warns that an artifact named `maintainer.rb` is already present; the cask installs on Linux.
+## Acceptance criteria
 
-Out of scope: signing and notarizing the macOS binary.
+- [ ] `make go-dist-check` generates `Formula/maintainer.rb` with `service do` running `maintainer service run`, caveats that name `http://maintainer.localhost:17841/` and `brew services start octolab/tap/maintainer`, and no `deprecate!`; no Cask is generated.
+- [ ] `make release-config-check` passes with the `brews` deprecation and fails on any other deprecation or an invalid config.
+- [ ] After the release, on a Mac with a v0.2.x Formula, `brew upgrade` installs the new Formula, and after `brew services start octolab/tap/maintainer` the service answers at `http://maintainer.localhost:17841/`.
+- [ ] On a Mac with a v0.2.x Cask, the manual move ends with the Formula linked, with completions, and no Cask; `Casks/maintainer.rb` is gone from the tap.
+- [ ] README, Get started, the service guide, AGENTS.md and the workflows guide install and upgrade through the Formula, and name the Cask only for the move; the published v0.2.0 note stays as it is.
 
-Related: [[MAIN-30]], [GoReleaser: brews deprecation](https://goreleaser.com/deprecations/#brews), [Homebrew: deprecating and disabling](https://docs.brew.sh/Deprecating-Disabling-and-Removing).
+Out of scope: signing and notarizing the macOS binary; a Linux service; keeping prereleases out of the tap ([[MAIN-139]]).
+
+Related: [[MAIN-30]], [[MAIN-151]], [[MAIN-152]], [GoReleaser: brews deprecation](https://goreleaser.com/deprecations/#brews), [Homebrew: deprecating and disabling](https://docs.brew.sh/Deprecating-Disabling-and-Removing).
