@@ -55,6 +55,9 @@ jobs:
 
       - name: Check git state
         run: make go-tools-tidy generate git-check
+      # before the scan: a tool advisory without a fix must not hide stale pins
+      - name: Check tool pins
+        run: make tool-pins-check
       - name: Check tools
         run: make go-tools-check
 

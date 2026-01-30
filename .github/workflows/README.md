@@ -83,7 +83,7 @@ Do not dispatch the cleanups to try them out: they delete data.
 flowchart LR
   lint[lint: golangci-lint]
   test[test: vet and format, tidy modules, tests, coverage, install check] --> report[report: Codecov via OIDC]
-  vulns[vulns: release helpers, settings, goreleaser config, application vulnerabilities, generated code]
+  vulns[vulns: tool pins, release helpers, settings, goreleaser config, application vulnerabilities, generated code]
   lint & test & report & vulns --> notify[notify]
 ```
 
@@ -165,7 +165,8 @@ flowchart LR
   `release.mjs`, `Taskfile`, `bin/lib/` or the notify action; monthly;
   manually; as a reusable workflow.
 - On main, `BASE_PATH` and `SITE_URL` come from the Pages configuration; PR
-  previews take them from `.github/settings.json` and need no Pages access.
+  previews take them from `.github/settings.json` (`release.mjs site-env`)
+  and need no Pages access.
 - No `CNAME` file is needed: a custom domain is set in Settings → Pages and
   declared as `pages.cname` in `.github/settings.json`; the build stops while
   they disagree. The domain is baked into the build, so rebuild after changing
@@ -182,11 +183,18 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  install[make tools, one binary per tool directive] --> tidy[go-tools-tidy, generate, git-check] --> check[go-tools-check: verify, govulncheck tool] --> notify[notify]
+  install[make tools, one binary per tool directive] --> tidy[go-tools-tidy, generate, git-check] --> pins[tool-pins-check] --> check[go-tools-check: verify, govulncheck tool] --> notify[notify]
 ```
 
 - Runs on PRs and pushes to main that touch `tools/**.go`, `tools/go.mod`,
   `tools/go.sum`, the `Makefile` or the workflow itself; monthly; manually.
+- `make tool-pins-check` catches what `make go-tools-update` leaves behind:
+  the golangci-lint and goreleaser versions that ci, cd and warmup pass to
+  their actions must be the ones `tools/go.mod` requires; the Go versions in
+  `tools/go.mod`, the workflows, `GO_VERSIONS` of the `Makefile` and "Go X.Y
+  or newer" in the docs must be on the Go line of `go.mod`; the workflows
+  must agree on Node.js. It runs here before the scan, in ci `vulns` and in
+  the doctor.
 - The vulnerability scan of the tools fails only this workflow, never CI or a
   release; see [tools/README.md](../../tools/README.md).
 
@@ -196,7 +204,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  doctor[compare with GitHub: default branch, workflows, Pages, site smoke test, go.octolab.org imports, secrets, goreleaser config] --> preflight[check release secrets] --> token[mint the tap token]
+  doctor[compare with GitHub: default branch, workflows, Pages, site smoke test, go.octolab.org imports, secrets, tool pins, goreleaser config] --> preflight[check release secrets] --> token[mint the tap token]
 ```
 
 - Daily and manual: a Pages domain change triggers no workflow, so a site

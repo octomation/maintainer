@@ -1,20 +1,32 @@
-#!/usr/bin/env node
-// GoReleaser 2.18.2 exits 2 for a valid config with deprecated properties.
-// Keep only the intentional brews warning non-blocking while publishing both
-// Formula and Cask. Invalid config (exit 1) and other deprecations still fail.
 import { spawnSync } from 'node:child_process'
+import { pathToFileURL } from 'node:url'
 
-const result = spawnSync('goreleaser', ['check'], { encoding: 'utf8' })
-if (result.error) {
-  console.error(result.error.message)
-  process.exit(result.error.code === 'ENOENT' ? 127 : 1)
+// GoReleaser v2.18.2 still generates a Formula only through brews, but check
+// exits 2 for it. Accept only this deliberate exception, never arbitrary
+// validation failures.
+export function acceptedBrewsDeprecation(status, output) {
+  const plain = output.replace(/\x1b\[[0-9;]*m/g, '')
+  const warnings = plain.split('\n').filter(line => line.includes('DEPRECATED:'))
+  return status === 2
+    && plain.includes('configuration is valid, but uses deprecated properties')
+    && warnings.length === 1
+    && /DEPRECATED:\s+brews\s+should not be used anymore/.test(warnings[0])
+    && /error=1 out of 1 configuration file\(s\) have issues/.test(plain)
 }
-process.stdout.write(result.stdout)
-process.stderr.write(result.stderr)
-const output = `${result.stdout}\n${result.stderr}`.replace(/\x1b\[[0-9;]*m/g, '')
-const deprecated = [...output.matchAll(/DEPRECATED:\s+(\S+)/g)].map((match) => match[1])
-if (result.status === 2 && deprecated.length > 0 && deprecated.every((key) => key === 'brews')) {
-  console.log('Accepted brews deprecation: Formula and Cask are intentionally published together.')
-  process.exit(0)
+
+export function checkGoreleaser(env = process.env) {
+  const result = spawnSync('goreleaser', ['check', '.goreleaser.yml'], {
+    encoding: 'utf8', env,
+  })
+  if (result.error) throw result.error
+  const output = (result.stdout || '') + (result.stderr || '')
+  const accepted = acceptedBrewsDeprecation(result.status, output)
+  return { ok: result.status === 0 || accepted, accepted, output }
 }
-process.exit(result.status ?? 1)
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const result = checkGoreleaser()
+  process.stdout.write(result.output)
+  if (result.accepted) console.log('Accepted: brews is required to publish the Formula.')
+  process.exitCode = result.ok ? 0 : 1
+}

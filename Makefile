@@ -32,7 +32,8 @@ make-verbose:
 .PHONY: make-verbose
 
 COMMIT  := $(shell git rev-parse --short --verify HEAD)
-RELEASE := $(shell git describe --tags 2>/dev/null | rev | cut -d - -f3- | rev)
+# Only a tagged commit represents a release; a build between tags is dev.
+RELEASE := $(shell git describe --tags --exact-match 2>/dev/null || printf dev)
 
 git-config:
 	$(AT) git config core.autocrlf input
@@ -205,7 +206,7 @@ go-lint:
 .PHONY: go-lint
 
 go-pkg:
-	$(AT) open https://pkg.go.dev/$(MODULE)@$(RELEASE)
+	$(AT) open https://pkg.go.dev/$(MODULE)$(if $(filter dev,$(RELEASE)),,@$(RELEASE))
 .PHONY: go-pkg
 
 go-check:
@@ -314,12 +315,17 @@ config-vet:
 	$(AT) cue vet -c .github/settings.cue .github/settings.json
 .PHONY: config-vet
 
+# the tool versions the workflows pin follow tools/go.mod, the Go versions go.mod
+tool-pins-check:
+	$(AT) node .github/scripts/tool-pins-check.mjs
+.PHONY: tool-pins-check
+
 doctor:
 	$(AT) node .github/scripts/release.mjs doctor
 .PHONY: doctor
 
 # runs the doctor workflow on main and waits for its result: unlike doctor, it
-# mints the tap token of the OctoLab Releaser App, which proves it can publish
+# mints the tap and catalog tokens, which proves the App can publish
 workflow-doctor:
 	$(AT) last() { gh run list -w doctor.yml -e workflow_dispatch -L 1 --json databaseId -q '.[0].databaseId'; }; \
 	prev="$$(last)"; \

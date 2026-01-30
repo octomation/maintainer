@@ -7,12 +7,14 @@
 //   release.mjs preflight                                    (CI: required secrets are present; outputs the tap)
 //   release.mjs doctor                                       (on demand: config vs GitHub, with remediation)
 //   release.mjs pages  <base-url>                            (CI: the Pages URL matches settings.json pages)
+//   release.mjs site-env                                     (CI: SITE_URL and BASE_PATH of a preview, from settings.json pages)
 //   release.mjs smoke  <site-url> [--retries <n>]            (CI: the deployed site serves pages and assets)
 //   release.mjs vanity                                       (vanity imports in go.mod resolve over verified HTTPS)
 //   release.mjs signature <tag>                              (CI: GitHub verifies the tag's signature)
 
 import { execFileSync } from 'node:child_process'
 import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { checkGoreleaser } from './goreleaser-check.mjs'
 
 const SETTINGS = '.github/settings.json'
 const DEFAULTS = {
@@ -498,16 +500,23 @@ async function doctor() {
     else fail(`secret ${name} is missing; ${secretGuide(name, t)}`)
   }
 
+  // imported here, so the other modes run without it, as in the hook tests
+  const { toolPins } = await import('./tool-pins-check.mjs')
+  const pins = toolPins()
+  pins.errors.forEach((e) => fail(`tool pin ${e}; align it, then run: make tool-pins-check`))
+  if (!pins.errors.length) ok(`tool pins follow tools/go.mod and go.mod: ${pins.summary}`)
+
   // make tools installs into bin/<os>/<arch>, named as Go names them
   const arch = { x64: 'amd64', ia32: '386' }[process.arch] || process.arch
   const hostArch = execFileSync('uname', ['-m'], { encoding: 'utf8' }).trim()
   const goreleaser = [`bin/${process.platform}/${hostArch}`, `bin/${process.platform}/${arch}`, ...(process.env.PATH || '').split(':')]
   try {
-    execFileSync(process.execPath, ['.github/scripts/goreleaser-check.mjs'], { stdio: 'ignore', env: { ...process.env, PATH: goreleaser.join(':') } })
-    ok('goreleaser check')
+    const result = checkGoreleaser({ ...process.env, PATH: goreleaser.join(':') })
+    if (result.ok) ok(result.accepted ? 'goreleaser check (accepted brews deprecation)' : 'goreleaser check')
+    else fail('goreleaser check failed; run: make release-config-check')
   } catch (e) {
-    if (e.code === 'ENOENT' || e.status === 127) skip('goreleaser is not installed; run: make tools')
-    else fail('GoReleaser config check failed; run: make release-config-check')
+    if (e.code === 'ENOENT') skip('goreleaser is not installed; run: make tools')
+    else fail('goreleaser check failed; run: make release-config-check')
   }
   return report
 }
@@ -567,7 +576,7 @@ try {
       process.exit(errors.length ? 1 : 0)
     }
     default:
-      console.error('usage: release.mjs check|render|preflight|doctor|pages|smoke|vanity|signature ...')
+      console.error('usage: release.mjs check|render|preflight|doctor|pages|site-env|smoke|vanity|signature ...')
       process.exit(2)
   }
 } catch (e) {

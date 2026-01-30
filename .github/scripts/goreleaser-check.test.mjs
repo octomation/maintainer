@@ -1,25 +1,17 @@
+import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { spawnSync } from 'node:child_process'
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
-import { tmpdir } from 'node:os'
-import { join, resolve } from 'node:path'
-import test from 'node:test'
+import { acceptedBrewsDeprecation } from './goreleaser-check.mjs'
 
-const script = resolve('.github/scripts/goreleaser-check.mjs')
-test('config validation permits only the intentional brews deprecation', () => {
-  const cwd = mkdtempSync(join(tmpdir(), 'maintainer-goreleaser-'))
-  try {
-    const executable = join(cwd, 'goreleaser')
-    writeFileSync(executable, '#!/bin/sh\nprintf "%s\n" "$CHECK_OUTPUT" >&2\nexit "$CHECK_STATUS"\n')
-    chmodSync(executable, 0o755)
-    const run = (status, output) => spawnSync(process.execPath, [script], {
-      cwd, encoding: 'utf8',
-      env: { ...process.env, PATH: `${cwd}:${process.env.PATH}`, CHECK_STATUS: String(status), CHECK_OUTPUT: output },
-    }).status
-    assert.equal(run(0, 'configuration valid'), 0)
-    assert.equal(run(2, 'DEPRECATED:  brews should not be used anymore'), 0)
-    assert.equal(run(1, 'DEPRECATED:  brews\nconfiguration is invalid'), 1)
-    assert.equal(run(2, 'DEPRECATED:  brews\nDEPRECATED:  another_property'), 2)
-    assert.equal(run(2, 'unrecognized failure'), 2)
-  } finally { rmSync(cwd, { recursive: true, force: true }) }
+const output = `  • DEPRECATED:  brews  should not be used anymore
+  • .goreleaser.yml error=configuration is valid, but uses deprecated properties
+  ⨯ check failed error=1 out of 1 configuration file(s) have issues`
+
+test('accepts the deliberate brews deprecation only', () => {
+  assert.equal(acceptedBrewsDeprecation(2, output), true)
+  assert.equal(acceptedBrewsDeprecation(1, output), false)
+  assert.equal(acceptedBrewsDeprecation(null, output), false)
+  assert.equal(acceptedBrewsDeprecation(2, output.replace('brews ', 'archives.format ')), false)
+  assert.equal(acceptedBrewsDeprecation(2, output + '\nDEPRECATED: another setting'), false)
+  assert.equal(acceptedBrewsDeprecation(2, 'yaml: unknown field'), false)
+  assert.equal(acceptedBrewsDeprecation(2, output.replace('configuration is valid,', 'configuration is invalid,')), false)
 })

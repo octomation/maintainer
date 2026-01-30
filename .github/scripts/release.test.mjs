@@ -158,6 +158,8 @@ test('local release preparation precedes the branch push; CI still requires the 
 test('pre-push checks annotated tags and destination branches, deletions and tag-only pushes', () => releaseFixture(({ cwd, git, sha, base }) => {
   mkdirSync(join(cwd, '.github/scripts'))
   copyFileSync(script, join(cwd, '.github/scripts/release.mjs'))
+  // release.mjs imports the GoReleaser check that accepts the brews deprecation
+  copyFileSync(resolve('.github/scripts/goreleaser-check.mjs'), join(cwd, '.github/scripts/goreleaser-check.mjs'))
   mkdirSync(join(cwd, 'test-bin'))
   const makeLog = join(cwd, 'make.log')
   writeFileSync(join(cwd, 'test-bin/make'), '#!/bin/sh\nprintf "%s\n" "$*" >> "$MAKE_LOG"\n')

@@ -105,7 +105,9 @@ jobs:
 
       - name: Install tools for release checks
         run: make tools
-      - name: Run fast check and tests
+      - name: Check GoReleaser configuration policy
+        run: node --test .github/scripts/goreleaser-check.test.mjs
+      - name: Run the release checks and tests
         run: make release-verify test
       - name: Publish the release
         uses: goreleaser/goreleaser-action@v7.3.0
