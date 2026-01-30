@@ -197,7 +197,7 @@ func localValues(path, key string) ([]string, error) {
 // would redirect the command to another repository or file are dropped.
 func localConfig(path string, args ...string) (string, error) {
 	argv := append([]string{"--git-dir", filepath.Join(path, ".git"), "config", "--local"}, args...)
-	cmd := exec.Command("git", argv...)
+	cmd := exec.Command("git", argv...) //nolint:noctx // the GitSync port takes no context; git config is a short local call
 	for _, env := range os.Environ() {
 		key, _, _ := strings.Cut(env, "=")
 		switch key {

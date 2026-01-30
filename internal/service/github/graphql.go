@@ -39,7 +39,7 @@ func (srv *Service) queryGraphQL(
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := srv.client.Client().Do(req)
+	resp, err := srv.client.Client().Do(req) //nolint:bodyclose // safe.Close closes it below
 	if err != nil {
 		return fmt.Errorf("send graphql request: %w", err)
 	}

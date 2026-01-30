@@ -21,7 +21,7 @@ func Compile(source, owner string) (*Pattern, error) {
 		return nil, err
 	}
 	var expression strings.Builder
-	for _, node := range t.Tree.Root.Nodes {
+	for _, node := range t.Root.Nodes {
 		switch n := node.(type) {
 		case *parse.TextNode:
 			expression.WriteString(regexp.QuoteMeta(string(n.Text)))
@@ -49,9 +49,10 @@ func Compile(source, owner string) (*Pattern, error) {
 				expression.WriteString("\x00")
 			} else {
 				for i, value := range values {
-					if transform == "lower" {
+					switch transform {
+					case "lower":
 						value = strings.ToLower(value)
-					} else if transform == "upper" {
+					case "upper":
 						value = strings.ToUpper(value)
 					}
 					values[i] = regexp.QuoteMeta(value)

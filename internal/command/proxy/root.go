@@ -14,7 +14,7 @@ func New() []*cobra.Command {
 		Short: "compare files line by line",
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			proxy := exec.Command("diff", args...)
+			proxy := exec.CommandContext(cmd.Context(), "diff", args...)
 			proxy.Env = os.Environ()
 			proxy.Stdin = cmd.InOrStdin()
 			proxy.Stdout = cmd.OutOrStdout()

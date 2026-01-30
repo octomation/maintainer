@@ -48,8 +48,8 @@ func TestTool_Load(t *testing.T) {
 
 		var cnf Tool
 		require.NoError(t, cnf.Load(fs))
-		assert.Equal(t, Get(vars, envGitRemote), cnf.Git.Remote)
-		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.GitHub.Token)
+		assert.Equal(t, Get(vars, envGitRemote), cnf.Remote)
+		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.Token)
 	})
 
 	t.Run("load from env", func(t *testing.T) {
@@ -63,8 +63,8 @@ func TestTool_Load(t *testing.T) {
 
 		var cnf Tool
 		require.NoError(t, cnf.Load(afero.NewMemMapFs(), bindings...))
-		assert.Equal(t, Get(vars, envGitRemote), cnf.Git.Remote)
-		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.GitHub.Token)
+		assert.Equal(t, Get(vars, envGitRemote), cnf.Remote)
+		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.Token)
 	})
 
 	t.Run("load from flags", func(t *testing.T) {
@@ -82,7 +82,7 @@ func TestTool_Load(t *testing.T) {
 			fmt.Sprintf("--token=%s", Get(vars, envGithubToken)),
 		}))
 		require.NoError(t, cnf.Load(afero.NewMemMapFs(), bindings...))
-		assert.Equal(t, Get(vars, envGitRemote), cnf.Git.Remote)
-		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.GitHub.Token)
+		assert.Equal(t, Get(vars, envGitRemote), cnf.Remote)
+		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.Token)
 	})
 }

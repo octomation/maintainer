@@ -201,7 +201,7 @@ go-generate:
 #
 # For more experience see https://jqplay.org, https://stedolan.github.io/jq/.
 go-lint:
-	$(AT) golangci-lint run --fast-only ./...
+	$(AT) golangci-lint run ./...
 .PHONY: go-lint
 
 go-pkg:

@@ -42,14 +42,15 @@ func New(cnf *config.Fetch, root, home string) (*Scope, error) {
 			return nil, fmt.Errorf("workspace.pins must contain nonempty literal paths")
 		}
 		path := raw
-		if raw == "~" || strings.HasPrefix(raw, "~/") {
+		switch {
+		case raw == "~" || strings.HasPrefix(raw, "~/"):
 			if home == "" {
 				return nil, fmt.Errorf("cannot expand pin %q without home", raw)
 			}
 			path = filepath.Join(home, strings.TrimPrefix(raw, "~"))
-		} else if strings.HasPrefix(raw, "~") {
+		case strings.HasPrefix(raw, "~"):
 			return nil, fmt.Errorf("unsupported pin path %q", raw)
-		} else if !filepath.IsAbs(raw) {
+		case !filepath.IsAbs(raw):
 			path = filepath.Join(root, raw)
 		}
 		s.pins = append(s.pins, filepath.Clean(path))

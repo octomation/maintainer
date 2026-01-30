@@ -114,7 +114,7 @@ func TestPathResolver_OverridePrecedence(t *testing.T) {
 			{Match: config.RepoMatch{ID: 1}, Path: "~/Code/special"},
 		},
 	}
-	cnf.Validate() // applies nothing but exercises the validator
+	require.NoError(t, cnf.Validate()) // applies nothing but exercises the validator
 	r, err := NewPathRenderer(cnf.Defaults.Root, home, cwd)
 	require.NoError(t, err)
 	resolver := NewPathResolver(cnf, r)

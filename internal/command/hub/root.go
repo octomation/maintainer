@@ -24,7 +24,7 @@ func New(cnf *config.Tool) *cobra.Command {
 			client, _ := github.NewClient(github.WithHTTPClient(http.TokenSourcedClient(cmd.Context(), cnf.Token)))
 
 			opt := new(github.ListAllIssuesOptions)
-			opt.ListOptions.PerPage = 100
+			opt.PerPage = 100
 
 			f, err := os.Create("bin/github.issues.json")
 			if err != nil {

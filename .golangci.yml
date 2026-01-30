@@ -1,5 +1,4 @@
 version: "2"
-# The workflow preserves the old linters.fast setting with --fast-only.
 linters:
   enable:
     - bodyclose

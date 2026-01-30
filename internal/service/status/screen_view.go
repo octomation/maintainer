@@ -94,11 +94,12 @@ func (m *screen) View() tea.View {
 		}
 		text := line(strings.Join(values, " │ "))
 		text += strings.Repeat(" ", max(0, min(width, m.tableWidth())-ansi.StringWidth(text)))
-		if index == m.selection.Index {
+		switch {
+		case index == m.selection.Index:
 			text = selected.Render(text)
-		} else if row.Error != "" {
+		case row.Error != "":
 			text = lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4444")).Render(text)
-		} else if row.OrphanReason != "" {
+		case row.OrphanReason != "":
 			text = lipgloss.NewStyle().Foreground(lipgloss.Color("#F59E0B")).Render(text)
 		}
 		content = append(content, text)

@@ -74,7 +74,7 @@ func Issue(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 
 		// Create GitHub client
 		var opts []github.ClientOptionsFunc
-		token := string(cnf.GitHub.Token)
+		token := string(cnf.Token)
 		if token != "" {
 			ts := oauth2.StaticTokenSource(
 				&oauth2.Token{AccessToken: token},

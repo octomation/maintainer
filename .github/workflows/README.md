@@ -81,7 +81,7 @@ Do not dispatch the cleanups to try them out: they delete data.
 
 ```mermaid
 flowchart LR
-  lint[lint: golangci-lint --fast-only]
+  lint[lint: golangci-lint]
   test[test: vet and format, tidy modules, tests, coverage, install check] --> report[report: Codecov via OIDC]
   vulns[vulns: release helpers, settings, goreleaser config, application vulnerabilities, generated code]
   lint & test & report & vulns --> notify[notify]
