@@ -45,6 +45,7 @@ func main() {
 	root.AddCommand(
 		cobra.NewVersionCommand(version, date, commit, config.Features...),
 	)
+	command.EnforceUsage(root)
 
 	safe.Do(func() error { return root.ExecuteContext(ctx) }, shutdown)
 }

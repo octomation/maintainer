@@ -85,6 +85,7 @@ maintainer github contribution histogram --with-zero 2026-09-25
 ## Useful boundaries
 
 - A GitHub token is required when reading the live calendar, even for a public profile. The CLI queries the token owner's calendar rather than taking a username.
+- An input error exits with `2` before any request: an unknown subcommand or flag, an argument outside the command's grammar or in the future, or a missing token.
 - `snapshot` takes one year, while `histogram` accepts year, month, or day. `lookup` and `suggest` accept date anchors and week spans.
 - The `suggest` schedule is fixed at 05:00–19:00 UTC.
 - Use `maintainer github contribution <command> --help` for the grammar and examples of each command.

@@ -303,8 +303,8 @@ as `<root>/…` and collapses routine fetches into the summary.
 | `--owner <name>…`       | all     | discover new repositories of these owners only   |
 | `--token <token>`      | resolved | token override for the first/default profile   |
 | `--format human\|json`  | human   | plan output (logs always go to stderr)           |
-| `--concurrency <n>`     | `0`     | positive parallel discovery/clone/fetch cap; `0` or a negative value uses config (default `4`) |
-| `--timeout <dur>`       | `0`     | wall-clock budget                                |
+| `--concurrency <n>`     | `0`     | positive parallel discovery/clone/fetch cap; `0` uses config (default `4`) |
+| `--timeout <dur>`       | `0`     | wall-clock budget; `0` is unlimited              |
 | `-v`, `--verbose`       | `0`     | repeat to increase verbosity (`-vv`, `-vvv`)     |
 | `-q`, `--quiet`         | off     | suppress routine progress; mutually exclusive with verbose |
 | `-h`, `--help`          |         | show command help                               |
@@ -313,13 +313,14 @@ as `<root>/…` and collapses routine fetches into the summary.
 | --- | --- |
 | `0` | Plan rendered successfully, or apply completed without action failures/conflicts |
 | `1` | Transport, Git, state or output error |
-| `2` | Bad config, missing token or owner, or lock contention |
+| `2` | Usage error, bad config, missing token or owner, or lock contention |
 | `3` | Apply finished with at least one per-repo failure or unresolved conflict |
 
-An unknown flag, a flag value that does not parse, such as `--timeout=soon`,
-or an unexpected argument exits `1`. A mistyped subcommand of `fetch config` or
-`fetch state` prints the help and exits `0`, and an unknown `--format` value
-falls back to the human output.
+A usage error stops the command before any request, names its cause in
+stderr and exits `2`: an unknown subcommand, such as `fetch state shwo`, an
+unknown flag, a flag value that does not parse, such as `--timeout=soon`, a
+negative `--concurrency` or `--timeout`, an unknown `--format`, or an
+unexpected argument.
 
 A successfully rendered plan exits `0` even when it contains conflicts. For
 automation, inspect `summary.conflict` as well as the exit code.

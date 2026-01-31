@@ -10,6 +10,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/command/github/view"
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
@@ -39,14 +40,19 @@ made by snapshot. Two files need no token; a year does:
 	}
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		// input validation: a year or a snapshot file, a year needs GitHub data
+		now := time.Now()
 		years := make(map[int]time.Time, len(args))
 		for i, input := range args {
 			if !isYear.MatchString(input) {
 				continue
 			}
+			// a year has the bounds of snapshot, checked before any request
+			if _, err := SnapshotScope([]string{input}, now); err != nil {
+				return exit.WithUser(err)
+			}
 			year, err := time.Parse(xtime.YearOnly, input)
 			if err != nil {
-				return wrap(err, input)
+				return exit.WithUser(wrap(err, input))
 			}
 			years[i] = year
 		}
@@ -54,7 +60,7 @@ made by snapshot. Two files need no token; a year does:
 		var service *github.Service
 		if len(years) > 0 {
 			if err := RequireToken(cnf); err != nil {
-				return err
+				return exit.WithUser(err)
 			}
 			service = github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 		}

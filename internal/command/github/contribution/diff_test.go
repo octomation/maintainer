@@ -16,6 +16,8 @@ import (
 
 	. "go.octolab.org/toolset/maintainer/internal/command/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/config"
+	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
+	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
 func TestDiff(t *testing.T) {
@@ -121,7 +123,8 @@ func (rt forbidden) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // TestCommands_NoToken runs the commands that need GitHub data without
-// a token: they fail before any request and name both ways to pass it.
+// a token: they fail with a user input error before any request and name
+// both ways to pass it.
 func TestCommands_NoToken(t *testing.T) {
 	type command = func(*cobra.Command, *config.Tool) *cobra.Command
 
@@ -154,6 +157,46 @@ func TestCommands_NoToken(t *testing.T) {
 			assert.Contains(t, err.Error(), "GITHUB_TOKEN")
 			assert.Contains(t, err.Error(), "--token")
 			assert.Empty(t, stdout.String())
+			var coder exit.Coder
+			require.ErrorAs(t, err, &coder)
+			assert.Equal(t, exit.User, coder.ExitCode())
+		})
+	}
+}
+
+// TestDiff_InvalidYears runs diff with a token and a year out of bounds on
+// either side: it fails with a user input error before any request.
+func TestDiff_InvalidYears(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	require.NoError(t, afero.WriteFile(fs, "a.json", []byte(`{"2022-01-01T00:00:00Z":1}`), 0644))
+
+	tests := map[string]struct {
+		args []string
+		err  string
+	}{
+		"a future base":         {[]string{"9999", "2021"}, xtime.ErrFuturePeriod.Error()},
+		"a future head":         {[]string{"2021", "9999"}, xtime.ErrFuturePeriod.Error()},
+		"a future year by file": {[]string{"a.json", "9999"}, xtime.ErrFuturePeriod.Error()},
+		"an early base":         {[]string{"1969", "2021"}, "the year is before 1970"},
+		"an early head":         {[]string{"2021", "1969"}, "the year is before 1970"},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			cnf := &config.Tool{FS: fs}
+			cnf.Token = "token"
+			cmd := Diff(&cobra.Command{Use: "diff", SilenceUsage: true}, cnf)
+			cmd.SetArgs(test.args)
+			cmd.SetOut(&stdout)
+			cmd.SetErr(&stderr)
+
+			err := cmd.ExecuteContext(offline(t))
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), test.err)
+			assert.Empty(t, stdout.String())
+			var coder exit.Coder
+			require.ErrorAs(t, err, &coder)
+			assert.Equal(t, exit.User, coder.ExitCode())
 		})
 	}
 }

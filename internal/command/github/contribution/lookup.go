@@ -7,6 +7,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
 	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
@@ -47,11 +48,11 @@ Weeks start on Sunday, and the week that contains January 1 is #01.
 		}
 		scope, err := LookupScope(args, anchor, now)
 		if err != nil {
-			return err
+			return exit.WithUser(err)
 		}
 
 		if err := RequireToken(cnf); err != nil {
-			return err
+			return exit.WithUser(err)
 		}
 		service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
 		chm, err := service.ContributionHeatMap(cmd.Context(), scope)

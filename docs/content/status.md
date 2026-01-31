@@ -224,10 +224,12 @@ maintainer status --owner octomation --format=json | jq -c '.[] | select(.push_l
 | --- | --- |
 | `0` | Successful snapshot, including dirty, diverged and orphan rows |
 | `1` | Git inspection, discovery, state or output failure |
-| `2` | Invalid configuration, `--format` or `--concurrency` value, including TUI without terminal I/O |
+| `2` | Usage error or invalid configuration, including TUI without terminal I/O |
 
-An unknown flag, a flag value that does not parse, such as `--concurrency=abc`,
-or an unexpected argument exits `1`.
+A usage error names its cause in stderr and exits `2` before any checkout is
+read: an unknown flag, a flag value that does not parse, such as
+`--concurrency=abc`, an unknown `--format`, a `--concurrency` that is not
+positive, a negative `--timeout`, or an unexpected argument.
 
 Individual checkout errors remain in the output alongside successful rows,
 then the command exits with `1`. A fatal configuration, state or discovery

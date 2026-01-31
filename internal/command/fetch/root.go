@@ -72,6 +72,12 @@ func New(_ *config.Tool) *cobra.Command {
 }
 
 func run(cmd *cobra.Command, opts *options) error {
+	if opts.format != fetchsvc.FormatHuman && opts.format != fetchsvc.FormatJSON {
+		return exit.WithUser(fmt.Errorf("unknown format %q (want human|json)", opts.format))
+	}
+	if opts.concurrency < 0 || opts.timeout < 0 {
+		return exit.WithUser(fmt.Errorf("concurrency and timeout must not be negative"))
+	}
 	if opts.quiet && opts.verbose > 0 {
 		return exit.WithUser(fmt.Errorf("--quiet and --verbose are mutually exclusive"))
 	}

@@ -1,12 +1,14 @@
 package fetch_test
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	. "go.octolab.org/toolset/maintainer/internal/command/fetch"
+	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
 )
 
 func TestNew(t *testing.T) {
@@ -39,4 +41,36 @@ func TestNew(t *testing.T) {
 	}
 	assert.True(t, names["config"], "config subcommand registered")
 	assert.True(t, names["state"], "state subcommand registered")
+}
+
+func TestInvalidOptions(t *testing.T) {
+	// a run that gets past the checks must not find a real config or token.
+	t.Setenv("HOME", t.TempDir())
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	t.Setenv("MAINTAINER_FETCH_CONFIG", "")
+	t.Setenv("GITHUB_TOKEN", "")
+
+	for _, test := range []struct {
+		args    []string
+		message string
+	}{
+		{[]string{"--format=jsno"}, `unknown format "jsno" (want human|json)`},
+		{[]string{"--format=JSON"}, `unknown format "JSON" (want human|json)`},
+		{[]string{"--concurrency=-1"}, "concurrency and timeout must not be negative"},
+		{[]string{"--timeout=-1s"}, "concurrency and timeout must not be negative"},
+		// 0 keeps the configured concurrency: the run goes on to the config.
+		{[]string{"--concurrency=0", "--timeout=0"}, "not configured"},
+	} {
+		cmd := New(nil)
+		cmd.SetOut(new(bytes.Buffer))
+		cmd.SetErr(new(bytes.Buffer))
+		cmd.SetArgs(append([]string{"--config="}, test.args...))
+		err := cmd.Execute()
+		require.Errorf(t, err, "%v", test.args)
+		var coded exit.Coder
+		require.ErrorAsf(t, err, &coded, "%v", test.args)
+		assert.Equalf(t, exit.User, coded.ExitCode(), "%v", test.args)
+		assert.ErrorContainsf(t, err, test.message, "%v", test.args)
+	}
 }

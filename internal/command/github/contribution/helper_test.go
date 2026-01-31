@@ -19,6 +19,7 @@ import (
 	. "go.octolab.org/toolset/maintainer/internal/command/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
+	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 )
 
@@ -435,7 +436,7 @@ func TestFallbackDate(t *testing.T) {
 }
 
 // TestCommands_Decline runs the commands with the input they must decline
-// before any request: an ordinary error, nothing in stdout, and no panic.
+// before any request: a user input error, nothing in stdout, and no panic.
 // The future is the year 9999 here, because the commands take the clock.
 func TestCommands_Decline(t *testing.T) {
 	type command = func(*cobra.Command, *config.Tool) *cobra.Command
@@ -471,6 +472,9 @@ func TestCommands_Decline(t *testing.T) {
 			assert.Contains(t, err.Error(), test.err)
 			assert.Empty(t, stdout.String())
 			assert.Contains(t, stderr.String(), err.Error())
+			var coder exit.Coder
+			require.ErrorAs(t, err, &coder)
+			assert.Equal(t, exit.User, coder.ExitCode(), "an input error")
 		})
 	}
 }
