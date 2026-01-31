@@ -154,14 +154,18 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 	}
 	// A literal ID-only pin can learn its display identity from its origin.
 	for _, row := range rows {
-		if explicitPaths[row.Path] {
+		if explicitPaths[row.Path] && row.identified() {
 			pins[strings.ToLower(row.Repository)] = row.Path
 		}
 	}
-	// Broad workspace pins do not silently pick one of several checkouts.
+	// Broad workspace pins do not silently pick one of several checkouts. Only
+	// owner/name identities collide: a checkout named after its directory is
+	// keyed by its path, and an orphan row is a copy that is already reported.
 	duplicates := map[string]int{}
 	for _, row := range rows {
-		duplicates[strings.ToLower(row.Repository)]++
+		if row.identified() && row.OrphanReason == "" {
+			duplicates[strings.ToLower(row.Repository)]++
+		}
 	}
 	selected := make([]Row, 0, len(rows))
 	for _, row := range rows {
@@ -183,7 +187,7 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 				row.Pinned = true
 			}
 		}
-		if duplicates[key] > 1 && pins[key] == "" {
+		if duplicates[key] > 1 && pins[key] == "" && row.OrphanReason == "" {
 			row.Status, row.Error = "error", "multiple checkouts for this repository; select one with a per-repo path"
 		}
 		if len(owners) > 0 {
@@ -204,6 +208,13 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		return selected[i].Path < selected[j].Path
 	})
 	return selected, nil
+}
+
+// identified reports whether origin or state names the row owner/name; the
+// fallback directory name never contains a separator.
+func (row Row) identified() bool {
+	owner, name, ok := strings.Cut(row.Repository, "/")
+	return ok && owner != "" && name != ""
 }
 
 func snapshot(rec state.Record) github.RepoSnapshot {

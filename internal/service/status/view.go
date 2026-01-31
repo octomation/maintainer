@@ -119,10 +119,47 @@ func (t table) line(i int) string {
 	return out.String()
 }
 
+// summary counts rows by category; a row can fall into several. An error row
+// counts only as an error, locked or orphan: its changes and divergence are
+// unknown, never clean.
+func summary(rows []Row) string {
+	var uncommitted, ahead, behind, locked, orphan, failed int
+	for _, row := range rows {
+		if row.Error != "" {
+			failed++
+		} else {
+			if row.Added+row.Deleted+row.Changed+row.Untracked+row.Binary+row.Conflicts > 0 {
+				uncommitted++
+			}
+			if row.Ahead > 0 {
+				ahead++
+			}
+			if row.Behind > 0 {
+				behind++
+			}
+		}
+		if row.PushLocked {
+			locked++
+		}
+		if row.OrphanReason != "" {
+			orphan++
+		}
+	}
+	return fmt.Sprintf("%d uncommitted · %d ahead · %d behind · %d locked · %d orphan · %s",
+		uncommitted, ahead, behind, locked, orphan, plural(failed, "error"))
+}
+
+func plural(n int, noun string) string {
+	if n == 1 {
+		return "1 " + noun
+	}
+	return fmt.Sprintf("%d %ss", n, noun)
+}
+
 // Plain writes every row, without terminal controls or interactive input.
 func Plain(w io.Writer, rows []Row) error {
 	t := newTable(rows)
-	if _, err := fmt.Fprintf(w, "Repository status · %d checkouts · local refs (no fetch)\n\n", len(rows)); err != nil {
+	if _, err := fmt.Fprintf(w, "Repository status · %s · %s · local refs (no fetch)\n\n", plural(len(rows), "checkout"), summary(rows)); err != nil {
 		return err
 	}
 	for i := range t.rows {

@@ -107,8 +107,18 @@ func (m *screen) View() tea.View {
 	// Lip Gloss includes the border in Width. The content already reserves its
 	// two cells; subtracting them again would wrap headers and shift mouse rows.
 	box := lipgloss.NewStyle().Border(lipgloss.RoundedBorder()).BorderForeground(borderColor).Width(m.width).Render(strings.Join(content, "\n"))
+	// The summary has a line of its own to fit a narrow terminal. It describes
+	// the rows that the filter shows, and says so.
+	scope, shown := "all", make([]Row, len(m.visible))
+	if strings.TrimSpace(m.search.Value()) != "" {
+		scope = "shown"
+	}
+	for i, index := range m.visible {
+		shown[i] = m.rows[index]
+	}
 	lines := []string{
 		clip(accent.Bold(true).Render(" MAINTAINER ") + fmt.Sprintf("  %d / %d repositories", len(m.visible), len(m.rows)) + muted.Render(" · local refs")),
+		clip(muted.Render(scope+": ") + summary(shown)),
 		clip(muted.Render(m.sortSummary())),
 		clip(m.search.View()),
 		box,

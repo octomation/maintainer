@@ -181,8 +181,11 @@ func TestInspectPushLockIncludesAndWorktree(t *testing.T) {
 	write(t, filepath.Join(path, ".git", "index"), "invalid index")
 	runGit(t, path, "config", "remote.origin.pushurl", "no_push")
 	row = Inspect(context.Background(), Row{Path: path})
-	assert.NotEmpty(t, row.Error)
+	assert.Equal(t, "error", row.Status)
+	assert.True(t, strings.HasPrefix(row.Error, "git status: fatal: "), row.Error)
+	assert.Contains(t, row.Error, "index")
 	assert.True(t, row.PushLocked)
+	assert.Equal(t, "acme/tool", row.Repository, "identity is read when git status fails")
 }
 
 func TestInspectPushLockConfigError(t *testing.T) {
@@ -190,7 +193,21 @@ func TestInspectPushLockConfigError(t *testing.T) {
 	write(t, filepath.Join(path, ".git", "config"), "[invalid config")
 	row := Inspect(context.Background(), Row{Path: path})
 	assert.Equal(t, "error", row.Status)
-	assert.Contains(t, row.Error, "git config:")
+	assert.True(t, strings.HasPrefix(row.Error, "git status: fatal: bad config"), row.Error)
+	assert.NotContains(t, row.Error, "git config", "the lock probe keeps the first failure")
+}
+
+func TestInspectErrorQuotesGit(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "broken")
+	require.NoError(t, os.MkdirAll(path, 0o755))
+	write(t, filepath.Join(path, ".git"), "gitdir: /nonexistent/x\n")
+	row := Inspect(context.Background(), Row{Path: path})
+	assert.Equal(t, "error", row.Status)
+	// The wording depends on the Git version; the step, the message and the
+	// exit status do not.
+	assert.True(t, strings.HasPrefix(row.Error, "git status: fatal: "), row.Error)
+	assert.True(t, strings.HasSuffix(row.Error, " (exit status 128)"), row.Error)
+	assert.Equal(t, "fatal: one two", oneLine([]byte("\n  fatal: one\n\n\ttwo  \n")))
 }
 
 func TestInspectUnbornAndWorktree(t *testing.T) {
@@ -391,4 +408,43 @@ func TestCountLines(t *testing.T) {
 			assert.Equal(t, Row{Added: tc.added, Deleted: tc.deleted, Binary: tc.binary}, row)
 		})
 	}
+}
+
+func TestInspectAgainRecomputes(t *testing.T) {
+	ctx := context.Background()
+	path := checkout(t, t.TempDir())
+	runGit(t, path, "checkout", "-b", "remote-work")
+	write(t, filepath.Join(path, "remote"), "remote\n")
+	runGit(t, path, "add", "remote")
+	runGit(t, path, "commit", "-m", "remote")
+	runGit(t, path, "update-ref", "refs/remotes/origin/main", "HEAD")
+	runGit(t, path, "checkout", "main")
+	write(t, filepath.Join(path, "local"), "local\n")
+	runGit(t, path, "add", "local")
+	runGit(t, path, "commit", "-m", "local")
+	write(t, filepath.Join(path, "text"), "one\nthree\n")
+	write(t, filepath.Join(path, "new"), "x\n")
+	runGit(t, path, "config", "remote.origin.pushurl", "no_push")
+	first := Inspect(ctx, Row{ID: 1, Path: path, displayPath: "repo", Pinned: true})
+	require.Empty(t, first.Error)
+	assert.Equal(t, [6]int{1, 1, 1, 1, 1, 1}, [6]int{first.Changed, first.Untracked, first.Added, first.Deleted, first.Ahead, first.Behind})
+	assert.True(t, first.PushLocked)
+	assert.Equal(t, first, Inspect(ctx, first))
+	// A failed inspection carries nothing from the previous one, and a row
+	// that failed reads as a fresh one once the checkout is repaired.
+	index := filepath.Join(path, ".git", "index")
+	saved, err := os.ReadFile(index)
+	require.NoError(t, err)
+	write(t, index, "invalid index")
+	failed := Inspect(ctx, first)
+	require.Equal(t, "error", failed.Status)
+	assert.Equal(t, Row{ID: 1, Repository: "acme/tool", Path: path, DefaultBranch: "main", Status: "error", Error: failed.Error,
+		PushLocked: true, Pinned: true, displayPath: "repo"}, failed)
+	assert.Equal(t, failed, Inspect(ctx, failed))
+	require.NoError(t, os.WriteFile(index, saved, 0o600))
+	assert.Equal(t, first, Inspect(ctx, failed))
+	write(t, filepath.Join(path, ".git", "config"), "[invalid config")
+	broken := Inspect(ctx, first)
+	assert.Equal(t, "error", broken.Status)
+	assert.False(t, broken.PushLocked, "an unreadable configuration shows no lock")
 }

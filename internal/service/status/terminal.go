@@ -64,7 +64,7 @@ func newScreen(rows []Row) *screen {
 
 func (m *screen) Init() tea.Cmd { return tea.RequestBackgroundColor }
 
-func (m *screen) pageSize() int { return max(1, m.height-11) }
+func (m *screen) pageSize() int { return max(1, m.height-12) }
 
 func (m *screen) resize(width, height int) {
 	m.width, m.height = max(1, width), max(1, height)
@@ -89,7 +89,21 @@ func (m *screen) move(key string) {
 
 func (m *screen) sort(additive bool) {
 	m.keys = cycleSort(m.keys, m.column, additive)
+	m.reorder()
+}
+
+// reorder applies a changed sort chain. While the filter hides the anchor, the
+// highlighted row keeps the highlight; the anchor returns with the filter cleared.
+func (m *screen) reorder() {
+	highlighted := -1
+	if len(m.visible) > 0 {
+		highlighted = m.visible[m.selection.Index]
+	}
 	m.rebuild()
+	if !slices.Contains(m.visible, m.anchor) {
+		m.selection.Index = max(0, slices.Index(m.visible, highlighted))
+		m.selection.Move("", len(m.visible), m.pageSize())
+	}
 }
 
 func (m *screen) focusColumn(delta int) {
@@ -166,7 +180,7 @@ func (m *screen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.focusColumn(-1)
 		case "0":
 			m.keys = nil
-			m.rebuild()
+			m.reorder()
 		case "s", "S", "shift+s", "enter", "shift+enter":
 			m.sort(msg.Mod.Contains(tea.ModShift) || key == "S" || strings.HasPrefix(key, "shift+"))
 		case "up", "down", "j", "k", "pgup", "pgdown", "home", "end", "g", "G", "h", "l":
@@ -176,10 +190,10 @@ func (m *screen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Button != tea.MouseLeft {
 			break
 		}
-		if msg.Y == 2 {
+		if msg.Y == 3 {
 			return m, m.search.Focus()
 		}
-		if msg.Y == 4 && msg.X > 0 && msg.X < m.width-1 {
+		if msg.Y == 5 && msg.X > 0 && msg.X < m.width-1 {
 			m.search.Blur()
 			x, start := msg.X-1+m.selection.Left, 0
 			for i, width := range m.widths {
@@ -190,9 +204,9 @@ func (m *screen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				start += width + 3
 			}
-		} else if msg.Y >= 6 && msg.Y < 6+m.pageSize() && msg.X > 0 && msg.X < m.width-1 {
+		} else if msg.Y >= 7 && msg.Y < 7+m.pageSize() && msg.X > 0 && msg.X < m.width-1 {
 			m.search.Blur()
-			index := m.selection.Top + msg.Y - 6
+			index := m.selection.Top + msg.Y - 7
 			if index < len(m.visible) {
 				m.selection.Index = index
 				m.anchor = m.visible[index]

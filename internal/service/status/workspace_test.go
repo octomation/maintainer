@@ -66,3 +66,26 @@ func TestWorkspaceMissingPinIsVisible(t *testing.T) {
 	assert.Equal(t, "error", rows[0].Status)
 	assert.Equal(t, "missing", rows[0].displayPath)
 }
+
+func TestWorkspacePinStaleCopyIsNotDuplicate(t *testing.T) {
+	root := t.TempDir()
+	old := checkout(t, filepath.Join(root, "public/acme"))
+	pin := checkout(t, filepath.Join(root, "prototyping"))
+	write(t, filepath.Join(old, "text"), "stale work\n")
+	st := state.New()
+	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "tool", Path: pin, PinSource: "workspace", PreviousPaths: []string{old}})
+	cnf := &config.Fetch{Workspace: &config.Workspace{Root: root, Pins: []string{"prototyping"}}}
+	rows, err := Collect(context.Background(), cnf, st, root, root, nil, 2)
+	require.NoError(t, err)
+	require.Len(t, rows, 2)
+	assert.Equal(t, pin, rows[0].Path)
+	assert.True(t, rows[0].Pinned)
+	assert.Equal(t, "synced", rows[0].Status)
+	assert.Empty(t, rows[0].Error)
+	assert.Equal(t, old, rows[1].Path)
+	assert.Equal(t, "duplicate-pin", rows[1].OrphanReason)
+	assert.Equal(t, pin, rows[1].ActivePath)
+	assert.Equal(t, "synced", rows[1].Status)
+	assert.Equal(t, 1, rows[1].Added)
+	assert.Empty(t, rows[1].Error)
+}

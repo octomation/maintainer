@@ -200,7 +200,7 @@ func TestLockColumnNavigationAndSorting(t *testing.T) {
 	for i := 0; i < int(LockColumn); i++ {
 		x += m.widths[i] + 3
 	}
-	m.Update(tea.MouseClickMsg{X: x, Y: 4, Button: tea.MouseLeft})
+	m.Update(tea.MouseClickMsg{X: x, Y: 5, Button: tea.MouseLeft})
 	assert.Empty(t, m.keys, "clicking the descending lock header removes sorting")
 	press(m, tea.KeyTab, "", 0)
 	assert.Equal(t, PathColumn, m.column)
@@ -213,9 +213,9 @@ func TestMouseSortingAndSelectionAcrossResize(t *testing.T) {
 	}
 	m := newScreen(rows)
 	m.Update(tea.WindowSizeMsg{Width: 120, Height: 24})
-	m.Update(tea.MouseClickMsg{X: 2, Y: 4, Button: tea.MouseLeft})
+	m.Update(tea.MouseClickMsg{X: 2, Y: 5, Button: tea.MouseLeft})
 	assert.Equal(t, []sortKey{{Column: RepositoryColumn}}, m.keys)
-	m.Update(tea.MouseClickMsg{X: m.widths[0] + 5, Y: 4, Button: tea.MouseLeft, Mod: tea.ModShift})
+	m.Update(tea.MouseClickMsg{X: m.widths[0] + 5, Y: 5, Button: tea.MouseLeft, Mod: tea.ModShift})
 	assert.Equal(t, []sortKey{{Column: RepositoryColumn}, {Column: BranchColumn}}, m.keys)
 	m.move("G")
 	assert.Equal(t, 79, m.anchor)
@@ -238,13 +238,13 @@ func TestMouseSortingAndSelectionAcrossResize(t *testing.T) {
 	}
 	assert.LessOrEqual(t, len(strings.Split(m.View().Content, "\n")), 12)
 	lines := strings.Split(ansi.Strip(m.View().Content), "\n")
-	assert.True(t, strings.HasPrefix(lines[5], "│─"), "separator stays immediately below the header")
-	assert.Contains(t, lines[8], "/80", "wrapping must not push the selected-path footer off screen")
-	assert.Contains(t, lines[9], "HEAD", "metadata remains visible after resize")
+	assert.True(t, strings.HasPrefix(lines[6], "│─"), "separator stays immediately below the header")
+	assert.Contains(t, lines[9], "/80", "wrapping must not push the selected-path footer off screen")
+	assert.Contains(t, lines[10], "HEAD", "metadata remains visible after resize")
 	m.keys = nil
 	m.selection.Left = 10
 	m.search.Focus()
-	m.Update(tea.MouseClickMsg{X: m.widths[0] + 4 - 10, Y: 4, Button: tea.MouseLeft})
+	m.Update(tea.MouseClickMsg{X: m.widths[0] + 4 - 10, Y: 5, Button: tea.MouseLeft})
 	assert.Equal(t, []sortKey{{Column: BranchColumn}}, m.keys, "header hit testing accounts for horizontal scroll")
 	assert.False(t, m.search.Focused(), "header activation returns focus to the table")
 }
@@ -266,8 +266,59 @@ func TestScreenStylesEmptyAndControlCharacters(t *testing.T) {
 	assert.Contains(t, ansi.Strip(m.View().Content), "No matches")
 	m.resize(62, 16)
 	lines := strings.Split(ansi.Strip(m.View().Content), "\n")
-	assert.Contains(t, lines[6], "No matches", "empty message has the same row coordinate as table data")
+	assert.Contains(t, lines[7], "No matches", "empty message has the same row coordinate as table data")
 	assert.Contains(t, lines[12], "No repository selected")
 	m.resize(1, 1)
 	assert.LessOrEqual(t, ansi.StringWidth(m.View().Content), 1)
+}
+
+func TestSortingUnderFilterKeepsHighlightedRow(t *testing.T) {
+	m := newScreen([]Row{{Repository: "alpha", Path: "/a"}, {Repository: "beta1", Path: "/b1"}, {Repository: "beta2", Path: "/b2"}, {Repository: "gamma", Path: "/g"}})
+	highlighted := func() string { return m.rows[m.visible[m.selection.Index]].Repository }
+	press(m, 'G', "G", 0)
+	require.Equal(t, "gamma", highlighted())
+	press(m, '/', "/", 0)
+	for _, r := range "beta" {
+		press(m, r, string(r), 0)
+	}
+	press(m, tea.KeyEnter, "", 0)
+	require.Len(t, m.visible, 2)
+	assert.Equal(t, "beta1", highlighted())
+	press(m, 's', "s", 0)
+	assert.Equal(t, "beta1", highlighted())
+	press(m, 's', "s", 0)
+	require.Equal(t, []sortKey{{Column: RepositoryColumn, Desc: true}}, m.keys)
+	assert.Equal(t, []int{2, 1}, m.visible)
+	assert.Equal(t, "beta1", highlighted(), "sorting keeps the highlighted row")
+	press(m, '0', "0", 0)
+	assert.Equal(t, "beta1", highlighted(), "resetting the sort keeps it too")
+	press(m, tea.KeyEscape, "", 0)
+	require.Len(t, m.visible, 4)
+	assert.Equal(t, "gamma", highlighted(), "clearing the filter restores the selection")
+	// Selecting a row under the filter replaces the selection to restore.
+	press(m, '/', "/", 0)
+	for _, r := range "beta" {
+		press(m, r, string(r), 0)
+	}
+	press(m, tea.KeyEnter, "", 0)
+	press(m, 'j', "j", 0)
+	assert.Equal(t, "beta2", highlighted())
+	press(m, tea.KeyEscape, "", 0)
+	assert.Equal(t, "beta2", highlighted())
+}
+
+func TestMouseCoordinatesBelowSummary(t *testing.T) {
+	m := newScreen([]Row{{Repository: "one", Path: "/1"}, {Repository: "two", Path: "/2"}})
+	m.resize(80, 24)
+	lines := strings.Split(ansi.Strip(m.View().Content), "\n")
+	require.Contains(t, lines[1], "all: ")
+	require.Contains(t, lines[3], "Fuzzy filter")
+	require.Contains(t, lines[5], "Repository")
+	require.Contains(t, lines[8], "two")
+	m.Update(tea.MouseClickMsg{X: 4, Y: 8, Button: tea.MouseLeft})
+	assert.Equal(t, 1, m.anchor, "a click selects the row under the pointer")
+	m.Update(tea.MouseClickMsg{X: 4, Y: 5, Button: tea.MouseLeft})
+	assert.Equal(t, []sortKey{{Column: RepositoryColumn}}, m.keys, "a click on the column headers sorts")
+	m.Update(tea.MouseClickMsg{X: 4, Y: 3, Button: tea.MouseLeft})
+	assert.True(t, m.search.Focused(), "a click on the search line focuses it")
 }

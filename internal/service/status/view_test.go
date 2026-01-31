@@ -80,3 +80,33 @@ func TestSelectionAndKeys(t *testing.T) {
 	s.Move("G", 0, 0)
 	assert.Zero(t, s.Index)
 }
+
+func TestSummary(t *testing.T) {
+	rows := []Row{
+		{Repository: "acme/clean", Path: "/clean", Status: "synced"},
+		{Repository: "acme/dirty", Path: "/dirty", Status: "diverged", Added: 2, Changed: 1, Ahead: 1, Behind: 3, PushLocked: true},
+		{Repository: "acme/new", Path: "/new", Status: "unborn", Untracked: 1},
+		{Repository: "acme/binary", Path: "/binary", Status: "ahead", Binary: 1, Changed: 1, Ahead: 2, OrphanReason: "duplicate-pin"},
+		// Counts read before a failure are unknown, not clean or dirty.
+		{Repository: "acme/broken", Path: "/broken", Status: "error", Error: "git diff: failure", Changed: 4, Ahead: 1, PushLocked: true, OrphanReason: "out-of-scope"},
+	}
+	var out bytes.Buffer
+	require.NoError(t, Plain(&out, rows))
+	assert.Equal(t, "Repository status · 5 checkouts · 3 uncommitted · 2 ahead · 1 behind · 2 locked · 2 orphan · 1 error · local refs (no fetch)",
+		strings.SplitN(out.String(), "\n", 2)[0])
+	out.Reset()
+	require.NoError(t, Plain(&out, rows[:1]))
+	assert.True(t, strings.HasPrefix(out.String(), "Repository status · 1 checkout · 0 uncommitted · 0 ahead · 0 behind · 0 locked · 0 orphan · 0 errors · local refs (no fetch)\n"), out.String())
+	// The terminal summary fits an 80-column terminal on a line of its own.
+	m := newScreen(rows)
+	m.resize(80, 24)
+	lines := strings.Split(ansi.Strip(m.View().Content), "\n")
+	assert.Equal(t, " MAINTAINER   5 / 5 repositories · local refs", lines[0])
+	assert.Equal(t, "all: 3 uncommitted · 2 ahead · 1 behind · 2 locked · 2 orphan · 1 error", lines[1])
+	m.search.SetValue("acme/b")
+	m.rebuild()
+	require.Len(t, m.visible, 2)
+	lines = strings.Split(ansi.Strip(m.View().Content), "\n")
+	assert.Equal(t, " MAINTAINER   2 / 5 repositories · local refs", lines[0])
+	assert.Equal(t, "shown: 1 uncommitted · 1 ahead · 0 behind · 1 locked · 2 orphan · 1 error", lines[1])
+}

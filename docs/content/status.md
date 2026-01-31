@@ -35,11 +35,21 @@ another root. This still reads the default fetch state file.
 ## Table columns
 
 ```text
+Repository status · 3 checkouts · 2 uncommitted · 1 ahead · 1 behind · 1 locked · 0 orphan · 0 errors · local refs (no fetch)
+
 REPOSITORY             │ BRANCH  │ UNCOMMITTED       │ STATUS     │ LOCK │ PATH
 kamilsk/dotfiles        │ main*   │ +39/-0 · 3f       │ synced     │      │ ~/.dotfiles
 kamilsk/egg             │ main*   │ +0/-0             │ behind 409 │      │ public/kamilsk/egg
 octomation/maintainer   │ fetcher │ +12/-1 · 2f · ?1  │ ahead 1    │ 🔒   │ public/octomation/maintainer
 ```
+
+The header summarizes the rows: the checkouts, then how many have uncommitted
+changes (tracked changes or untracked files), are ahead or behind their
+upstream, carry the push lock, are orphans, and failed to be inspected. Each
+count is a number of rows, and one row can fall into several categories. A
+failed inspection counts as an error, and as locked or orphan when it is one,
+but never as clean or as uncommitted, ahead or behind: those are unknown. JSON
+output stays an array of rows, without the summary.
 
 `Path` is the last column in both plain and terminal tables. Checkouts inside
 the effective `workspace.root` use paths relative to that root, including
@@ -71,7 +81,9 @@ count as added files.
 `synced` means the current branch matches its upstream; it can still have
 uncommitted work. A branch can be both ahead and behind. Detached HEAD,
 unborn branches, missing upstream configuration and deleted upstream refs are
-reported distinctly. Failures produce error rows, not zero/clean results.
+reported distinctly. Failures produce error rows, not zero/clean results. When
+a Git command fails, its error row names the command and quotes Git's message,
+such as `git status: fatal: bad config line 1 in file .git/config (exit status 128)`.
 
 `Lock` shows `🔒` when any remote has a push URL exactly equal to `no_push`,
 the marker set by the dotfiles helper `git lock [remote]` (`origin` by default).
@@ -79,7 +91,9 @@ Otherwise the cell is empty. It includes other remotes and multiple push URLs;
 the marker does not imply that every push destination is blocked. Custom push
 URLs, server permissions and hooks are not checked. After `git unlock [remote]`,
 run status again to refresh the indicator. Fetch and branch status are independent
-of this marker.
+of this marker. It is read separately after `git status`: when the inspection
+fails, the marker remains visible as long as Git can still read the
+configuration; a configuration that Git cannot read is an error row.
 
 ## Interactive controls
 
@@ -121,13 +135,17 @@ fields: repository, branch, uncommitted/status text, lock icon (`🔒`), display
 or full path, upstream, or commit.
 With no explicit sort, results use fuzzy relevance; explicit keys take precedence.
 The header shows matched/total counts, and an empty result is shown explicitly.
+The summary has a line of its own under the title. While a filter is active, it
+describes the matching rows and is labelled `shown:`; without a filter it is
+labelled `all:`.
 
 Enter or Escape leaves the input while keeping the filter. Ctrl+u clears the
 input. Outside the input, Escape clears an active filter; otherwise it exits.
 `q` and Ctrl-C exit from the table; Ctrl-C also exits from the input, where `q`
 is ordinary text. Sorting preserves the selected checkout. While a filter hides
-it, the first matching row is highlighted, also after sorting; clearing the
-filter restores the selected checkout unless a different row was selected.
+it, the first matching row is highlighted, and sorting keeps the highlighted
+row; clearing the filter restores the selected checkout unless a different row
+was selected.
 All sort/filter state is in memory. Plain/JSON output retains the original
 complete inventory; no repository or fetch state is changed.
 
@@ -141,12 +159,14 @@ Per-repo paths select the active clone for mutation, while stale duplicates
 remain visible as `orphan`. Their own branch, changes and
 divergence are retained; plain output and TUI details identify the active path.
 Orphan is a management warning, not a replacement for Git status or a read error.
-Without a specific per-repo pin, duplicates remain separate error rows; broad
-workspace pins do not choose a winner. This includes an orphan row that shares
-its repository with another checkout, and checkouts without a GitHub origin,
-which are named by their directory: two such checkouts with the same directory
-name are reported as duplicates. The Path column distinguishes these
-checkouts; JSON and the selected-path footer also retain their full paths.
+Duplicates are checkouts of one `owner/name`, as named by their origin or by
+state; orphan rows are not counted among them. Without a specific per-repo pin,
+duplicates remain separate error rows; broad workspace pins do not choose a
+winner. A checkout that neither names (no `origin`, another remote name, or a
+local or `file://` URL) is shown under its directory name and is never a
+duplicate: two such checkouts with the same directory name are two ordinary
+rows. The Path column distinguishes them; JSON and the selected-path footer
+also retain their full paths.
 ID-only pins without state can only use their
 local origin for display identity: status cannot verify a GitHub ID offline.
 Fetch performs that verification. If origin contradicts known state, status

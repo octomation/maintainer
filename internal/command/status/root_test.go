@@ -93,3 +93,26 @@ func TestErrorRowsDoNotHideSuccessfulCheckouts(t *testing.T) {
 	assert.Equal(t, "error", rows[0].Status)
 	assert.Equal(t, "unborn", rows[1].Status)
 }
+
+func TestLocalProjectsWithOneDirectoryNameSucceed(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	for _, owner := range []string{"alice", "bob"} {
+		_, err := git.PlainInit(filepath.Join(root, "public", owner, "tool"), false)
+		require.NoError(t, err)
+	}
+	cmd := status.New()
+	var output bytes.Buffer
+	cmd.SetOut(&output)
+	cmd.SetErr(new(bytes.Buffer))
+	cmd.SetArgs([]string{"--config=", "--root", root, "--format=json"})
+	require.NoError(t, cmd.Execute())
+	var rows []statussvc.Row
+	require.NoError(t, json.Unmarshal(output.Bytes(), &rows))
+	require.Len(t, rows, 2)
+	for _, row := range rows {
+		assert.Equal(t, "tool", row.Repository)
+		assert.Equal(t, "unborn", row.Status)
+		assert.Empty(t, row.Error)
+	}
+}
