@@ -11,17 +11,18 @@ labels:
   - "scope: inventory"
   - "impact: high"
   - "effort: easy"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:25:19Z
-updatedAt: 2026-10-20T06:26:10Z
-lastEditedAt: 2026-10-20T06:26:10Z
-closedAt: null
+updatedAt: 2026-10-20T12:42:34Z
+lastEditedAt: 2026-10-20T12:42:34Z
+closedAt: 2026-10-20T12:30:23Z
 ---
 
 # release: publishing: keep prereleases out of stable channels

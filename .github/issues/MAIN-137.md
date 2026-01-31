@@ -13,17 +13,18 @@ labels:
   - "severity: major"
   - "impact: medium"
   - "effort: easy"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:25:25Z
-updatedAt: 2026-10-20T06:26:23Z
+updatedAt: 2026-10-20T12:38:26Z
 lastEditedAt: 2026-10-20T06:26:04Z
-closedAt: null
+closedAt: 2026-10-20T12:34:40Z
 ---
 
 # fetch: state: honor config selection and preserve uncertain records

@@ -13,17 +13,18 @@ labels:
   - "severity: major"
   - "impact: medium"
   - "effort: easy"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:25:34Z
-updatedAt: 2026-10-20T06:26:17Z
+updatedAt: 2026-10-20T12:38:35Z
 lastEditedAt: 2026-10-20T06:26:17Z
-closedAt: null
+closedAt: 2026-10-20T12:33:07Z
 ---
 
 # workspace: paths: resolve pins only with sufficient context

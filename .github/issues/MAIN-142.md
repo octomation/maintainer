@@ -13,8 +13,8 @@ labels:
   - "impact: low"
   - "effort: easy"
 milestone: "[[MAIN-M3]]"
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 createdAt: 2026-09-28T07:30:00Z
 updatedAt: 2026-09-28T07:30:00Z
 lastEditedAt: null

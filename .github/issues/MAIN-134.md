@@ -13,17 +13,18 @@ labels:
   - "severity: major"
   - "impact: medium"
   - "effort: medium"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:25:31Z
-updatedAt: 2026-10-20T06:25:59Z
+updatedAt: 2026-10-20T12:38:32Z
 lastEditedAt: 2026-10-20T06:25:59Z
-closedAt: null
+closedAt: 2026-10-20T12:35:44Z
 ---
 
 # fetch: discovery: isolate repository failures and respect rate limits

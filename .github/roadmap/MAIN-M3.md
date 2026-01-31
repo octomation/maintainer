@@ -6,11 +6,11 @@ number: 3
 url: https://github.com/octomation/maintainer/milestone/3
 title: "Workspace, v0.2"
 state: OPEN
-openIssueCount: 11
-closedIssueCount: 10
+openIssueCount: 4
+closedIssueCount: 17
 dueOn: null
 createdAt: 2026-09-26T09:14:44Z
-updatedAt: 2026-10-20T07:43:09Z
+updatedAt: 2026-10-20T12:35:45Z
 closedAt: null
 ---
 
@@ -64,27 +64,28 @@ A release candidate; working-tree updates (fast-forward), multiple workspaces an
 - [x] [[MAIN-124]] — fetch: treat an empty upstream as a successful no-op
 - [x] [[MAIN-127]] — ci/cd: verification: restore reliable CI and local gates
 - [ ] [[MAIN-128]] — fetch: remotes: configure upstream for forks and check remote consistency
-- [ ] [[MAIN-129]] — fetch: adopt: keep adoption of a pinned checkout additive
+- [x] [[MAIN-129]] — fetch: adopt: keep adoption of a pinned checkout additive
 - [x] [[MAIN-130]] — status: inspection: detect renames the same way in every count
-- [ ] [[MAIN-131]] — command: exit codes: enforce the documented codes for usage errors
+- [x] [[MAIN-131]] — command: exit codes: enforce the documented codes for usage errors
 - [x] [[MAIN-132]] — docs: workspace: publish the fetch and status workflows
-- [ ] [[MAIN-133]] — fetch: selection: honor owners, profiles and adoption filters
-- [ ] [[MAIN-134]] — fetch: discovery: isolate repository failures and respect rate limits
+- [x] [[MAIN-133]] — fetch: selection: honor owners, profiles and adoption filters
+- [x] [[MAIN-134]] — fetch: discovery: isolate repository failures and respect rate limits
 - [x] [[MAIN-135]] — fetch: remote: change only the origin URL when updating a remote
-- [ ] [[MAIN-136]] — fetch: apply: refresh successfully reconciled checkouts in the same run
-- [ ] [[MAIN-137]] — fetch: state: honor config selection and preserve uncertain records
+- [x] [[MAIN-136]] — fetch: apply: refresh successfully reconciled checkouts in the same run
+- [x] [[MAIN-137]] — fetch: state: honor config selection and preserve uncertain records
 - [x] [[MAIN-138]] — org: release: prepare v0.2.0
-- [ ] [[MAIN-139]] — release: publishing: keep prereleases out of stable channels
+- [x] [[MAIN-139]] — release: publishing: keep prereleases out of stable channels
 - [x] [[MAIN-140]] — release: publishing: write the tap through the OctoLab Releaser App
-- [ ] [[MAIN-141]] — status: inventory: preserve distinct checkouts and useful errors
-- [ ] [[MAIN-142]] — status: inspection: recompute counters when a row is inspected again
-- [ ] [[MAIN-143]] — status: overview: summarize the inventory and preserve the selection
-- [ ] [[MAIN-144]] — workspace: safety: enforce boundaries and report scan obstructions
-- [ ] [[MAIN-145]] — workspace: paths: resolve pins only with sufficient context
-- [ ] [[MAIN-146]] — fetch: state: write the state file without following a planted link
-- [ ] [[MAIN-147]] — fetch: worktrees: keep linked worktrees usable and read them as Git does
-- [ ] [[MAIN-148]] — fetch: clone: do not adopt an interrupted clone as a checkout
-- [ ] [[MAIN-149]] — fetch: config: reject unknown keys and keep a CUE schema next to the config
-- [ ] [[MAIN-150]] — fetch: identity: preserve checkout identity through repository changes
-- [ ] [[MAIN-152]] — release: homebrew: keep the Formula without a deprecation
-- [ ] [[MAIN-154]] — skill: ship an agent skill for the maintainer CLI and publish it to octolab/skills
+- [x] [[MAIN-141]] — status: inventory: preserve distinct checkouts and useful errors
+- [x] [[MAIN-142]] — status: inspection: recompute counters when a row is inspected again
+- [x] [[MAIN-143]] — status: overview: summarize the inventory and preserve the selection
+- [x] [[MAIN-144]] — workspace: safety: enforce boundaries and report scan obstructions
+- [x] [[MAIN-145]] — workspace: paths: resolve pins only with sufficient context
+- [x] [[MAIN-146]] — fetch: state: write the state file without following a planted link
+- [x] [[MAIN-147]] — fetch: worktrees: keep linked worktrees usable and read them as Git does
+- [x] [[MAIN-148]] — fetch: clone: do not adopt an interrupted clone as a checkout
+- [x] [[MAIN-149]] — fetch: config: reject unknown keys and keep a CUE schema next to the config
+- [x] [[MAIN-150]] — fetch: identity: preserve checkout identity through repository changes
+- [x] [[MAIN-152]] — release: homebrew: keep the Formula without a deprecation
+- [x] [[MAIN-153]] — fetch: config: reject a broken per-repository path template and report it per repository
+- [x] [[MAIN-154]] — skill: ship an agent skill for the maintainer CLI and publish it to octolab/skills

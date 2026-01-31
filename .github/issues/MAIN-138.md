@@ -12,7 +12,8 @@ labels:
   - "scope: inventory"
   - "impact: high"
   - "effort: medium"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
@@ -20,7 +21,7 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:25:03Z
-updatedAt: 2026-10-20T06:26:07Z
+updatedAt: 2026-10-20T12:38:11Z
 lastEditedAt: 2026-10-20T06:26:07Z
 closedAt: 2026-10-20T06:25:07Z
 ---

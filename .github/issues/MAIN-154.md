@@ -18,8 +18,8 @@ assignees:
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: null
 updatedAt: null

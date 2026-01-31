@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-20T07:42:30Z
+updatedAt: 2026-10-20T12:45:20Z
 closedAt: null
 ---
 
@@ -125,18 +125,11 @@ closedAt: null
 - [ ] [[MAIN-45]] — github: contribution: extend support lookup for a month
 - [ ] [[MAIN-48]] — ci/cd: tools: test act for local development
 - [ ] [[MAIN-125]] — release: homebrew: ship one formula with the service and retire the cask
-- [ ] [[MAIN-129]] — fetch: adopt: keep adoption of a pinned checkout additive
-- [ ] [[MAIN-133]] — fetch: selection: honor owners, profiles and adoption filters
-- [ ] [[MAIN-134]] — fetch: discovery: isolate repository failures and respect rate limits
-- [ ] [[MAIN-137]] — fetch: state: honor config selection and preserve uncertain records
-- [ ] [[MAIN-144]] — workspace: safety: enforce boundaries and report scan obstructions
-- [ ] [[MAIN-145]] — workspace: paths: resolve pins only with sufficient context
 
 ## In progress
 
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
-- [ ] [[MAIN-139]] — release: publishing: keep prereleases out of stable channels
 
 ## Done
 
@@ -344,6 +337,13 @@ closedAt: null
 - [x] [[MAIN-117]] — github: contribution: suggest doesn't work properly in headless mode
 - [x] [[MAIN-120]] — ci/cd: Continuous integration healthcheck doesn't work properly
 - [x] [[MAIN-121]] — github: contributions: GitHub changed a way to provide data
+- [x] [[MAIN-129]] — fetch: adopt: keep adoption of a pinned checkout additive
+- [x] [[MAIN-133]] — fetch: selection: honor owners, profiles and adoption filters
+- [x] [[MAIN-134]] — fetch: discovery: isolate repository failures and respect rate limits
+- [x] [[MAIN-137]] — fetch: state: honor config selection and preserve uncertain records
+- [x] [[MAIN-144]] — workspace: safety: enforce boundaries and report scan obstructions
+- [x] [[MAIN-145]] — workspace: paths: resolve pins only with sufficient context
+- [x] [[MAIN-139]] — release: publishing: keep prereleases out of stable channels
 - [x] [[MAIN-127]] — ci/cd: verification: restore reliable CI and local gates
 - [x] [[MAIN-130]] — status: inspection: detect renames the same way in every count
 - [x] [[MAIN-132]] — docs: workspace: publish the fetch and status workflows

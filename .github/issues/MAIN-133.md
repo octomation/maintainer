@@ -14,17 +14,18 @@ labels:
   - "severity: major"
   - "impact: medium"
   - "effort: medium"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:25:28Z
-updatedAt: 2026-10-20T06:26:20Z
+updatedAt: 2026-10-20T12:38:29Z
 lastEditedAt: 2026-10-20T06:25:57Z
-closedAt: null
+closedAt: 2026-10-20T12:34:43Z
 ---
 
 # fetch: selection: honor owners, profiles and adoption filters

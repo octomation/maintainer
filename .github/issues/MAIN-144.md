@@ -13,17 +13,18 @@ labels:
   - "severity: critical"
   - "impact: high"
   - "effort: medium"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:25:22Z
-updatedAt: 2026-10-20T06:26:15Z
+updatedAt: 2026-10-20T12:38:22Z
 lastEditedAt: 2026-10-20T06:26:15Z
-closedAt: null
+closedAt: 2026-10-20T12:33:06Z
 ---
 
 # workspace: safety: enforce boundaries and report scan obstructions

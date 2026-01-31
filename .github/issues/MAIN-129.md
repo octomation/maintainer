@@ -17,13 +17,13 @@ assignees:
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-01T11:53:51Z
-updatedAt: 2026-10-20T06:29:11Z
-lastEditedAt: 2026-10-20T06:29:11Z
-closedAt: null
+updatedAt: 2026-10-20T12:42:32Z
+lastEditedAt: 2026-10-20T12:42:31Z
+closedAt: 2026-10-20T12:35:45Z
 ---
 
 # fetch: adopt: keep adoption of a pinned checkout additive
