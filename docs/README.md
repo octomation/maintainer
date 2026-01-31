@@ -1,6 +1,6 @@
 # maintainer documentation
 
-An English, use-case-led site for the v0.2.0 feature set, built on the existing Nextra 4 / Next.js stack.
+An English, use-case-led site for the v0.2.1 feature set, built on the existing Nextra 4 / Next.js stack.
 
 ## Run locally
 
@@ -46,6 +46,7 @@ Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH
 | `content/workspace.md` | Workspace layout shared by `fetch` and `status` |
 | `content/agents.md` | The agent skill: install, keep in step, catalog |
 | `content/changelog/index.mdx` | Release overview |
+| `content/changelog/v0.2.1.md` | Fetch selection, workspace safety, status summary and agent skill release notes |
 | `content/changelog/v0.2.0.md` | Fetch and status release notes |
 | `content/changelog/v0.1.0.md` | First stable release notes |
 | `content/**/_meta.js` | Navigation order and labels |
@@ -64,7 +65,7 @@ Changelog is a section of the same sidebar, with All releases first. `navigation
 
 ## Social preview image
 
-`public/og.png`, 1733×908, is the social preview of the home page; other pages share a link without an image (`app/[[...mdxPath]]/page.jsx`). On warm, lightly textured off-white paper, it shows the `maintainer` wordmark in heavy lowercase ink with a green dot over the first i, the slogan "Keep the little things moving.", the monospaced line "See your pace. Plan your next contribution." and the green version label `v0.2.0` at the bottom left. On the right, a thin terminal frame holds a seven-row contribution calendar with one suggested square.
+`public/og.png`, 1733×908, is the social preview of the home page; other pages share a link without an image (`app/[[...mdxPath]]/page.jsx`). On warm, lightly textured off-white paper, it shows the `maintainer` wordmark in heavy lowercase ink with a green dot over the first i, the slogan "Keep the little things moving.", the monospaced line "See your pace. Plan your next contribution." and the green version label `v0.2.1` at the bottom left. On the right, a thin terminal frame holds a seven-row contribution calendar with one suggested square.
 
 Each release patches only the changed characters of the version label, so the rest of the image stays byte-for-byte as it was: see [AGENTS.md](../AGENTS.md#2-social-preview-image), which also has the diff check. Coordinates are pixels from the top left as (x, y, width, height), right and bottom edges exclusive:
 
@@ -86,7 +87,7 @@ Create the final social preview banner for maintainer, a sibling CLI to indexit.
 Use positions in a 1733 x 908 coordinate system. Keep the left margin around x=99. Left typography occupies roughly 65% of the width, right illustration roughly 30%. Wordmark around y=220..462: "maintainer", spelled m a i n t a i n e r, all lowercase, very heavy geometric sans like the reference. Fit the longer word within x=99..1170 without squeezing the letters unnaturally. Ink #17302e, except the dot over its first i is green #4d7c0f. Only one accent dot in the wordmark.
 Under the wordmark, a bold sans slogan on ONE line, exact text: "Keep the little things moving." Use dark ink #17302e, fit in the left area, around y=525..596.
 Below that, ONE line in a monospaced font, dark ink #17302e, exact text: "See your pace. Plan your next contribution." Around x=99, y=644..675. Keep comfortably separated from the illustration.
-Bottom left version label, exact text: "v0.2.0". Match reference label position (visible glyphs around x=100, y=739..768) and size (approximately 40px font, approximately 23px fixed character cells). Use crisp regular/medium monospaced type close to Overpass Mono weight 450, green #4d7c0f. All six characters on one baseline, evenly spaced. Keep it isolated on a clean patch of the same off-white paper with no nearby marks so future releases can replace just the glyphs.
+Bottom left version label, exact text: "v0.2.1". Match reference label position (visible glyphs around x=100, y=739..768) and size (approximately 40px font, approximately 23px fixed character cells). Use crisp regular/medium monospaced type close to Overpass Mono weight 450, green #4d7c0f. All six characters on one baseline, evenly spaced. Keep it isolated on a clean patch of the same off-white paper with no nearby marks so future releases can replace just the glyphs.
 
 Right-hand illustration around x=1330..1680: thin dark ink terminal frame, a green > prompt, and a small contribution-calendar grid INSIDE the terminal frame. Grid must have exactly SEVEN rows of evenly spaced square cells, about eight columns. Most cells empty or faint neutral outlines, some filled #4d7c0f, a few lime #d5f45a highlights. One suggested-next-contribution square has a clear extra outline with a short dotted leader. Include the reference's sparse green accent squares, dotted vertical leaders, and minimal thin framing strokes above and below. No letters, numerals or data labels in illustration; only > prompt, squares, lines and dots. Keep its visual weight lighter than the wordmark. Optional thin green arc at lower right like the reference.
 
@@ -111,7 +112,7 @@ The docs build stops while the two disagree, the deployment is smoke-tested, and
 
 The CLI implementation is the source of truth: check examples against command help and tests. Closed issues provide context, not a substitute for checking the current code.
 
-The documentation is prepared for v0.2.0. Publish the matching release archives before directing users to its download links. Lead installation instructions with Homebrew and keep the install script, `go install`, and release archives next to it. Archive names and supported platforms must match `.goreleaser.yml`. Do not describe planned features as shipped: a command that is not in a release says so where it is documented.
+The documentation is prepared for v0.2.1. Publish the matching release archives before directing users to its download links. Lead installation instructions with Homebrew and keep the install script, `go install`, and release archives next to it. Archive names and supported platforms must match `.goreleaser.yml`. Do not describe planned features as shipped: a command that is not in a release says so where it is documented.
 
 Release notes describe changes to maintainer's behavior and to the compatibility of its configuration and state. Keep documentation, development tools, CI/CD, and repository inventory changes out of the product changelog. A release note describes its release as published, with examples that reproduce on the built binary. Preserve historical release notes when updating the current installation instructions. How to write a note and cut a release: [AGENTS.md](../AGENTS.md#releasing).
 

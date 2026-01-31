@@ -9,8 +9,16 @@ import Link from 'next/link'
 
 A concise record of maintainer releases and the quickest way to try each one.
 
+<Link href="/changelog/v0.2.1/" className="release-entry">
+  <span className="release-label">v0.2.1 · LATEST</span>
+  <h2>Safe moves, clear status.</h2>
+  <p>Fetch keeps to the repositories you select and never writes outside the workspace; checkouts stay with their repository through renames, and a clone cut short is never adopted.</p>
+  <p>Status sums up your checkouts in one line and names the Git step that failed, the config schema catches mistyped keys, and an agent skill ships with the binary.</p>
+  <span className="card-link">Explore the release and try the commands <span aria-hidden="true">→</span></span>
+</Link>
+
 <Link href="/changelog/v0.2.0/" className="release-entry">
-  <span className="release-label">v0.2.0 · LATEST</span>
+  <span className="release-label">v0.2.0 · STABLE</span>
   <h2>Fetch & Status.</h2>
   <p>Refresh your repository collection and see where local work needs attention. Status lists uncommitted work, branches ahead or behind and push locks across your checkouts, offline; fetch plans clones, moves and fresh refs from GitHub and applies them only with --apply.</p>
   <p>Renamed and transferred repositories become moves of the existing checkout, and suggest now says why when it has nothing to suggest.</p>

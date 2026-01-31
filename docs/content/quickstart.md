@@ -19,7 +19,7 @@ The Formula and the Cask install the same release; keep only one installation.
 Without Homebrew, the install script puts the latest release into `./bin`; `-b` chooses another directory and a tag pins the version:
 
 ```sh
-curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.2.0
+curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.2.1
 ```
 
 `wget -qO-` works in place of `curl -sSfL`. Archives for macOS and Linux on amd64 and arm64 are also on [GitHub Releases](https://github.com/octomation/maintainer/releases). With Go 1.27 or newer, no checkout is needed:
