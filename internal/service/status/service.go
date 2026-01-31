@@ -2,6 +2,7 @@ package status
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -63,6 +64,9 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 		snap := snapshot(rec)
 		pin, err := paths.PinnedPath(snap, &rec)
+		if errors.Is(err, fetchsvc.ErrUnresolvedPin) {
+			continue // the rule below reports it
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -96,6 +100,9 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 	}
 	// Rules without state still support literal paths and owner/name templates.
+	// A rule that references other unknown fields is an unresolved pin: it is
+	// shown, but nothing is inspected in its place.
+	var extra []Row
 	for _, rule := range cnf.Repos {
 		if rule.Ignore || rule.Path == "" {
 			continue
@@ -103,8 +110,18 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		rec := state.Record{ID: rule.Match.ID, OwnerLogin: rule.Match.Owner, Name: rule.Match.Name}
 		if known, ok := st.ByID(rec.ID); rec.ID != 0 && ok {
 			rec = *known
+		} else if known, ok := byName[strings.ToLower(rec.OwnerLogin+"/"+rec.Name)]; rec.ID == 0 && ok {
+			rec = known
 		}
 		pin, err := paths.PinnedPath(snapshot(rec), &rec)
+		if errors.Is(err, fetchsvc.ErrUnresolvedPin) {
+			name := fmt.Sprintf("id=%d", rec.ID)
+			if rec.OwnerLogin != "" {
+				name = rec.OwnerLogin + "/" + rec.Name
+			}
+			extra = append(extra, Row{ID: rec.ID, Repository: name, Path: rule.Path, Status: StatusUnresolvedPin, Pinned: true, displayPath: rule.Path, placeholder: true})
+			continue
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -115,11 +132,21 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 			pins[strings.ToLower(rec.OwnerLogin+"/"+rec.Name)] = pin
 		}
 	}
+	// Obstructions are shown, never inspected: the scan is incomplete there.
+	// A remembered checkout at such a path keeps its row, marked as the error.
+	obstructed := map[string]string{}
 	err = scope.Walk(ctx, func(path string, pinned bool) error {
 		add(path, state.Record{})
 		if pinned {
 			pinnedPaths[path] = true
 		}
+		return nil
+	}, func(path string, reason error) error {
+		obstructed[path] = "scan: " + reason.Error()
+		extra = append(extra, Row{
+			Repository: filepath.Base(path), Path: path, Status: "error", Error: obstructed[path],
+			displayPath: relativePath(path, renderer.Root(), home), placeholder: true,
+		})
 		return nil
 	})
 	if err != nil {
@@ -190,14 +217,21 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		if duplicates[key] > 1 && pins[key] == "" && row.OrphanReason == "" {
 			row.Status, row.Error = "error", "multiple checkouts for this repository; select one with a per-repo path"
 		}
-		if len(owners) > 0 {
-			match := false
-			for _, filter := range owners {
-				match = match || strings.EqualFold(owner, filter)
-			}
-			if !match {
-				continue
-			}
+		if reason, ok := obstructed[row.Path]; ok {
+			row.Status, row.Error = "error", reason // the scan reason outranks the others
+		}
+		if !selectedOwner(owners, owner) {
+			continue
+		}
+		selected = append(selected, row)
+	}
+	for _, row := range extra {
+		if _, listed := byPath[row.Path]; listed {
+			continue
+		}
+		// A path without a known owner is kept under every owner filter.
+		if owner, _, known := strings.Cut(row.Repository, "/"); known && !selectedOwner(owners, owner) {
+			continue
 		}
 		selected = append(selected, row)
 	}
@@ -215,6 +249,22 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 func (row Row) identified() bool {
 	owner, name, ok := strings.Cut(row.Repository, "/")
 	return ok && owner != "" && name != ""
+}
+
+// StatusUnresolvedPin marks a per-repo path that cannot be rendered offline:
+// it references a field that only a state record supplies.
+const StatusUnresolvedPin = "unresolved pin"
+
+func selectedOwner(owners []string, owner string) bool {
+	if len(owners) == 0 {
+		return true
+	}
+	for _, filter := range owners {
+		if strings.EqualFold(owner, filter) {
+			return true
+		}
+	}
+	return false
 }
 
 func snapshot(rec state.Record) github.RepoSnapshot {

@@ -6,10 +6,13 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 
 	"github.com/mattn/go-isatty"
+
+	"go.octolab.org/toolset/maintainer/internal/service/workspace"
 )
 
 // Output formats for the plan (§3.1 --format).
@@ -241,9 +244,13 @@ func (r *Reporter) Errorf(format string, args ...any) {
 	fmt.Fprintf(r.err, "%s %s\n", paint(r.color, "1;31", "error:"), paint(r.color, "31", msg))
 }
 
+// short abbreviates a path inside the workspace root, by path component: a
+// sibling such as <root>-old is printed in full.
 func (r *Reporter) short(p Plan, path string) string {
-	if p.Root != "" && strings.HasPrefix(path, p.Root) {
-		return "<root>" + strings.TrimPrefix(path, p.Root)
+	if p.Root != "" && workspace.Within(p.Root, path) {
+		if rel, err := filepath.Rel(p.Root, path); err == nil {
+			return filepath.Join("<root>", rel)
+		}
 	}
 	return path
 }

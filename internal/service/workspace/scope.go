@@ -3,6 +3,7 @@ package workspace
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -105,37 +106,62 @@ func (s *Scope) descend(path string) bool {
 	return false
 }
 
+// ErrUnmanagedCheckout names a Git repository at a prefix level of the
+// layout: it is neither listed nor entered, and the walk continues below it.
+var ErrUnmanagedCheckout = errors.New("a Git repository at an unmanaged level of the layout")
+
 // Walk never inspects Git or traverses directories outside the configured
 // boundary. add also receives missing pin roots so callers report them visibly.
-func (s *Scope) Walk(ctx context.Context, add func(path string, pinned bool) error) error {
+// obstruct receives every path inside the boundary that the walk cannot scan,
+// an unreadable directory or a Git repository at a prefix level of the layout,
+// with the reason; the walk keeps every reachable result and continues.
+func (s *Scope) Walk(ctx context.Context, add func(path string, pinned bool) error, obstruct func(path string, reason error) error) error {
 	seen := map[string]bool{}
+	obstructed := map[string]bool{}
+	report := func(path string, reason error) error {
+		if obstructed[path] {
+			return nil
+		}
+		obstructed[path] = true
+		return obstruct(path, reason)
+	}
 	roots := append([]string{s.Root}, s.pins...)
 	for i, root := range roots {
 		err := filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
 			if err := ctx.Err(); err != nil {
 				return err
 			}
-			if seen[path] {
-				if d != nil && d.IsDir() {
-					return filepath.SkipDir
-				}
-				return nil
-			}
 			if walkErr != nil {
 				if os.IsNotExist(walkErr) && path == root {
-					if i > 0 {
+					if i > 0 && !seen[path] {
 						seen[path] = true
 						return add(path, true)
 					}
 					return nil
 				}
-				return walkErr
+				// A directory that cannot be read hides only its own subtree.
+				if err := report(path, walkErr); err != nil {
+					return err
+				}
+				if d != nil && d.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			if seen[path] {
+				if d.IsDir() {
+					return filepath.SkipDir
+				}
+				return nil
 			}
 			if !d.IsDir() {
 				if path == root {
 					return fmt.Errorf("workspace path %s is not a directory (symlink roots are not followed)", path)
 				}
 				return nil
+			}
+			if path != root && d.Name() == ".git" {
+				return filepath.SkipDir // Git metadata of a repository at a prefix level
 			}
 			if !s.descend(path) {
 				return filepath.SkipDir
@@ -146,15 +172,56 @@ func (s *Scope) Walk(ctx context.Context, add func(path string, pinned bool) err
 					if err := add(path, s.Pinned(path)); err != nil {
 						return err
 					}
+					return filepath.SkipDir
+				}
+				return report(path, ErrUnmanagedCheckout)
+			} else if !os.IsNotExist(err) {
+				if err := report(path, err); err != nil {
+					return err
 				}
 				return filepath.SkipDir
-			} else if !os.IsNotExist(err) {
-				return err
 			}
 			return nil
 		})
 		if err != nil {
 			return fmt.Errorf("scan workspace %s: %w", root, err)
+		}
+	}
+	return nil
+}
+
+// Destination errors name an unsafe parent of a clone or move destination.
+var (
+	ErrSymlinkParent = errors.New("a parent directory inside the workspace root is a symbolic link")
+	ErrFileParent    = errors.New("a parent path inside the workspace root is not a directory")
+)
+
+// Destination checks a clone or move destination right before it is created.
+// The path must lie strictly inside root, and every existing component between
+// them must be a real directory, so creating the missing ones never writes
+// through a symbolic link. An existing destination is reported as fs.ErrExist.
+func Destination(root, path string) error {
+	root, path = filepath.Clean(root), filepath.Clean(path)
+	rel, err := filepath.Rel(root, path)
+	if err != nil || rel == "." || !Within(root, path) {
+		return fmt.Errorf("destination %s is outside the workspace root %s", path, root)
+	}
+	parts := strings.Split(rel, string(filepath.Separator))
+	current := root
+	for i, part := range parts {
+		current = filepath.Join(current, part)
+		info, err := os.Lstat(current)
+		switch {
+		case os.IsNotExist(err):
+			return nil
+		case err != nil:
+			return err
+		case i == len(parts)-1:
+			return fmt.Errorf("destination %s: %w", current, fs.ErrExist)
+		case info.Mode()&fs.ModeSymlink != 0:
+			return fmt.Errorf("%w: %s", ErrSymlinkParent, current)
+		case !info.IsDir():
+			return fmt.Errorf("%w: %s", ErrFileParent, current)
 		}
 	}
 	return nil

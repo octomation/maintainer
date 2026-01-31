@@ -61,6 +61,9 @@ func cells(row Row) []string {
 		changes += fmt.Sprintf(" · !%d", row.Conflicts)
 	}
 	status := row.Status
+	if row.Status == StatusUnresolvedPin {
+		changes = "?"
+	}
 	if row.Error != "" {
 		changes = "?"
 		status = "error: " + row.Error
@@ -149,6 +152,18 @@ func summary(rows []Row) string {
 		uncommitted, ahead, behind, locked, orphan, plural(failed, "error"))
 }
 
+// checkouts counts the rows that stand for a checkout: a scan obstruction or
+// an unresolved pin is shown, but it is none.
+func checkouts(rows []Row) int {
+	n := 0
+	for _, row := range rows {
+		if !row.placeholder {
+			n++
+		}
+	}
+	return n
+}
+
 func plural(n int, noun string) string {
 	if n == 1 {
 		return "1 " + noun
@@ -159,7 +174,7 @@ func plural(n int, noun string) string {
 // Plain writes every row, without terminal controls or interactive input.
 func Plain(w io.Writer, rows []Row) error {
 	t := newTable(rows)
-	if _, err := fmt.Fprintf(w, "Repository status · %s · %s · local refs (no fetch)\n\n", plural(len(rows), "checkout"), summary(rows)); err != nil {
+	if _, err := fmt.Fprintf(w, "Repository status · %s · %s · local refs (no fetch)\n\n", plural(checkouts(rows), "checkout"), summary(rows)); err != nil {
 		return err
 	}
 	for i := range t.rows {

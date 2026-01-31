@@ -111,6 +111,14 @@ func TestValidate_Rejections(t *testing.T) {
 		"bad transport":      func(f *Fetch) { f.Defaults.CloneURL = "ftp" },
 		"zero concurrency":   func(f *Fetch) { f.Defaults.Concurrency = 0 },
 		"owner path escapes": func(f *Fetch) { f.Owners = []Owner{{Name: "a", Path: "../x"}} },
+		"owner above layout": func(f *Fetch) { f.Owners = []Owner{{Name: "acme", Path: "public/{{.Repo}}"}} },
+		"owner below layout": func(f *Fetch) {
+			f.Defaults.Path = "{{.Repo}}"
+			f.Owners = []Owner{{Name: "acme", Path: "{{.Owner}}-{{.Repo}}/src"}}
+		},
+		"owners nest": func(f *Fetch) {
+			f.Owners = []Owner{{Name: "acme", Path: "mirror/{{.Repo}}"}, {Name: "bob", Path: "mirror/{{.Owner}}/{{.Repo}}"}}
+		},
 	}
 	for name, mutate := range tests {
 		t.Run(name, func(t *testing.T) {
@@ -119,6 +127,32 @@ func TestValidate_Rejections(t *testing.T) {
 			assert.Error(t, f.Validate())
 		})
 	}
+}
+
+func TestValidate_NestedLayouts(t *testing.T) {
+	validate := func(layout string, owners ...Owner) error {
+		f := &Fetch{Defaults: Defaults{Root: ".", Path: layout, CloneURL: "ssh", Concurrency: 4}, Owners: owners}
+		return f.Validate()
+	}
+	// acme/bob would render to bob, an ancestor of bob/x from the layout.
+	assert.ErrorContains(t, validate("{{.Owner}}/{{.Repo}}", Owner{Name: "acme", Path: "{{.Repo}}"}),
+		`workspace.path "{{.Owner}}/{{.Repo}}" and owners["acme"].path "{{.Repo}}" can place one checkout inside another`)
+	assert.Error(t, validate("{{.Owner}}/{{.Repo}}", Owner{Name: "acme", Path: "{{.Repo}}-mirror"}))
+	assert.Error(t, validate(DefaultPath, Owner{Name: "acme", Path: "{{.Visibility}}/{{.Repo}}"}))
+	for _, owners := range [][]Owner{
+		{{Name: "acme", Path: "mirror/{{.Owner}}/{{.Repo}}"}},
+		{{Name: "acme", Path: "{{.Visibility}}/{{.Owner}}/{{.Repo}}"}, {Name: "bob", Path: "bob/{{.Repo}}"}},
+		// Paths of acme never meet the layout, which other owners use.
+		{{Name: "acme", Path: "{{.Visibility}}/{{.Owner}}"}},
+		{{Name: "acme", Path: "{{.Owner}}"}},
+		{{Name: "Acme", Path: "{{.Visibility}}/{{lower .Owner}}"}},
+		{{Name: "acme", Path: "{{.Owner}}"}, {Name: "bob", Path: "{{.Owner}}/{{.Repo}}/src"}},
+	} {
+		assert.NoError(t, validate(DefaultPath, owners...), owners)
+	}
+	assert.NoError(t, validate("{{.Owner}}/{{.Repo}}", Owner{Name: "acme", Path: "{{.Owner}}/{{.Repo}}/src"}))
+	// One repository has one visibility: public/private never meets the layout.
+	assert.NoError(t, validate("{{.Visibility}}/{{.Visibility}}/{{.Repo}}", Owner{Name: "acme", Path: "public/private/{{.Repo}}/src"}))
 }
 
 func TestCloneURLFor_Precedence(t *testing.T) {

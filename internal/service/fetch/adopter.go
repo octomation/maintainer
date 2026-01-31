@@ -82,7 +82,14 @@ func (a *Adopter) ScanScoped(ctx context.Context, scope *workspace.Scope, snapsh
 		return nil
 	}
 
-	if err := scope.Walk(ctx, add); err != nil {
+	// An obstruction becomes a report-only conflict: the scan is incomplete
+	// there, and the plan must say so rather than pass for a complete one.
+	obstruct := func(dir string, reason error) error {
+		seen[dir] = true
+		clones = append(clones, DiskClone{Path: dir, Error: "scan: " + reason.Error()})
+		return nil
+	}
+	if err := scope.Walk(ctx, add, obstruct); err != nil {
 		return nil, err
 	}
 	for _, ext := range extraPaths {

@@ -135,11 +135,16 @@ trees without permitting moves. Adding a new root child does not expand scope.
 Managed templates support scalar `.Owner .Repo .Visibility .DefaultBranch
 .IsFork .IsTemplate .IsArchived`, literals, and `lower`/`upper`; conditionals and
 other non-reversible expressions are rejected. Each scalar stays within one
-path component. Per-repo paths can also use `.Root`. Write a per-repo path
-literally or with only `.Root`, `.Owner` and `.Repo`: other fields are not
-known on every run, so such a pin becomes a conflict after its first apply.
-Status resolves an id-only templated pin only once fetch has recorded it;
-until then it shows an error row.
+path component. Per-repo paths can also use `.Root`. A per-repo path is
+rendered only when every field it references is known. Fetch takes the fields
+from GitHub or from the state record it keeps for the repository; a field that
+neither supplies makes the pin unresolved, a conflict for that repository.
+Offline, [status](/status/) knows `.Root`, the `.Owner` and `.Repo` of a rule
+that matches by owner and name, and the fields of the state record; for any
+other field it shows an `unresolved pin` row. A path that cannot be rendered
+for one repository, such as a layout with `.DefaultBranch` and a branch named
+`release/v1`, is a conflict for that repository only; the rest of the plan
+goes on.
 Precedence high→low: per-repo → per-owner → `workspace.path`. The rendered path
 is absolute → used as-is; `~` → expanded from `$HOME`; otherwise joined with
 `root`. `workspace.path` and per-owner templates must stay **within `root`**;
@@ -169,8 +174,10 @@ Use numeric IDs so rules survive renames. Applied pins are also retained as
 rule alone does not unpin: deliberately remove its state `pinned_path` too to
 return to template-managed moves, provided the checkout belongs to the current
 workspace layout. Removing a workspace tree pin instead suspends its remembered
-checkouts; it does not enable moves. Changing a per-repo pin selects another verified
-existing checkout. Adoption/remote update fetch refs on the next invocation.
+checkouts; it does not enable moves. The current rule takes precedence over the
+saved `pinned_path` whenever it can be rendered, so changing a per-repo pin
+selects another verified existing checkout; the previous path stays in
+`previous_paths` and as an `orphan` row. Adoption/remote update fetch refs on the next invocation.
 A checkout adopted at the old path of a renamed repository is moved by the
 next invocation and fetched by the one after it.
 
@@ -209,13 +216,14 @@ discovers it again.
 | `adopt`         | a clone on disk matches an API repo with no state record                |
 | `orphan`        | inactive duplicate, remembered checkout outside scope, or a repository not accessible by id; report only |
 | `noop`          | no executable change, including filtered or inaccessible repositories; a reason may be shown |
-| `conflict`      | ambiguous identity, missing/foreign pin, occupied target or another condition blocking an action |
+| `conflict`      | ambiguous identity, missing/foreign pin, occupied or unsafe target, scan obstruction or another condition blocking an action |
 
 Apply order: `adopt`/`relocate` → `update_remote` → `move` → `clone` → `fetch`
 (clone/fetch bounded by `--concurrency`). The human plan collapses routine
 fetches into the summary and prints lines only for drift; `--format=json` lists
-every action. Two actions resolving to the same target path are a conflict for
-both, decided up front.
+every action. Two actions resolving to the same target path, or to targets one
+inside the other, are a conflict for both, decided up front; so are a target
+inside an existing checkout of the workspace and the action on that checkout.
 
 Each `--apply` invocation discovers and builds a fresh plan; it does not read
 back a previously printed JSON plan. Conflicting actions are skipped, while
@@ -232,8 +240,10 @@ offline status; authentication and transient failures do not establish it.
 
 Target handling is fail-closed. Any existing clone or move target must first be
 identified as the expected repository; otherwise the plan reports a `conflict`
-with its path. Apply repeats the existence check immediately before clone/move,
-so a path created after plan review is never overwritten. Clone reserves an
+with its path. A target whose parent inside the root is a symlink or a file is
+a conflict too. Apply repeats these checks immediately before each clone or
+move, so a path or a link created after plan review is refused; changes that
+another process makes while a clone or move runs are not guarded against. Clone reserves an
 absent path atomically and never recursively cleans that final path on failure;
 an unexpected partial checkout is retained with an error for manual inspection.
 On a case-insensitive filesystem, as on macOS by default, a rename that changes
@@ -291,7 +301,8 @@ maintainer fetch --format=json | jq '.actions[]? | select(.kind == "conflict" or
 Apply emits the plan with the resulting summary after execution. Progress and
 per-repository error messages go to stderr. JSON is a plan and summary, not a
 per-action execution log. Human output abbreviates paths under the workspace
-as `<root>/…` and collapses routine fetches into the summary.
+as `<root>/…`, prints other paths in full, including a sibling of the root such
+as `~/Development-old`, and collapses routine fetches into the summary.
 
 ## Flags & exit codes
 

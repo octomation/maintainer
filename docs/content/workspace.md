@@ -32,19 +32,45 @@ The default `path` matches exactly `{public,private,internal}/<owner>/<repo>`.
 Visibility is a finite set, not a wildcard directory name. Adding `research`,
 `prototyping`, or any future directory beside those branches does not expand
 either command's scope. Out-of-scope branches are pruned before Git inspection
-or identity resolution. Finding a checkout stops descent (no submodule scan),
-so a repository at an owner or visibility level hides the checkouts below it.
+or identity resolution. Finding a checkout stops descent (no submodule scan).
 Directory symlinks are not followed by discovery; use a real explicit path.
-Clone and move do follow a directory symlink inside the root, such as
-`public/acme` linked to another place: they write the checkout through it,
-later fetch runs report it as a conflict, and status no longer lists it. Keep
-the directories of the layout real.
+Fetch does not write through them either: a clone or move target whose parent
+inside the root is a symlink or a file, such as `public/acme` linked to another
+place, is a conflict. Apply checks the target again immediately before it
+creates or renames the directory, so a path that appeared after the plan is
+refused; changes that another process makes while a clone or move runs are not
+guarded against.
 
 Templates support literals and scalar `.Owner`, `.Repo`, `.Visibility`,
 `.DefaultBranch`, `.IsFork`, `.IsTemplate`, `.IsArchived`, with `lower`/`upper`.
 Each field occupies part of one path component. Conditions, loops and other
 non-reversible expressions are rejected, never interpreted as a broad scan.
-Per-owner path templates add their corresponding managed regions.
+Per-owner path templates add their corresponding managed regions. A per-owner
+template that can place a checkout inside a checkout of another template, such
+as `path = "{{.Repo}}"` for one owner beside the layout `{{.Owner}}/{{.Repo}}`,
+is a configuration error. Fetch also reports a conflict for each target inside
+another target or inside an existing checkout of the workspace, and for the
+action on that checkout, before anything is created.
+
+## Scan obstructions
+
+A directory inside the scope that cannot be read, and a Git repository at a
+prefix level of the layout, such as `public/<owner>` or the root itself, are
+obstructions. Discovery names each one and keeps every result it can reach: it
+does not enter an unreadable directory, and it continues below a repository at
+a prefix level, so the checkouts there stay visible. Status shows an
+obstruction as an error row and exits `1`:
+
+```text
+REPOSITORY │ BRANCH │ UNCOMMITTED │ STATUS                                                            │ LOCK │ PATH
+acme/tool  │ main   │ +0/-0       │ synced                                                            │      │ public/acme/tool
+old        │ —      │ ?           │ error: scan: a Git repository at an unmanaged level of the layout │      │ public/old
+```
+
+Fetch plans a report-only `conflict` with the path and the reason, counted in
+`summary.conflict`. Pins are scanned recursively until a checkout is found, with
+no depth limit, so an unreadable directory deep inside a pinned project, such as
+a database volume, is reported the same way.
 
 For managed checkouts, a confirmed rename/transfer/visibility change updates
 the target rendered from GitHub metadata. Moves happen only with `fetch --apply`.

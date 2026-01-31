@@ -208,9 +208,12 @@ func (f *Fetch) Validate() error {
 	if err := withinRoot("workspace.path", w.Path); err != nil {
 		return err
 	}
-	if _, err := pathpattern.Compile(w.Path, ""); err != nil {
+	layout, err := pathpattern.Compile(w.Path, "")
+	if err != nil {
 		return err
 	}
+	var reserved []string
+	layouts := map[string]*pathpattern.Pattern{}
 	for i := range f.Owners {
 		o := &f.Owners[i]
 		if o.Name == "" {
@@ -220,13 +223,19 @@ func (f *Fetch) Validate() error {
 			if err := withinRoot(fmt.Sprintf("owners[%q].path", o.Name), o.Path); err != nil {
 				return err
 			}
-			if _, err := pathpattern.Compile(o.Path, o.Name); err != nil {
+			p, err := pathpattern.Compile(o.Path, o.Name)
+			if err != nil {
 				return err
 			}
+			reserved = append(reserved, o.Name)
+			layouts[fmt.Sprintf("owners[%q].path %q", o.Name, o.Path)] = p
 		}
 		if err := validTransport(fmt.Sprintf("owners[%q].clone_url", o.Name), o.CloneURL); err != nil {
 			return err
 		}
+	}
+	if err := nestedLayouts(fmt.Sprintf("workspace.path %q", w.Path), layout, layouts, reserved); err != nil {
+		return err
 	}
 	for i := range f.Repos {
 		r := &f.Repos[i]
@@ -240,6 +249,27 @@ func (f *Fetch) Validate() error {
 	for name, p := range f.Profiles {
 		if err := validTransport(fmt.Sprintf("profiles[%q].clone_url", name), p.CloneURL); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// nestedLayouts rejects the demonstrable overlaps between the workspace and
+// owner templates: one would place a checkout inside another's working tree.
+func nestedLayouts(field string, layout *pathpattern.Pattern, owners map[string]*pathpattern.Pattern, reserved []string) error {
+	fields := make([]string, 0, len(owners))
+	for name := range owners {
+		fields = append(fields, name)
+	}
+	sort.Strings(fields)
+	for i, a := range fields {
+		if pathpattern.Nested(layout, owners[a], reserved) {
+			return fmt.Errorf("%s and %s can place one checkout inside another", field, a)
+		}
+		for _, b := range fields[i+1:] {
+			if pathpattern.Nested(owners[a], owners[b], reserved) {
+				return fmt.Errorf("%s and %s can place one checkout inside another", a, b)
+			}
 		}
 	}
 	return nil

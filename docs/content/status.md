@@ -48,8 +48,10 @@ changes (tracked changes or untracked files), are ahead or behind their
 upstream, carry the push lock, are orphans, and failed to be inspected. Each
 count is a number of rows, and one row can fall into several categories. A
 failed inspection counts as an error, and as locked or orphan when it is one,
-but never as clean or as uncommitted, ahead or behind: those are unknown. JSON
-output stays an array of rows, without the summary.
+but never as clean or as uncommitted, ahead or behind: those are unknown. The
+row of a scan obstruction or of an unresolved pin is not a checkout; an
+obstruction counts as an error. JSON output stays an array of rows, without
+the summary.
 
 `Path` is the last column in both plain and terminal tables. Checkouts inside
 the effective `workspace.root` use paths relative to that root, including
@@ -84,6 +86,10 @@ unborn branches, missing upstream configuration and deleted upstream refs are
 reported distinctly. Failures produce error rows, not zero/clean results. When
 a Git command fails, its error row names the command and quotes Git's message,
 such as `git status: fatal: bad config line 1 in file .git/config (exit status 128)`.
+A directory the scan cannot read and a Git repository at a prefix level of the
+layout are error rows too, with `error: scan: …` and their path; the other rows
+are complete, because the scan continues past them (see
+[scan obstructions](/workspace/#scan-obstructions)).
 
 `Lock` shows `🔒` when any remote has a push URL exactly equal to `no_push`,
 the marker set by the dotfiles helper `git lock [remote]` (`origin` by default).
@@ -169,7 +175,16 @@ rows. The Path column distinguishes them; JSON and the selected-path footer
 also retain their full paths.
 ID-only pins without state can only use their
 local origin for display identity: status cannot verify a GitHub ID offline.
-Fetch performs that verification. If origin contradicts known state, status
+Fetch performs that verification. A per-repo path that references a field
+status does not know offline, such as `.Owner` in an ID-only rule before fetch
+has recorded the repository, is an `unresolved pin` row. Status inspects
+nothing in its place, and the row alone does not make the command fail:
+
+```text
+REPOSITORY │ BRANCH │ UNCOMMITTED │ STATUS         │ LOCK │ PATH
+id=42      │ —      │ ?           │ unresolved pin │      │ ~/ext/{{.Owner}}/{{.Repo}}
+```
+ If origin contradicts known state, status
 reports the mismatch and suggests fetch. Missing pins remain error rows.
 Ignore rules are respected; archived/fork filters do not hide local work.
 
@@ -242,7 +257,7 @@ maintainer status --owner octomation --format=json | jq -c '.[] | select(.push_l
 
 | Code | Meaning |
 | --- | --- |
-| `0` | Successful snapshot, including dirty, diverged and orphan rows |
+| `0` | Successful snapshot, including dirty, diverged, orphan and unresolved pin rows |
 | `1` | Git inspection, discovery, state or output failure |
 | `2` | Usage error or invalid configuration, including TUI without terminal I/O |
 

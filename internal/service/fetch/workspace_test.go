@@ -109,8 +109,17 @@ func TestWorkspacePinsNeverMaterialiseTargets(t *testing.T) {
 
 func TestWorkspaceTargetMustMatchDiscoveryLayout(t *testing.T) {
 	cnf := &config.Fetch{Workspace: &config.Workspace{Root: "/work", Path: "{{.DefaultBranch}}/{{.Owner}}/{{.Repo}}"}}
-	_, err := newPlanner(t, cnf).Plan(PlanInput{State: state.New(), Snapshots: []github.RepoSnapshot{{ID: 1, Owner: "alice", Name: "tool", DefaultBranch: "feature/work"}}})
-	assert.ErrorContains(t, err, "outside workspace layout")
+	acts, err := newPlanner(t, cnf).Plan(PlanInput{State: state.New(), Snapshots: []github.RepoSnapshot{
+		{ID: 1, Owner: "alice", Name: "tool", DefaultBranch: "feature/work"},
+		{ID: 2, Owner: "alice", Name: "lib", DefaultBranch: "main"},
+	}})
+	require.NoError(t, err)
+	require.Len(t, acts, 2)
+	assert.Equal(t, KindClone, acts[0].Kind)
+	assert.Equal(t, "/work/main/alice/lib", acts[0].Path)
+	assert.Equal(t, KindConflict, acts[1].Kind)
+	assert.Equal(t, int64(1), acts[1].ID)
+	assert.Contains(t, acts[1].Reason, "outside workspace layout")
 }
 
 func TestWorkspaceFetchStatusSameLocalScope(t *testing.T) {

@@ -62,6 +62,8 @@ type Action struct {
 
 	Snapshot *github.RepoSnapshot
 	Record   *state.Record
+
+	target string // intended clone/move target, kept when it is refused
 }
 
 // order is the apply priority (§7.4): adopt/relocate first (pure metadata),

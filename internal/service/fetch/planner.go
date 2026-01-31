@@ -2,6 +2,7 @@ package fetch
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 
 	"go.octolab.org/toolset/maintainer/internal/config"
@@ -31,6 +32,8 @@ type Occupancy int
 const (
 	OccupancyClear   Occupancy = iota // path is absent
 	OccupancyForeign                  // any existing path not verified as the expected clone
+	OccupancyUnsafe                   // a parent inside root is a symlink or not a directory
+	OccupancyUnknown                  // the path could not be inspected
 )
 
 // ConfirmStatus is the outcome of a GET /repositories/{id} re-verification (§10).
@@ -138,7 +141,8 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 		}
 		pin, err := p.paths.PinnedPath(pinSnap, rec)
 		if err != nil {
-			return nil, err
+			actions = append(actions, Action{Kind: KindConflict, ID: id, Owner: owner, Name: name, Reason: err.Error()})
+			continue
 		}
 		if pin != "" && !p.paths.WorkspacePin(pinSnap, rec) {
 			seen := map[string]bool{pin: true}
@@ -184,7 +188,14 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 		}
 	}
 
-	resolveTargetCollisions(actions)
+	existing := make([]string, 0, len(in.Clones)+len(in.KnownCheckouts))
+	for _, c := range in.Clones {
+		existing = append(existing, c.Path)
+	}
+	for path := range in.KnownCheckouts {
+		existing = append(existing, path)
+	}
+	resolveTargetCollisions(actions, p.paths.scope.Root, existing)
 	sort.SliceStable(actions, func(i, j int) bool {
 		if actions[i].order() != actions[j].order() {
 			return actions[i].order() < actions[j].order()
@@ -235,7 +246,8 @@ func (p *Planner) planPresent(
 	}
 	pinned, err := p.paths.PinnedPath(snap, rec)
 	if err != nil {
-		return nil, err
+		base.Kind, base.Reason = KindConflict, err.Error()
+		return &base, nil
 	}
 	if pinned != "" {
 		a := planPinned(base, pinned, rec, clones)
@@ -275,9 +287,11 @@ func (p *Planner) planPresent(
 		base.Kind, base.Path, base.Reason = KindConflict, clones[0].Path, "same repository id found at multiple locations on disk"
 		return &base, nil
 	}
+	// One repository whose path cannot be rendered never blocks the others.
 	target, err := p.paths.Resolve(snap)
 	if err != nil {
-		return nil, fmt.Errorf("resolve path for %s (id=%d): %w", snap.FullName(), snap.ID, err)
+		base.Kind, base.Reason = KindConflict, "cannot resolve the target path: "+err.Error()
+		return &base, nil
 	}
 	if p.paths.scope.Pinned(target) {
 		base.Kind, base.Path, base.Reason = KindConflict, target, "target is inside workspace.pins; only existing pinned checkouts are allowed"
@@ -410,7 +424,7 @@ func conflictAtTarget(
 	if other, ok := clonesByPath[target]; ok && other.ID != expectedID {
 		a := base
 		a.Kind = KindConflict
-		a.Path = target
+		a.Path, a.target = target, target
 		if other.ID == 0 {
 			a.Reason = "target contains a Git repository whose fetch origin cannot be matched unambiguously"
 		} else {
@@ -418,14 +432,19 @@ func conflictAtTarget(
 		}
 		return &a
 	}
-	if occupancy[target] == OccupancyForeign {
-		a := base
-		a.Kind = KindConflict
-		a.Path = target
-		a.Reason = "target path already exists and is not the expected repository; refusing to overwrite it"
-		return &a
+	reason := map[Occupancy]string{
+		OccupancyForeign: "target path already exists and is not the expected repository; refusing to overwrite it",
+		OccupancyUnsafe:  "a parent of the target path inside the workspace root is a symbolic link or not a directory; refusing to write through it",
+		OccupancyUnknown: "the target path cannot be inspected; refusing to write into it",
+	}[occupancy[target]]
+	if reason == "" {
+		return nil
 	}
-	return nil
+	a := base
+	a.Kind = KindConflict
+	a.Path, a.target = target, target
+	a.Reason = reason
+	return &a
 }
 
 // planMissing handles the API-absent rows of the drift table (§10): a tracked
@@ -467,29 +486,81 @@ func (p *Planner) filtered(snap github.RepoSnapshot) bool {
 		(f.ExcludeTemplates && snap.IsTemplate)
 }
 
-// resolveTargetCollisions flags any two materialising actions (clone/move)
-// that resolve to the same canonical path as conflicts for both (§7.4).
-func resolveTargetCollisions(actions []Action) {
-	claims := make(map[string][]int)
-	for i, a := range actions {
-		var path string
-		switch a.Kind {
-		case KindClone:
-			path = a.Path
-		case KindMove:
-			path = a.ToPath
-		default:
-			continue
-		}
-		claims[path] = append(claims[path], i)
+// resolveTargetCollisions flags materialising actions (clone/move) whose
+// targets coincide or nest, with each other or with an existing checkout
+// inside root, as conflicts for every participant, before any side effect
+// (§7.4). A target already refused, such as an occupied one, still takes
+// part, so the checkout it overlaps becomes a conflict too. A checkout at root
+// or above it contains the whole workspace and is not a collision.
+func resolveTargetCollisions(actions []Action, root string, existing []string) {
+	type claim struct {
+		index int
+		path  string
 	}
-	for path, idx := range claims {
+	var claims []claim
+	for i, a := range actions {
+		switch {
+		case a.Kind == KindClone:
+			claims = append(claims, claim{i, a.Path})
+		case a.Kind == KindMove:
+			claims = append(claims, claim{i, a.ToPath})
+		case a.Kind == KindConflict && a.target != "":
+			claims = append(claims, claim{i, a.target})
+		}
+	}
+	reasons := make(map[int]string)
+	conflict := func(i int, reason string) {
+		if _, set := reasons[i]; !set {
+			reasons[i] = reason
+		}
+	}
+	byPath := make(map[string][]int)
+	for _, c := range claims {
+		byPath[c.path] = append(byPath[c.path], c.index)
+	}
+	for path, idx := range byPath {
 		if len(idx) < 2 {
 			continue
 		}
 		for _, i := range idx {
-			actions[i].Kind = KindConflict
-			actions[i].Reason = fmt.Sprintf("target path %q claimed by %d repositories", path, len(idx))
+			conflict(i, fmt.Sprintf("target path %q claimed by %d repositories", path, len(idx)))
+		}
+	}
+	nested := func(a, b string) bool { return a != b && (workspace.Within(a, b) || workspace.Within(b, a)) }
+	name := func(a Action) string { return a.Owner + "/" + a.Name }
+	for x := range claims {
+		for _, y := range claims[x+1:] {
+			if nested(claims[x].path, y.path) {
+				conflict(claims[x].index, fmt.Sprintf("target path overlaps the target path %q of %s", y.path, name(actions[y.index])))
+				conflict(y.index, fmt.Sprintf("target path overlaps the target path %q of %s", claims[x].path, name(actions[claims[x].index])))
+			}
+		}
+	}
+	existing = slices.Clone(existing)
+	slices.Sort(existing)
+	for _, path := range slices.Compact(existing) {
+		if path == root || !workspace.Within(root, path) {
+			continue
+		}
+		for _, c := range claims {
+			if !nested(c.path, path) {
+				continue
+			}
+			conflict(c.index, fmt.Sprintf("target path overlaps the existing checkout %q", path))
+			for i, a := range actions {
+				location := a.Path
+				if a.Kind == KindMove {
+					location = a.FromPath
+				}
+				if i != c.index && a.Executable() && location == path {
+					conflict(i, fmt.Sprintf("checkout overlaps the target path %q of %s", c.path, name(actions[c.index])))
+				}
+			}
+		}
+	}
+	for i, reason := range reasons {
+		if actions[i].Kind != KindConflict { // an earlier reason stays
+			actions[i].Kind, actions[i].Reason = KindConflict, reason
 		}
 	}
 }

@@ -80,11 +80,15 @@ func NewService(
 	auth := func(profile, transport string) gitsvc.Auth {
 		return gitsvc.Auth{Transport: transport, Token: tokenFor(profiles, profile)}
 	}
+	mutator := deps.GitSync
+	if mutator != nil {
+		mutator = boundedSync{GitSync: mutator, root: renderer.Root()}
+	}
 	svc := &Service{
 		cnf: cnf, profiles: profiles, root: renderer.Root(),
 		concurrency: concurrency, deps: deps,
 		planner: NewPlanner(cnf, paths),
-		applier: NewApplier(deps.GitSync, auth, deps.Clock),
+		applier: NewApplier(mutator, auth, deps.Clock),
 	}
 	if deps.Resolver != nil && deps.GitSync != nil {
 		svc.adopter = NewAdopter(deps.GitSync, &profileNameResolver{
@@ -120,28 +124,26 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	if err != nil {
 		return err
 	}
+	// A pin that cannot be rendered is not scanned; the planner reports it as
+	// a conflict for that repository only.
 	var extraPaths []string
+	rendered := make(map[int64]bool, len(snapshots))
 	for _, snap := range snapshots {
 		rec, _ := st.ByID(snap.ID)
-		path, err := s.planner.paths.PinnedPath(snap, rec)
-		if err != nil {
-			return exit.WithUser(err)
-		}
-		if path != "" {
+		rendered[snap.ID] = true
+		if path, err := s.planner.paths.PinnedPath(snap, rec); err == nil && path != "" {
 			extraPaths = append(extraPaths, path)
 		}
 	}
 	// Persisted explicit pins remain inspectable when confirmation says the
-	// remote is gone/inaccessible. Their local path must not be forgotten.
+	// remote is gone/inaccessible. Their local path must not be forgotten. A
+	// repository with a snapshot has its one current pin above: the record's
+	// older metadata would render a stale path.
 	for _, rec := range st.Repos {
-		if s.cnf.Ignored(rec.ID, rec.OwnerLogin, rec.Name) {
+		if rendered[rec.ID] || s.cnf.Ignored(rec.ID, rec.OwnerLogin, rec.Name) {
 			continue
 		}
-		pin, err := s.planner.paths.PinnedPath(github.RepoSnapshot{ID: rec.ID, Owner: rec.OwnerLogin, Name: rec.Name}, &rec)
-		if err != nil {
-			return exit.WithUser(err)
-		}
-		if pin != "" {
+		if pin, err := s.planner.paths.PinnedPath(github.RepoSnapshot{ID: rec.ID, Owner: rec.OwnerLogin, Name: rec.Name}, &rec); err == nil && pin != "" {
 			extraPaths = append(extraPaths, pin)
 		}
 	}
@@ -206,10 +208,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		snapshots = append(snapshots, snap)
 		known[c.ID] = true
 	}
-	occupancy, err := s.scanOccupancy(snapshots, st)
-	if err != nil {
-		return err
-	}
+	occupancy := s.scanOccupancy(snapshots, st)
 
 	knownPaths := map[string]bool{}
 	for _, rec := range st.Repos {

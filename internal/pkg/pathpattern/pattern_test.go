@@ -41,3 +41,37 @@ func TestUnsupportedFailsClosed(t *testing.T) {
 		assert.Error(t, err, source)
 	}
 }
+
+func TestNested(t *testing.T) {
+	compile := func(source, owner string) *Pattern {
+		p, err := Compile(source, owner)
+		require.NoError(t, err)
+		return p
+	}
+	layout := compile("{{.Visibility}}/{{.Owner}}/{{.Repo}}", "")
+	for _, tc := range []struct {
+		layout, owner string
+		nested        bool
+	}{
+		{"{{.Owner}}/{{.Repo}}", "{{.Repo}}", true},                 // acme/bob at bob, bob/x at bob/x
+		{"{{.Owner}}/{{.Repo}}", "{{.Repo}}-mirror", true},          // acme/x at x-mirror, owner x-mirror below
+		{"{{.Repo}}", "{{.Owner}}-{{.Repo}}/src", true},             // a repo named acme-x above acme/x
+		{"{{.Owner}}/{{.Repo}}", "{{.Owner}}/{{.Repo}}/src", false}, // the layout never serves acme
+		{"{{.Visibility}}/{{.Visibility}}/{{.Repo}}", "public/private/{{.Repo}}/src", false},
+		{"{{.Visibility}}/{{.Visibility}}/{{.Repo}}", "public/public/{{.Repo}}/src", true},
+		{"{{.Repo}}/{{.Repo}}", "a/b/{{.Repo}}", false},
+		{"{{.Repo}}/{{.Repo}}", "a/a/{{.Repo}}", true},
+		{"{{.Repo}}-{{.Repo}}", "a-b/{{.Repo}}", false},
+		{"{{.Repo}}-{{.Repo}}", "a-a/{{.Repo}}", true},
+		{"{{.Repo}}-x/{{.Repo}}", "{{.Repo}}-x/{{.Repo}}/src", true}, // solved from the second component
+		{"{{lower .Repo}}", "Upper/{{.Repo}}", false},
+		{"{{.Visibility}}/{{.Owner}}/{{.Repo}}", "{{.Visibility}}/{{.Owner}}", false},
+		{"{{.Visibility}}/{{.Owner}}/{{.Repo}}", "public/{{.Repo}}", true},
+	} {
+		got := Nested(compile(tc.layout, ""), compile(tc.owner, "acme"), []string{"acme"})
+		assert.Equal(t, tc.nested, got, "%s vs %s", tc.layout, tc.owner)
+	}
+	assert.False(t, Nested(layout, compile("mirror/{{.Owner}}/{{.Repo}}", "acme"), []string{"acme"}), "equal depth")
+	assert.True(t, Nested(compile("mirror/{{.Repo}}", "acme"), compile("mirror/{{.Owner}}/{{.Repo}}", "bob"), []string{"acme", "bob"}))
+	assert.False(t, Nested(compile("{{.Visibility}}/{{lower .Owner}}", "Acme"), layout, []string{"Acme"}))
+}
