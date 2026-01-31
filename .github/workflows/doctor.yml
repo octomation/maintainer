@@ -56,3 +56,13 @@ jobs:
           owner: ${{ steps.preflight.outputs.tap-owner }}
           repositories: ${{ steps.preflight.outputs.tap-name }}
           permission-contents: write
+      # checks the App installation independently of the tap
+      - name: Mint the catalog token
+        if: (success() || failure()) && steps.preflight.outcome == 'success'
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
+          private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
+          owner: octolab
+          repositories: skills
+          permission-contents: write

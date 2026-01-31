@@ -11,12 +11,17 @@
 //   release.mjs smoke  <site-url> [--retries <n>]            (CI: the deployed site serves pages and assets)
 //   release.mjs vanity                                       (vanity imports in go.mod resolve over verified HTTPS)
 //   release.mjs signature <tag>                              (CI: GitHub verifies the tag's signature)
+//   release.mjs skill [--published <digest>]                 (CI: one agent skill in the source, archives and binary, or in the catalog)
 
 import { execFileSync } from 'node:child_process'
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { appendFileSync, existsSync, lstatSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { checkGoreleaser } from './goreleaser-check.mjs'
 
 const SETTINGS = '.github/settings.json'
+const SKILL = 'skills/maintainer/SKILL.md'
 const DEFAULTS = {
   tag_pattern: '^v\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$',
   notes: 'docs/content/changelog/{tag}.md',
@@ -98,6 +103,14 @@ function mapProse(body, fn) {
   }).join('\n')
 }
 
+// Reads metadata.version from the SKILL.md frontmatter; go test checks the rest of it.
+function skillVersion(text) {
+  const { body } = frontmatter(text)
+  const head = text.slice(0, text.length - body.length)
+  const m = head.match(/^metadata:\r?\n(?: {2}.*\r?\n)*? {2}version:[ ]*(.*?)\s*$/m)
+  return m ? m[1].replace(/^(["'])(.*)\1$/, '$2') : null
+}
+
 function releaseBranch(tag, release, defaultBranch) {
   for (const { match, branch } of release.branches) {
     const m = tag.match(new RegExp(match))
@@ -137,6 +150,12 @@ function check(tag, opts) {
     errors.push(...lint(note, committed))
   }
 
+  const skill = tryGit('show', `${sha}:${SKILL}`)
+  const version = tag.replace(/^v/, '')
+  if (skill !== null && skillVersion(skill) !== version) {
+    errors.push(`${SKILL}: metadata.version is ${skillVersion(skill)}, not ${version}; update the version and the ranges in the release commit and move the tag`)
+  }
+
   const base = defaultBranch()
   const branch = releaseBranch(tag, release, base)
   if (!branch) {
@@ -155,8 +174,9 @@ function check(tag, opts) {
   return errors
 }
 
-// A release comes only from a tag GitHub verifies. Checked before anything is
-// published, a bad tag can still be replaced.
+// A release, and the catalog's copy of the skill, come only from a tag GitHub
+// verifies. Checked before anything is published, a bad tag can still be
+// replaced.
 function signature(tag) {
   const slug = repoSlug()
   if (!slug) return ['cannot resolve the repository; set GITHUB_REPOSITORY']
@@ -360,6 +380,65 @@ async function vanity() {
   return Promise.all(vanityModules().map(async (p) => [p, await vanityCheck(p)]))
 }
 
+// --- skill -------------------------------------------------------------------
+
+// The octolab-skill-sha256-v1 digest, as internal/skill and octolab/skills
+// compute it: for every file in byte order of its relative path, sha256 takes
+// the path, NUL, the decimal size, NUL and the contents.
+function skillDigest(dir) {
+  const files = []
+  const walk = (rel) => {
+    for (const entry of readdirSync(join(dir, rel), { withFileTypes: true })) {
+      const path = rel ? `${rel}/${entry.name}` : entry.name
+      if (entry.name.startsWith('.') || lstatSync(join(dir, path)).isSymbolicLink()) {
+        throw new Error(`${join(dir, path)}: dotfiles and symbolic links are not allowed in a skill`)
+      }
+      if (entry.isDirectory()) walk(path)
+      else files.push(path)
+    }
+  }
+  walk('')
+  const hash = createHash('sha256')
+  for (const path of files.sort((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)))) {
+    const data = readFileSync(join(dir, path))
+    hash.update(path).update('\0').update(String(data.length)).update('\0').update(data)
+  }
+  return `sha256:${hash.digest('hex')}`
+}
+
+// Compares the skill in the source with every release archive and with the
+// copy embedded in the binary for this machine or, given --published, with
+// the catalog's payload digest.
+function skill(opts) {
+  const dir = SKILL.slice(0, SKILL.lastIndexOf('/'))
+  const want = skillDigest(dir)
+  if (opts.published !== undefined) {
+    if (opts.published !== want) return [`octolab/skills: published ${opts.published || 'nothing'}, the source is ${want}`]
+    console.log(`skill ${want} in the source and the catalog`)
+    return []
+  }
+  const errors = []
+  const archives = existsSync('dist') ? readdirSync('dist').filter((f) => f.endsWith('.tar.gz')) : []
+  if (!archives.length) return [`dist: no release archives; run goreleaser first`]
+  const arch = { x64: 'amd64', ia32: '386' }[process.arch] || process.arch
+  let binary = null
+  for (const archive of archives) {
+    const out = mkdtempSync(join(tmpdir(), 'skill-'))
+    execFileSync('tar', ['-xzf', join('dist', archive), '-C', out])
+    const got = existsSync(join(out, dir)) ? skillDigest(join(out, dir)) : 'missing'
+    if (got !== want) errors.push(`${archive}: the skill is ${got}, the source ${want}`)
+    if (archive.endsWith(`_${process.platform}-${arch}.tar.gz`)) binary = join(out, 'maintainer')
+  }
+  if (binary) {
+    const { digest } = JSON.parse(execFileSync(binary, ['skill', 'info', '--json'], { encoding: 'utf8' }))
+    if (digest !== want) errors.push(`maintainer skill info: the embedded skill is ${digest}, the source ${want}`)
+  } else {
+    errors.push(`dist: no archive for ${process.platform}-${arch} to check the embedded skill`)
+  }
+  if (!errors.length) console.log(`skill ${want} in the source, ${archives.length} archives and the binary`)
+  return errors
+}
+
 // --- preflight and doctor ----------------------------------------------------
 
 // Reads the first Homebrew repository block from .goreleaser.yml.
@@ -372,15 +451,17 @@ function tap() {
   return { owner: field('owner'), name: field('name'), token }
 }
 
-// The tap token is not a secret: cd.yml mints it per run from the OctoLab
-// Releaser GitHub App installed on the tap, so GitHub signs the commits made there.
+// The tap and catalog tokens are not secrets: cd.yml mints them per run from
+// the OctoLab Releaser GitHub App installed on the tap and on octolab/skills,
+// so GitHub signs the commits made there.
 const RELEASER_APP = { id: 'OCTOLAB_RELEASER_CLIENT_ID', key: 'OCTOLAB_RELEASER_KEY' }
+const CATALOG = 'octolab/skills'
 
 function secretGuide(name, t) {
   const save = `(gh secret set ${name} -o <org> or -R <owner>/<repo>)`
   if (t && (name === RELEASER_APP.id || name === RELEASER_APP.key)) {
     const app = `a GitHub App owned by ${t.owner} with no webhook and Repository permissions → Contents: Read and write, ` +
-      `installed on ${t.owner}/${t.name}`
+      `installed on ${t.owner}/${t.name} and ${CATALOG} only`
     return name === RELEASER_APP.id
       ? `create ${app}; save its Client ID as secret ${name} ${save}`
       : `generate a private key for ${app}; save the .pem file as secret ${name} ${save}`
@@ -389,8 +470,9 @@ function secretGuide(name, t) {
 }
 
 // Checks the App credentials before anything is built and hands the tap to
-// the step that mints the token; that step fails if the App is not installed
-// on the tap or lacks Contents: write.
+// the step that mints the token; that step, and the one that mints the
+// catalog token, fail if the App is not installed on the repository or lacks
+// Contents: write.
 function preflight() {
   const t = tap()
   if (!t?.token) return []
@@ -575,8 +657,13 @@ try {
       errors.forEach((e) => console.error(`signature: ${e}`))
       process.exit(errors.length ? 1 : 0)
     }
+    case 'skill': {
+      const errors = skill(opts)
+      errors.forEach((e) => console.error(`skill: ${e}`))
+      process.exit(errors.length ? 1 : 0)
+    }
     default:
-      console.error('usage: release.mjs check|render|preflight|doctor|pages|site-env|smoke|vanity|signature ...')
+      console.error('usage: release.mjs check|render|preflight|doctor|pages|site-env|smoke|vanity|signature|skill ...')
       process.exit(2)
   }
 } catch (e) {

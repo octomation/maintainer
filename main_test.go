@@ -24,7 +24,7 @@ func TestExecution(t *testing.T) {
 	t.Setenv("GITHUB_TOKEN", "")
 
 	t.Run("success", func(t *testing.T) {
-		for _, args := range [][]string{{"version"}, {}, {"github"}, {"fetch", "state"}} {
+		for _, args := range [][]string{{"version"}, {}, {"github"}, {"fetch", "state"}, {"skill", "info"}} {
 			code, out, _ := execute(args...)
 			assert.Equalf(t, -1, code, "%v must not call exit", args)
 			assert.NotEmptyf(t, out, "%v prints its output", args)
@@ -52,6 +52,8 @@ func TestExecution(t *testing.T) {
 			{[]string{"fetch", "--timeout=soon"}, `invalid argument "soon" for "--timeout" flag`},
 			{[]string{"fetch", "--config=", "--concurrency=-1"}, "concurrency and timeout must not be negative"},
 			{[]string{"fetch", "--config=", "--format=jsno"}, `unknown format "jsno"`},
+			{[]string{"skill", "install"}, `required flag(s) "agent" not set`},
+			{[]string{"skill", "status", "--agent=cursor"}, `unknown agent "cursor"`},
 		} {
 			code, out, errs := execute(test.args...)
 			assert.Equalf(t, 2, code, "%v exits with a usage error", test.args)

@@ -3,6 +3,7 @@ package command
 import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	cli "go.octolab.org/toolkit/cli/cobra"
 
 	"go.octolab.org/toolset/maintainer/internal/command/fetch"
 	"go.octolab.org/toolset/maintainer/internal/command/github"
@@ -10,9 +11,12 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/command/makefile"
 	"go.octolab.org/toolset/maintainer/internal/command/status"
 	"go.octolab.org/toolset/maintainer/internal/config"
+	"go.octolab.org/toolset/maintainer/internal/pkg/buildinfo"
+	"go.octolab.org/toolset/maintainer/skills"
 )
 
-// New returns the new root command.
+// New returns the new root command with the whole command tree. Call
+// buildinfo.Set first: the version and skill commands report what it holds.
 func New() *cobra.Command {
 	var cnf config.Tool
 
@@ -38,6 +42,8 @@ func New() *cobra.Command {
 		github.New(&cnf),
 		golang.New(),
 		makefile.New(),
+		skillCommand(skills.Maintainer()),
+		cli.NewVersionCommand(buildinfo.Version, buildinfo.Date, buildinfo.Commit, config.Features...),
 	)
 
 	return &command

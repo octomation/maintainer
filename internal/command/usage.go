@@ -38,6 +38,20 @@ func enforceUsage(cmd *cobra.Command) {
 	case args != nil:
 		cmd.Args = func(cmd *cobra.Command, in []string) error { return exit.WithUser(args(cmd, in)) }
 	}
+	if required(cmd) {
+		// cobra checks required flags after the pre-run hooks and returns
+		// the error as it is; check them first, as a usage error.
+		pre := cmd.PreRunE
+		cmd.PreRunE = func(cmd *cobra.Command, in []string) error {
+			if err := cmd.ValidateRequiredFlags(); err != nil {
+				return exit.WithUser(err)
+			}
+			if pre != nil {
+				return pre(cmd, in)
+			}
+			return nil
+		}
+	}
 	for _, sub := range cmd.Commands() {
 		enforceUsage(sub)
 	}
@@ -57,4 +71,14 @@ func subcommand(cmd *cobra.Command, args []string) error {
 		}
 	}
 	return exit.WithUser(errors.New(msg))
+}
+
+// required reports whether the command has a flag marked as required.
+func required(cmd *cobra.Command) bool {
+	var found bool
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		_, ok := f.Annotations[cobra.BashCompOneRequiredFlag]
+		found = found || ok
+	})
+	return found
 }

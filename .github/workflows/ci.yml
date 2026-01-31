@@ -20,6 +20,7 @@ on:
       - 'go.sum'
       - 'Makefile'
       - 'Taskfile'
+      - 'skills/**'
 
   push:
     branches: [ main ]
@@ -40,6 +41,7 @@ on:
       - 'go.sum'
       - 'Makefile'
       - 'Taskfile'
+      - 'skills/**'
     tags: [ 'v*' ]
 
   schedule:
@@ -148,6 +150,22 @@ jobs:
         run: |
           make install
           [ "$(find bin/linux -mindepth 2 -type f | wc -l)" = 1 ]
+      # the maintainer installs the skill through the catalog; this keeps the
+      # CLI path covered: install into an empty home, then require both copies
+      - name: Check skill installation
+        run: |
+          binary="$(find "$PWD/bin/linux" -mindepth 2 -type f)"
+          HOME="$(mktemp -d)"
+          export HOME CLAUDE_CONFIG_DIR="$HOME/.claude" CODEX_HOME="$HOME/.codex"
+          mkdir -p "$CLAUDE_CONFIG_DIR" "$CODEX_HOME"
+          cd "$HOME"
+          "$binary" skill install --agent claude-code,codex
+          "$binary" skill status --agent claude-code,codex --exact
+          "$binary" skill status --agent claude-code,codex --exact --json | jq -se '
+            length == 2
+            and ([.[].agent] | sort) == ["claude-code", "codex"]
+            and all(.[]; .scope == "user" and .release_match == "exact"
+              and .integrity == "intact" and .ownership == "maintainer")'
 
   report:
     name: Reporting

@@ -87,3 +87,4 @@ A release candidate; working-tree updates (fast-forward), multiple workspaces an
 - [ ] [[MAIN-149]] — fetch: config: reject unknown keys and keep a CUE schema next to the config
 - [ ] [[MAIN-150]] — fetch: identity: preserve checkout identity through repository changes
 - [ ] [[MAIN-152]] — release: homebrew: keep the Formula without a deprecation
+- [ ] [[MAIN-154]] — skill: ship an agent skill for the maintainer CLI and publish it to octolab/skills

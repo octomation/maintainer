@@ -6,6 +6,7 @@ archives:
   - id: maintainer
     files:
       - LICENSE
+      - skills/maintainer/**
     formats: [tar.gz]
     name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
 

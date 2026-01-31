@@ -44,6 +44,7 @@ Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH
 | `content/fetch.md` | `fetch`: reconcile local GitHub checkouts |
 | `content/status.md` | `status`: inspect local repository work |
 | `content/workspace.md` | Workspace layout shared by `fetch` and `status` |
+| `content/agents.md` | The agent skill: install, keep in step, catalog |
 | `content/changelog/index.mdx` | Release overview |
 | `content/changelog/v0.2.0.md` | Fetch and status release notes |
 | `content/changelog/v0.1.0.md` | First stable release notes |

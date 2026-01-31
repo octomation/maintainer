@@ -12,6 +12,7 @@
 Makefile        export-ignore
 Taskfile        export-ignore
 *.md            export-ignore
+/skills/**      -export-ignore
 
 testdata/       export-ignore
 *_test.go       export-ignore

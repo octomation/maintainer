@@ -34,8 +34,9 @@ jobs:
         env:
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
         run: node .github/scripts/release.mjs check "${GITHUB_REF_NAME}"
-      # a release comes only from a tag GitHub verifies; checked before anything
-      # is published, a bad tag can still be replaced
+      # a release, and the catalog's copy of the skill, come only from a tag
+      # GitHub verifies; checked before anything is published, a bad tag can
+      # still be replaced
       - name: Check the tag signature
         if: startsWith(github.ref, 'refs/tags/v')
         env:
@@ -120,11 +121,49 @@ jobs:
           # four cold cross-compiles in parallel are the peak of the run; a warm
           # cache needs a fraction of that — see BUILD_FLAGS
           args: ${{ startsWith(github.ref, 'refs/tags/v') && format('release --clean {0} {1}', env.BUILD_FLAGS, env.RELEASE_NOTES) || format('release --snapshot --clean --skip=publish {0}', env.BUILD_FLAGS) }}
+      - name: Check the skill in the archives
+        run: node .github/scripts/release.mjs skill
+
+  # a job of its own: if publishing fails after the release is out, rerun
+  # only this job; the catalog keeps stable releases only
+  skill:
+    name: Publishing the skill
+    needs: [ release ]
+    if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v7.0.1
+      # the tap token is scoped to the tap, so the catalog gets its own
+      - name: Mint the catalog token
+        id: catalog
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
+          private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
+          owner: octolab
+          repositories: skills
+          permission-contents: write
+      - name: Publish the agent skill
+        id: skill
+        uses: octomation/skills-action@v0.1.1
+        with:
+          tool: maintainer
+          token: ${{ steps.catalog.outputs.token }}
+      - name: Compare the published skill
+        env:
+          PUBLISHED: ${{ steps.skill.outputs.payload-digest }}
+        run: node .github/scripts/release.mjs skill --published "${PUBLISHED}"
 
   notify:
     name: Notifying
-    needs: [ release ]
+    needs: [ release, skill ]
     runs-on: ubuntu-24.04
+    # success() is false when the skill job is skipped, on a prerelease or a
+    # snapshot
     if: ${{ !cancelled() }}
 
     steps:

@@ -9,11 +9,10 @@ import (
 	"github.com/fatih/color"
 	"go.octolab.org/errors"
 	"go.octolab.org/safe"
-	"go.octolab.org/toolkit/cli/cobra"
 	"go.octolab.org/unsafe"
 
 	"go.octolab.org/toolset/maintainer/internal/command"
-	"go.octolab.org/toolset/maintainer/internal/config"
+	"go.octolab.org/toolset/maintainer/internal/pkg/buildinfo"
 	exitcode "go.octolab.org/toolset/maintainer/internal/pkg/exit"
 )
 
@@ -39,12 +38,10 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	buildinfo.Set(version, commit, date)
 	root := command.New()
 	root.SetErr(stderr)
 	root.SetOut(stdout)
-	root.AddCommand(
-		cobra.NewVersionCommand(version, date, commit, config.Features...),
-	)
 	command.EnforceUsage(root)
 
 	safe.Do(func() error { return root.ExecuteContext(ctx) }, shutdown)

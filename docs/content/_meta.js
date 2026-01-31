@@ -13,6 +13,7 @@ export default {
   fetch: 'Fetch repositories',
   status: 'Repository status',
   workspace: 'Workspace',
+  agents: 'Use with coding agents',
   releaseHistory: { title: 'Changelog', type: 'separator' },
   changelog: { title: 'Changelog', display: 'children', theme: { pagination: false } },
 }
