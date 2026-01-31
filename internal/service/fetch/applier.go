@@ -2,11 +2,13 @@ package fetch
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
 	"go.octolab.org/toolset/maintainer/internal/config"
 	gitsvc "go.octolab.org/toolset/maintainer/internal/service/git"
+	"go.octolab.org/toolset/maintainer/internal/service/github"
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
@@ -41,11 +43,7 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 	now := a.clock()
 	switch act.Kind {
 	case KindAdopt:
-		if act.UpdateRemote {
-			if err := a.git.UpdateRemote(act.Path, act.RemoteURL); err != nil {
-				return err
-			}
-		}
+		// Adoption records the checkout as it is and never touches its remotes.
 		rec := *act.Record
 		if rec.FirstSeen.IsZero() {
 			rec.FirstSeen = now
@@ -80,21 +78,29 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 		if err := a.git.Move(act.FromPath, act.ToPath); err != nil {
 			return err
 		}
-		if act.UpdateRemote {
-			if err := a.git.UpdateRemote(act.ToPath, act.RemoteURL); err != nil {
-				return err
-			}
-		}
+		// The checkout is at its new path: record that before the remote
+		// update, so a failed update leaves the record where the checkout is,
+		// and the next run retries only the update.
 		a.commit(func() {
 			if r, ok := st.ByID(act.ID); ok {
 				r.Path = act.ToPath
 				r.OwnerLogin, r.Name = act.Owner, act.Name
-				if act.RemoteURL != "" {
-					r.RemoteURL = act.RemoteURL
-				}
 				r.LastSeen, r.LastApply = now, now
 			}
 		})
+		moved := &movedWithErrors{worktrees: a.git.RepairWorktrees(act.FromPath, act.ToPath)}
+		if act.UpdateRemote {
+			if moved.update = a.git.UpdateRemote(act.ToPath, act.RemoteURL); moved.update == nil {
+				a.commit(func() {
+					if r, ok := st.ByID(act.ID); ok {
+						r.RemoteURL = act.RemoteURL
+					}
+				})
+			}
+		}
+		if moved.update != nil || len(moved.worktrees) > 0 {
+			return moved
+		}
 
 	case KindClone:
 		if err := a.git.Clone(ctx, gitsvc.CloneOptions{
@@ -120,6 +126,9 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 				st.Upsert(*act.Record)
 			}
 			if r, ok := st.ByID(act.ID); ok {
+				if act.Snapshot != nil {
+					observe(r, *act.Snapshot)
+				}
 				r.LastSeen, r.LastApply = now, now
 				if act.Profile != "" {
 					r.SourceProfile = act.Profile // the profile whose credentials fetched it (§5.1)
@@ -131,6 +140,32 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 		// orphan / noop / conflict are report-only (§7.4).
 	}
 	return nil
+}
+
+// movedWithErrors reports a move whose rename succeeded and stands: the
+// failed remote update, if any, and every linked worktree the move could not
+// bring back, each an error of its own.
+type movedWithErrors struct {
+	update    error
+	worktrees []error
+}
+
+func (e *movedWithErrors) Error() string { return errors.Join(e.errors()...).Error() }
+
+func (e *movedWithErrors) errors() []error {
+	if e.update == nil {
+		return e.worktrees
+	}
+	return append([]error{e.update}, e.worktrees...)
+}
+
+// observe copies the last-observed GitHub metadata of a repository into its
+// record; the path, the remote and the pin stay as reconciled.
+func observe(r *state.Record, snap github.RepoSnapshot) {
+	r.OwnerLogin, r.Name = snap.Owner, snap.Name
+	r.Visibility = string(snap.Visibility)
+	r.DefaultBranch = snap.DefaultBranch
+	r.IsFork, r.IsTemplate, r.ArchivedOnGitHub = snap.IsFork, snap.IsTemplate, snap.IsArchived
 }
 
 func (a *Applier) commit(mutate func()) {

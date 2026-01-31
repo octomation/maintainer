@@ -16,11 +16,15 @@ import (
 )
 
 type fakeGit struct {
-	cloned   []gitsvc.CloneOptions
-	fetched  []string
-	moved    [][2]string
-	updated  [][2]string
-	cloneErr error
+	cloned    []gitsvc.CloneOptions
+	fetched   []string
+	moved     [][2]string
+	updated   [][2]string
+	cloneErr  error
+	updateErr error
+
+	repaired   [][2]string
+	repairErrs []error
 }
 
 func (f *fakeGit) Clone(_ context.Context, opt gitsvc.CloneOptions) error {
@@ -39,6 +43,9 @@ func (f *fakeGit) Move(from, to string) error {
 	return nil
 }
 func (f *fakeGit) UpdateRemote(path, url string) error {
+	if f.updateErr != nil {
+		return f.updateErr
+	}
 	f.updated = append(f.updated, [2]string{path, url})
 	return nil
 }
@@ -132,4 +139,8 @@ func TestApplier_ReportOnlyKindsAreNoops(t *testing.T) {
 	}
 	assert.Empty(t, g.cloned)
 	assert.Empty(t, g.fetched)
+}
+func (f *fakeGit) RepairWorktrees(from, to string) []error {
+	f.repaired = append(f.repaired, [2]string{from, to})
+	return f.repairErrs
 }

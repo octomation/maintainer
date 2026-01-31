@@ -132,6 +132,20 @@ func (mr *MockGitSyncMockRecorder) Move(from, to interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockGitSync)(nil).Move), from, to)
 }
 
+// RepairWorktrees mocks base method.
+func (m *MockGitSync) RepairWorktrees(from, to string) []error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RepairWorktrees", from, to)
+	ret0, _ := ret[0].([]error)
+	return ret0
+}
+
+// RepairWorktrees indicates an expected call of RepairWorktrees.
+func (mr *MockGitSyncMockRecorder) RepairWorktrees(from, to interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RepairWorktrees", reflect.TypeOf((*MockGitSync)(nil).RepairWorktrees), from, to)
+}
+
 // UpdateRemote mocks base method.
 func (m *MockGitSync) UpdateRemote(path, url string) error {
 	m.ctrl.T.Helper()

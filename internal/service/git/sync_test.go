@@ -2,10 +2,16 @@ package git_test
 
 import (
 	"context"
+	"crypto/rand"
+	"fmt"
+	"net/http"
+	"net/http/cgi"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -380,4 +386,290 @@ func TestSync_MoveMissingSourceErrors(t *testing.T) {
 	sync := gitsvc.NewSync()
 	err := sync.Move(filepath.Join(t.TempDir(), "nope"), filepath.Join(t.TempDir(), "dst"))
 	assert.Error(t, err)
+}
+
+// bigOrigin creates a local repository whose single commit carries mb MiB of
+// random, incompressible content, so that cloning it takes a while.
+func bigOrigin(t *testing.T, mb int) string {
+	t.Helper()
+	dir := filepath.Join(t.TempDir(), "origin")
+	repo, err := gogit.PlainInit(dir, false)
+	require.NoError(t, err)
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	for i := range mb {
+		blob := make([]byte, 1<<20)
+		_, err := rand.Read(blob)
+		require.NoError(t, err)
+		name := fmt.Sprintf("blob%02d", i)
+		require.NoError(t, os.WriteFile(filepath.Join(dir, name), blob, 0o644))
+		_, err = wt.Add(name)
+		require.NoError(t, err)
+	}
+	_, err = wt.Commit("big", &gogit.CommitOptions{Author: &object.Signature{Name: "t", Email: "t@e", When: time.Unix(1, 0)}})
+	require.NoError(t, err)
+	return dir
+}
+
+// gatedOrigin serves origin over Git's smart HTTP protocol, through
+// `git http-backend`, and holds the pack it sends after its first 64 KiB until
+// the client goes away: a transfer cut in the middle, at a moment the test
+// chooses. sent is closed once those bytes are out.
+func gatedOrigin(t *testing.T, origin string) (url string, sent <-chan struct{}) {
+	t.Helper()
+	gitPath, err := exec.LookPath("git")
+	require.NoError(t, err)
+	backend := &cgi.Handler{
+		Path: gitPath,
+		Args: []string{"http-backend"},
+		Env: []string{
+			"GIT_PROJECT_ROOT=" + filepath.Dir(origin), "GIT_HTTP_EXPORT_ALL=1",
+			"GIT_CONFIG_GLOBAL=" + os.DevNull, "GIT_CONFIG_NOSYSTEM=1",
+		},
+	}
+	signal := make(chan struct{})
+	var once sync.Once
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/git-upload-pack") {
+			w = &holdingWriter{ResponseWriter: w, ctx: r.Context(), held: func() { once.Do(func() { close(signal) }) }}
+		}
+		backend.ServeHTTP(w, r)
+	}))
+	t.Cleanup(server.Close)
+	return server.URL + "/" + filepath.Base(origin), signal
+}
+
+// holdingWriter passes the first 64 KiB of a response, then holds the rest
+// until the request is cancelled.
+type holdingWriter struct {
+	http.ResponseWriter
+	ctx     context.Context
+	held    func()
+	written int
+}
+
+func (w *holdingWriter) Write(p []byte) (int, error) {
+	if w.written >= 64<<10 {
+		w.held()
+		<-w.ctx.Done()
+		return 0, w.ctx.Err()
+	}
+	n, err := w.ResponseWriter.Write(p)
+	w.written += n
+	_ = http.NewResponseController(w.ResponseWriter).Flush()
+	return n, err
+}
+
+func TestSync_CloneCutBeforeAnyDataLeavesNothing(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	target := filepath.Join(t.TempDir(), "clone")
+	err := gitsvc.NewSync().Clone(ctx, gitsvc.CloneOptions{URL: originRepo(t), Path: target, Auth: gitsvc.Auth{Transport: "https"}})
+	require.Error(t, err)
+	assert.NotContains(t, err.Error(), "retained")
+	_, statErr := os.Lstat(target)
+	assert.True(t, os.IsNotExist(statErr), "the empty skeleton is removed")
+}
+
+func TestSync_InterruptedCloneIsRetainedAsIncomplete(t *testing.T) {
+	url, sent := gatedOrigin(t, bigOrigin(t, 1))
+	target := filepath.Join(t.TempDir(), "clone")
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		<-sent
+		// Cut the transfer once the clone has written what it received; never
+		// wait on a held transfer for longer than a few seconds.
+		deadline := time.Now().Add(5 * time.Second)
+		for ctx.Err() == nil {
+			if time.Now().After(deadline) {
+				cancel()
+			}
+			entries, _ := os.ReadDir(filepath.Join(target, ".git", "objects", "pack"))
+			for _, entry := range entries {
+				if info, err := entry.Info(); err == nil && info.Size() > 0 {
+					cancel()
+				}
+			}
+			time.Sleep(time.Millisecond)
+		}
+	}()
+	err := gitsvc.NewSync().Clone(ctx, gitsvc.CloneOptions{URL: url, Path: target, Auth: gitsvc.Auth{Transport: "https"}})
+	cancel()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "incomplete clone retained at "+target)
+
+	info, err := gitsvc.NewSync().Inspect(target)
+	require.NoError(t, err)
+	assert.True(t, info.Incomplete)
+	assert.Equal(t, []string{url}, info.Origins)
+	entries, err := os.ReadDir(filepath.Join(target, ".git", "objects", "pack"))
+	require.NoError(t, err)
+	assert.NotEmpty(t, entries, "what the clone wrote is kept for inspection")
+}
+
+func TestSync_CloneCompletesWithoutTheMarker(t *testing.T) {
+	sync := gitsvc.NewSync()
+	for name, origin := range map[string]string{"commits": originRepo(t), "empty": emptyOrigin(t)} {
+		t.Run(name, func(t *testing.T) {
+			target := filepath.Join(t.TempDir(), "clone")
+			require.NoError(t, sync.Clone(context.Background(), gitsvc.CloneOptions{URL: origin, Path: target, Auth: gitsvc.Auth{Transport: "https"}}))
+			info, err := sync.Inspect(target)
+			require.NoError(t, err)
+			assert.False(t, info.Incomplete)
+			assert.Equal(t, []string{origin}, info.Origins)
+			_, err = os.Lstat(filepath.Join(target, ".git", gitsvc.IncompleteMarker))
+			assert.True(t, os.IsNotExist(err))
+		})
+	}
+}
+
+func emptyOrigin(t *testing.T) string {
+	t.Helper()
+	dir := filepath.Join(t.TempDir(), "empty.git")
+	_, err := gogit.PlainInit(dir, true)
+	require.NoError(t, err)
+	return dir
+}
+
+// withWorktree creates a repository at dir with one commit, origin and a push
+// lock, plus a linked worktree for each of worktrees.
+func withWorktree(t *testing.T, dir string, worktrees ...string) {
+	t.Helper()
+	require.NoError(t, os.MkdirAll(filepath.Dir(dir), 0o755))
+	gitValue(t, filepath.Dir(dir), "init", "-q", "-b", "main", dir)
+	gitValue(t, dir, "-c", "user.name=t", "-c", "user.email=t@e", "commit", "-q", "--allow-empty", "-m", "init")
+	gitValue(t, dir, "remote", "add", "origin", "https://github.com/acme/tool.git")
+	gitValue(t, dir, "config", "remote.origin.pushurl", "no_push")
+	for i, worktree := range worktrees {
+		gitValue(t, dir, "worktree", "add", "-q", worktree, "-b", fmt.Sprintf("feature%d", i))
+	}
+}
+
+func TestSync_InspectReadsALinkedWorktreeAsGitDoes(t *testing.T) {
+	root := t.TempDir()
+	main, linked := filepath.Join(root, "a"), filepath.Join(root, "w")
+	withWorktree(t, main, linked)
+	sync := gitsvc.NewSync()
+
+	fromMain, err := sync.Inspect(main)
+	require.NoError(t, err)
+	fromLinked, err := sync.Inspect(linked)
+	require.NoError(t, err)
+	assert.Equal(t, []string{gitValue(t, linked, "config", "--local", "--get-all", "remote.origin.url")}, fromLinked.Origins)
+	assert.Equal(t, []string{gitValue(t, linked, "config", "--local", "--get-all", "remote.origin.pushurl")}, fromLinked.PushURLs)
+	assert.Equal(t, fromMain.Origins, fromLinked.Origins)
+	assert.Equal(t, fromMain.PushURLs, fromLinked.PushURLs)
+	assert.NotEmpty(t, fromLinked.HeadShort)
+
+	resolved, err := filepath.EvalSymlinks(linked)
+	require.NoError(t, err)
+	require.Len(t, fromMain.Worktrees, 1)
+	actual, err := filepath.EvalSymlinks(fromMain.Worktrees[0])
+	require.NoError(t, err)
+	assert.Equal(t, resolved, actual)
+	assert.Empty(t, fromLinked.Worktrees, "a linked worktree has no worktrees of its own")
+}
+
+func TestSync_RepairWorktreesAfterAMove(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root writes a read-only file")
+	}
+	root := t.TempDir()
+	from, to := filepath.Join(root, "a"), filepath.Join(root, "b")
+	outside, inside := filepath.Join(root, "w"), filepath.Join(from, "nested")
+	gone, locked := filepath.Join(root, "gone"), filepath.Join(root, "locked")
+	withWorktree(t, from, outside, inside, gone, locked)
+	head := gitValue(t, outside, "rev-parse", "HEAD")
+	require.NoError(t, os.RemoveAll(gone))
+	require.NoError(t, os.Chmod(filepath.Join(locked, ".git"), 0o444))
+
+	sync := gitsvc.NewSync()
+	require.NoError(t, sync.Move(from, to))
+	errs := sync.RepairWorktrees(from, to)
+
+	require.Len(t, errs, 2, "%v", errs)
+	var names []string
+	for _, err := range errs {
+		var broken *gitsvc.WorktreeError
+		require.ErrorAs(t, err, &broken)
+		names = append(names, filepath.Base(broken.Path))
+		assert.NotContains(t, err.Error(), "\n")
+	}
+	assert.ElementsMatch(t, []string{"gone", "locked"}, names)
+	assert.Equal(t, head, gitValue(t, outside, "rev-parse", "HEAD"))
+	assert.Equal(t, "feature0", gitValue(t, outside, "branch", "--show-current"))
+	assert.Equal(t, "feature1", gitValue(t, filepath.Join(to, "nested"), "branch", "--show-current"))
+	real, err := filepath.EvalSymlinks(to)
+	require.NoError(t, err)
+	assert.Contains(t, gitValue(t, to, "worktree", "list", "--porcelain"), "worktree "+filepath.Join(real, "nested")+"\n",
+		"the moved checkout records the nested worktree at its new path")
+	gitValue(t, outside, "status", "--short")
+	assert.Len(t, sync.RepairWorktrees(to, to), 2, "a second repair names the same worktrees")
+}
+
+func TestSync_RepairWorktreesNeverRelinksAnotherRepository(t *testing.T) {
+	root := t.TempDir()
+	from, to, other := filepath.Join(root, "a"), filepath.Join(root, "b"), filepath.Join(root, "other")
+	reused, linked := filepath.Join(root, "reused"), filepath.Join(root, "linked")
+	withWorktree(t, from, reused, linked)
+	// The first worktree is removed by hand, and another repository puts a
+	// worktree of its own at the same path; the second one's .git becomes a
+	// symbolic link to a file somewhere else.
+	require.NoError(t, os.RemoveAll(reused))
+	withWorktree(t, other, reused)
+	foreign := localGitfile(t, reused)
+	target := filepath.Join(root, "elsewhere")
+	require.NoError(t, os.WriteFile(target, []byte(localGitfile(t, linked)), 0o644))
+	require.NoError(t, os.Remove(filepath.Join(linked, ".git")))
+	require.NoError(t, os.Symlink(target, filepath.Join(linked, ".git")))
+	before := localConfigText(t, other)
+
+	sync := gitsvc.NewSync()
+	require.NoError(t, sync.Move(from, to))
+	errs := sync.RepairWorktrees(from, to)
+
+	require.Len(t, errs, 2, "%v", errs)
+	assert.Contains(t, errs[0].Error()+errs[1].Error(), "links to another repository")
+	assert.Contains(t, errs[0].Error()+errs[1].Error(), "is not the link file Git writes")
+	assert.Equal(t, foreign, localGitfile(t, reused), "the other repository's worktree is not relinked")
+	assert.Equal(t, before, localConfigText(t, other))
+	common := gitValue(t, reused, "rev-parse", "--path-format=absolute", "--git-common-dir")
+	real, err := filepath.EvalSymlinks(filepath.Join(other, ".git"))
+	require.NoError(t, err)
+	assert.Equal(t, real, common)
+	info, err := os.Lstat(filepath.Join(linked, ".git"))
+	require.NoError(t, err)
+	assert.NotZero(t, info.Mode()&os.ModeSymlink, "a symbolic link is left as it is")
+}
+
+func localGitfile(t *testing.T, worktree string) string {
+	t.Helper()
+	raw, err := os.ReadFile(filepath.Join(worktree, ".git"))
+	require.NoError(t, err)
+	return string(raw)
+}
+
+func TestSync_RepairWorktreesReportsAnUnreadableRecord(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("root reads an unreadable file")
+	}
+	root := t.TempDir()
+	from, to := filepath.Join(root, "a"), filepath.Join(root, "b")
+	healthy, hidden := filepath.Join(root, "healthy"), filepath.Join(root, "hidden")
+	withWorktree(t, from, healthy, hidden)
+	backlink := filepath.Join(from, ".git", "worktrees", "hidden", "gitdir")
+	require.NoError(t, os.Chmod(backlink, 0))
+	t.Cleanup(func() { _ = os.Chmod(filepath.Join(to, ".git", "worktrees", "hidden", "gitdir"), 0o644) })
+
+	sync := gitsvc.NewSync()
+	require.NoError(t, sync.Move(from, to))
+	errs := sync.RepairWorktrees(from, to)
+
+	require.Len(t, errs, 1, "%v", errs)
+	var broken *gitsvc.WorktreeError
+	require.ErrorAs(t, errs[0], &broken)
+	assert.True(t, broken.Unknown)
+	assert.Equal(t, filepath.Join(to, ".git", "worktrees", "hidden"), broken.Path)
+	assert.Contains(t, errs[0].Error(), "cannot be found")
+	gitValue(t, healthy, "status", "--short")
 }

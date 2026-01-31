@@ -124,19 +124,22 @@ func TestPlanner_ChangedPinSwitchesCheckout(t *testing.T) {
 	acts, err := newPlanner(t, cnf).Plan(PlanInput{State: st, Clones: clones, KnownCheckouts: map[string]bool{previous: true},
 		Snapshots: []github.RepoSnapshot{{ID: 1, Owner: "acme", Name: "tool", Visibility: github.Public}}})
 	require.NoError(t, err)
-	require.Len(t, acts, 2)
+	require.Len(t, acts, 3)
 	assert.Equal(t, KindAdopt, acts[0].Kind)
 	assert.Equal(t, next, acts[0].Path)
 	assert.Equal(t, next, acts[0].Record.PinnedPath)
 	assert.Equal(t, []string{previous}, acts[0].Record.PreviousPaths)
 	assert.Equal(t, clock(), acts[0].Record.FirstSeen)
-	assert.Equal(t, KindOrphan, acts[1].Kind)
-	assert.Equal(t, previous, acts[1].Path)
-	assert.Equal(t, next, acts[1].ActivePath)
+	assert.Equal(t, KindAdopt, acts[1].After)
+	assert.Equal(t, next, acts[1].Path)
+	assert.Equal(t, KindOrphan, acts[2].Kind)
+	assert.Equal(t, previous, acts[2].Path)
+	assert.Equal(t, next, acts[2].ActivePath)
 }
 
-// A templated per-repo pin adopted on the first apply is only fetched on the
-// second: every run renders it from the record, never from {id, owner, name}.
+// A templated per-repo pin adopted on the first apply is refreshed in that
+// apply and only fetched on the second: every run renders it from the record,
+// never from {id, owner, name}.
 func TestService_TemplatedPinSettlesAfterAdoption(t *testing.T) {
 	root := t.TempDir()
 	pin := filepath.Join(root, "pins/public/special")
@@ -150,7 +153,7 @@ func TestService_TemplatedPinSettlesAfterAdoption(t *testing.T) {
 	snap := github.RepoSnapshot{ID: 7, Owner: "acme", Name: "special", Visibility: github.Public, DefaultBranch: "main", SourceProfile: "p"}
 	store := state.NewStore(afero.NewOsFs(), filepath.Join(t.TempDir(), "state.json"), nil)
 	api := renamedRepository{snapshot: snap}
-	for i, kind := range []string{"adopt", "fetch", "adopt", "fetch"} {
+	for i, kinds := range [][]string{{"adopt", "fetch"}, {"fetch"}, {"adopt", "fetch"}, {"fetch"}} {
 		if i == 2 {
 			// The repository becomes private and its owner moves the checkout:
 			// the current rule selects it, the old rendering is not scanned.
@@ -169,9 +172,11 @@ func TestService_TemplatedPinSettlesAfterAdoption(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, svc.Run(context.Background(), true), "run %d: %s", i+1, out.String())
 		plan := decodePlan(t, &out)
-		require.Len(t, plan.Actions, 1, out.String())
-		assert.Equal(t, kind, plan.Actions[0].Kind)
-		assert.Equal(t, pin, plan.Actions[0].Path)
+		require.Len(t, plan.Actions, len(kinds), out.String())
+		for j, kind := range kinds {
+			assert.Equal(t, kind, plan.Actions[j].Kind)
+			assert.Equal(t, pin, plan.Actions[j].Path)
+		}
 		assert.Zero(t, plan.Summary.Conflict)
 	}
 }

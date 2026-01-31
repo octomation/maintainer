@@ -375,7 +375,7 @@ func TestSelectionTransferredIn(t *testing.T) {
 
 	plan, err := f.run(t, true, Selection{Owners: []string{"acme"}}, withOwners(primary, "acme"))
 	require.NoError(t, err)
-	assert.Equal(t, []string{"move: "}, actionOf(t, plan, 11))
+	assert.Equal(t, []string{"move: ", "fetch: "}, actionOf(t, plan, 11))
 	assert.Empty(t, f.hub.about("/repositories/"))
 	assert.Equal(t, [][2]string{{f.path("", "other", "incoming"), f.path("", "acme", "incoming")}}, f.git.moved)
 	assert.Equal(t, [][2]string{{f.path("", "acme", "incoming"), "git@github.com:acme/incoming.git"}}, f.git.updated)
@@ -390,10 +390,10 @@ func TestSelectionTransferredIn(t *testing.T) {
 func TestSelectionIDOnlyPin(t *testing.T) {
 	for _, tc := range []struct {
 		owner string
-		want  string
+		want  []string
 	}{
-		{"acme", "adopt: "},
-		{"other", "noop: outside the selection"},
+		{"acme", []string{"adopt: ", "fetch: "}},
+		{"other", []string{"noop: outside the selection"}},
 	} {
 		t.Run(tc.owner, func(t *testing.T) {
 			f := newSelectionFixture(t)
@@ -404,18 +404,19 @@ func TestSelectionIDOnlyPin(t *testing.T) {
 
 			plan, err := f.run(t, true, Selection{Owners: []string{"acme"}}, withOwners(primary, "acme"))
 			require.NoError(t, err)
-			assert.Equal(t, []string{tc.want}, actionOf(t, plan, 21))
+			assert.Equal(t, tc.want, actionOf(t, plan, 21))
 			assert.Len(t, f.hub.about("/repositories/21"), 1)
 			st, err := f.store.Load()
 			require.NoError(t, err)
 			if tc.owner == "acme" {
 				require.Len(t, st.Repos, 1)
 				assert.Equal(t, pin, st.Repos[0].PinnedPath)
+				assert.Equal(t, map[string]string{pin: "primary-token"}, f.git.fetched, "the adoption is refreshed in the same apply")
 			} else {
 				assert.Empty(t, st.Repos)
 				assert.Empty(t, f.hub.about("/repos/"))
+				assert.Empty(t, f.git.fetched)
 			}
-			assert.Empty(t, f.git.fetched)
 		})
 	}
 }

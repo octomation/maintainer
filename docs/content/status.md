@@ -184,7 +184,8 @@ nothing in its place, and the row alone does not make the command fail:
 REPOSITORY │ BRANCH │ UNCOMMITTED │ STATUS         │ LOCK │ PATH
 id=42      │ —      │ ?           │ unresolved pin │      │ ~/ext/{{.Owner}}/{{.Repo}}
 ```
- If origin contradicts known state, status
+
+If origin contradicts known state, status
 reports the mismatch and suggests fetch. Missing pins remain error rows.
 Ignore rules are respected; archived/fork filters do not hide local work.
 
@@ -237,7 +238,8 @@ or API discovery is performed.
 ## JSON output and exit codes
 
 JSON is an array, including `[]` for an empty collection, with `repository`,
-absolute `path`, `branch`, `added`, `deleted`,
+absolute `path` (an `unresolved pin` keeps the path of its rule as written),
+`branch`, `added`, `deleted`,
 `changed_files`, `untracked`, `binary`, `conflicts`, `ahead`, `behind`, `status`,
 `push_locked` (boolean), and `pinned`. `id`, `default_branch`, `commit`,
 `upstream`, and `error` are omitted when unavailable or empty. Orphan rows also expose

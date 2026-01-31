@@ -40,7 +40,7 @@ closedAt: null
 
 **PoC**
 
-A planner test in `internal/service/fetch`: a pin rule for `acme/old`, a snapshot renamed to `acme/new` with the same id, a checkout at the pinned path with origin `acme/old`, no state record. Today the plan is one `adopt` with `UpdateRemote = true`; expected: `adopt` with `UpdateRemote = false`, and after applying it, a second plan with exactly one `update_remote`.
+A planner test in `internal/service/fetch`: a pin rule for the id of `acme/old`, a snapshot renamed to `acme/new` with the same id, a checkout at the pinned path with origin `acme/old`, no state record. Today the plan is one `adopt` with `UpdateRemote = true`; expected: `adopt` with `UpdateRemote = false`, and after applying it, a second plan with exactly one `update_remote`. A pin rule for the old name `acme/old` without a state record never reaches the adoption: it plans a clone of `acme/new` into the layout, which belongs to [[MAIN-145]].
 
 **Out of scope:** moving a pinned checkout (never done); the dependent fetch after adoption ([[MAIN-136]]).
 

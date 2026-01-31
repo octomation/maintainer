@@ -10,8 +10,11 @@ reconciles a local checkout tree, in the spirit of `terraform plan` / `apply`.
 A local state file (keyed by the stable numeric repo `id`) remembers what was
 materialised, so a rename or transfer on GitHub is detected as a **move**, not
 as a delete-and-reclone. If a new repository takes the old name before fetch
-sees the rename, the existing checkout is adopted as that new repository and
-the renamed one is cloned again; the checkout and its local work are retained.
+sees the rename, the checkout stays with the repository it was recorded for:
+it moves with the rename while its recorded remote is still its origin, and
+the new repository is cloned at the old path by the apply after that.
+Otherwise the checkout is a conflict that names both repository ids. Fetch
+never adopts it as the new repository or clones the renamed one again.
 
 It is **plan-only by default**: `--apply` performs clone, fetch refs, move,
 update remote and adopt actions. Existing checkouts and local work are
@@ -200,8 +203,11 @@ Fetch verifies its GitHub identity and selects it even if an old duplicate
 exists at `Development/public/kamilsk/dotfiles`. Apply adopts the selected path
 into state; the duplicate stays untouched and appears as a report-only
 `orphan` with the active path (`orphan_reason: duplicate-pin` in JSON). Rename/transfer updates origin at
-`~/.dotfiles`, without moving the folder. Missing or foreign pinned paths are
-conflicts; fetch never clones into a pin or falls back to a duplicate.
+`~/.dotfiles`, without moving the folder. Adoption only adds the record and
+keeps the checkout's Git configuration as it is: when the origin no longer
+matches the repository's current name, the next apply updates it as a separate
+`update_remote`. Missing or foreign pinned paths are conflicts; fetch never
+clones into a pin or falls back to a duplicate.
 
 Use numeric IDs so rules survive renames. Applied pins are also retained as
 `pinned_path` in state, protecting name-based rules on later runs. Removing a
@@ -211,9 +217,9 @@ workspace layout. Removing a workspace tree pin instead suspends its remembered
 checkouts; it does not enable moves. The current rule takes precedence over the
 saved `pinned_path` whenever it can be rendered, so changing a per-repo pin
 selects another verified existing checkout; the previous path stays in
-`previous_paths` and as an `orphan` row. Adoption/remote update fetch refs on the next invocation.
-A checkout adopted at the old path of a renamed repository is moved by the
-next invocation and fetched by the one after it.
+`previous_paths` and as an `orphan` row. The apply that adopts a pin or updates
+its origin also fetches its refs. A checkout adopted at the old path of a
+renamed repository is moved, and fetched again, by the next apply.
 
 Use [`maintainer status`](/status/) to inspect local branches and divergence.
 
@@ -240,6 +246,20 @@ example after it was renamed in the config, the check uses the first selected
 profile: a 404 or 403 then leaves the record unverified, a `noop` flagged
 `unverified` that names both profiles, and nothing is saved.
 
+A checkout of a repository that the token may not read, such as one in an
+organization behind SAML single sign-on or an IP allowlist, or one blocked for
+legal reasons, becomes a `conflict` row with GitHub's answer, and the rest of
+the plan proceeds. An `ignore` rule matched by owner and name keeps fetch from
+looking such a checkout up at all.
+
+When GitHub's rate limit is exhausted, fetch waits once, until the limit
+resets or for as long as GitHub asks; a secondary limit that does not say how
+long waits at least a minute. Then fetch tries again once. A wait longer than
+an hour, or longer than what is left of `--timeout`, stops the run at once,
+and the error names the wait. Server errors (`502`, `503`, `504`) and dropped
+connections are retried a few times; a refused request, an unknown host, a
+TLS failure or any other error that does not pass on its own is not.
+
 ## Plan & apply
 
 | Action          | Trigger                                                                 |
@@ -260,6 +280,16 @@ fetches into the summary and prints lines only for drift; `--format=json` lists
 every action. Two actions resolving to the same target path, or to targets one
 inside the other, are a conflict for both, decided up front; so are a target
 inside an existing checkout of the workspace and the action on that checkout.
+
+Every `adopt`, `relocate`, `update_remote` and `move` of an existing checkout
+is followed by a `fetch` of that checkout in the same apply. The plan counts
+it, the human plan marks it with `+ fetch remote-tracking refs`, and JSON
+lists it as a separate `fetch` action. It runs with the other fetches, last,
+and only if the action before it succeeded. If the action succeeds and the
+fetch fails, the action stays applied, the error is counted, and the next
+apply fetches again. A checkout whose origin names a repository that took its
+old name is not fetched through that origin: it is fetched after the next
+apply updates the origin.
 
 Each `--apply` invocation discovers and builds a fresh plan; it does not read
 back a previously printed JSON plan. Conflicting actions are skipped, while
@@ -288,15 +318,37 @@ with its path. A target whose parent inside the root is a symlink or a file is
 a conflict too. Apply repeats these checks immediately before each clone or
 move, so a path or a link created after plan review is refused; changes that
 another process makes while a clone or move runs are not guarded against. Clone reserves an
-absent path atomically and never recursively cleans that final path on failure;
-an unexpected partial checkout is retained with an error for manual inspection.
-On a case-insensitive filesystem, as on macOS by default, a rename that changes
-only letter case is reported as a conflict.
+absent path atomically and never recursively cleans that final path on failure.
 
-A move renames the checkout directory and does not update its linked
-worktrees: run `git worktree repair` in the moved checkout to reconnect them.
+A clone that stops before it finishes, cut by `--timeout`, a signal or a
+dropped connection, keeps what it has already written for inspection, marked as
+incomplete. Every later plan reports that path as a `conflict` with the reason
+`incomplete clone` and neither adopts nor fetches it; remove the directory to
+clone the repository again. A clone that fails before it receives any data
+leaves nothing behind, and the next apply clones again. A clone of an empty
+repository is complete.
+
+On a case-insensitive filesystem, as on macOS by default, a rename that changes
+only letter case keeps the directory as it is spelled and updates only its
+origin. On a case-sensitive filesystem it is an ordinary move, and a different
+checkout at the new spelling is a conflict.
+
+If the origin update of a move fails, the checkout stays at its new path, and
+the next apply retries only the update.
+
+A move takes the checkout's linked worktrees along. The plan lists them under
+the move (`+ reconnect linked worktree` in the human plan, `worktrees` in
+JSON), and the apply reconnects each one to the moved checkout, as
+`git worktree repair` does; a worktree inside the checkout moves with it.
+A worktree that cannot be reconnected, because its directory is gone, its
+`.git` file is not writable or links to another repository, or Git's record of
+it cannot be read, is named as an error and the apply exits with `3`; the move
+itself stands. Once the cause is fixed, run
+`git worktree repair` in the moved checkout.
 
 Repository identity comes only from `remote.origin.url` (the fetch endpoint).
+For a checkout that is itself a linked worktree, it is read from the
+configuration of its main repository, as `git config --local` reads it.
 `remote.origin.pushurl` is orthogonal: push locks such as a deliberately invalid
 push URL neither create an ambiguous checkout nor get removed by
 `update_remote`. It changes only `remote.origin.url` through Git, so it needs
@@ -403,8 +455,8 @@ include_owners = ["*"]
 EOF
 
 maintainer fetch                 # review: adopt=<existing>, clone=<missing>
-maintainer fetch --apply         # adopt existing checkouts; clone missing repositories
-maintainer fetch --apply         # refresh refs of newly adopted checkouts
+maintainer fetch --apply         # adopt and fetch existing checkouts; clone missing repositories
+maintainer fetch --apply         # moves checkouts adopted at an old path; otherwise fetches only
 maintainer fetch state show | jq '.repos | length'
 ```
 
@@ -415,9 +467,9 @@ already tracked stays tracked.
 
 Adoption matches clones by `remote.origin.url` → stable `id` (following GitHub's
 rename redirect), so existing clones are reconciled in place rather than
-re-cloned. A checkout found at the old path of a renamed repository is moved
-by the second apply, and its refs are fetched by a third. A re-run is
-idempotent.
+re-cloned. A checkout found at the old path of a renamed repository is moved,
+and fetched, by the second apply. From then on, a re-run against unchanged
+repositories only fetches.
 
 ## Supported scope
 

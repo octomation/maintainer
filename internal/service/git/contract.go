@@ -33,6 +33,10 @@ type CloneInfo struct {
 	Origins   []string // remote.origin.url fetch endpoints (usually exactly one)
 	PushURLs  []string // remote.origin.pushurl endpoints; never used as repository identity
 	HeadShort string   // short HEAD sha, for the fetch display line
+	// Incomplete is set when a clone stopped before it finished: its Git
+	// directory still holds IncompleteMarker.
+	Incomplete bool
+	Worktrees  []string // linked worktrees of the checkout, as Git records them
 }
 
 // GitSync is the port the fetcher drives for all disk-mutating Git work (§2.3).
@@ -50,6 +54,9 @@ type GitSync interface {
 	Move(from, to string) error
 	// UpdateRemote rewrites origin's URL to the given credential-free URL.
 	UpdateRemote(path, url string) error
+	// RepairWorktrees reconnects the linked worktrees of a checkout moved
+	// from → to and returns an error for each one that stays unusable.
+	RepairWorktrees(from, to string) []error
 	// Inspect reads a clone's origin URLs and HEAD for adoption/planning.
 	Inspect(path string) (CloneInfo, error)
 }

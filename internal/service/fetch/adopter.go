@@ -3,6 +3,7 @@ package fetch
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,6 +18,10 @@ import (
 
 const githubHost = "github.com"
 
+// incompleteClone explains the conflict of a clone that stopped before it
+// finished (§7.5).
+const incompleteClone = "incomplete clone: an earlier clone stopped before it finished; remove the directory to clone it again"
+
 // NameResolver resolves an on-disk owner/name to a stable GitHub id, following
 // the rename redirect (GET /repos/{owner}/{name}); it returns 0 on a 404 (§4.4).
 type NameResolver interface {
@@ -28,11 +33,19 @@ type NameResolver interface {
 type Adopter struct {
 	git      gitsvc.GitSync
 	resolver NameResolver
+	cnf      *config.Fetch // ignore rules; nil ignores nothing
 }
 
 // NewAdopter wires an Adopter from the Git port and a redirect resolver.
 func NewAdopter(git gitsvc.GitSync, resolver NameResolver) *Adopter {
 	return &Adopter{git: git, resolver: resolver}
+}
+
+// Ignoring makes the scan skip the name lookup of a checkout whose origin
+// matches an ignore rule of cnf, so an ignored repository cannot fail it.
+func (a *Adopter) Ignoring(cnf *config.Fetch) *Adopter {
+	a.cnf = cnf
+	return a
 }
 
 // Scan walks root plus the explicit per-repo override paths (which live outside
@@ -48,14 +61,18 @@ func (a *Adopter) Scan(ctx context.Context, root string, snapshots []github.Repo
 	if err != nil {
 		return nil, err
 	}
-	return a.ScanScoped(ctx, scope, snapshots, append(externalPaths(cnf), extraPaths...)...)
+	scoped := *a
+	scoped.cnf = cnf
+	return scoped.ScanScoped(ctx, scope, snapshots, append(externalPaths(cnf), extraPaths...)...)
 }
 
 // ScanScoped consumes the same bounded local inventory as status.
 func (a *Adopter) ScanScoped(ctx context.Context, scope *workspace.Scope, snapshots []github.RepoSnapshot, extraPaths ...string) ([]DiskClone, error) {
+	// GitHub names are case-insensitive: an origin spelled in another case
+	// names the same repository.
 	byName := make(map[string]int64, len(snapshots))
 	for _, s := range snapshots {
-		byName[s.Owner+"/"+s.Name] = s.ID
+		byName[strings.ToLower(s.Owner+"/"+s.Name)] = s.ID
 	}
 
 	seen := make(map[string]bool)
@@ -72,7 +89,7 @@ func (a *Adopter) ScanScoped(ctx context.Context, scope *workspace.Scope, snapsh
 		}
 		if ok {
 			clone.Pinned = pinned
-			if pinned && clone.ID == 0 {
+			if pinned && clone.ID == 0 && clone.Error == "" {
 				clone.Error = "pinned checkout identity could not be verified"
 			}
 			clones = append(clones, clone)
@@ -105,6 +122,18 @@ func (a *Adopter) inspect(ctx context.Context, dir string, byName map[string]int
 	if err != nil {
 		return DiskClone{}, false, nil // not a usable git repo; skip silently
 	}
+	if info.Incomplete {
+		// An interrupted clone is neither adopted nor fetched: it is reported,
+		// attributed by name when its origin says which repository it was.
+		clone := DiskClone{Path: dir, Origins: len(info.Origins), Error: incompleteClone}
+		if len(info.Origins) == 1 {
+			if host, owner, name, _, ok := parseRemote(info.Origins[0]); ok && host == githubHost {
+				clone.Owner, clone.Name = owner, name
+				clone.ID = byName[strings.ToLower(owner+"/"+name)]
+			}
+		}
+		return clone, true, nil
+	}
 	if len(info.Origins) == 0 {
 		return DiskClone{}, false, nil
 	}
@@ -121,18 +150,29 @@ func (a *Adopter) inspect(ctx context.Context, dir string, byName map[string]int
 		Owner:     owner,
 		Name:      name,
 		Origins:   len(info.Origins),
+		Worktrees: info.Worktrees,
 	}
 	if clone.Origins > 1 {
 		return clone, true, nil // ambiguous; ID stays 0 → Planner flags a conflict
 	}
 
-	if id, found := byName[owner+"/"+name]; found {
+	if id, found := byName[strings.ToLower(owner+"/"+name)]; found {
 		clone.ID = id
 		return clone, true, nil
+	}
+	if a.cnf != nil && a.cnf.Ignored(0, owner, name) {
+		return clone, true, nil // ID stays 0: never looked up, never planned
 	}
 	if a.resolver != nil {
 		id, err := a.resolver.ResolveByName(ctx, owner, name)
 		if err != nil {
+			switch github.HTTPStatus(err) {
+			case http.StatusUnauthorized, http.StatusForbidden, http.StatusUnavailableForLegalReasons:
+				// Access to this one repository is denied: its checkout becomes
+				// a conflict, and the rest of the run proceeds.
+				clone.Error = fmt.Sprintf("checkout identity could not be verified: resolve %s/%s: %v", owner, name, err)
+				return clone, true, nil
+			}
 			return DiskClone{}, false, fmt.Errorf("resolve %s/%s: %w", owner, name, err)
 		}
 		clone.ID = id

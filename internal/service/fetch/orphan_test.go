@@ -31,16 +31,19 @@ func TestOrphanSurvivesAdoptWithoutMutation(t *testing.T) {
 	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "tool", Path: old, FirstSeen: clock()})
 	snap := github.RepoSnapshot{ID: 1, Owner: "acme", Name: "tool", Visibility: github.Public}
 	g := new(fakeGit)
-	for _, expected := range []Kind{KindAdopt, KindFetch} {
+	for _, expected := range [][]Kind{{KindAdopt, KindFetch}, {KindFetch}} {
 		// The old external path is a known diagnostic, never an adoption candidate.
 		acts, err := newPlanner(t, cnf).Plan(PlanInput{State: st, Snapshots: []github.RepoSnapshot{snap}, KnownCheckouts: map[string]bool{old: true}, Clones: []DiskClone{{ID: 1, Path: pin, RemoteURL: "git@github.com:acme/tool.git", Transport: "ssh"}}})
 		require.NoError(t, err)
-		require.Len(t, acts, 2)
-		assert.Equal(t, expected, acts[0].Kind)
-		assert.Equal(t, KindOrphan, acts[1].Kind)
-		assert.Equal(t, "duplicate-pin", acts[1].OrphanReason)
-		assert.Equal(t, old, acts[1].Path)
-		assert.Equal(t, pin, acts[1].ActivePath)
+		require.Len(t, acts, len(expected)+1)
+		for j, kind := range expected {
+			assert.Equal(t, kind, acts[j].Kind)
+		}
+		orphan := acts[len(expected)]
+		assert.Equal(t, KindOrphan, orphan.Kind)
+		assert.Equal(t, "duplicate-pin", orphan.OrphanReason)
+		assert.Equal(t, old, orphan.Path)
+		assert.Equal(t, pin, orphan.ActivePath)
 		apply := NewApplier(g, nil, clock)
 		for _, act := range acts {
 			require.NoError(t, apply.Execute(context.Background(), act, st))
@@ -50,7 +53,7 @@ func TestOrphanSurvivesAdoptWithoutMutation(t *testing.T) {
 	assert.Empty(t, g.cloned)
 	assert.Empty(t, g.moved)
 	assert.Empty(t, g.updated)
-	assert.Equal(t, []string{pin}, g.fetched)
+	assert.Equal(t, []string{pin, pin}, g.fetched)
 	rows, err := statussvc.Collect(context.Background(), cnf, st, root, root, nil, 1)
 	require.NoError(t, err)
 	require.Len(t, rows, 2)

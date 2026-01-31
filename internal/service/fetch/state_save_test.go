@@ -38,12 +38,14 @@ func (f *faultyFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File
 	return f.Fs.OpenFile(name, flag, perm)
 }
 
-// faultyGit moves for real and fails remote updates on demand; clones are
-// recorded and never reach the network.
+// faultyGit moves for real and fails remote updates on demand; clones and
+// fetches are recorded and never reach the network.
 type faultyGit struct {
 	*gitsvc.Sync
-	failRemote bool
-	cloned     []string
+	failRemote  bool
+	cloned      []string
+	fetched     []string
+	beforeFetch func(path string)
 }
 
 func (g *faultyGit) UpdateRemote(path, url string) error {
@@ -56,6 +58,14 @@ func (g *faultyGit) UpdateRemote(path, url string) error {
 func (g *faultyGit) Clone(_ context.Context, opt gitsvc.CloneOptions) error {
 	g.cloned = append(g.cloned, opt.Path)
 	return errors.New("clone is not expected")
+}
+
+func (g *faultyGit) Fetch(_ context.Context, path string, _ gitsvc.Auth) error {
+	if g.beforeFetch != nil {
+		g.beforeFetch(path)
+	}
+	g.fetched = append(g.fetched, path)
+	return nil
 }
 
 // redirects resolves a name like GitHub does, following renames to the id.
@@ -165,6 +175,8 @@ func TestApplyStateSaveFailureAfterMove(t *testing.T) {
 	assert.Contains(t, errs, "save state:")
 	assert.Contains(t, errs, "injected write failure")
 	assert.Contains(t, errs, "not recorded: acme/new")
+	assert.NotContains(t, errs, "acme/new, acme/new", "the refresh names the repository once")
+	assert.Equal(t, []string{f.renamed}, f.git.fetched, "the move is refreshed in the same apply")
 
 	// The checkout moved and carries the new origin; the state file did not.
 	info, inspectErr := gitsvc.NewSync().Inspect(f.renamed)
@@ -177,8 +189,7 @@ func TestApplyStateSaveFailureAfterMove(t *testing.T) {
 	// The same origin and the same id: the rerun relocates without a clone.
 	plan, _, err := f.run(t, false, renamed(1, "new"))
 	require.NoError(t, err)
-	require.Len(t, plan.Actions, 1, kinds(plan))
-	assert.Equal(t, "relocate", plan.Actions[0].Kind)
+	require.Equal(t, []string{"relocate", "fetch"}, kinds(plan))
 	assert.Equal(t, f.old, plan.Actions[0].FromPath)
 	assert.Equal(t, f.renamed, plan.Actions[0].ToPath)
 	_, _, err = f.run(t, true, renamed(1, "new"))
@@ -215,6 +226,8 @@ func TestApplyStateAndRemoteFailureAfterMove(t *testing.T) {
 	requireExit(t, err, exitpkg.Partial)
 	assert.Contains(t, errs, "injected remote update failure")
 	assert.Contains(t, errs, "save state:")
+	assert.Contains(t, errs, "not recorded: acme/new", "the move stands, and so does its record")
+	assert.Empty(t, f.git.fetched, "a failed move is not refreshed")
 
 	// The moved checkout still carries the old origin, and its recorded path
 	// is absent.
@@ -229,8 +242,7 @@ func TestApplyStateAndRemoteFailureAfterMove(t *testing.T) {
 	// checkout is relocated.
 	plan, _, err := f.run(t, false, renamed(1, "new"))
 	require.NoError(t, err)
-	require.Len(t, plan.Actions, 1, kinds(plan))
-	assert.Equal(t, "relocate", plan.Actions[0].Kind)
+	require.Equal(t, []string{"relocate", "fetch"}, kinds(plan))
 	assert.Equal(t, f.renamed, plan.Actions[0].ToPath)
 
 	// A new repository has taken the old name since: the checkout is not
@@ -254,6 +266,36 @@ func TestApplyStateAndRemoteFailureAfterMove(t *testing.T) {
 	info, inspectErr = gitsvc.NewSync().Inspect(f.renamed)
 	require.NoError(t, inspectErr)
 	assert.Equal(t, []string{"git@github.com:acme/old.git"}, info.Origins)
+}
+
+// A move whose remote update fails stands: its new path is saved at once, not
+// only by the save after the routine fetches.
+func TestApplyRemoteFailureSavesTheMoveAtOnce(t *testing.T) {
+	f := newRenameFixture(t)
+	other := filepath.Join(f.root, "public/acme/other")
+	makeClone(t, other, "git@github.com:acme/other.git")
+	st, err := f.store.Load()
+	require.NoError(t, err)
+	st.Upsert(state.Record{ID: 2, OwnerLogin: "acme", Name: "other", Visibility: "public", Path: other,
+		RemoteURL: "git@github.com:acme/other.git", CloneURL: "ssh", SourceProfile: "p"})
+	require.NoError(t, f.store.Save(st))
+	f.names["acme/other"] = 2
+	f.git.failRemote = true
+	var saved string
+	f.git.beforeFetch = func(path string) {
+		st, err := f.store.Load()
+		require.NoError(t, err)
+		rec, ok := st.ByID(1)
+		require.True(t, ok)
+		saved = rec.Path
+	}
+	plan, errs, err := f.run(t, true, renamed(1, "new"), renamed(2, "other"))
+	requireExit(t, err, exitpkg.Partial)
+	assert.ElementsMatch(t, []string{"move", "fetch", "fetch"}, kinds(plan))
+	assert.Contains(t, errs, "injected remote update failure")
+	assert.NotContains(t, errs, "save state:")
+	assert.Equal(t, []string{other}, f.git.fetched, "the failed move is not refreshed")
+	assert.Equal(t, f.renamed, saved, "the move is in the state file before the fetches run")
 }
 
 // Two records with missing paths share the origin of a checkout: binding it

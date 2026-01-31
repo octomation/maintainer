@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"strings"
 
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
@@ -23,6 +24,14 @@ type DiskClone struct {
 	Origins   int  // number of origin fetch URLs (>1 ⇒ conflict)
 	Pinned    bool // discovered through workspace.pins or an explicit path
 	Error     string
+	Worktrees []string // linked worktrees of the checkout
+
+	// former is set on a disputed checkout at a previous path of the recorded
+	// id: its conflict leaves the recorded id's active checkout planned.
+	former bool
+	// rebound is set when the recorded id was kept although the origin's name
+	// belongs to another repository now: fetching through it is unsafe.
+	rebound bool
 }
 
 // Occupancy classifies what occupies a would-be target path (§7.5).
@@ -67,6 +76,10 @@ type PlanInput struct {
 	Confirmations  map[int64]Confirmation
 	Occupancy      map[string]Occupancy // keyed by cleaned target path; optional
 	Deselected     map[int64]string     // outside --owner/--profile: id → reason; report-only
+	// Aliases maps a rendered target to the recorded checkout path it already
+	// denotes: the spellings differ only in letter case, and the filesystem
+	// confirms one directory (os.SameFile). Such a target needs no move.
+	Aliases map[string]string
 }
 
 // Planner turns {API, State, Disk} facts into an ordered, conflict-checked
@@ -98,10 +111,12 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 			snapByID[snap.ID] = snap
 		}
 	}
+	in.Clones = attribute(in.State, in.Clones)
 	clonesByID := make(map[int64][]DiskClone)
 	clonesByPath := make(map[string]DiskClone)
+	disputed := make(map[string]bool)
 	for _, c := range in.Clones {
-		if c.ID != 0 {
+		if c.ID != 0 && c.Error == "" {
 			clonesByID[c.ID] = append(clonesByID[c.ID], c)
 		}
 		clonesByPath[c.Path] = c
@@ -117,7 +132,15 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 			if p.cnf.Ignored(c.ID, c.Owner, c.Name) {
 				continue
 			}
-			blocked[c.ID] = true
+			// A checkout bound to an id outside the selection is left alone,
+			// as that repository is: its row is the noop below.
+			if _, outside := in.Deselected[c.ID]; c.ID != 0 && outside {
+				continue
+			}
+			if !c.former {
+				blocked[c.ID] = true
+			}
+			disputed[c.Path] = true
 			actions = append(actions, Action{Kind: KindConflict, ID: c.ID, Owner: c.Owner, Name: c.Name, Path: c.Path, Reason: c.Error})
 		}
 	}
@@ -154,7 +177,7 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 		if pin != "" && !p.paths.WorkspacePin(pinSnap, rec) {
 			seen := map[string]bool{pin: true}
 			addOrphan := func(path string) {
-				if path == "" || seen[path] {
+				if path == "" || seen[path] || disputed[path] {
 					return
 				}
 				seen[path] = true
@@ -174,7 +197,7 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 
 		switch {
 		case hasSnap:
-			act, err := p.planPresent(snap, rec, hasRec, clonesByID[id], clonesByPath, in.Occupancy)
+			act, err := p.planPresent(snap, rec, hasRec, clonesByID[id], clonesByPath, in.Occupancy, in.Aliases)
 			if err != nil {
 				return nil, err
 			}
@@ -203,6 +226,7 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 		existing = append(existing, path)
 	}
 	resolveTargetCollisions(actions, p.paths.scope.Root, existing)
+	actions = withRefreshes(actions)
 	sort.SliceStable(actions, func(i, j int) bool {
 		if actions[i].order() != actions[j].order() {
 			return actions[i].order() < actions[j].order()
@@ -225,6 +249,59 @@ func (p *Planner) deselected(id int64, owner, name string, snap github.RepoSnaps
 		a.Path = pin
 	}
 	return a
+}
+
+// attribute keeps a checkout bound to the id the state records for its path.
+// The name a checkout's origin resolves to may belong to another repository by
+// now: a rename freed it, and a new repository took it. The recorded id wins
+// when the recorded remote is still the checkout's origin; otherwise the
+// checkout is a conflict that names both ids, never an adoption (§4.4).
+func attribute(st *state.State, clones []DiskClone) []DiskClone {
+	out := make([]DiskClone, 0, len(clones))
+	for _, c := range clones {
+		if c.ID != 0 && c.Error == "" {
+			if rec, former := recordedAt(st, c.Path); rec != nil && rec.ID != c.ID {
+				if sameRepository(rec.RemoteURL, c.RemoteURL) {
+					c.ID, c.rebound = rec.ID, true
+				} else {
+					c.Error = fmt.Sprintf("checkout is recorded as id=%d (%s/%s), but its origin %s/%s belongs to id=%d now",
+						rec.ID, rec.OwnerLogin, rec.Name, c.Owner, c.Name, c.ID)
+					c.ID, c.former = rec.ID, former
+				}
+			}
+		}
+		out = append(out, c)
+	}
+	return out
+}
+
+// recordedAt finds the record that owns path as its active path or, failing
+// that, as one of its previous paths (former).
+func recordedAt(st *state.State, path string) (rec *state.Record, former bool) {
+	if st == nil {
+		return nil, false
+	}
+	for i := range st.Repos {
+		if st.Repos[i].Path == path {
+			return &st.Repos[i], false
+		}
+	}
+	for i := range st.Repos {
+		for _, previous := range st.Repos[i].PreviousPaths {
+			if previous == path {
+				return &st.Repos[i], true
+			}
+		}
+	}
+	return nil, false
+}
+
+// sameRepository compares two GitHub remotes by host, owner and name, which
+// GitHub treats case-insensitively; the transport does not matter.
+func sameRepository(a, b string) bool {
+	ah, ao, an, _, aok := parseRemote(a)
+	bh, bo, bn, _, bok := parseRemote(b)
+	return aok && bok && strings.EqualFold(ah, bh) && strings.EqualFold(ao, bo) && strings.EqualFold(an, bn)
 }
 
 func orphanAction(id int64, owner, name, path, reason, active string) Action {
@@ -255,6 +332,7 @@ func (p *Planner) planPresent(
 	clones []DiskClone,
 	clonesByPath map[string]DiskClone,
 	occupancy map[string]Occupancy,
+	aliases map[string]string,
 ) (*Action, error) {
 	transport := p.cnf.CloneURLFor(snap.SourceProfile, snap.Owner, snap.ID, snap.Name)
 	filtered := p.filtered(snap)
@@ -371,6 +449,8 @@ func (p *Planner) planPresent(
 			a.FromPath = rec.Path
 			a.ToPath = elsewhere[0]
 			a.Path = elsewhere[0]
+			found, _ := cloneAt(clones, elsewhere[0])
+			a.staleOrigin = found.rebound
 			return &a, nil
 		case 0:
 			if filtered {
@@ -388,6 +468,7 @@ func (p *Planner) planPresent(
 			a.Transport = transport
 			fresh := recordFromSnapshot(snap, target, a.RemoteURL, transport)
 			fresh.FirstSeen = rec.FirstSeen // preserve original first_seen across a re-clone
+			fresh.PreviousPaths = append([]string(nil), rec.PreviousPaths...)
 			a.Record = fresh
 			return &a, nil
 		default:
@@ -403,7 +484,9 @@ func (p *Planner) planPresent(
 
 	nameChanged := snap.Owner != rec.OwnerLogin || snap.Name != rec.Name
 	external := p.paths.External(snap)
-	pathDiffers := target != rec.Path
+	// A case-only rename on a case-insensitive filesystem is settled when the
+	// target already is the recorded checkout: only its remote follows.
+	pathDiffers := target != rec.Path && aliases[target] != rec.Path
 	canonical := canonicalURL(a.Transport, snap.Owner, snap.Name)
 	actualRemote := rec.RemoteURL
 	if diskClone.RemoteURL != "" {
@@ -422,6 +505,7 @@ func (p *Planner) planPresent(
 		a.ToPath = target
 		a.Path = target
 		a.FromName = rec.OwnerLogin + "/" + rec.Name
+		a.Worktrees = diskClone.Worktrees
 		a.UpdateRemote = nameChanged || remoteDrift
 		if a.UpdateRemote {
 			a.RemoteURL = canonical
@@ -462,9 +546,12 @@ func conflictAtTarget(
 		a := base
 		a.Kind = KindConflict
 		a.Path, a.target = target, target
-		if other.ID == 0 {
+		switch {
+		case other.Error != "":
+			a.Reason = other.Error
+		case other.ID == 0:
 			a.Reason = "target contains a Git repository whose fetch origin cannot be matched unambiguously"
-		} else {
+		default:
 			a.Reason = "target contains a different Git repository"
 		}
 		return &a
@@ -605,6 +692,25 @@ func resolveTargetCollisions(actions []Action, root string, existing []string) {
 			actions[i].Kind, actions[i].Reason = KindConflict, reason
 		}
 	}
+}
+
+// withRefreshes follows every reconciliation of an existing checkout with one
+// fetch of its refs in the same apply. The fetch runs with the routine ones,
+// last; the applier skips it when the reconciliation fails (§7.4). A checkout
+// whose origin names another repository now is fetched only after its
+// update_remote, never through that origin.
+func withRefreshes(actions []Action) []Action {
+	for _, a := range actions {
+		if !a.reconciles() || a.staleOrigin {
+			continue
+		}
+		actions = append(actions, Action{
+			Kind: KindFetch, ID: a.ID, NodeID: a.NodeID, Owner: a.Owner, Name: a.Name,
+			Path: a.Path, Transport: a.Transport, Profile: a.Profile,
+			After: a.Kind, Snapshot: a.Snapshot,
+		})
+	}
+	return actions
 }
 
 func unionIDs(in PlanInput) []int64 {

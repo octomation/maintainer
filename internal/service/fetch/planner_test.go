@@ -25,6 +25,19 @@ func newPlanner(t *testing.T, cnf *config.Fetch) *Planner {
 	return NewPlanner(cnf, NewPathResolver(cnf, r))
 }
 
+// reconciled checks that a plan holds one reconciliation followed by the
+// fetch that refreshes the same checkout, and returns the reconciliation.
+func reconciled(t *testing.T, actions []Action) Action {
+	t.Helper()
+	require.Len(t, actions, 2)
+	a, refresh := actions[0], actions[1]
+	assert.Equal(t, KindFetch, refresh.Kind)
+	assert.Equal(t, a.Kind, refresh.After)
+	assert.Equal(t, a.ID, refresh.ID)
+	assert.Equal(t, a.Path, refresh.Path)
+	return a
+}
+
 func byID(actions []Action) map[int64]Action {
 	m := make(map[int64]Action, len(actions))
 	for _, a := range actions {
@@ -102,9 +115,9 @@ func TestPlanner_UsesObservedFetchRemoteForDrift(t *testing.T) {
 		}},
 	})
 	require.NoError(t, err)
-	require.Len(t, actions, 1)
-	assert.Equal(t, KindUpdateRemote, actions[0].Kind)
-	assert.Equal(t, "git@github.com:acme/service.git", actions[0].RemoteURL)
+	a := reconciled(t, actions)
+	assert.Equal(t, KindUpdateRemote, a.Kind)
+	assert.Equal(t, "git@github.com:acme/service.git", a.RemoteURL)
 }
 
 func TestPlanner_MoveOnRename(t *testing.T) {
@@ -121,8 +134,7 @@ func TestPlanner_MoveOnRename(t *testing.T) {
 	}
 	actions, err := p.Plan(in)
 	require.NoError(t, err)
-	require.Len(t, actions, 1)
-	a := actions[0]
+	a := reconciled(t, actions)
 	assert.Equal(t, KindMove, a.Kind)
 	assert.Equal(t, "/work/public/acme/dotfiles", a.FromPath)
 	assert.Equal(t, "/work/public/acme/configs", a.ToPath)
@@ -142,8 +154,7 @@ func TestPlanner_Adopt(t *testing.T) {
 	}
 	actions, err := p.Plan(in)
 	require.NoError(t, err)
-	require.Len(t, actions, 1)
-	a := actions[0]
+	a := reconciled(t, actions)
 	assert.Equal(t, KindAdopt, a.Kind)
 	assert.Equal(t, "/work/public/acme/tool", a.Path)
 	require.NotNil(t, a.Record)
@@ -164,8 +175,7 @@ func TestPlanner_UpdateRemoteOnly(t *testing.T) {
 	}
 	actions, err := p.Plan(in)
 	require.NoError(t, err)
-	require.Len(t, actions, 1)
-	a := actions[0]
+	a := reconciled(t, actions)
 	assert.Equal(t, KindUpdateRemote, a.Kind)
 	assert.Equal(t, "git@github.com:acme/service.git", a.RemoteURL)
 }
@@ -184,8 +194,7 @@ func TestPlanner_Relocate(t *testing.T) {
 	}
 	actions, err := p.Plan(in)
 	require.NoError(t, err)
-	require.Len(t, actions, 1)
-	a := actions[0]
+	a := reconciled(t, actions)
 	assert.Equal(t, KindRelocate, a.Kind)
 	assert.Equal(t, "/work/private/acme/service", a.FromPath)
 	assert.Equal(t, "/work/public/acme/service", a.ToPath)

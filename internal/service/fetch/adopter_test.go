@@ -2,14 +2,18 @@ package fetch_test
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"path/filepath"
 	"testing"
 
 	gogit "github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/config"
+	gitconfig "github.com/go-git/go-git/v5/config"
+	gh "github.com/google/go-github/v93/github"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"go.octolab.org/toolset/maintainer/internal/config"
 	. "go.octolab.org/toolset/maintainer/internal/service/fetch"
 	gitsvc "go.octolab.org/toolset/maintainer/internal/service/git"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
@@ -20,7 +24,7 @@ func makeClone(t *testing.T, dir, originURL string) {
 	t.Helper()
 	repo, err := gogit.PlainInit(dir, false)
 	require.NoError(t, err)
-	_, err = repo.CreateRemote(&config.RemoteConfig{Name: "origin", URLs: []string{originURL}})
+	_, err = repo.CreateRemote(&gitconfig.RemoteConfig{Name: "origin", URLs: []string{originURL}})
 	require.NoError(t, err)
 }
 
@@ -91,4 +95,65 @@ func TestAdopter_ScanTreatsPushURLAsOrthogonalToIdentity(t *testing.T) {
 	require.Len(t, clones, 1)
 	assert.Equal(t, int64(42), clones[0].ID)
 	assert.Equal(t, 1, clones[0].Origins)
+}
+
+// refusingResolver answers each owner/name with the status it is given.
+type refusingResolver struct {
+	status map[string]int
+	asked  []string
+}
+
+func (r *refusingResolver) ResolveByName(_ context.Context, owner, name string) (int64, error) {
+	r.asked = append(r.asked, owner+"/"+name)
+	if code, ok := r.status[owner+"/"+name]; ok {
+		return 0, &gh.ErrorResponse{Response: &http.Response{StatusCode: code}, Message: http.StatusText(code)}
+	}
+	return 7, nil
+}
+
+func TestAdopter_ScanIsolatesRefusedCheckouts(t *testing.T) {
+	for _, code := range []int{http.StatusUnauthorized, http.StatusForbidden, http.StatusUnavailableForLegalReasons} {
+		t.Run(http.StatusText(code), func(t *testing.T) {
+			root := t.TempDir()
+			makeClone(t, filepath.Join(root, "public/sso-org/tool"), "git@github.com:sso-org/tool.git")
+			makeClone(t, filepath.Join(root, "public/acme/svc"), "git@github.com:acme/svc.git")
+			resolver := &refusingResolver{status: map[string]int{"sso-org/tool": code}}
+
+			clones, err := NewAdopter(gitsvc.NewSync(), resolver).Scan(context.Background(), root, nil, nil)
+			require.NoError(t, err)
+			byPath := map[string]DiskClone{}
+			for _, c := range clones {
+				byPath[c.Path] = c
+			}
+			require.Len(t, byPath, 2)
+			refused := byPath[filepath.Join(root, "public/sso-org/tool")]
+			assert.Zero(t, refused.ID)
+			assert.Contains(t, refused.Error, "resolve sso-org/tool")
+			assert.Contains(t, refused.Error, fmt.Sprint(code))
+			assert.Equal(t, int64(7), byPath[filepath.Join(root, "public/acme/svc")].ID)
+		})
+	}
+}
+
+func TestAdopter_ScanFailsOnOtherResolverErrors(t *testing.T) {
+	root := t.TempDir()
+	makeClone(t, filepath.Join(root, "public/acme/svc"), "git@github.com:acme/svc.git")
+	resolver := &refusingResolver{status: map[string]int{"acme/svc": http.StatusInternalServerError}}
+	_, err := NewAdopter(gitsvc.NewSync(), resolver).Scan(context.Background(), root, nil, nil)
+	assert.ErrorContains(t, err, "resolve acme/svc")
+}
+
+func TestAdopter_ScanDoesNotResolveIgnoredCheckouts(t *testing.T) {
+	root := t.TempDir()
+	makeClone(t, filepath.Join(root, "public/sso-org/tool"), "git@github.com:sso-org/tool.git")
+	makeClone(t, filepath.Join(root, "public/acme/svc"), "git@github.com:acme/svc.git")
+	resolver := &refusingResolver{status: map[string]int{"sso-org/tool": http.StatusForbidden}}
+	cnf := &config.Fetch{Repos: []config.Repo{{Match: config.RepoMatch{Owner: "sso-org", Name: "tool"}, Ignore: true}}}
+
+	clones, err := NewAdopter(gitsvc.NewSync(), resolver).Scan(context.Background(), root, nil, cnf)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"acme/svc"}, resolver.asked)
+	for _, c := range clones {
+		assert.Empty(t, c.Error, c.Path)
+	}
 }

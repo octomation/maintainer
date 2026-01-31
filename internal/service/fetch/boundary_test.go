@@ -222,12 +222,14 @@ func TestBoundary_ObstructionsAreConflicts(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, svc.Run(context.Background(), false))
 	plan := decodePlan(t, &out)
-	require.Len(t, plan.Actions, 2, out.String())
+	require.Len(t, plan.Actions, 3, out.String())
 	assert.Equal(t, "adopt", plan.Actions[0].Kind, "the checkout below the obstruction stays visible")
 	assert.Equal(t, filepath.Join(root, "public/o/r"), plan.Actions[0].Path)
-	assert.Equal(t, "conflict", plan.Actions[1].Kind)
-	assert.Equal(t, filepath.Join(root, "public/o"), plan.Actions[1].Path)
-	assert.Equal(t, "scan: a Git repository at an unmanaged level of the layout", plan.Actions[1].Reason)
+	assert.Equal(t, "fetch", plan.Actions[1].Kind, "the adoption is refreshed")
+	assert.Equal(t, filepath.Join(root, "public/o/r"), plan.Actions[1].Path)
+	assert.Equal(t, "conflict", plan.Actions[2].Kind)
+	assert.Equal(t, filepath.Join(root, "public/o"), plan.Actions[2].Path)
+	assert.Equal(t, "scan: a Git repository at an unmanaged level of the layout", plan.Actions[2].Reason)
 	assert.Equal(t, 1, plan.Summary.Conflict)
 }
 

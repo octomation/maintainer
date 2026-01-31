@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"os"
+	"strings"
 
 	gitsvc "go.octolab.org/toolset/maintainer/internal/service/git"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
@@ -63,4 +65,34 @@ func (b boundedSync) Move(from, to string) error {
 		return fmt.Errorf("refusing to move %s to %s: %w", from, to, err)
 	}
 	return b.GitSync.Move(from, to)
+}
+
+// caseAliases finds rendered targets that differ from their recorded path only
+// in letter case and denote the same directory: a case-insensitive filesystem
+// already shows the checkout under the new spelling, so a rename that changes
+// only the case needs no move (§7.5). Both paths are compared without
+// following a final symbolic link.
+func (s *Service) caseAliases(snapshots []github.RepoSnapshot, st *state.State) map[string]string {
+	aliases := make(map[string]string)
+	for _, snap := range snapshots {
+		rec, ok := st.ByID(snap.ID)
+		if !ok {
+			continue
+		}
+		if pin, err := s.planner.paths.PinnedPath(snap, rec); err != nil || pin != "" {
+			continue // pins never move
+		}
+		target, err := s.planner.paths.Resolve(snap)
+		if err != nil || target == rec.Path || !strings.EqualFold(target, rec.Path) {
+			continue
+		}
+		recorded, err := os.Lstat(rec.Path)
+		if err != nil {
+			continue
+		}
+		if shown, err := os.Lstat(target); err == nil && os.SameFile(recorded, shown) {
+			aliases[target] = rec.Path
+		}
+	}
+	return aliases
 }

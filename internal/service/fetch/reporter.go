@@ -138,11 +138,20 @@ func (r *Reporter) renderHuman(p Plan, applied bool) error {
 		}
 	}
 	fmt.Fprintf(&b, "plan: %d repos total\n", len(ids))
+	refreshed := make(map[int64]bool)
+	for _, a := range p.Actions {
+		if a.Kind == KindFetch && a.After != "" {
+			refreshed[a.ID] = true
+		}
+	}
 	for _, a := range p.Actions {
 		if !drift(a) {
 			continue
 		}
 		r.writeAction(&b, p, a)
+		if a.reconciles() && refreshed[a.ID] {
+			b.WriteString("               + fetch remote-tracking refs\n")
+		}
 	}
 
 	s := p.Summary()
@@ -187,6 +196,9 @@ func (r *Reporter) writeAction(b *strings.Builder, p Plan, a Action) {
 		fmt.Fprintf(b, "               to   %s\n", r.short(p, a.ToPath))
 		if a.UpdateRemote {
 			b.WriteString("               + update remote.origin.url\n")
+		}
+		for _, worktree := range a.Worktrees {
+			fmt.Fprintf(b, "               + reconnect linked worktree %s\n", r.short(p, worktree))
 		}
 	case KindRelocate:
 		fmt.Fprintf(b, "  %s relocate   %-28s → moved on disk\n", sym, name)
@@ -296,19 +308,20 @@ type jsonPlan struct {
 }
 
 type jsonAction struct {
-	OrphanReason string `json:"orphan_reason,omitempty"`
-	ActivePath   string `json:"active_path,omitempty"`
-	Kind         string `json:"kind"`
-	ID           int64  `json:"id"`
-	Owner        string `json:"owner,omitempty"`
-	Name         string `json:"name,omitempty"`
-	Path         string `json:"path,omitempty"`
-	From         string `json:"from,omitempty"`
-	To           string `json:"to,omitempty"`
-	FromPath     string `json:"from_path,omitempty"`
-	ToPath       string `json:"to_path,omitempty"`
-	Flag         string `json:"flag,omitempty"`
-	Reason       string `json:"reason,omitempty"`
+	OrphanReason string   `json:"orphan_reason,omitempty"`
+	ActivePath   string   `json:"active_path,omitempty"`
+	Kind         string   `json:"kind"`
+	ID           int64    `json:"id"`
+	Owner        string   `json:"owner,omitempty"`
+	Name         string   `json:"name,omitempty"`
+	Path         string   `json:"path,omitempty"`
+	From         string   `json:"from,omitempty"`
+	To           string   `json:"to,omitempty"`
+	FromPath     string   `json:"from_path,omitempty"`
+	ToPath       string   `json:"to_path,omitempty"`
+	Worktrees    []string `json:"worktrees,omitempty"`
+	Flag         string   `json:"flag,omitempty"`
+	Reason       string   `json:"reason,omitempty"`
 }
 
 func toJSONAction(a Action) jsonAction {
@@ -322,6 +335,7 @@ func toJSONAction(a Action) jsonAction {
 		out.To = a.Owner + "/" + a.Name
 		out.FromPath = a.FromPath
 		out.ToPath = a.ToPath
+		out.Worktrees = a.Worktrees
 		out.Path = ""
 	}
 	if a.Kind == KindRelocate {

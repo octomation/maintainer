@@ -2,9 +2,11 @@ package fetch
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -99,7 +101,7 @@ func NewService(
 	}
 	if deps.Resolver != nil && deps.GitSync != nil {
 		svc.names = &profileNameResolver{resolver: deps.Resolver, profile: primaryProfile(profiles)}
-		svc.adopter = NewAdopter(deps.GitSync, svc.names)
+		svc.adopter = NewAdopter(deps.GitSync, svc.names).Ignoring(cnf)
 	}
 	return svc, nil
 }
@@ -166,7 +168,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	// conflict. Do not infer this from an absent API listing alone.
 	for i := range clones {
 		c := &clones[i]
-		if c.ID != 0 || c.Owner == "" || c.Origins > 1 {
+		if c.ID != 0 || c.Owner == "" || c.Origins > 1 || c.Error == incompleteClone {
 			continue
 		}
 		for _, rec := range st.Repos {
@@ -177,6 +179,10 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 			}
 		}
 	}
+	// A checkout at a path recorded for an id, with that record's remote,
+	// keeps the id (§4.4) before the guard asks whether it may be another
+	// record's unsaved move.
+	clones = attribute(st, clones)
 	s.guardUnsavedMoves(st, clones)
 	// Existing workspace checkouts (especially pins) are explicit local scope,
 	// even when their owners are absent from remote discovery for new clones.
@@ -251,6 +257,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		Confirmations:  confirmations,
 		Occupancy:      occupancy,
 		Deselected:     deselected,
+		Aliases:        s.caseAliases(snapshots, st),
 	})
 	if err != nil {
 		return exit.WithUser(err)
@@ -558,8 +565,9 @@ func (s *Service) confirm(ctx context.Context, st *state.State, snapshots []gith
 
 // apply executes the action list in the prescribed order (§7.4): adopt/relocate,
 // update_remote, move (all sequential), then clone and fetch (bounded parallel).
-// It returns the failures, failed saves included, and the repositories whose
-// applied change is not in the state file yet.
+// The fetch that refreshes a reconciled checkout runs only when its
+// reconciliation succeeded. It returns the failures, failed saves included, and
+// the repositories whose applied change is not in the state file yet.
 func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) (int, []string) {
 	var (
 		failures int
@@ -568,15 +576,32 @@ func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) (int, 
 	)
 	s.deps.Reporter.Logf("applying %d actions (concurrency=%d)", plan.executable(), s.concurrency)
 
+	unreconciled := make(map[int64]bool)
 	fail := func(act Action, err error) {
+		errs, reconciled := []error{err}, false
+		var moved *movedWithErrors
+		if errors.As(err, &moved) {
+			// The move stands: each linked worktree it could not bring back
+			// is an error of its own, and only a failed remote update keeps
+			// the checkout from its refresh.
+			errs, reconciled = moved.errors(), moved.update == nil
+		}
 		mu.Lock()
-		failures++
+		failures += len(errs)
+		if act.reconciles() && !reconciled {
+			unreconciled[act.ID] = true // its refresh does not run
+		}
 		mu.Unlock()
-		s.deps.Reporter.Errorf("%s %s/%s: %v", act.Kind, act.Owner, act.Name, err)
+		for _, err := range errs {
+			s.deps.Reporter.Errorf("%s %s/%s: %v", act.Kind, act.Owner, act.Name, err)
+		}
 	}
 	done := func(act Action) {
 		mu.Lock()
-		unsaved = append(unsaved, act.Owner+"/"+act.Name)
+		// A refresh follows its reconciliation: name the repository once.
+		if name := act.Owner + "/" + act.Name; !slices.Contains(unsaved, name) {
+			unsaved = append(unsaved, name)
+		}
 		mu.Unlock()
 	}
 	// save persists every change applied so far (§6.3 per-action durability).
@@ -601,6 +626,13 @@ func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) (int, 
 			s.deps.Reporter.Infof("%s %s/%s → %s", act.Kind, act.Owner, act.Name, act.Path)
 			if err := s.applier.Execute(ctx, act, st); err != nil {
 				fail(act, err)
+				// A move that stands is recorded although a later step of it
+				// failed: it is saved, or named as unrecorded, right away.
+				var moved *movedWithErrors
+				if errors.As(err, &moved) {
+					done(act)
+					save()
+				}
 				continue
 			}
 			done(act)
@@ -613,6 +645,10 @@ func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) (int, 
 		ran := false
 		for _, act := range plan.Actions {
 			if act.Kind != kind {
+				continue
+			}
+			if act.After != "" && unreconciled[act.ID] {
+				s.deps.Reporter.Infof("skip %s %s/%s: %s failed", act.Kind, act.Owner, act.Name, act.After)
 				continue
 			}
 			ran = true

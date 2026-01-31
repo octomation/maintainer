@@ -267,12 +267,20 @@ func planPinned(base Action, target string, rec *state.Record, clones []DiskClon
 			}
 		}
 	}
-	base.UpdateRemote = c.RemoteURL != "" && c.RemoteURL != base.RemoteURL
+	drift := c.RemoteURL != "" && c.RemoteURL != base.RemoteURL
 	switch {
 	case rec == nil || rec.Path != target:
+		// Adoption only adds: it records the checkout with its observed
+		// origin, and a drifted origin is the next apply's update_remote.
 		base.Kind = KindAdopt
-	case base.UpdateRemote:
+		base.staleOrigin = c.rebound
+		if c.RemoteURL != "" {
+			base.RemoteURL = c.RemoteURL
+			base.Record.RemoteURL = c.RemoteURL
+		}
+	case drift:
 		base.Kind = KindUpdateRemote
+		base.UpdateRemote = true
 	default:
 		base.Kind = KindFetch
 	}

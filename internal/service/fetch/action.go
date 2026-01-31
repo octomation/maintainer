@@ -49,6 +49,8 @@ type Action struct {
 	FromPath string // move/relocate source
 	ToPath   string // move/relocate target
 	FromName string // owner/name before a rename (for the move line)
+	// Worktrees lists the linked worktrees a move reconnects to the checkout.
+	Worktrees []string
 
 	RemoteURL    string // canonical, credential-free remote
 	Transport    string // resolved transport (ssh|https)
@@ -56,6 +58,7 @@ type Action struct {
 	UpdateRemote bool   // a move that also rewrites remote.origin.url
 
 	Filtered     bool   // noop/fetch flagged "filtered" (§7.1)
+	After        Kind   // the reconciliation a fetch refreshes; empty for a routine fetch
 	Flag         string // orphan/confirmation flag (inaccessible/legal-hold)
 	Reason       string // conflict / report-only explanation
 	OrphanReason string // stable machine-readable management reason
@@ -66,11 +69,15 @@ type Action struct {
 	Record   *state.Record
 
 	target string // intended clone/move target, kept when it is refused
+	// staleOrigin marks an adopt or relocate of a checkout whose origin names
+	// another repository now: it gets no refresh until its update_remote.
+	staleOrigin bool
 }
 
 // order is the apply priority (§7.4): adopt/relocate first (pure metadata),
 // then update_remote, move, clone, fetch. Report-only kinds sort last and are
-// never executed.
+// never executed. A fetch that refreshes a reconciled checkout sorts with the
+// routine fetches, after the reconciliation it depends on.
 func (a Action) order() int {
 	switch a.Kind {
 	case KindAdopt, KindRelocate:
@@ -85,6 +92,17 @@ func (a Action) order() int {
 		return 4
 	default: // orphan, noop, conflict — report-only
 		return 5
+	}
+}
+
+// reconciles reports whether an action changes an existing checkout or its
+// record, so that its refs are refreshed in the same apply.
+func (a Action) reconciles() bool {
+	switch a.Kind {
+	case KindAdopt, KindMove, KindRelocate, KindUpdateRemote:
+		return true
+	default:
+		return false
 	}
 }
 

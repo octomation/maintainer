@@ -27,7 +27,7 @@ func TestWorkspacePinLifecycle(t *testing.T) {
 	clone := DiskClone{ID: 1, Path: path, RemoteURL: "git@github.com:alice/tool.git", Transport: "ssh", Pinned: true}
 	g := new(fakeGit)
 	apply := NewApplier(g, nil, clock)
-	for i, kind := range []Kind{KindAdopt, KindFetch, KindUpdateRemote, KindFetch} {
+	for i, kinds := range [][]Kind{{KindAdopt, KindFetch}, {KindFetch}, {KindUpdateRemote, KindFetch}, {KindFetch}} {
 		if i == 2 {
 			snap.Owner, snap.Name = "bob", "renamed"
 		}
@@ -37,10 +37,12 @@ func TestWorkspacePinLifecycle(t *testing.T) {
 		}
 		acts, err := newPlanner(t, cnf).Plan(PlanInput{State: st, Snapshots: []github.RepoSnapshot{snap}, Clones: []DiskClone{clone}})
 		require.NoError(t, err)
-		require.Len(t, acts, 1)
-		assert.Equal(t, kind, acts[0].Kind)
-		assert.Equal(t, path, acts[0].Path)
-		require.NoError(t, apply.Execute(context.Background(), acts[0], st))
+		require.Len(t, acts, len(kinds))
+		for j, kind := range kinds {
+			assert.Equal(t, kind, acts[j].Kind)
+			assert.Equal(t, path, acts[j].Path)
+			require.NoError(t, apply.Execute(context.Background(), acts[j], st))
+		}
 	}
 	rec, ok := st.ByID(1)
 	require.True(t, ok)
@@ -77,8 +79,9 @@ func TestWorkspacePinsDoNotChooseDuplicates(t *testing.T) {
 	cnf.Repos = []config.Repo{{Match: config.RepoMatch{ID: 1}, Path: "prototyping/tool"}}
 	acts, err := newPlanner(t, cnf).Plan(PlanInput{State: state.New(), Snapshots: []github.RepoSnapshot{snap}, Clones: clones})
 	require.NoError(t, err)
-	require.Len(t, acts, 2)
-	assert.Equal(t, KindOrphan, acts[1].Kind)
+	require.Len(t, acts, 3)
+	assert.Equal(t, KindOrphan, acts[2].Kind)
+	assert.Equal(t, KindAdopt, acts[1].After)
 	assert.Equal(t, KindAdopt, acts[0].Kind)
 	assert.Empty(t, acts[0].Record.PinSource, "a specific repo pin wins over a broad workspace pin")
 }
@@ -179,10 +182,10 @@ func TestServiceWorkspacePinOutsideRemoteOwners(t *testing.T) {
 	api := renamedRepository{snapshot: github.RepoSnapshot{ID: 1, Owner: "new", Name: "renamed", Visibility: github.Private}}
 	var out bytes.Buffer
 	svc, err := NewService(cnf, []ResolvedProfile{{Name: "primary", Owners: []string{"unrelated"}}}, root, root, 1, Deps{
-		Store: store, Discoverer: fakeDiscoverer{}, Resolver: api, Confirmer: api, GitSync: gitsvc.NewSync(), Reporter: NewReporter(&out, &out, FormatJSON, 0, false),
+		Store: store, Discoverer: fakeDiscoverer{}, Resolver: api, Confirmer: api, GitSync: noNetworkFetch{gitsvc.NewSync()}, Reporter: NewReporter(&out, &out, FormatJSON, 0, false),
 	})
 	require.NoError(t, err)
-	// Adoption updates the real disposable origin without contacting GitHub.
+	// Adoption records the pin and leaves its origin as it is.
 	require.NoError(t, svc.Run(context.Background(), true), out.String())
 	loaded, err := store.Load()
 	require.NoError(t, err)
@@ -192,9 +195,17 @@ func TestServiceWorkspacePinOutsideRemoteOwners(t *testing.T) {
 	assert.Equal(t, "private", loaded.Repos[0].Visibility)
 	info, err := gitsvc.NewSync().Inspect(path)
 	require.NoError(t, err)
+	assert.Equal(t, []string{"git@github.com:old/tool.git"}, info.Origins)
+	// The next apply updates the real disposable origin without contacting GitHub.
+	out.Reset()
+	require.NoError(t, svc.Run(context.Background(), true), out.String())
+	assert.Contains(t, out.String(), `"kind": "update_remote"`)
+	info, err = gitsvc.NewSync().Inspect(path)
+	require.NoError(t, err)
 	assert.Equal(t, []string{"git@github.com:new/renamed.git"}, info.Origins)
 	out.Reset()
 	require.NoError(t, svc.Run(context.Background(), false))
 	assert.Contains(t, out.String(), `"kind": "fetch"`)
 	assert.NotContains(t, out.String(), `"kind": "move"`)
+	assert.NotContains(t, out.String(), `"kind": "update_remote"`)
 }

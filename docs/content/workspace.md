@@ -85,10 +85,13 @@ Duplicate and overlapping entries do not duplicate rows. Missing pin roots are
 visible errors. A workspace pin overrides layout management at that location:
 fetch never clones or moves into it, and never moves its checkout out.
 
-Each discovered checkout is adopted at its current path. Future owner/name
+Each discovered checkout is adopted at its current path, unless
+[filters](/fetch/#onboarding-an-existing-tree) exclude it. Future owner/name
 changes update its verified origin; visibility changes update metadata, not
 the directory. Explicitly included local repositories can be verified by ID
-even outside the owners selected for discovery of new remote repositories.
+even outside the owners that `include_owners` selects for discovery of new
+remote repositories; a run narrowed by `--owner` or `--profile` leaves those
+outside its selection alone ([narrowing a run](/fetch/#narrowing-a-run)).
 Unknown/inaccessible identity blocks changes; status remains entirely offline.
 
 A broad pin does not choose between duplicate checkouts. Both rows are marked
