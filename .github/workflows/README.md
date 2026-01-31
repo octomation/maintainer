@@ -136,13 +136,17 @@ flowchart TB
   there. goreleaser then omits the committer
   (`commit_author.use_github_app_token`), so GitHub signs the tap commits as
   the App; a personal token does not get signed commits.
-- The Cask serves macOS and Linux. The Formula keeps existing installations
-  updated and is deprecated from 2026-11-05 in favour of the Cask, see
-  [#456](https://github.com/octomation/maintainer/issues/456). Homebrew
+- The Formula and the Cask install the same release on macOS and Linux, see
+  [MAIN-152](../issues/MAIN-152.md). Homebrew
   cannot declare a conflict between a formula and a cask, so the Formula
   carries a caveat and the Cask preflight warns when the Formula owns the
   binary link. GoReleaser deprecates `brews`, so `make release-config-check`
   accepts exactly that deprecation and fails on any other.
+- A tag with a prerelease suffix, such as `v0.3.0-rc1`, is published as a
+  prerelease that never becomes *Latest*: with `release.prerelease: auto`
+  GoReleaser marks it so and sends `make_latest: false`. `skip_upload: auto`
+  on `brews` and `homebrew_casks` leaves the Formula and the Cask in the tap
+  as they are, see [#491](https://github.com/octomation/maintainer/issues/491).
 - The binary is neither signed nor notarized. The Cask preflight clears its
   quarantine attribute: it has to run before the completions are generated,
   which execute the binary, so a `postflight` hook would be too late.

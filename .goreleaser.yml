@@ -9,11 +9,13 @@ archives:
     formats: [tar.gz]
     name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
 
-# Keep the existing Formula updated alongside the Cask until it is retired, #456.
+# Publish the Formula next to the Cask; both install the same release.
 # GoReleaser 2.18.2 still supports brews (deprecated).
 brews:
   - name: maintainer
     ids: [maintainer]
+    # a prerelease tag (vX.Y.Z-rcN) leaves the tap as it is, #491
+    skip_upload: auto
     commit_author:
       use_github_app_token: true
     description: Maintainer is an indispensable assistant to Open Source contribution.
@@ -26,10 +28,7 @@ brews:
     # Homebrew has no formula-to-cask conflicts: the caveat and the cask
     # preflight steps keep the two installations apart.
     caveats: |
-      maintainer is also published as a cask; keep only one installation.
-      To switch: brew uninstall --formula maintainer && brew install --cask maintainer
-    custom_block: |
-      deprecate! date: "2026-11-05", because: "is replaced by the cask", replacement_cask: "maintainer"
+      maintainer is published as a formula and as a cask; keep only one installation.
     install: |
       bin.install "maintainer"
       (bash_completion/"maintainer").write Utils.popen_read("#{bin}/maintainer", "completion", "bash")
@@ -42,6 +41,8 @@ brews:
 homebrew_casks:
   - name: maintainer
     ids: [maintainer]
+    # a prerelease tag (vX.Y.Z-rcN) leaves the tap as it is, #491
+    skip_upload: auto
     binaries: [maintainer]
     commit_author:
       use_github_app_token: true
@@ -92,5 +93,7 @@ release:
   # the repository comes from the git remote; the title from the release note,
   # see .github/scripts/release.mjs render
   name_template: '{{ envOrDefault "RELEASE_TITLE" .Tag }}'
+  # a prerelease tag is published as a prerelease, never as Latest, #491
+  prerelease: auto
   preflight:
     fail_on_error: true

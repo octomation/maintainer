@@ -36,10 +36,9 @@ A new service takes the next free port and adds it to both tables.
 ## Releasing
 
 A release is a curated note plus a signed tag. A prerelease (`vX.Y.Z-rcN`) is
-a release too: it has its own note and tag and is frozen once published. Once
-[MAIN-139](.github/issues/MAIN-139.md) is closed, it stays out of *Latest* and
-the tap; until then, don't tag one: it would become *Latest* and update the
-tap. Pipeline mechanics, secrets and hooks
+a release too: it has its own note and tag and is frozen once published.
+GoReleaser publishes it as a prerelease that never becomes *Latest* and leaves
+the tap as it is. Pipeline mechanics, secrets and hooks
 are in [.github/workflows/README.md](.github/workflows/README.md); docs
 conventions are in [docs/README.md](docs/README.md#keep-the-release-accurate).
 
@@ -57,11 +56,6 @@ conventions are in [docs/README.md](docs/README.md#keep-the-release-accurate).
   before the final tag.
 
 ### Before you start
-
-A prerelease, the first `v0.2.0-rc1` included, waits until
-[MAIN-139](.github/issues/MAIN-139.md) is closed: until GoReleaser publishes a
-prerelease tag as a prerelease and skips the tap, a candidate would become
-*Latest* and update the Formula and the Cask.
 
 `git fetch` and reconcile `main` with `origin/main`, then:
 
@@ -92,8 +86,8 @@ make release-config-check
 ```
 
 `make release-config-check` accepts exactly the GoReleaser `brews`
-deprecation and nothing else, while the Formula is still published
-([MAIN-125](.github/issues/MAIN-125.md)).
+deprecation and nothing else: `brews` publishes the Formula next to the Cask
+([MAIN-152](.github/issues/MAIN-152.md)).
 
 ### 1. Changelog
 
@@ -119,7 +113,7 @@ Lead paragraph: what the release does, in terms of commands and results.
 
 - What the release does not do yet, in user terms.
 
-**Upgrade:** with Homebrew, run `brew update` followed by `brew upgrade --cask octolab/tap/maintainer`; if you still have the Formula, [switch to the Cask](/quickstart/#install). With the install script, pass the tag: `sh -s -- -b ~/.local/bin vX.Y.Z`. With Go, run `go install go.octolab.org/toolset/maintainer@vX.Y.Z`. For a manual installation, use a [vX.Y.Z release archive](https://github.com/octomation/maintainer/releases/tag/vX.Y.Z). Run `maintainer version` to check the installed version.
+**Upgrade:** with Homebrew, run `brew update` followed by `brew upgrade --formula octolab/tap/maintainer` or `brew upgrade --cask octolab/tap/maintainer`, whichever you installed. With the install script, pass the tag: `sh -s -- -b ~/.local/bin vX.Y.Z`. With Go, run `go install go.octolab.org/toolset/maintainer@vX.Y.Z`. For a manual installation, use a [vX.Y.Z release archive](https://github.com/octomation/maintainer/releases/tag/vX.Y.Z). Run `maintainer version` to check the installed version.
 ```
 
 - English; a short slogan ending with a period. v0.1.0, "Find your rhythm",
@@ -128,8 +122,6 @@ Lead paragraph: what the release does, in terms of commands and results.
   and pins, no docs, tools or CI/CD. Explain jargon in user terms; no
   comparisons to release candidates.
 - Links are site-relative with a trailing slash. Markdown and HTML, no MDX.
-- Once the Formula is retired ([MAIN-125](.github/issues/MAIN-125.md)), drop
-  the Formula clause from **Upgrade:**.
 
 A prerelease note, `vX.Y.Z-rcN.md`, is short and self-contained: what to try,
 what to report, and links only to pages that are already on the site, not to
@@ -233,8 +225,7 @@ annotation="$(mktemp -d)/annotation.txt"
 
 ### 4. Tag, check, push
 
-For a prerelease, which needs [MAIN-139](.github/issues/MAIN-139.md) closed,
-record the stable channels first:
+For a prerelease, record the stable channels first:
 
 ```sh
 gh release view --json tagName -q .tagName
@@ -276,17 +267,18 @@ gh api 'repos/octolab/homebrew-tap/commits?per_page=2' -q '.[] | .commit.verific
 - The release has the note's title and body, four archives and
   `checksums.txt`.
 - A stable release: the Formula and Cask commits for vX.Y.Z in the tap are
-  verified, signed as the App. After the Formula retirement, only the Cask.
-- A prerelease, after [MAIN-139](.github/issues/MAIN-139.md): `isPrerelease`
-  is `true`, `gh release view --json tagName -q .tagName` still names the
-  previous stable release, and both tap files have the recorded `sha`.
+  verified, signed as the App.
+- A prerelease: `isPrerelease` is `true`,
+  `gh release view --json tagName -q .tagName` still names the previous stable
+  release, and both tap files have the recorded `sha`.
 - Every channel delivers vX.Y.Z, checked by `maintainer version`,
   `maintainer fetch --help` and `maintainer status --help`, not by a
   successful download alone: the archives, `bin/install` with the tag,
   `go install go.octolab.org/toolset/maintainer@vX.Y.Z` (and `@latest` for a
   stable release) outside a checkout, and Homebrew, with the Formula and the
-  Cask in separate installations while both are published:
-  `brew update && brew upgrade --cask octolab/tap/maintainer && maintainer version`.
+  Cask in separate installations: `brew update`, then
+  `brew upgrade --formula octolab/tap/maintainer` or
+  `brew upgrade --cask octolab/tap/maintainer`, and `maintainer version`.
 - The site shows the new changelog page and release band once `cd.docs`
   finishes for the release commit.
 

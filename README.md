@@ -53,13 +53,13 @@ See the [status guide][status.page] for columns, keys and JSON output.
 ### Homebrew
 
 ```bash
+$ brew install --formula octolab/tap/maintainer
+# or
 $ brew install --cask octolab/tap/maintainer
 ```
 
-The cask is available for macOS and Linux. The formula
-(`brew install --formula octolab/tap/maintainer`) keeps existing installations updated
-and is deprecated on 2026-11-05. Keep only one of them; to switch, run
-`brew uninstall --formula maintainer && brew install --cask maintainer`.
+The formula and the cask install the same release on macOS and Linux; keep
+only one of them.
 
 ### Binary
 

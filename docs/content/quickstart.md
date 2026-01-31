@@ -10,11 +10,11 @@ description: Install maintainer, see your recent contribution pace, and choose a
 With Homebrew on macOS or Linux:
 
 ```sh
-brew install --cask octolab/tap/maintainer
+brew install --formula octolab/tap/maintainer   # or: brew install --cask octolab/tap/maintainer
 maintainer --help
 ```
 
-The older Homebrew Formula is deprecated on 2026-11-05. If you have it, switch with `brew uninstall --formula maintainer && brew install --cask octolab/tap/maintainer`, and keep only one installation.
+The Formula and the Cask install the same release; keep only one installation.
 
 Without Homebrew, the install script puts the latest release into `./bin`; `-b` chooses another directory and a tag pins the version:
 
