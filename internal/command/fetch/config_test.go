@@ -50,3 +50,25 @@ func TestUnknownConfigKeyIsBadConfig(t *testing.T) {
 	_, err := os.Stat(filepath.Join(dir, "xdg"))
 	assert.True(t, os.IsNotExist(err), "a rejected config must not create the state directory")
 }
+
+// validate refuses a per-repo path that does not parse; a run reports it for
+// its repository only.
+func TestValidateRejectsBrokenRepoPath(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_STATE_HOME", filepath.Join(dir, "xdg"))
+	path := filepath.Join(dir, "fetch.toml")
+	body := "[[repos]]\nmatch = { owner = \"acme\", name = \"broken\" }\npath = \"~/ext/{{.Owner\"\n"
+	require.NoError(t, os.WriteFile(path, []byte(body), 0o600))
+	cmd := New(nil)
+	var out bytes.Buffer
+	cmd.SetOut(&out)
+	cmd.SetErr(&out)
+	cmd.SetArgs([]string{"--config", path, "config", "validate"})
+	err := cmd.Execute()
+	require.Error(t, err)
+	var coded exit.Coder
+	require.ErrorAs(t, err, &coded)
+	assert.Equal(t, exit.User, coded.ExitCode())
+	assert.EqualError(t, err, "repos[0].path of acme/broken is not a valid template: template: path:1: unclosed action")
+	assert.NotContains(t, out.String(), "ok:")
+}

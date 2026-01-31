@@ -24,10 +24,7 @@ type templateVars struct {
 }
 
 // tmplFuncs ships lower/upper helpers but applies neither by default (§15).
-var tmplFuncs = template.FuncMap{
-	"lower": strings.ToLower,
-	"upper": strings.ToUpper,
-}
+var tmplFuncs = config.PathFuncs
 
 // PathRenderer renders a single template string into a cleaned absolute path
 // per the resolution rule in §4.3. It is pure: $HOME and root are injected.

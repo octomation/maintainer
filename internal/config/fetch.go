@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"text/template"
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/afero"
@@ -255,6 +256,32 @@ func (f *Fetch) Validate() error {
 	for name, p := range f.Profiles {
 		if err := validTransport(fmt.Sprintf("profiles[%q].clone_url", name), p.CloneURL); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+// PathFuncs are the functions available to path templates; they apply
+// neither by default (§15).
+var PathFuncs = template.FuncMap{
+	"lower": strings.ToLower,
+	"upper": strings.ToUpper,
+}
+
+// ValidateRepoPaths parses every per-repo path template, which Validate leaves
+// to the run: fetch and status report a broken rule for its repository only,
+// `fetch config validate` refuses the config.
+func (f *Fetch) ValidateRepoPaths() error {
+	for i, r := range f.Repos {
+		if r.Path == "" {
+			continue
+		}
+		if _, err := template.New("path").Funcs(PathFuncs).Parse(r.Path); err != nil {
+			match := fmt.Sprintf("id=%d", r.Match.ID)
+			if r.Match.ID == 0 {
+				match = r.Match.Owner + "/" + r.Match.Name
+			}
+			return fmt.Errorf("repos[%d].path of %s is not a valid template: %w", i, match, err)
 		}
 	}
 	return nil

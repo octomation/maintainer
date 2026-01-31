@@ -108,6 +108,32 @@ func TestPlanner_PinAndPathErrorsStayPerRepository(t *testing.T) {
 	assert.Equal(t, `unresolved pin: path "/pins/{{.Visibility}}/{{.Repo}}" references unknown Visibility`, acts[2].Reason)
 }
 
+// A per-repo path that does not parse is a conflict of its repository, with
+// or without a record: the applied pin is no fallback for a broken rule.
+func TestPlanner_BrokenPinTemplateIsConflict(t *testing.T) {
+	cnf := &config.Fetch{
+		Workspace: &config.Workspace{Root: "/work", Path: "{{.Owner}}/{{.Repo}}"},
+		Defaults:  config.Defaults{CloneURL: "ssh"},
+		Repos:     []config.Repo{{Match: config.RepoMatch{Owner: "acme", Name: "broken"}, Path: "~/ext/{{.Owner"}},
+	}
+	snapshots := []github.RepoSnapshot{
+		{ID: 1, Owner: "acme", Name: "ok", Visibility: github.Public, DefaultBranch: "main"},
+		{ID: 2, Owner: "acme", Name: "broken", Visibility: github.Public, DefaultBranch: "main"},
+	}
+	recorded := state.New()
+	recorded.Upsert(state.Record{ID: 2, OwnerLogin: "acme", Name: "broken", Visibility: "public", Path: "/pins/broken", PinnedPath: "/pins/broken"})
+	for _, st := range []*state.State{state.New(), recorded} {
+		acts, err := newPlanner(t, cnf).Plan(PlanInput{State: st, Snapshots: snapshots})
+		require.NoError(t, err)
+		require.Len(t, acts, 2)
+		assert.Equal(t, KindClone, acts[0].Kind)
+		assert.Equal(t, "/work/acme/ok", acts[0].Path)
+		assert.Equal(t, KindConflict, acts[1].Kind)
+		assert.Equal(t, int64(2), acts[1].ID)
+		assert.Equal(t, `parse path template "~/ext/{{.Owner": template: path:1: unclosed action`, acts[1].Reason)
+	}
+}
+
 // Changing a per-repo pin selects the other verified checkout; the previous
 // one stays in the diagnostics: in previous_paths and as an orphan row.
 func TestPlanner_ChangedPinSwitchesCheckout(t *testing.T) {

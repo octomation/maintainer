@@ -64,11 +64,8 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 		snap := snapshot(rec)
 		pin, err := paths.PinnedPath(snap, &rec)
-		if errors.Is(err, fetchsvc.ErrUnresolvedPin) {
-			continue // the rule below reports it
-		}
 		if err != nil {
-			return nil, err
+			continue // the rule below reports it
 		}
 		active := rec.Path
 		if pin != "" {
@@ -100,8 +97,9 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 	}
 	// Rules without state still support literal paths and owner/name templates.
-	// A rule that references other unknown fields is an unresolved pin: it is
-	// shown, but nothing is inspected in its place.
+	// A rule that references other unknown fields is an unresolved pin, and a
+	// rule that cannot be rendered is an error of its repository: both are
+	// shown, but nothing is inspected in their place.
 	var extra []Row
 	for _, rule := range cnf.Repos {
 		if rule.Ignore || rule.Path == "" {
@@ -114,16 +112,20 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 			rec = known
 		}
 		pin, err := paths.PinnedPath(snapshot(rec), &rec)
-		if errors.Is(err, fetchsvc.ErrUnresolvedPin) {
+		if err != nil {
+			if applicable, _ := cnf.RepoOverride(rec.ID, rec.OwnerLogin, rec.Name); applicable != rule {
+				continue // the applicable rule reports it
+			}
 			name := fmt.Sprintf("id=%d", rec.ID)
 			if rec.OwnerLogin != "" {
 				name = rec.OwnerLogin + "/" + rec.Name
 			}
-			extra = append(extra, Row{ID: rec.ID, Repository: name, Path: rule.Path, Status: StatusUnresolvedPin, Pinned: true, displayPath: rule.Path, placeholder: true})
+			row := Row{ID: rec.ID, Repository: name, Path: rule.Path, Status: StatusUnresolvedPin, Pinned: true, displayPath: rule.Path, placeholder: true}
+			if !errors.Is(err, fetchsvc.ErrUnresolvedPin) {
+				row.Status, row.Error = "error", err.Error()
+			}
+			extra = append(extra, row)
 			continue
-		}
-		if err != nil {
-			return nil, err
 		}
 		add(pin, rec)
 		pinnedPaths[pin] = true

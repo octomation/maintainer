@@ -58,6 +58,10 @@ func configCommand(opts *options) *cobra.Command {
 			if err := fcfg.Validate(); err != nil {
 				return exit.WithUser(err)
 			}
+			// A run reports a broken per-repo path for its repository only.
+			if err := fcfg.ValidateRepoPaths(); err != nil {
+				return exit.WithUser(err)
+			}
 			fmt.Fprintf(cmd.OutOrStdout(), "ok: %s (%d profiles, %d owners, %d repo rules)\n",
 				path, len(fcfg.Profiles), len(fcfg.Owners), len(fcfg.Repos))
 			return nil

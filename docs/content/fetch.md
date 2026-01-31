@@ -181,7 +181,8 @@ that matches by owner and name, and the fields of the state record; for any
 other field it shows an `unresolved pin` row. A path that cannot be rendered
 for one repository, such as a layout with `.DefaultBranch` and a branch named
 `release/v1`, is a conflict for that repository only; the rest of the plan
-goes on.
+goes on. So is a per-repo path that is not a valid template, such as
+`~/ext/{{.Owner`; `fetch config validate` rejects it, naming the rule.
 Precedence high→low: per-repo → per-owner → `workspace.path`. The rendered path
 is absolute → used as-is; `~` → expanded from `$HOME`; otherwise joined with
 `root`. `workspace.path` and per-owner templates must stay **within `root`**;

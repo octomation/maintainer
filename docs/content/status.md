@@ -186,7 +186,9 @@ id=42      │ —      │ ?           │ unresolved pin │      │ ~/ext/{{
 ```
 
 If origin contradicts known state, status
-reports the mismatch and suggests fetch. Missing pins remain error rows.
+reports the mismatch and suggests fetch. Missing pins remain error rows, and
+so does a per-repo path that is not a valid template: status shows the rule's
+path and the parse error and inspects nothing in its place.
 Ignore rules are respected; archived/fork filters do not hide local work.
 
 An orphan row otherwise retains its Git status and adds a management warning. JSON

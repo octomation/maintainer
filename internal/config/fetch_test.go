@@ -205,6 +205,29 @@ func TestValidate_Rejections(t *testing.T) {
 	}
 }
 
+func TestValidateRepoPaths(t *testing.T) {
+	f := &Fetch{Defaults: Defaults{Root: ".", Path: DefaultPath, CloneURL: "ssh", Concurrency: 4}, Repos: []Repo{
+		{Match: RepoMatch{ID: 7}, Path: "~/pins/{{lower .Owner}}/{{upper .Repo}}"},
+		{Match: RepoMatch{Owner: "acme", Name: "literal"}, Path: "/pins/literal"},
+		{Match: RepoMatch{Owner: "acme", Name: "ignored"}, Ignore: true},
+	}}
+	require.NoError(t, f.ValidateRepoPaths())
+	for _, tc := range []struct {
+		match RepoMatch
+		path  string
+		want  string
+	}{
+		{RepoMatch{Owner: "acme", Name: "broken"}, "~/ext/{{.Owner", `repos[3].path of acme/broken is not a valid template: template: path:1: unclosed action`},
+		{RepoMatch{ID: 42}, "/pins/{{title .Repo}}", `repos[3].path of id=42 is not a valid template: template: path:1: function "title" not defined`},
+	} {
+		broken := *f
+		broken.Repos = append(append([]Repo(nil), f.Repos...), Repo{Match: tc.match, Path: tc.path})
+		// A run reports the rule for its repository only.
+		require.NoError(t, broken.Validate())
+		assert.EqualError(t, broken.ValidateRepoPaths(), tc.want)
+	}
+}
+
 func TestValidate_NestedLayouts(t *testing.T) {
 	validate := func(layout string, owners ...Owner) error {
 		f := &Fetch{Defaults: Defaults{Root: ".", Path: layout, CloneURL: "ssh", Concurrency: 4}, Owners: owners}

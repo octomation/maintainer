@@ -204,6 +204,41 @@ func TestWorkspaceTemplatedPinsNeedSufficientContext(t *testing.T) {
 	}
 }
 
+// A rule whose path does not parse is an error of its repository only: the
+// other checkouts are inspected, nothing is inspected in its place.
+func TestWorkspaceBrokenPinTemplateIsErrorRow(t *testing.T) {
+	root, home := t.TempDir(), t.TempDir()
+	tool := checkout(t, filepath.Join(root, "public/acme"))
+	broken := checkout(t, filepath.Join(home, "ext/acme"))
+	runGit(t, broken, "remote", "set-url", "origin", "https://github.com/acme/broken.git")
+	cnf := &config.Fetch{Workspace: &config.Workspace{Root: root},
+		Repos: []config.Repo{{Match: config.RepoMatch{Owner: "acme", Name: "broken"}, Path: "~/ext/{{.Owner"}}}
+	recorded := state.New()
+	recorded.Upsert(state.Record{ID: 42, OwnerLogin: "acme", Name: "broken", Visibility: "public", Path: broken, PinnedPath: broken})
+	for _, st := range []*state.State{state.New(), recorded} {
+		rows, err := Collect(context.Background(), cnf, st, home, root, nil, 1)
+		require.NoError(t, err)
+		require.Len(t, rows, 2)
+		assert.Equal(t, "acme/broken", rows[0].Repository)
+		assert.Equal(t, "~/ext/{{.Owner", rows[0].Path)
+		assert.Equal(t, "error", rows[0].Status)
+		assert.Equal(t, `parse path template "~/ext/{{.Owner": template: path:1: unclosed action`, rows[0].Error)
+		assert.Empty(t, rows[0].Branch, "nothing is inspected in its place")
+		assert.Equal(t, tool, rows[1].Path)
+		assert.Equal(t, "main", rows[1].Branch)
+		assert.Empty(t, rows[1].Error)
+	}
+	// Only the applicable rule reports it: an id rule wins over a name rule.
+	byID := config.Repo{Match: config.RepoMatch{ID: 42}, Path: "~/ext/{{.Owner"}
+	cnf.Repos = []config.Repo{{Match: config.RepoMatch{Owner: "acme", Name: "broken"}, Path: broken}, byID}
+	rows, err := Collect(context.Background(), cnf, recorded, home, root, nil, 1)
+	require.NoError(t, err)
+	require.Len(t, rows, 2)
+	assert.Equal(t, "~/ext/{{.Owner", rows[0].Path)
+	assert.Equal(t, "error", rows[0].Status)
+	assert.Equal(t, tool, rows[1].Path)
+}
+
 // A scan obstruction and an unresolved pin are rows, never checkouts: the
 // header counts only what can be inspected, and the obstruction as an error.
 func TestWorkspaceSummaryCountsOnlyCheckouts(t *testing.T) {
