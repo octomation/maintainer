@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/spf13/afero"
@@ -90,6 +91,81 @@ func TestLoadFetch_TOMLandYAML(t *testing.T) {
 			assert.Equal(t, "acme", cnf.Owners[0].Name)
 			require.Len(t, cnf.Repos, 2)
 			assert.Equal(t, int64(42), cnf.Repos[0].Match.ID)
+		})
+	}
+}
+
+func TestLoadFetch_RejectsUnknownKeys(t *testing.T) {
+	for _, tc := range []struct {
+		name, file, body string
+		want             []string
+	}{
+		{
+			"profile key", "fetch.toml",
+			"[profiles.primary]\ntoken_env = \"GITHUB_TOKEN\"\ninclude_owner = [\"acme\"]\n",
+			[]string{`fetch config "/cfg/fetch.toml": unknown key include_owner in [profiles.primary]; did you mean include_owners?`},
+		},
+		{
+			"profile key", "fetch.yaml",
+			"profiles:\n  primary:\n    token_env: GITHUB_TOKEN\n    include_owner: [acme]\n",
+			[]string{`fetch config "/cfg/fetch.yaml": unknown key include_owner in [profiles.primary]; did you mean include_owners?`},
+		},
+		{
+			"table", "fetch.toml", "[filter]\nexclude_forks = true\n",
+			[]string{`unknown table [filter]; did you mean [filters]?`},
+		},
+		{
+			"table", "fetch.yaml", "filter:\n  exclude_forks: true\n",
+			[]string{`unknown table [filter]; did you mean [filters]?`},
+		},
+		{
+			"filters key", "fetch.toml", "[filters]\nexclude_fork = true\n",
+			[]string{`unknown key exclude_fork in [filters]; did you mean exclude_forks?`},
+		},
+		{
+			"filters key", "fetch.yaml", "filters:\n  exclude_fork: true\n",
+			[]string{`unknown key exclude_fork in [filters]; did you mean exclude_forks?`},
+		},
+		{
+			"repos keys", "fetch.toml",
+			"[[repos]]\nmatch = { id = 1 }\n\n[[repos]]\nmatch = { ownr = \"acme\", name = \"tool\" }\npaht = \"~/tool\"\n",
+			[]string{
+				`fetch config "/cfg/fetch.toml" has unknown keys:`,
+				"\n  key paht in [repos[1]]; did you mean path?",
+				"\n  key ownr in [repos[1].match]; did you mean owner?",
+			},
+		},
+		{
+			"repos keys", "fetch.yaml",
+			"repos:\n  - match: {id: 1}\n  - match: {ownr: acme, name: tool}\n    paht: ~/tool\n",
+			[]string{
+				`fetch config "/cfg/fetch.yaml" has unknown keys:`,
+				"\n  key paht in [repos[1]]; did you mean path?",
+				"\n  key ownr in [repos[1].match]; did you mean owner?",
+			},
+		},
+		{
+			"case of a key", "fetch.toml", "[Filters]\nExclude_Forks = true\n",
+			[]string{`unknown table [Filters]; did you mean [filters]?`},
+		},
+		{
+			"top-level key without a suggestion", "fetch.toml", "verbose = true\n",
+			[]string{`unknown key verbose at the top level`},
+		},
+	} {
+		t.Run(tc.name+" "+tc.file, func(t *testing.T) {
+			fs := afero.NewMemMapFs()
+			path := "/cfg/" + tc.file
+			require.NoError(t, afero.WriteFile(fs, path, []byte(tc.body), 0o600))
+			_, err := LoadFetch(fs, path)
+			require.Error(t, err)
+			for _, want := range tc.want {
+				assert.Contains(t, err.Error(), want)
+			}
+			assert.Contains(t, err.Error(), path)
+			if !strings.Contains(strings.Join(tc.want, ""), "did you mean") {
+				assert.NotContains(t, err.Error(), "did you mean")
+			}
 		})
 	}
 }
@@ -228,4 +304,17 @@ func TestFetchConfigLookup(t *testing.T) {
 		path, _ := FetchConfigLookup{Getenv: getenv, WorkDir: "/nope", Home: "/nope"}.Resolve(fs)
 		assert.Equal(t, "/work/fetch.toml", path)
 	})
+}
+
+// GitHub logins and names are case-insensitive, and so are the rules.
+func TestOverridesIgnoreCase(t *testing.T) {
+	f := &Fetch{
+		Owners: []Owner{{Name: "Acme", CloneURL: "https"}},
+		Repos:  []Repo{{Match: RepoMatch{Owner: "acme", Name: "Tool"}, Ignore: true}},
+	}
+	o, ok := f.OwnerOverride("ACME")
+	require.True(t, ok)
+	assert.Equal(t, "https", o.CloneURL)
+	assert.True(t, f.Ignored(0, "ACME", "tool"))
+	assert.False(t, f.Ignored(0, "acme", "tools"))
 }

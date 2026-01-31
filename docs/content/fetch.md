@@ -61,7 +61,19 @@ wins; no discovered file selects the single-run mode above):
 4. `$XDG_CONFIG_HOME/maintainer/fetch.{toml,yaml}` (fallback `~/.config/maintainer/`).
 
 An explicit missing `--config` file is an error. `--config=""` disables config
-discovery for the root command; it still loads the default state file.
+discovery for fetch and its subcommands; they still use the default state file.
+
+The keys, their types and defaults are defined by the schema
+[`internal/config/fetch.cue`](https://github.com/octomation/maintainer/blob/main/internal/config/fetch.cue);
+`cue vet -c fetch.cue fetch.toml` checks a config against it. A key or table
+outside the schema is bad config: `fetch`, its subcommands and `status` stop
+with exit `2` and name each one, its table and the file, with the key it was
+probably meant to be:
+
+```text
+$ maintainer fetch config validate
+Error: fetch config "/Users/me/fetch.toml": unknown key include_owner in [profiles.primary]; did you mean include_owners?
+```
 
 ```toml
 [workspace]
@@ -74,7 +86,7 @@ clone_url    = "ssh"      # "ssh" | "https"
 concurrency  = 4
 # state_file = "/path/to/state.json"   # default: $XDG_STATE_HOME/maintainer/fetch/state.json
 
-[filters]                 # skip clones only; checkouts on disk are still adopted
+[filters]                 # skip new clones and adoptions; tracked repos stay tracked
 exclude_archived  = false
 exclude_forks     = false
 exclude_templates = false
@@ -117,11 +129,33 @@ ones you join later are picked up automatically. It does **not** include repos
 you only collaborate on in orgs you are *not* a member of — list those
 explicitly.
 
-`--owner` (repeatable) narrows only the discovery of new repositories for one
-run: `--owner acme` over a `["*"]` config lists only `acme`'s repositories.
-Tracked checkouts and pins of other owners are still confirmed, fetched, moved
-and have their origin updated, and untracked checkouts in the workspace layout
-are still adopted. `--profile` works the same way for profiles.
+Owners are compared case-insensitively, as GitHub compares them: `["Acme"]`
+and `["acme"]` select the same repositories, and so do the owners of
+`[[owners]]` and `[[repos]]` rules. `include_owners` selects only the discovery
+of new repositories: a full run still verifies and manages tracked checkouts
+and pins of other owners.
+
+### Narrowing a run
+
+`--owner` and `--profile` (both repeatable) narrow the whole invocation:
+`--owner acme` over a `["*"]` config lists only `acme`'s repositories and
+works on them alone. A repository outside the selection gets no request by
+id or by name, no clone, fetch, move or remote update, and no new state. JSON
+lists a tracked one as a `noop` with the reason `outside the selection`; the
+human output collapses those rows and shows the selection in the summary,
+for example `selected=12/40`.
+
+| Tracked repository | In a narrowed run |
+| --- | --- |
+| Of a selected owner, transferred to another owner | Confirmed by id, then left alone: a `noop`, `transferred outside the selection to <owner>/<name>` |
+| Of another owner, listed now under a selected owner | Moved and its origin updated, like any transfer |
+| Of another profile, listed by a selected profile | Fetched with the selected profile's credentials; that profile is recorded after a successful apply |
+| Of another owner or profile, not listed by a selected profile | Left alone: a `noop`, `outside the selection` |
+
+A per-repository pin is explicit intent: an `id`-only pin that no selected
+listing returns is confirmed once by id and managed only when its owner is
+selected. Untracked checkouts of other owners are neither resolved nor
+adopted.
 
 ### Path templates
 
@@ -188,8 +222,8 @@ Use [`maintainer status`](/status/) to inspect local branches and divergence.
 A profile is a `(token, owners)` pair. Token resolution order (per profile):
 `token_file` (must be ≤ `0600`) → `token_env` (default `GITHUB_TOKEN` for the
 first profile in alphabetical order) → inline `token` (warns).
-`--token` overrides token resolution for that first configured profile, or
-supplies the token in single-run mode. When the same repo is visible from two
+`--token` overrides token resolution for the first selected profile in that
+order, or supplies the token in single-run mode. When the same repo is visible from two
 profiles, the broader-visibility snapshot wins (private > public); the winning
 profile's credentials/transport are used and recorded.
 
@@ -198,11 +232,13 @@ profile's credentials/transport are used and recorded.
 - **SSH** — best-effort via a running `ssh-agent` with strict known-hosts;
   `maintainer` does not manage keys.
 
-`--profile <name>` (repeatable) discovers new repositories with a subset of
-profiles only; tracked checkouts of the other profiles are still processed,
-checked with the token of the first selected profile. A private repository
-that this token cannot see is reported as `remote-gone` until a run
-discovers it again.
+`--profile <name>` (repeatable) narrows the run to these profiles; see
+[Narrowing a run](#narrowing-a-run). A tracked repository missing from the
+listings is checked by id with its own profile's token, and only that token
+establishes a 404 as `remote-gone`. When its profile is not available, for
+example after it was renamed in the config, the check uses the first selected
+profile: a 404 or 403 then leaves the record unverified, a `noop` flagged
+`unverified` that names both profiles, and nothing is saved.
 
 ## Plan & apply
 
@@ -213,9 +249,9 @@ discovers it again.
 | `move`          | rendered path differs from state (e.g. a rename) — same-volume rename   |
 | `relocate`      | state path missing, the same `id` found at exactly one other location   |
 | `update_remote` | `remote.origin.url` drifted from the canonical URL                      |
-| `adopt`         | a clone on disk matches an API repo with no state record                |
+| `adopt`         | a clone on disk matches an API repo with no state record, unless filters exclude it |
 | `orphan`        | inactive duplicate, remembered checkout outside scope, or a repository not accessible by id; report only |
-| `noop`          | no executable change, including filtered or inaccessible repositories; a reason may be shown |
+| `noop`          | no executable change, including filtered, unverified or inaccessible repositories and those outside the selection; a reason may be shown |
 | `conflict`      | ambiguous identity, missing/foreign pin, occupied or unsafe target, scan obstruction or another condition blocking an action |
 
 Apply order: `adopt`/`relocate` → `update_remote` → `move` → `clone` → `fetch`
@@ -230,11 +266,19 @@ back a previously printed JSON plan. Conflicting actions are skipped, while
 independent executable actions can still run. Apply exits with `3` if conflicts
 remain or any repository action fails.
 
+A state save that fails during or after apply is an error as well: it names
+the repositories whose change it leaves unrecorded, counts in `errors`, and
+apply exits with `3`, or `1` when no action ran. Their checkouts and local work
+stay as applied. The next run records such a checkout again only when its
+origin and id match the record, for example as a `relocate` of a moved
+checkout; a checkout whose origin is still recorded for another repository is
+a `conflict` naming that record.
+
 Orphan rows identify their local path; JSON also includes `orphan_reason` and,
 for inactive copies, `active_path`. Reasons are `duplicate-pin`, `out-of-scope`,
 and `remote-gone`. `remote-gone` keeps its name for compatibility and means
-*not accessible by id*: the repository-ID check returned 404, because the
-repository was deleted or access to it was lost. A missing listing alone does
+*not accessible by id*: the repository-ID check with the record's own profile
+returned 404, because the repository was deleted or access to it was lost. A missing listing alone does
 not establish it. Only apply saves that observation, with its check time, for
 offline status; authentication and transient failures do not establish it.
 
@@ -269,8 +313,9 @@ A single JSON document at `$XDG_STATE_HOME/maintainer/fetch/state.json`
 for the run. Plan mode may create the state directory and `.lock` file, but
 does not save repository state or modify checkouts. `id` is the
 primary key; everything else is a last-observed value. `state prune` forgets
-records whose path it cannot find, including a path under a directory it
-cannot read; the checkouts themselves are retained.
+only records whose path does not exist. A path it cannot check, such as one
+under a directory it cannot read, keeps its record and is reported with the
+reason, and the command exits `1`. The checkouts themselves are retained.
 
 The fetch group also provides these subcommands:
 
@@ -281,9 +326,9 @@ The fetch group also provides these subcommands:
 | `fetch state show` | Print state as JSON using the configured/default state location |
 | `fetch state prune` | Save state after forgetting missing paths; runs immediately, without `--apply` |
 
-State subcommands acquire the same state lock. Use a nonempty `--config` path
-to select a specific config for them: `--config=""` does not disable config
-discovery there.
+State subcommands acquire the same state lock and select the config as fetch
+does: `--config=""` disables config discovery and uses the default state
+location.
 
 ## JSON output
 
@@ -310,9 +355,9 @@ as `~/Development-old`, and collapses routine fetches into the summary.
 | ----------------------- | ------- | ------------------------------------------------ |
 | `--apply`               | off     | execute the plan (otherwise plan-only)           |
 | `--config <path>`       | auto    | `--config=""` disables discovery                 |
-| `--profile <name>…`     | all     | discover new repositories with these profiles only |
-| `--owner <name>…`       | all     | discover new repositories of these owners only   |
-| `--token <token>`      | resolved | token override for the first/default profile   |
+| `--profile <name>…`     | all     | limit this run to these profiles                 |
+| `--owner <name>…`       | all     | limit this run to these owners                   |
+| `--token <token>`      | resolved | token for the first selected profile            |
 | `--format human\|json`  | human   | plan output (logs always go to stderr)           |
 | `--concurrency <n>`     | `0`     | positive parallel discovery/clone/fetch cap; `0` uses config (default `4`) |
 | `--timeout <dur>`       | `0`     | wall-clock budget; `0` is unlimited              |
@@ -325,7 +370,7 @@ as `~/Development-old`, and collapses routine fetches into the summary.
 | `0` | Plan rendered successfully, or apply completed without action failures/conflicts |
 | `1` | Transport, Git, state or output error |
 | `2` | Usage error, bad config, missing token or owner, or lock contention |
-| `3` | Apply finished with at least one per-repo failure or unresolved conflict |
+| `3` | Apply finished with at least one per-repo failure, failed state save or unresolved conflict |
 
 A usage error stops the command before any request, names its cause in
 stderr and exits `2`: an unknown subcommand, such as `fetch state shwo`, an
@@ -363,8 +408,10 @@ maintainer fetch --apply         # refresh refs of newly adopted checkouts
 maintainer fetch state show | jq '.repos | length'
 ```
 
-Filters skip clones only: a fork or an archived repository that is already on
-disk is adopted like any other checkout and stays tracked.
+Filters skip new clones and adoptions: an untracked fork or archived checkout
+on disk is left as it is, in the layout, at a per-repository pin or under a
+workspace pin alike, and JSON lists it as a `noop`. A repository that is
+already tracked stays tracked.
 
 Adoption matches clones by `remote.origin.url` → stable `id` (following GitHub's
 rename redirect), so existing clones are reconciled in place rather than

@@ -46,12 +46,14 @@ const (
 	ConfirmInaccessible                      // 401/403 → kept, flagged
 	ConfirmLegalHold                         // 451 → kept, flagged
 	ConfirmTransient                         // 5xx / network → leave unchanged
+	ConfirmUnverified                        // 404/401/403 from another profile's token → leave unchanged
 )
 
 // Confirmation re-verifies a state id that vanished from discovery.
 type Confirmation struct {
 	Status   ConfirmStatus
 	Snapshot *github.RepoSnapshot // populated when Status == ConfirmFound
+	Reason   string               // why an unverified record stays as it is
 }
 
 // PlanInput aggregates every fact the pure Planner needs. Disk and network
@@ -64,6 +66,7 @@ type PlanInput struct {
 	Clones         []DiskClone
 	Confirmations  map[int64]Confirmation
 	Occupancy      map[string]Occupancy // keyed by cleaned target path; optional
+	Deselected     map[int64]string     // outside --owner/--profile: id → reason; report-only
 }
 
 // Planner turns {API, State, Disk} facts into an ordered, conflict-checked
@@ -128,6 +131,10 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 		owner, name := bestName(snap, hasSnap, rec, hasRec)
 		if p.cnf.Ignored(id, owner, name) {
 			continue // ignore = true suppresses the whole pipeline (§4.2)
+		}
+		if reason, outside := in.Deselected[id]; outside {
+			actions = append(actions, p.deselected(id, owner, name, snap, rec, reason))
+			continue
 		}
 		if hasRec && !p.paths.Authorised(*rec, snap) {
 			actions = append(actions, orphanAction(id, owner, name, rec.Path, workspace.OrphanOutOfScope, ""))
@@ -208,6 +215,18 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 	return actions, nil
 }
 
+// deselected is the report-only row of a repository this invocation leaves
+// alone: no request, no mutation, no new observation.
+func (p *Planner) deselected(id int64, owner, name string, snap github.RepoSnapshot, rec *state.Record, reason string) Action {
+	a := Action{Kind: KindNoop, ID: id, Owner: owner, Name: name, Reason: reason, Deselected: true}
+	if rec != nil {
+		a.Path = rec.Path
+	} else if pin, err := p.paths.PinnedPath(snap, nil); err == nil {
+		a.Path = pin
+	}
+	return a
+}
+
 func orphanAction(id int64, owner, name, path, reason, active string) Action {
 	return Action{Kind: KindOrphan, ID: id, Owner: owner, Name: name, Path: path,
 		OrphanReason: reason, ActivePath: active, Reason: workspace.OrphanDescription(reason, active)}
@@ -250,6 +269,9 @@ func (p *Planner) planPresent(
 		return &base, nil
 	}
 	if pinned != "" {
+		if filtered && !hasRec {
+			return notAdopted(base, pinned), nil
+		}
 		a := planPinned(base, pinned, rec, clones)
 		if p.paths.WorkspacePin(snap, rec) {
 			if len(uniquePaths(clones)) > 1 {
@@ -263,6 +285,9 @@ func (p *Planner) planPresent(
 	}
 	for _, c := range clones {
 		if p.paths.scope.Pinned(c.Path) {
+			if filtered && !hasRec {
+				return notAdopted(base, c.Path), nil
+			}
 			if len(uniquePaths(clones)) > 1 {
 				base.Kind, base.Path, base.Reason = KindConflict, c.Path, "workspace pin does not select between duplicate checkouts"
 				return &base, nil
@@ -302,6 +327,8 @@ func (p *Planner) planPresent(
 	if !hasRec {
 		// API Y, State N — adopt an existing clone, clone fresh, or conflict.
 		switch {
+		case len(clones) == 1 && filtered:
+			return notAdopted(base, clones[0].Path), nil
 		case len(clones) == 1:
 			c := clones[0]
 			a := base
@@ -414,6 +441,16 @@ func (p *Planner) planPresent(
 	}
 }
 
+// notAdopted reports an untracked checkout of a filtered repository: filters
+// skip adoptions as they skip clones (§4.2), on every path.
+func notAdopted(base Action, path string) *Action {
+	base.Kind = KindNoop
+	base.Path = path
+	base.Filtered = true
+	base.Reason = "excluded by [filters]; the checkout is not adopted"
+	return &base
+}
+
 func conflictAtTarget(
 	base Action,
 	target string,
@@ -471,6 +508,11 @@ func (p *Planner) planMissing(rec state.Record, c Confirmation) *Action {
 		return &base
 	case ConfirmTransient:
 		return nil // leave unchanged; the service reports the transient error
+	case ConfirmUnverified:
+		base.Kind = KindNoop
+		base.Flag = FlagUnverified
+		base.Reason = c.Reason
+		return &base
 	default: // ConfirmGone (404)
 		base.Kind = KindOrphan
 		base.OrphanReason = workspace.OrphanRemoteGone

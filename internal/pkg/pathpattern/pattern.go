@@ -28,7 +28,8 @@ type token struct {
 }
 
 // Compile accepts literal path text and scalar fields, optionally lower/upper.
-// owner binds owner overrides without consulting a remote or state.
+// owner binds owner overrides without consulting a remote or state; a bound
+// .Owner matches any letter case, as GitHub logins compare.
 func Compile(source, owner string) (*Pattern, error) {
 	t, err := template.New("scope").Funcs(template.FuncMap{"lower": strings.ToLower, "upper": strings.ToUpper}).Parse(source)
 	if err != nil {
@@ -74,7 +75,11 @@ func Compile(source, owner string) (*Pattern, error) {
 					}
 					values[i] = regexp.QuoteMeta(value)
 				}
-				expression.WriteString("(?:" + strings.Join(values, "|") + ")")
+				flags := ""
+				if field == "Owner" && transform == "" {
+					flags = "(?i)" // rendered with GitHub's spelling of the login
+				}
+				expression.WriteString("(?:" + flags + strings.Join(values, "|") + ")")
 			}
 		default:
 			return nil, fmt.Errorf("workspace path %q: only literal text and scalar fields are supported", source)

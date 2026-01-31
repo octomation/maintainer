@@ -53,14 +53,14 @@ func New(_ *config.Tool) *cobra.Command {
 
 	set := command.PersistentFlags()
 	set.StringVar(&opts.config, "config", "", "fetch config path (--config=\"\" disables discovery)")
-	set.StringSliceVar(&opts.profiles, "profile", nil, "discover new repositories with these profiles only; existing checkouts are still processed (repeatable)")
-	set.StringSliceVar(&opts.owners, "owner", nil, "discover new repositories of these owners only; existing checkouts are still processed (repeatable)")
+	set.StringSliceVar(&opts.profiles, "profile", nil, "limit this run to these profiles: repositories they list or track; others are left alone (repeatable)")
+	set.StringSliceVar(&opts.owners, "owner", nil, "limit this run to repositories of these owners; others are left alone (repeatable)")
 	set.StringVar(&opts.format, "format", fetchsvc.FormatHuman, "output format: human|json")
 	set.IntVar(&opts.concurrency, "concurrency", 0, "parallel discovery/clone cap (0 = from config)")
 	set.DurationVar(&opts.timeout, "timeout", 0, "wall-clock budget for the whole command")
 	set.CountVarP(&opts.verbose, "verbose", "v", "increase verbosity (-v, -vv, -vvv)")
 	set.BoolVarP(&opts.quiet, "quiet", "q", false, "suppress everything below error on stderr")
-	set.StringVar(&opts.token, "token", "", "personal access token for the default/first profile")
+	set.StringVar(&opts.token, "token", "", "personal access token for the first selected profile")
 
 	command.Flags().BoolVar(&opts.apply, "apply", false, "execute the plan (default: plan only)")
 
@@ -126,6 +126,7 @@ func run(cmd *cobra.Command, opts *options) error {
 		Resolver:   discoverer,
 		GitSync:    gitsvc.NewSync(),
 		Reporter:   reporter,
+		Selection:  fetchsvc.Selection{Owners: opts.owners, Profiles: opts.profiles},
 	})
 	if err != nil {
 		return err
@@ -133,20 +134,25 @@ func run(cmd *cobra.Command, opts *options) error {
 	return svc.Run(ctx, opts.apply)
 }
 
-// loadConfig resolves and loads the fetch config, then validates it (§4).
-func loadConfig(cmd *cobra.Command, fs afero.Fs, opts *options) (*config.Fetch, error) {
+// configPath resolves the fetch config the same way for every fetch command
+// (§4.1): an explicit --config="" disables discovery, while an omitted flag
+// keeps it. An empty result means no config file.
+func configPath(cmd *cobra.Command, fs afero.Fs, opts *options) string {
 	home, _ := os.UserHomeDir()
 	cwd, _ := os.Getwd()
-	lookup := config.FetchConfigLookup{
+	path, _ := config.FetchConfigLookup{
 		Explicit:    opts.config,
 		ExplicitSet: cmd.Flags().Changed("config"),
 		Getenv:      os.Getenv,
 		WorkDir:     cwd,
 		Home:        home,
-	}
-	path, _ := lookup.Resolve(fs)
+	}.Resolve(fs)
+	return path
+}
 
-	fcfg, err := config.LoadFetch(fs, path)
+// loadConfig resolves and loads the fetch config, then validates it (§4).
+func loadConfig(cmd *cobra.Command, fs afero.Fs, opts *options) (*config.Fetch, error) {
+	fcfg, err := config.LoadFetch(fs, configPath(cmd, fs, opts))
 	if err != nil {
 		return nil, exit.WithUser(err)
 	}

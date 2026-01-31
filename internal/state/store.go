@@ -99,7 +99,10 @@ func (s *Store) Load() (*State, error) {
 }
 
 // Save writes the state atomically (temp + rename) with 0600 permissions,
-// creating the parent directory if needed.
+// creating the parent directory if needed. The temporary file is a new one,
+// created exclusively under a random name, so a file or a link that already
+// lies next to the state is never followed, truncated or chmodded. A failed
+// save removes its temporary file and leaves the previous state as it was.
 func (s *Store) Save(st *State) error {
 	if st.Version == 0 {
 		st.Version = Version
@@ -114,15 +117,46 @@ func (s *Store) Save(st *State) error {
 	if err := s.fs.MkdirAll(dir, 0o700); err != nil {
 		return fmt.Errorf("create state dir %q: %w", dir, err)
 	}
-	tmp := s.path + ".tmp"
-	if err := afero.WriteFile(s.fs, tmp, raw, statePerm); err != nil {
-		return fmt.Errorf("write state temp %q: %w", tmp, err)
+	tmp, err := afero.TempFile(s.fs, dir, filepath.Base(s.path)+".*.tmp")
+	if err != nil {
+		return fmt.Errorf("create state temp in %q: %w", dir, err)
 	}
-	if err := s.fs.Chmod(tmp, statePerm); err != nil {
-		return fmt.Errorf("chmod state temp %q: %w", tmp, err)
+	if err := writeTemp(s.fs, tmp, raw); err != nil {
+		_ = s.fs.Remove(tmp.Name())
+		return err
 	}
-	if err := s.fs.Rename(tmp, s.path); err != nil {
+	if err := s.fs.Rename(tmp.Name(), s.path); err != nil {
+		_ = s.fs.Remove(tmp.Name())
 		return fmt.Errorf("rename state temp into place: %w", err)
+	}
+	return nil
+}
+
+// writeTemp fills and closes the temporary state file. Its mode is set through
+// the open descriptor where the filesystem allows it, so a link swapped in
+// under its name is not followed either.
+func writeTemp(fs afero.Fs, tmp afero.File, raw []byte) error {
+	name := tmp.Name()
+	if _, err := tmp.Write(raw); err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("write state temp %q: %w", name, err)
+	}
+	var err error
+	if f, ok := tmp.(interface{ Chmod(os.FileMode) error }); ok {
+		err = f.Chmod(statePerm)
+	} else {
+		err = fs.Chmod(name, statePerm)
+	}
+	if err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("chmod state temp %q: %w", name, err)
+	}
+	if err := tmp.Sync(); err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("sync state temp %q: %w", name, err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close state temp %q: %w", name, err)
 	}
 	return nil
 }

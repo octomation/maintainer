@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/google/go-github/v93/github"
 	"golang.org/x/oauth2"
@@ -93,15 +94,36 @@ func (d *RESTDiscoverer) List(ctx context.Context, profile Profile) (Discovery, 
 
 	// An empty list or "*" means "the authenticated user + every org they are a
 	// member of" (§5.3 extension), driven by the /user/orgs membership set.
+	// Logins are case-insensitive: a configured owner takes the spelling GitHub
+	// reports for you and your organizations, and the allowlist ignores case.
 	owners := profile.Owners
 	if isAllOwners(owners) {
 		owners = expandAllOwners(login, members)
 	}
+	canonical := make(map[string]string, len(members)+1)
+	for org := range members {
+		canonical[strings.ToLower(org)] = org
+	}
+	canonical[strings.ToLower(login)] = login
 
 	allow := make(map[string]bool, len(owners))
+	seen := make(map[string]bool, len(owners))
+	normalized := owners[:0:0]
 	for _, o := range owners {
-		allow[o] = true
+		key := strings.ToLower(o)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		allow[key] = true
+		if spelled, ok := canonical[key]; ok {
+			o = spelled
+		} else {
+			o = key
+		}
+		normalized = append(normalized, o)
 	}
+	owners = normalized
 
 	byID := make(map[int64]RepoSnapshot)
 	var stats []EndpointStat
@@ -141,7 +163,7 @@ func (d *RESTDiscoverer) List(ctx context.Context, profile Profile) (Discovery, 
 
 	snapshots := make([]RepoSnapshot, 0, len(byID))
 	for _, s := range byID {
-		if allow[s.Owner] { // include_owners allowlist after discovery
+		if allow[strings.ToLower(s.Owner)] { // include_owners allowlist after discovery
 			snapshots = append(snapshots, s)
 		}
 	}

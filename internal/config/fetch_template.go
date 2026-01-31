@@ -1,13 +1,15 @@
 package config
 
 // FetchConfigTemplate is the documented TOML template written by
-// `maintainer fetch config init` (§4.2). It is intentionally a 1:1 mirror of
-// the schema documented in the plan, with comments preserved.
+// `maintainer fetch config init` (§4.2). Every key it sets or comments out is
+// declared by fetch.cue; the tests validate it against the schema.
 const FetchConfigTemplate = `# maintainer fetch configuration (also read by maintainer status)
 # A per-repo path pins an EXISTING checkout; it is never moved or cloned into.
 # Example: [[repos]], match = { id = 154873464 }, path = "~/.dotfiles"
 # Location: ./fetch.toml or $XDG_CONFIG_HOME/maintainer/fetch.toml
 # Format is picked by extension; a fetch.yaml form is a 1:1 translation.
+# Unknown keys are errors. Schema:
+# https://github.com/octomation/maintainer/blob/main/internal/config/fetch.cue
 
 [workspace]
 root         = "."        # checkout root; defaults to the current working directory
@@ -20,15 +22,17 @@ concurrency  = 4
 # state_file = "/path/to/state.json"  # default: $XDG_STATE_HOME/maintainer/fetch/state.json
 
 [filters]
-# Filters skip clones only: checkouts already on disk are still adopted,
-# pinned ones included, and tracked repos stay tracked.
+# Filters skip new clones and adoptions, of pinned checkouts too;
+# repositories already tracked stay tracked.
 exclude_archived  = false
 exclude_forks     = false
 exclude_templates = false
 
 [profiles.primary]
 token_env      = "GITHUB_TOKEN"
-# include_owners is an allowlist AND the set of owners to query.
+# include_owners is an allowlist AND the set of owners to query for new
+# repositories, compared case-insensitively; checkouts already tracked
+# outside it are still verified and managed.
 # Use ["*"] (or omit it) to mean "you + every org you are a member of".
 include_owners = ["acme-user", "acme", "acme-labs", "acme-tools"]
 

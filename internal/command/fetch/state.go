@@ -2,8 +2,9 @@ package fetch
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
+	iofs "io/fs"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -26,7 +27,7 @@ func stateCommand(opts *options) *cobra.Command {
 		Short: "dump the current state file as JSON",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			_, st, release, err := openState(opts)
+			_, st, release, err := openState(cmd, opts)
 			if err != nil {
 				return err
 			}
@@ -42,27 +43,42 @@ func stateCommand(opts *options) *cobra.Command {
 		Short: "drop records whose disk path is missing",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
-			store, st, release, err := openState(opts)
+			store, st, release, err := openState(cmd, opts)
 			if err != nil {
 				return err
 			}
 			defer func() { _ = release() }()
 			fs := afero.NewOsFs()
-			var dropped int
+			var dropped, unchecked int
 			kept := st.Repos[:0]
 			for _, rec := range st.Repos {
-				if ok, _ := afero.Exists(fs, rec.Path); ok {
+				// Only a path known to be absent is gone; any other failure,
+				// such as an unreadable parent, leaves the record as it is.
+				_, err := fs.Stat(rec.Path)
+				switch {
+				case err == nil:
 					kept = append(kept, rec)
-					continue
+				case errors.Is(err, iofs.ErrNotExist):
+					dropped++
+					fmt.Fprintf(cmd.ErrOrStderr(), "prune: id=%d %s/%s (missing %s)\n", rec.ID, rec.OwnerLogin, rec.Name, rec.Path)
+				default:
+					unchecked++
+					kept = append(kept, rec)
+					var pathErr *iofs.PathError
+					if errors.As(err, &pathErr) {
+						err = pathErr.Err
+					}
+					fmt.Fprintf(cmd.ErrOrStderr(), "prune: id=%d %s/%s kept, cannot check %s: %v\n", rec.ID, rec.OwnerLogin, rec.Name, rec.Path, err)
 				}
-				dropped++
-				fmt.Fprintf(cmd.ErrOrStderr(), "prune: id=%d %s/%s (missing %s)\n", rec.ID, rec.OwnerLogin, rec.Name, rec.Path)
 			}
 			st.Repos = kept
 			if err := store.Save(st); err != nil {
 				return err
 			}
 			fmt.Fprintf(cmd.OutOrStdout(), "pruned %d record(s)\n", dropped)
+			if unchecked > 0 {
+				return fmt.Errorf("kept %d record(s) whose path could not be checked", unchecked)
+			}
 			return nil
 		},
 	}
@@ -72,21 +88,12 @@ func stateCommand(opts *options) *cobra.Command {
 }
 
 // openState resolves the state store, acquires the advisory lock, and loads
-// the state. The caller must defer the returned release func. It honours the
-// config discovery chain so a discovered fetch.toml's state_file is respected.
-func openState(opts *options) (*state.Store, *state.State, func() error, error) {
+// the state. The caller must defer the returned release func. It selects the
+// config as fetch does, so a discovered fetch.toml's state_file is respected
+// and --config="" means the default state location.
+func openState(cmd *cobra.Command, opts *options) (*state.Store, *state.State, func() error, error) {
 	fs := afero.NewOsFs()
-	home, _ := os.UserHomeDir()
-	cwd, _ := os.Getwd()
-	path, _ := config.FetchConfigLookup{
-		Explicit:    opts.config,
-		ExplicitSet: opts.config != "",
-		Getenv:      os.Getenv,
-		WorkDir:     cwd,
-		Home:        home,
-	}.Resolve(fs)
-
-	fcfg, err := config.LoadFetch(fs, path)
+	fcfg, err := config.LoadFetch(fs, configPath(cmd, fs, opts))
 	if err != nil {
 		return nil, nil, nil, exit.WithUser(err)
 	}

@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,7 +20,8 @@ import (
 )
 
 // ResolvedProfile is a profile with its token already resolved and its owner
-// set already filtered by the --profile/--owner scope (§5).
+// set already filtered by the --profile/--owner scope (§5). The first one is
+// the primary profile.
 type ResolvedProfile struct {
 	Name   string
 	Token  string
@@ -36,6 +38,10 @@ type Deps struct {
 	Reporter   *Reporter
 	Clock      func() time.Time
 	IDGen      func() string
+
+	// Selection is the explicit --owner and --profile scope of this
+	// invocation; the zero value is a full run.
+	Selection Selection
 }
 
 // Service is the fetch use-case façade (§8.2 "fetch service").
@@ -49,6 +55,7 @@ type Service struct {
 	planner *Planner
 	adopter *Adopter
 	applier *Applier
+	names   *profileNameResolver
 }
 
 // NewService wires a fetch service from config, resolved profiles and deps.
@@ -91,10 +98,8 @@ func NewService(
 		applier: NewApplier(mutator, auth, deps.Clock),
 	}
 	if deps.Resolver != nil && deps.GitSync != nil {
-		svc.adopter = NewAdopter(deps.GitSync, &profileNameResolver{
-			resolver: deps.Resolver,
-			profile:  primaryProfile(profiles),
-		})
+		svc.names = &profileNameResolver{resolver: deps.Resolver, profile: primaryProfile(profiles)}
+		svc.adopter = NewAdopter(deps.GitSync, svc.names)
 	}
 	return svc, nil
 }
@@ -118,9 +123,10 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		return err
 	}
 
-	confirmations := s.confirm(ctx, st, snapshots)
+	deselected := s.deselect(st, snapshots)
+	confirmations := s.confirm(ctx, st, snapshots, deselected)
 	snapshots = append(snapshots, confirmedRenames(st, confirmations)...)
-	snapshots, err = s.explicitSnapshots(ctx, st, snapshots)
+	snapshots, outsidePins, err := s.explicitSnapshots(ctx, st, snapshots, deselected)
 	if err != nil {
 		return err
 	}
@@ -140,7 +146,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	// repository with a snapshot has its one current pin above: the record's
 	// older metadata would render a stale path.
 	for _, rec := range st.Repos {
-		if rendered[rec.ID] || s.cnf.Ignored(rec.ID, rec.OwnerLogin, rec.Name) {
+		if _, outside := deselected[rec.ID]; outside || rendered[rec.ID] || s.cnf.Ignored(rec.ID, rec.OwnerLogin, rec.Name) {
 			continue
 		}
 		if pin, err := s.planner.paths.PinnedPath(github.RepoSnapshot{ID: rec.ID, Owner: rec.OwnerLogin, Name: rec.Name}, &rec); err == nil && pin != "" {
@@ -149,10 +155,12 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	}
 	var clones []DiskClone
 	if s.adopter != nil {
+		s.names.narrow(s.selectedNames(st, deselected))
 		clones, err = s.adopter.ScanScoped(ctx, s.planner.paths.scope, snapshots, extraPaths...)
 		if err != nil {
 			return err
 		}
+		clones = s.names.dropSkipped(clones)
 	}
 	// A verified 404 is an orphan observation, not a missing-pin identity
 	// conflict. Do not infer this from an absent API listing alone.
@@ -163,12 +171,13 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		}
 		for _, rec := range st.Repos {
 			confirmation, ok := confirmations[rec.ID]
-			if ok && confirmation.Status == ConfirmGone && c.Owner == rec.OwnerLogin && c.Name == rec.Name {
+			if ok && confirmation.Status == ConfirmGone && strings.EqualFold(c.Owner, rec.OwnerLogin) && strings.EqualFold(c.Name, rec.Name) {
 				c.ID, c.Error = rec.ID, ""
 				break
 			}
 		}
 	}
+	s.guardUnsavedMoves(st, clones)
 	// Existing workspace checkouts (especially pins) are explicit local scope,
 	// even when their owners are absent from remote discovery for new clones.
 	known := make(map[int64]bool)
@@ -180,8 +189,15 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		if c.ID == 0 || known[c.ID] || c.Error != "" || s.cnf.Ignored(c.ID, c.Owner, c.Name) {
 			continue
 		}
-		if rec, ok := st.ByID(c.ID); ok && !s.planner.paths.Authorised(*rec, github.RepoSnapshot{}) {
+		if _, outside := deselected[c.ID]; outside {
 			continue
+		}
+		rec, tracked := st.ByID(c.ID)
+		if tracked && !s.planner.paths.Authorised(*rec, github.RepoSnapshot{}) {
+			continue
+		}
+		if !tracked && !s.deps.Selection.owner(c.Owner) {
+			continue // an untracked checkout of an owner outside the selection
 		}
 		if confirmation, ok := confirmations[c.ID]; ok && confirmation.Status != ConfirmFound {
 			continue
@@ -204,6 +220,12 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 			c.Error = "workspace checkout identity could not be confirmed; leaving unchanged"
 			continue
 		}
+		if !s.deps.Selection.owner(snap.Owner) {
+			if tracked {
+				deselected[c.ID] = transferredOut(snap)
+			}
+			continue
+		}
 		snap.SourceProfile = profile.Name
 		snapshots = append(snapshots, snap)
 		known[c.ID] = true
@@ -223,11 +245,12 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	}
 	actions, err := s.planner.Plan(PlanInput{
 		KnownCheckouts: knownPaths,
-		Snapshots:      snapshots,
+		Snapshots:      append(snapshots, outsidePins...),
 		State:          st,
 		Clones:         clones,
 		Confirmations:  confirmations,
 		Occupancy:      occupancy,
+		Deselected:     deselected,
 	})
 	if err != nil {
 		return exit.WithUser(err)
@@ -249,57 +272,153 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		return s.deps.Reporter.Render(plan, false)
 	}
 
-	failed := s.apply(ctx, &plan, st)
-	s.cacheRemoteObservations(st, snapshots, confirmations)
+	failed, unsaved := s.apply(ctx, &plan, st)
+	observed := s.cacheRemoteObservations(st, snapshots, confirmations)
 	s.touchDiscovery(st)
-	if err := s.deps.Store.Save(st); err != nil {
-		return err
+	saveErr := s.deps.Store.Save(st)
+	if saveErr != nil {
+		failed++
+		s.saveFailed(saveErr, unsaved, observed...)
+		plan.replaceSummaryErrors(failed)
 	}
 	if rerr := s.deps.Reporter.Render(plan, true); rerr != nil {
 		return rerr
 	}
+	if saveErr != nil && plan.executable() == 0 {
+		return fmt.Errorf("state not saved: %w", saveErr) // nothing ran → exit 1
+	}
 	conflicts := plan.Summary().Conflict
 	if failed > 0 || conflicts > 0 {
 		return exit.WithPartial(fmt.Errorf(
-			"apply incomplete: %d action(s) failed, %d conflict(s) unresolved",
+			"apply incomplete: %d error(s), %d conflict(s) unresolved",
 			failed, conflicts,
 		))
 	}
 	return nil
 }
 
-// Only apply persists remote observations. Offline status labels this cache
-// explicitly; a plan never writes it and a missing listing is not a 404.
-func (s *Service) cacheRemoteObservations(st *state.State, snapshots []github.RepoSnapshot, confirmations map[int64]Confirmation) {
-	now := s.deps.Clock().UTC()
-	for id, c := range confirmations {
-		if c.Status == ConfirmTransient {
+// saveFailed reports a state save that failed, naming the repositories whose
+// applied change it leaves unrecorded, then those whose remote observation it
+// loses. Their checkouts stay as applied; the next run recovers a record only
+// where the checkout identity is safe.
+func (s *Service) saveFailed(err error, unsaved []string, observed ...string) {
+	msg := fmt.Sprintf("save state: %v", err)
+	if len(unsaved) > 0 {
+		msg += "; not recorded: " + strings.Join(unsaved, ", ")
+	}
+	applied := make(map[string]bool, len(unsaved))
+	for _, name := range unsaved {
+		applied[name] = true
+	}
+	var others []string
+	for _, name := range observed {
+		if !applied[name] {
+			others = append(others, name)
+		}
+	}
+	const shown = 5
+	switch {
+	case len(others) > shown:
+		msg += fmt.Sprintf("; remote observations of %s and %d more", strings.Join(others[:shown], ", "), len(others)-shown)
+	case len(others) > 0:
+		msg += "; remote observations of " + strings.Join(others, ", ")
+	}
+	s.deps.Reporter.Errorf("%s", msg)
+}
+
+// guardUnsavedMoves keeps a checkout from being bound to another repository
+// when its origin is the recorded remote of a record whose path is missing:
+// it may be that checkout, moved by an apply whose state save and remote
+// update failed, and its old name may have been reused since. The same id
+// still relocates, unless another such record shares the origin; any other
+// id is a conflict naming the record.
+func (s *Service) guardUnsavedMoves(st *state.State, clones []DiskClone) {
+	missing := make(map[string][]state.Record)
+	for _, rec := range st.Repos {
+		if rec.Path == "" || s.cnf.Ignored(rec.ID, rec.OwnerLogin, rec.Name) {
 			continue
+		}
+		if _, err := os.Lstat(rec.Path); !os.IsNotExist(err) {
+			continue
+		}
+		for _, name := range recordedNames(rec) {
+			if n := len(missing[name]); n == 0 || missing[name][n-1].ID != rec.ID {
+				missing[name] = append(missing[name], rec)
+			}
+		}
+	}
+	for i := range clones {
+		c := &clones[i]
+		if c.Error != "" || c.Owner == "" {
+			continue
+		}
+		for _, rec := range missing[strings.ToLower(c.Owner+"/"+c.Name)] {
+			if rec.ID == c.ID {
+				continue
+			}
+			c.Error = fmt.Sprintf("origin %s/%s is recorded for id=%d at %s, which is missing; "+
+				"the checkout may be that repository, so it is not bound to another one", c.Owner, c.Name, rec.ID, rec.Path)
+			break
+		}
+	}
+}
+
+// Only apply persists remote observations. Offline status labels this cache
+// explicitly; a plan never writes it and a missing listing is not a 404. It
+// returns the observed repositories, sorted.
+func (s *Service) cacheRemoteObservations(st *state.State, snapshots []github.RepoSnapshot, confirmations map[int64]Confirmation) []string {
+	now := s.deps.Clock().UTC()
+	observed := make(map[string]bool)
+	for id, c := range confirmations {
+		if c.Status == ConfirmTransient || c.Status == ConfirmUnverified {
+			continue // nothing was established about the repository
 		}
 		if rec, ok := st.ByID(id); ok {
 			rec.RemoteStatus, rec.RemoteCheckedAt = "", &now
 			if c.Status == ConfirmGone {
 				rec.RemoteStatus = "gone"
 			}
+			observed[rec.OwnerLogin+"/"+rec.Name] = true
 		}
 	}
 	for _, snap := range snapshots {
 		if rec, ok := st.ByID(snap.ID); ok {
 			rec.RemoteStatus, rec.RemoteCheckedAt = "", &now
+			observed[rec.OwnerLogin+"/"+rec.Name] = true
 		}
 	}
+	names := make([]string, 0, len(observed))
+	for name := range observed {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
 }
 
 // explicitSnapshots resolves per-repo pins outside discovery, so an explicit
-// local selection is meaningful without adding an entire remote owner.
-func (s *Service) explicitSnapshots(ctx context.Context, st *state.State, snapshots []github.RepoSnapshot) ([]github.RepoSnapshot, error) {
+// local selection is meaningful without adding an entire remote owner. A pin
+// is explicit intent: an id-only one is confirmed once even in a narrowed run,
+// and one of an owner outside the selection is returned apart, report-only.
+func (s *Service) explicitSnapshots(
+	ctx context.Context,
+	st *state.State,
+	snapshots []github.RepoSnapshot,
+	deselected map[int64]string,
+) ([]github.RepoSnapshot, []github.RepoSnapshot, error) {
+	var outside []github.RepoSnapshot
 	for _, rule := range s.cnf.Repos {
 		if rule.Ignore || rule.Path == "" {
 			continue
 		}
+		matches := func(id int64, owner, name string) bool {
+			if rule.Match.ID != 0 {
+				return id == rule.Match.ID
+			}
+			return strings.EqualFold(owner, rule.Match.Owner) && strings.EqualFold(name, rule.Match.Name)
+		}
 		found := false
 		for _, snap := range snapshots {
-			if (rule.Match.ID != 0 && snap.ID == rule.Match.ID) || (rule.Match.ID == 0 && snap.Owner == rule.Match.Owner && snap.Name == rule.Match.Name) {
+			if matches(snap.ID, snap.Owner, snap.Name) {
 				found = true
 				break
 			}
@@ -310,13 +429,16 @@ func (s *Service) explicitSnapshots(ctx context.Context, st *state.State, snapsh
 		// Known records already went through confirmation; do not bypass a
 		// failed confirmation with a second, differently authenticated request.
 		for _, rec := range st.Repos {
-			if (rule.Match.ID != 0 && rec.ID == rule.Match.ID) || (rule.Match.ID == 0 && rec.OwnerLogin == rule.Match.Owner && rec.Name == rule.Match.Name) {
+			if matches(rec.ID, rec.OwnerLogin, rec.Name) {
 				found = true
 				break
 			}
 		}
 		if found {
 			continue
+		}
+		if rule.Match.ID == 0 && !s.deps.Selection.owner(rule.Match.Owner) {
+			continue // the rule itself names an owner outside the selection
 		}
 		p := primaryProfile(s.profiles)
 		profile := github.Profile{Name: p.Name, Token: p.Token}
@@ -334,12 +456,17 @@ func (s *Service) explicitSnapshots(ctx context.Context, st *state.State, snapsh
 			err = fmt.Errorf("identity resolver is unavailable")
 		}
 		if err != nil || snap.ID == 0 {
-			return nil, fmt.Errorf("cannot verify explicit checkout %q: %v", rule.Path, err)
+			return nil, nil, fmt.Errorf("cannot verify explicit checkout %q: %v", rule.Path, err)
 		}
 		snap.SourceProfile = p.Name
+		if !s.deps.Selection.owner(snap.Owner) {
+			deselected[snap.ID] = reasonOutside
+			outside = append(outside, snap)
+			continue
+		}
 		snapshots = append(snapshots, snap)
 	}
-	return snapshots, nil
+	return snapshots, outside, nil
 }
 
 // discover runs each profile's Discoverer concurrently (bounded) and merges the
@@ -379,9 +506,12 @@ func (s *Service) discover(ctx context.Context) ([]github.RepoSnapshot, []Discov
 	return snapshots, summaries, nil
 }
 
-// confirm re-verifies every tracked id missing from discovery (§10). Transient
-// errors leave the record unchanged and are surfaced on stderr.
-func (s *Service) confirm(ctx context.Context, st *state.State, snapshots []github.RepoSnapshot) map[int64]Confirmation {
+// confirm re-verifies every selected tracked id missing from discovery (§10).
+// Transient errors leave the record unchanged and are surfaced on stderr. Only
+// the record's own profile can establish that a repository is gone or out of
+// reach; another token leaves it unverified. A confirmation that finds the
+// repository under an owner outside the selection deselects it.
+func (s *Service) confirm(ctx context.Context, st *state.State, snapshots []github.RepoSnapshot, deselected map[int64]string) map[int64]Confirmation {
 	if s.deps.Confirmer == nil {
 		return nil
 	}
@@ -395,18 +525,28 @@ func (s *Service) confirm(ctx context.Context, st *state.State, snapshots []gith
 		if present[rec.ID] || s.cnf.Ignored(rec.ID, rec.OwnerLogin, rec.Name) {
 			continue
 		}
+		if _, outside := deselected[rec.ID]; outside {
+			continue
+		}
 		if !s.planner.paths.Authorised(rec, github.RepoSnapshot{}) {
 			continue
 		}
-		profile := github.Profile{Name: rec.SourceProfile, Token: tokenFor(s.profiles, rec.SourceProfile)}
-		if profile.Token == "" {
-			profile = github.Profile{Name: primaryProfile(s.profiles).Name, Token: primaryProfile(s.profiles).Token}
+		used, own := profileNamed(s.profiles, rec.SourceProfile)
+		if !own {
+			used = primaryProfile(s.profiles)
 		}
-		snap, err := s.deps.Confirmer.ConfirmByID(ctx, profile, rec.ID)
+		snap, err := s.deps.Confirmer.ConfirmByID(ctx, github.Profile{Name: used.Name, Token: used.Token}, rec.ID)
 		status := classifyConfirm(err)
 		c := Confirmation{Status: status}
-		if status == ConfirmFound {
+		switch {
+		case status == ConfirmFound && !s.deps.Selection.owner(snap.Owner):
+			deselected[rec.ID] = transferredOut(snap)
+			continue
+		case status == ConfirmFound:
 			c.Snapshot = &snap
+		case !own && (status == ConfirmGone || status == ConfirmInaccessible):
+			c.Status = ConfirmUnverified
+			c.Reason = fmt.Sprintf("not verified: checked with profile %q, not with its own profile %q", used.Name, rec.SourceProfile)
 		}
 		if status == ConfirmTransient {
 			s.deps.Reporter.Logf("confirm %s/%s (id=%d): transient error, leaving unchanged: %v", rec.OwnerLogin, rec.Name, rec.ID, err)
@@ -418,24 +558,38 @@ func (s *Service) confirm(ctx context.Context, st *state.State, snapshots []gith
 
 // apply executes the action list in the prescribed order (§7.4): adopt/relocate,
 // update_remote, move (all sequential), then clone and fetch (bounded parallel).
-func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) int {
+// It returns the failures, failed saves included, and the repositories whose
+// applied change is not in the state file yet.
+func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) (int, []string) {
 	var (
 		failures int
+		unsaved  []string
 		mu       sync.Mutex
 	)
-	executable := 0
-	for _, act := range plan.Actions {
-		if act.Executable() {
-			executable++
-		}
-	}
-	s.deps.Reporter.Logf("applying %d actions (concurrency=%d)", executable, s.concurrency)
+	s.deps.Reporter.Logf("applying %d actions (concurrency=%d)", plan.executable(), s.concurrency)
 
 	fail := func(act Action, err error) {
 		mu.Lock()
 		failures++
 		mu.Unlock()
 		s.deps.Reporter.Errorf("%s %s/%s: %v", act.Kind, act.Owner, act.Name, err)
+	}
+	done := func(act Action) {
+		mu.Lock()
+		unsaved = append(unsaved, act.Owner+"/"+act.Name)
+		mu.Unlock()
+	}
+	// save persists every change applied so far (§6.3 per-action durability).
+	// A failed save is an error, never ignored.
+	save := func() {
+		mu.Lock()
+		defer mu.Unlock()
+		if err := s.deps.Store.Save(st); err != nil {
+			failures++
+			s.saveFailed(err, unsaved)
+			return
+		}
+		unsaved = nil
 	}
 
 	sequential := func(kinds ...Kind) {
@@ -449,26 +603,33 @@ func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) int {
 				fail(act, err)
 				continue
 			}
-			_ = s.deps.Store.Save(st) // atomic-ish per-action durability (§6.3)
+			done(act)
+			save()
 		}
 	}
 	parallel := func(kind Kind) {
 		group, gctx := errgroup.WithContext(ctx)
 		group.SetLimit(s.concurrency)
+		ran := false
 		for _, act := range plan.Actions {
 			if act.Kind != kind {
 				continue
 			}
+			ran = true
 			group.Go(func() error {
 				s.deps.Reporter.Infof("%s %s/%s → %s", act.Kind, act.Owner, act.Name, act.Path)
 				if err := s.applier.Execute(gctx, act, st); err != nil {
 					fail(act, err)
+					return nil
 				}
+				done(act)
 				return nil
 			})
 		}
 		_ = group.Wait()
-		_ = s.deps.Store.Save(st)
+		if ran {
+			save()
+		}
 	}
 
 	sequential(KindAdopt, KindRelocate)
@@ -478,7 +639,7 @@ func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) int {
 	parallel(KindFetch)
 
 	plan.replaceSummaryErrors(failures)
-	return failures
+	return failures, unsaved
 }
 
 func (s *Service) touchDiscovery(st *state.State) {
@@ -494,6 +655,17 @@ func (s *Service) touchDiscovery(st *state.State) {
 // replaceSummaryErrors records apply failures so the rendered summary reflects
 // them (the Summary is recomputed from actions, so errors are carried here).
 func (p *Plan) replaceSummaryErrors(n int) { p.errorCount = n }
+
+// executable counts the actions apply runs.
+func (p *Plan) executable() int {
+	n := 0
+	for _, act := range p.Actions {
+		if act.Executable() {
+			n++
+		}
+	}
+	return n
+}
 
 func mergeSnapshot(byID map[int64]github.RepoSnapshot, snap github.RepoSnapshot) {
 	existing, ok := byID[snap.ID]
@@ -526,12 +698,17 @@ func classifyConfirm(err error) ConfirmStatus {
 }
 
 func tokenFor(profiles []ResolvedProfile, name string) string {
+	p, _ := profileNamed(profiles, name)
+	return p.Token
+}
+
+func profileNamed(profiles []ResolvedProfile, name string) (ResolvedProfile, bool) {
 	for _, p := range profiles {
 		if p.Name == name {
-			return p.Token
+			return p, true
 		}
 	}
-	return ""
+	return ResolvedProfile{}, false
 }
 
 func primaryProfile(profiles []ResolvedProfile) ResolvedProfile {
@@ -556,9 +733,38 @@ func defaultIDGen(clock func() time.Time) func() string {
 type profileNameResolver struct {
 	resolver github.NameResolver
 	profile  ResolvedProfile
+
+	// allow, when set, keeps resolution within the selection; skipped
+	// remembers the origins it declined to resolve.
+	allow   func(owner, name string) bool
+	skipped map[string]bool
+}
+
+func (n *profileNameResolver) narrow(allow func(owner, name string) bool) {
+	n.allow, n.skipped = allow, make(map[string]bool)
+}
+
+// dropSkipped removes the checkouts whose origin was outside the selection:
+// this invocation neither manages nor reports them.
+func (n *profileNameResolver) dropSkipped(clones []DiskClone) []DiskClone {
+	if len(n.skipped) == 0 {
+		return clones
+	}
+	kept := clones[:0]
+	for _, c := range clones {
+		if c.ID == 0 && n.skipped[strings.ToLower(c.Owner+"/"+c.Name)] {
+			continue
+		}
+		kept = append(kept, c)
+	}
+	return kept
 }
 
 func (n *profileNameResolver) ResolveByName(ctx context.Context, owner, name string) (int64, error) {
+	if n.allow != nil && !n.allow(owner, name) {
+		n.skipped[strings.ToLower(owner+"/"+name)] = true
+		return 0, nil
+	}
 	snap, err := n.resolver.ResolveByName(ctx, github.Profile{Name: n.profile.Name, Token: n.profile.Token}, owner, name)
 	if err != nil {
 		if github.HTTPStatus(err) == 404 {

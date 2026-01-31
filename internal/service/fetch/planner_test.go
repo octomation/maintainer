@@ -1,6 +1,8 @@
 package fetch_test
 
 import (
+	"context"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,6 +10,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/config"
 	. "go.octolab.org/toolset/maintainer/internal/service/fetch"
+	gitsvc "go.octolab.org/toolset/maintainer/internal/service/git"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
@@ -290,4 +293,79 @@ func TestPlanner_FilterGatesNewCloneNotTracked(t *testing.T) {
 	require.Len(t, actions, 1)
 	assert.Equal(t, KindFetch, actions[0].Kind)
 	assert.True(t, actions[0].Filtered)
+}
+
+// Filters gate adoption as they gate clones, on every path that can adopt an
+// untracked checkout; tracked repositories stay tracked.
+func TestPlanner_FilterGatesAdoption(t *testing.T) {
+	fork := github.RepoSnapshot{ID: 1, Owner: "acme", Name: "fork", Visibility: github.Public, IsFork: true}
+	for name, tc := range map[string]struct {
+		path, pinned, source string
+		setup                func(*config.Fetch)
+	}{
+		"workspace checkout": {path: "/work/public/acme/fork"},
+		"per-repository pin": {path: "/elsewhere/fork", pinned: "/elsewhere/fork", setup: func(c *config.Fetch) {
+			c.Repos = []config.Repo{{Match: config.RepoMatch{ID: 1}, Path: "/elsewhere/fork"}}
+		}},
+		"workspace pin": {path: "/work/prototyping/fork", pinned: "/work/prototyping/fork", source: "workspace", setup: func(c *config.Fetch) {
+			c.Workspace.Pins = []string{"prototyping"}
+		}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			cnf := &config.Fetch{
+				Workspace: &config.Workspace{Root: "/work"},
+				Defaults:  config.Defaults{CloneURL: "ssh", Concurrency: 1},
+				Filters:   config.Filters{ExcludeForks: true},
+			}
+			if tc.setup != nil {
+				tc.setup(cnf)
+			}
+			clone := DiskClone{ID: 1, Path: tc.path, Owner: "acme", Name: "fork", RemoteURL: "git@github.com:acme/fork.git", Transport: "ssh"}
+			actions, err := newPlanner(t, cnf).Plan(PlanInput{Snapshots: []github.RepoSnapshot{fork}, State: state.New(), Clones: []DiskClone{clone}})
+			require.NoError(t, err)
+			require.Len(t, actions, 1)
+			assert.Equal(t, KindNoop, actions[0].Kind)
+			assert.Equal(t, tc.path, actions[0].Path)
+			assert.True(t, actions[0].Filtered)
+			assert.Contains(t, actions[0].Reason, "not adopted")
+
+			st := state.New()
+			st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "fork", Path: tc.path, PinnedPath: tc.pinned, PinSource: tc.source,
+				RemoteURL: "git@github.com:acme/fork.git", CloneURL: "ssh", IsFork: true})
+			actions, err = newPlanner(t, cnf).Plan(PlanInput{Snapshots: []github.RepoSnapshot{fork}, State: st, Clones: []DiskClone{clone}})
+			require.NoError(t, err)
+			require.Len(t, actions, 1)
+			assert.Equal(t, KindFetch, actions[0].Kind, "a tracked fork stays tracked")
+		})
+	}
+}
+
+// An owner override applies whatever the letter case of its name, and its
+// layout still contains the path rendered with GitHub's spelling.
+func TestPlanner_OwnerOverrideIgnoresCase(t *testing.T) {
+	root := t.TempDir()
+	cnf := &config.Fetch{
+		Workspace: &config.Workspace{Root: root},
+		Defaults:  config.Defaults{CloneURL: "ssh", Concurrency: 1},
+		Owners:    []config.Owner{{Name: "ACME", Path: "mirror/{{.Owner}}/{{.Repo}}", CloneURL: "https"}},
+	}
+	snaps := []github.RepoSnapshot{
+		{ID: 1, Owner: "acme", Name: "tool", Visibility: github.Public},
+		{ID: 2, Owner: "acme", Name: "kept", Visibility: github.Public},
+	}
+	kept := filepath.Join(root, "mirror", "acme", "kept")
+	makeClone(t, kept, "https://github.com/acme/kept.git")
+	clones, err := NewAdopter(gitsvc.NewSync(), nil).Scan(context.Background(), root, snaps, cnf)
+	require.NoError(t, err)
+	require.Len(t, clones, 1, "the scan covers the override layout")
+
+	st := state.New()
+	st.Upsert(state.Record{ID: 2, OwnerLogin: "acme", Name: "kept", Path: kept, RemoteURL: "https://github.com/acme/kept.git", CloneURL: "https"})
+	actions, err := newPlanner(t, cnf).Plan(PlanInput{Snapshots: snaps, State: st, Clones: clones})
+	require.NoError(t, err)
+	got := byID(actions)
+	assert.Equal(t, KindClone, got[1].Kind)
+	assert.Equal(t, filepath.Join(root, "mirror", "acme", "tool"), got[1].Path)
+	assert.Equal(t, "https://github.com/acme/tool.git", got[1].RemoteURL)
+	assert.Equal(t, KindFetch, got[2].Kind)
 }

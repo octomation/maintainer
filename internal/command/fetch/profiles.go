@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/afero"
 
@@ -14,9 +15,10 @@ import (
 
 // resolveProfiles turns the config and CLI scope into profiles with resolved
 // tokens (§4.1 no-config behavior, §5 profile model and token sources).
+// --token applies to the first selected profile only.
 func resolveProfiles(fs afero.Fs, fcfg *config.Fetch, opts *options, warn io.Writer) ([]fetchsvc.ResolvedProfile, error) {
-	ownerFilter := toSet(opts.owners)
-	profileFilter := toSet(opts.profiles)
+	ownerFilter := toSet(opts.owners, strings.ToLower)
+	profileFilter := toSet(opts.profiles, nil)
 
 	// No config file → single-run mode requires --owner and a token (§4.1).
 	if fcfg.Source == "" {
@@ -62,7 +64,7 @@ func resolveProfiles(fs afero.Fs, fcfg *config.Fetch, opts *options, warn io.Wri
 			fallbackEnv = config.DefaultTokenEnv // only the first profile defaults to GITHUB_TOKEN (§5.2)
 		}
 		token, warning, err := np.ResolveToken(fs, os.Getenv, fallbackEnv)
-		if i == 0 && opts.token != "" {
+		if len(out) == 0 && opts.token != "" {
 			token, warning, err = opts.token, "", nil
 		}
 		if err != nil {
@@ -79,21 +81,26 @@ func resolveProfiles(fs afero.Fs, fcfg *config.Fetch, opts *options, warn io.Wri
 	return out, nil
 }
 
-func toSet(values []string) map[string]bool {
+// toSet builds a lookup set, normalising each key when norm is set.
+func toSet(values []string, norm func(string) string) map[string]bool {
 	if len(values) == 0 {
 		return nil
 	}
 	m := make(map[string]bool, len(values))
 	for _, v := range values {
+		if norm != nil {
+			v = norm(v)
+		}
 		m[v] = true
 	}
 	return m
 }
 
+// intersect keeps the owners in allow; logins compare case-insensitively.
 func intersect(values []string, allow map[string]bool) []string {
 	var out []string
 	for _, v := range values {
-		if allow[v] {
+		if allow[strings.ToLower(v)] {
 			out = append(out, v)
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 	"strings"
 	"testing"
 
@@ -155,4 +156,47 @@ func TestRESTDiscoverer_UserFallbackOn404(t *testing.T) {
 	require.Len(t, got.Snapshots, 1)
 	assert.Equal(t, "ghost", got.Snapshots[0].Owner)
 	assert.Equal(t, 1, fake.seen["GET /users/ghost/repos?page=1"]) // fell back to the user endpoint
+}
+
+// Logins are case-insensitive: any spelling of the configured owners picks
+// the same endpoints and keeps the same snapshots.
+func TestRESTDiscoverer_OwnersIgnoreCase(t *testing.T) {
+	var want []string
+	for _, owners := range [][]string{
+		{"octocat", "octomation", "stranger"},
+		{"OctoCat", "Octomation", "Stranger"},
+		{"OCTOCAT", "OCTOMATION", "STRANGER", "octocat"},
+	} {
+		fake := &fakeTransport{seen: map[string]int{}, routes: map[string]fakeResponse{
+			"GET /user?page=1":      {status: 200, body: `{"login":"octocat"}`},
+			"GET /user/orgs?page=1": {status: 200, body: `[{"login":"octomation"}]`},
+			"GET /user/repos?page=1": {status: 200, body: "[" +
+				repoJSON(1, "octocat", "dotfiles", "private", true) + "]"},
+			"GET /orgs/octomation/repos?page=1": {status: 200, body: "[" +
+				repoJSON(2, "octomation", "maintainer", "private", true) + "]"},
+			"GET /users/stranger/repos?page=1": {status: 200, body: "[" +
+				repoJSON(3, "Stranger", "tool", "public", false) + "]"},
+		}}
+		factory := func(context.Context, string) *gh.Client {
+			c, _ := gh.NewClient(gh.WithHTTPClient(&http.Client{Transport: fake}))
+			return c
+		}
+		got, err := github.NewRESTDiscoverer(factory).List(context.Background(), github.Profile{Name: "p", Token: "t", Owners: owners})
+		require.NoError(t, err)
+		var endpoints []string
+		for _, e := range got.Endpoints {
+			endpoints = append(endpoints, e.Endpoint)
+		}
+		assert.Equal(t, []string{"/user/repos", "/orgs/octomation/repos?type=all", "/users/stranger/repos?type=owner"}, endpoints, owners)
+		var ids []string
+		for _, s := range got.Snapshots {
+			ids = append(ids, s.FullName())
+		}
+		sort.Strings(ids)
+		if want == nil {
+			want = ids
+		}
+		assert.Equal(t, want, ids, owners)
+		assert.Len(t, ids, 3, owners)
+	}
 }

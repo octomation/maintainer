@@ -2,7 +2,6 @@ package fetch
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -48,16 +47,7 @@ func configCommand(opts *options) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			fs := afero.NewOsFs()
-			home, _ := os.UserHomeDir()
-			cwd, _ := os.Getwd()
-			lookup := config.FetchConfigLookup{
-				Explicit:    opts.config,
-				ExplicitSet: cmd.Flags().Changed("config"),
-				Getenv:      os.Getenv,
-				WorkDir:     cwd,
-				Home:        home,
-			}
-			path, _ := lookup.Resolve(fs)
+			path := configPath(cmd, fs, opts)
 			if path == "" {
 				return exit.WithUser(fmt.Errorf("no fetch config found to validate"))
 			}

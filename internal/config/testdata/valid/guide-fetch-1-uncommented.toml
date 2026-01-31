@@ -1,0 +1,35 @@
+[workspace]
+root         = "."        # checkout root; defaults to the current directory
+path         = "{{.Visibility}}/{{.Owner}}/{{.Repo}}"
+pins         = []         # existing checkout trees to keep in place
+
+[defaults]
+clone_url    = "ssh"      # "ssh" | "https"
+concurrency  = 4
+state_file = "/path/to/state.json"   # default: $XDG_STATE_HOME/maintainer/fetch/state.json
+
+[filters]                 # skip new clones and adoptions; tracked repos stay tracked
+exclude_archived  = false
+exclude_forks     = false
+exclude_templates = false
+
+[profiles.primary]
+token_env      = "GITHUB_TOKEN"
+include_owners = ["*"]     # see "Owner selection" below
+
+[profiles.bot]            # a second account (e.g. a bot) with its own token
+token_env      = "BOT_TOKEN"
+include_owners = ["acme-bot"]
+clone_url      = "https"   # HTTPS + PAT is the supported path for private repos
+
+[[owners]]               # per-owner path/clone_url override
+name = "acme"
+path = "{{.Visibility}}/{{.Owner}}/{{.Repo}}"
+
+[[repos]]                # per-repo override (matched by id or owner/name)
+match = { id = 12345678 }     # id-match survives a rename
+path  = "~/Code/special"      # select an existing checkout outside the layout
+
+[[repos]]
+match  = { id = 99999999 }    # silence a confirmed orphan
+ignore = true

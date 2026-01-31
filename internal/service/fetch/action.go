@@ -33,6 +33,7 @@ const (
 	FlagFiltered     = "filtered"     // tracked repo excluded from new-clone rules
 	FlagInaccessible = "inaccessible" // 401/403: access lost, not gone
 	FlagLegalHold    = "legal-hold"   // 451
+	FlagUnverified   = "unverified"   // checked with another profile's token: nothing established
 )
 
 // Action is one planned operation for one repository. The applier needs both
@@ -59,6 +60,7 @@ type Action struct {
 	Reason       string // conflict / report-only explanation
 	OrphanReason string // stable machine-readable management reason
 	ActivePath   string // selected checkout when this is an inactive copy
+	Deselected   bool   // outside this invocation's --owner/--profile selection
 
 	Snapshot *github.RepoSnapshot
 	Record   *state.Record

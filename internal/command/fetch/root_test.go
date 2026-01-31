@@ -25,14 +25,15 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, cmd.Flags().Lookup("apply"))
 
 	// the help promises only what the run does: existing checkouts are kept,
-	// and --owner/--profile narrow the discovery of new repositories alone.
+	// and --owner/--profile narrow the whole invocation, not discovery alone.
 	assert.NotContains(t, cmd.Long, "never deletes")
 	assert.Contains(t, cmd.Long, "Existing checkouts\nand local work are retained.")
 	for _, name := range []string{"owner", "profile"} {
 		usage := cmd.PersistentFlags().Lookup(name).Usage
-		assert.Containsf(t, usage, "discover new repositories", "--%s names what it narrows", name)
-		assert.Containsf(t, usage, "existing checkouts are still processed", "--%s names what it keeps", name)
+		assert.Containsf(t, usage, "limit this run to", "--%s names what it narrows", name)
+		assert.Containsf(t, usage, "others are left alone", "--%s names what it skips", name)
 	}
+	assert.Contains(t, cmd.PersistentFlags().Lookup("token").Usage, "first selected profile")
 
 	// subcommands.
 	names := map[string]bool{}

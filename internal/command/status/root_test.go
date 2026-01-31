@@ -71,6 +71,22 @@ func TestInvalidOptions(t *testing.T) {
 	}
 }
 
+func TestUnknownConfigKeyIsBadConfig(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "fetch.toml")
+	require.NoError(t, os.WriteFile(path, []byte("[workspace]\nroot = '.'\npin = ['prototyping']\n"), 0o600))
+	cmd := status.New()
+	cmd.SetOut(new(bytes.Buffer))
+	cmd.SetErr(new(bytes.Buffer))
+	cmd.SetArgs([]string{"--config", path, "--format=json"})
+	err := cmd.Execute()
+	require.Error(t, err)
+	var coded exit.Coder
+	require.ErrorAs(t, err, &coded)
+	assert.Equal(t, 2, coded.ExitCode())
+	assert.Contains(t, err.Error(), "unknown key pin in [workspace]; did you mean pins?")
+	assert.Contains(t, err.Error(), path)
+}
+
 func TestErrorRowsDoNotHideSuccessfulCheckouts(t *testing.T) {
 	root := t.TempDir()
 	_, err := git.PlainInit(filepath.Join(root, "public/acme/present"), false)

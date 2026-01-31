@@ -1,0 +1,12 @@
+[workspace]
+root      = "/Users/me/Development"
+pins      = ["prototyping"] # omit if this directory does not exist
+
+[defaults]
+clone_url = "ssh"
+[filters]
+exclude_archived = true
+exclude_forks    = true
+[profiles.primary]
+token_env      = "GITHUB_TOKEN"
+include_owners = ["*"]

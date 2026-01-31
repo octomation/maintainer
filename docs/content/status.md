@@ -206,6 +206,9 @@ Status uses the same configuration as [fetch](/fetch/#configuration), in order:
 4. `$XDG_CONFIG_HOME/maintainer/fetch.toml`, then `fetch.yaml`, falling back to
    `~/.config/maintainer/`.
 
+A key outside the [config schema](/fetch/#configuration) is invalid
+configuration, as it is for fetch.
+
 The state location comes from `defaults.state_file`, or
 `$XDG_STATE_HOME/maintainer/fetch/state.json` (fallback
 `~/.local/state/maintainer/fetch/state.json`). Missing state is an empty inventory

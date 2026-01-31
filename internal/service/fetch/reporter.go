@@ -128,10 +128,13 @@ func (r *Reporter) renderHuman(p Plan, applied bool) error {
 	}
 	b.WriteByte('\n')
 
-	ids := map[int64]bool{}
+	ids, outside := map[int64]bool{}, map[int64]bool{}
 	for _, a := range p.Actions {
 		if a.ID != 0 {
 			ids[a.ID] = true
+			if a.Deselected {
+				outside[a.ID] = true
+			}
 		}
 	}
 	fmt.Fprintf(&b, "plan: %d repos total\n", len(ids))
@@ -144,7 +147,13 @@ func (r *Reporter) renderHuman(p Plan, applied bool) error {
 
 	s := p.Summary()
 	b.WriteByte('\n')
-	fmt.Fprintf(&b, "summary: %s\n", summaryLine(s))
+	if len(outside) > 0 {
+		// --owner/--profile left some repositories alone; their rows are
+		// collapsed like routine noops.
+		fmt.Fprintf(&b, "summary: %s selected=%d/%d\n", summaryLine(s), len(ids)-len(outside), len(ids))
+	} else {
+		fmt.Fprintf(&b, "summary: %s\n", summaryLine(s))
+	}
 	switch {
 	case applied && (s.Errors > 0 || s.Conflict > 0):
 		fmt.Fprintf(&b, "%s\n", paint(r.colorOut, "1;31", fmt.Sprintf(

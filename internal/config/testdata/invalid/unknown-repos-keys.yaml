@@ -1,0 +1,4 @@
+repos:
+  - match: {id: 1}
+  - match: {ownr: acme, name: tool}
+    paht: ~/tool

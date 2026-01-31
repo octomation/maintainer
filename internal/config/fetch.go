@@ -76,8 +76,8 @@ type Defaults struct {
 	StateFile   string `toml:"state_file" yaml:"state_file"`
 }
 
-// Filters skip clones only; checkouts already on disk, pinned ones included,
-// are still adopted (§4.2).
+// Filters skip new clones and adoptions, of pinned checkouts too; repositories
+// already tracked stay tracked (§4.2).
 type Filters struct {
 	ExcludeArchived  bool `toml:"exclude_archived" yaml:"exclude_archived"`
 	ExcludeForks     bool `toml:"exclude_forks" yaml:"exclude_forks"`
@@ -122,8 +122,9 @@ type NamedProfile struct {
 }
 
 // LoadFetch decodes a fetch config from path, dispatching by file extension
-// (§4.2). An empty path yields a config with defaults applied (single-run
-// mode); the caller supplies owners and a profile separately (§4.1).
+// (§4.2), and rejects every key that fetch.cue does not declare. An empty path
+// yields a config with defaults applied (single-run mode); the caller supplies
+// owners and a profile separately (§4.1).
 func LoadFetch(fs afero.Fs, path string) (*Fetch, error) {
 	cnf := new(Fetch)
 	if path != "" {
@@ -154,6 +155,11 @@ func LoadFetch(fs afero.Fs, path string) (*Fetch, error) {
 		}
 		if _, exists := tables["workspaces"]; exists {
 			return nil, fmt.Errorf("multiple workspaces are not supported yet; use [workspace]")
+		}
+		// fetch.cue is the contract: a key outside it is an error, never
+		// silently ignored.
+		if unknown := unknownKeys(tables); len(unknown) > 0 {
+			return nil, unknownKeysError(path, unknown)
 		}
 		cnf.Source = path
 	}
@@ -329,10 +335,11 @@ func (f *Fetch) SortedProfiles() []NamedProfile {
 	return out
 }
 
-// OwnerOverride returns the per-owner rule for owner, if any.
+// OwnerOverride returns the per-owner rule for owner, if any. GitHub logins
+// are case-insensitive, and so is the match.
 func (f *Fetch) OwnerOverride(owner string) (Owner, bool) {
 	for i := range f.Owners {
-		if f.Owners[i].Name == owner {
+		if strings.EqualFold(f.Owners[i].Name, owner) {
 			return f.Owners[i], true
 		}
 	}
@@ -340,7 +347,8 @@ func (f *Fetch) OwnerOverride(owner string) (Owner, bool) {
 }
 
 // RepoOverride returns the per-repo rule matching id or owner/name. An id match
-// wins over an owner/name match because id survives renames (§4.4).
+// wins over an owner/name match because id survives renames (§4.4). Owner and
+// name match case-insensitively, as GitHub resolves them.
 func (f *Fetch) RepoOverride(id int64, owner, name string) (Repo, bool) {
 	for i := range f.Repos {
 		if id != 0 && f.Repos[i].Match.ID == id {
@@ -349,7 +357,7 @@ func (f *Fetch) RepoOverride(id int64, owner, name string) (Repo, bool) {
 	}
 	for i := range f.Repos {
 		m := f.Repos[i].Match
-		if m.ID == 0 && m.Owner == owner && m.Name == name {
+		if m.ID == 0 && strings.EqualFold(m.Owner, owner) && strings.EqualFold(m.Name, name) {
 			return f.Repos[i], true
 		}
 	}

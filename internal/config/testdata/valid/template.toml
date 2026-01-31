@@ -1,0 +1,53 @@
+# maintainer fetch configuration (also read by maintainer status)
+# A per-repo path pins an EXISTING checkout; it is never moved or cloned into.
+# Example: [[repos]], match = { id = 154873464 }, path = "~/.dotfiles"
+# Location: ./fetch.toml or $XDG_CONFIG_HOME/maintainer/fetch.toml
+# Format is picked by extension; a fetch.yaml form is a 1:1 translation.
+# Unknown keys are errors. Schema:
+# https://github.com/octomation/maintainer/blob/main/internal/config/fetch.cue
+
+[workspace]
+root         = "."        # checkout root; defaults to the current working directory
+path         = "{{.Visibility}}/{{.Owner}}/{{.Repo}}"
+pins         = []         # existing checkout trees kept in place, e.g. ["prototyping"]
+
+[defaults]
+clone_url    = "ssh"      # "ssh" | "https"
+concurrency  = 4
+# state_file = "/path/to/state.json"  # default: $XDG_STATE_HOME/maintainer/fetch/state.json
+
+[filters]
+# Filters skip new clones and adoptions, of pinned checkouts too;
+# repositories already tracked stay tracked.
+exclude_archived  = false
+exclude_forks     = false
+exclude_templates = false
+
+[profiles.primary]
+token_env      = "GITHUB_TOKEN"
+# include_owners is an allowlist AND the set of owners to query for new
+# repositories, compared case-insensitively; checkouts already tracked
+# outside it are still verified and managed.
+# Use ["*"] (or omit it) to mean "you + every org you are a member of".
+include_owners = ["acme-user", "acme", "acme-labs", "acme-tools"]
+
+[profiles.bot]
+token_env      = "ACME_BOT_TOKEN"
+include_owners = ["acme-bot"]
+clone_url      = "https"   # per-profile override; HTTPS+PAT for private repos
+
+# [[owners]]
+# name = "acme"
+# path = "{{.Visibility}}/{{.Owner}}/{{.Repo}}"   # explicit per-owner override
+
+# [[repos]]
+# match = { owner = "acme-user", name = "dotfiles" }
+# path  = "~/.dotfiles"
+
+# [[repos]]
+# match = { id = 12345678 }                       # id-match survives rename
+# path  = "~/Code/special"
+
+# [[repos]]
+# match  = { id = 99999999 }                      # silence a confirmed orphan
+# ignore = true

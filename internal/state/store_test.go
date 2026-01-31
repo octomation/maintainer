@@ -1,6 +1,9 @@
 package state_test
 
 import (
+	"errors"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -101,4 +104,107 @@ func TestDefaultPath(t *testing.T) {
 	assert.Equal(t, "/xdg/maintainer/fetch/state.json", DefaultPath(xdg, "/home/op"))
 	none := func(string) string { return "" }
 	assert.Equal(t, "/home/op/.local/state/maintainer/fetch/state.json", DefaultPath(none, "/home/op"))
+}
+
+// A save never writes through what already lies at the old temporary name or
+// at the state path: neither a link nor a file is followed, truncated or
+// chmodded, and the state path ends up a regular 0600 file.
+func TestStore_SaveIgnoresPlantedPaths(t *testing.T) {
+	for _, planted := range []string{"temp link", "temp file", "state link"} {
+		t.Run(planted, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "state.json")
+			victim := filepath.Join(t.TempDir(), "victim.txt")
+			require.NoError(t, os.WriteFile(victim, []byte("precious\n"), 0o644))
+			require.NoError(t, os.WriteFile(path, []byte(`{"version":1,"profiles":{},"repos":[]}`), 0o600))
+			switch planted {
+			case "temp link":
+				require.NoError(t, os.Symlink(victim, path+".tmp"))
+			case "temp file":
+				victim = path + ".tmp"
+				require.NoError(t, os.WriteFile(victim, []byte("precious\n"), 0o644))
+			case "state link":
+				require.NoError(t, os.Remove(path))
+				require.NoError(t, os.Symlink(victim, path))
+			}
+
+			st := New()
+			st.Upsert(Record{ID: 1, OwnerLogin: "acme", Name: "svc", Path: "/work/acme/svc"})
+			require.NoError(t, NewStore(afero.NewOsFs(), path, nil).Save(st))
+
+			raw, err := os.ReadFile(victim)
+			require.NoError(t, err)
+			assert.Equal(t, "precious\n", string(raw))
+			info, err := os.Lstat(victim)
+			require.NoError(t, err)
+			assert.Equal(t, os.FileMode(0o644), info.Mode().Perm())
+
+			info, err = os.Lstat(path)
+			require.NoError(t, err)
+			assert.True(t, info.Mode().IsRegular(), "the state path is %s", info.Mode())
+			assert.Equal(t, os.FileMode(0o600), info.Mode().Perm())
+			loaded, err := NewStore(afero.NewOsFs(), path, nil).Load()
+			require.NoError(t, err)
+			assert.Equal(t, st.Repos, loaded.Repos)
+
+			leftovers, err := filepath.Glob(filepath.Join(dir, "state.json.*.tmp"))
+			require.NoError(t, err)
+			assert.Empty(t, leftovers)
+		})
+	}
+}
+
+// brokenFs fails a save midway: a write stops after half of the data, or the
+// rename into place fails.
+type brokenFs struct {
+	afero.Fs
+	write, rename bool
+}
+
+type halfFile struct{ afero.File }
+
+func (f halfFile) Write(p []byte) (int, error) {
+	n, _ := f.File.Write(p[:len(p)/2])
+	return n, errors.New("injected write failure")
+}
+
+func (fs brokenFs) OpenFile(name string, flag int, perm os.FileMode) (afero.File, error) {
+	f, err := fs.Fs.OpenFile(name, flag, perm)
+	if err != nil || !fs.write || flag&(os.O_WRONLY|os.O_RDWR) == 0 {
+		return f, err
+	}
+	return halfFile{f}, nil
+}
+
+func (fs brokenFs) Rename(oldname, newname string) error {
+	if fs.rename {
+		return errors.New("injected rename failure")
+	}
+	return fs.Fs.Rename(oldname, newname)
+}
+
+func TestStore_FailedSaveKeepsPreviousState(t *testing.T) {
+	for name, fs := range map[string]brokenFs{
+		"write":  {Fs: afero.NewOsFs(), write: true},
+		"rename": {Fs: afero.NewOsFs(), rename: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			path := filepath.Join(dir, "state.json")
+			previous := []byte(`{"version":1,"profiles":{},"repos":[{"id":7}]}` + "\n")
+			require.NoError(t, os.WriteFile(path, previous, 0o600))
+
+			st := New()
+			st.Upsert(Record{ID: 1, OwnerLogin: "acme", Name: "svc"})
+			require.Error(t, NewStore(fs, path, nil).Save(st))
+
+			raw, err := os.ReadFile(path)
+			require.NoError(t, err)
+			assert.Equal(t, previous, raw)
+			entries, err := os.ReadDir(dir)
+			require.NoError(t, err)
+			require.Len(t, entries, 1, "a failed save removes its temporary file")
+			assert.Equal(t, "state.json", entries[0].Name())
+		})
+	}
 }

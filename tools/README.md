@@ -12,7 +12,7 @@ make go-tools-update        # go get tool, tidy, reinstall
 
 | Tool | Used for |
 | --- | --- |
-| `cue` | `make config-vet`: validate `.github/settings.json` against `.github/settings.cue` |
+| `cue` | `make config-vet`: validate `.github/settings.json` against `.github/settings.cue` and the fetch config fixtures in `internal/config/testdata` against `internal/config/fetch.cue` |
 | `golangci-lint` | `make lint`; the version matches `ci.yml` |
 | `goreleaser` | `make go-dist-check`, `make release-config-check`; the version matches `cd.yml` |
 | `govulncheck` | `make go-deps-check` for the application, `make go-tools-check` for the tools |

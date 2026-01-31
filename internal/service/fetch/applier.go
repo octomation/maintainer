@@ -121,6 +121,9 @@ func (a *Applier) Execute(ctx context.Context, act Action, st *state.State) erro
 			}
 			if r, ok := st.ByID(act.ID); ok {
 				r.LastSeen, r.LastApply = now, now
+				if act.Profile != "" {
+					r.SourceProfile = act.Profile // the profile whose credentials fetched it (§5.1)
+				}
 			}
 		})
 

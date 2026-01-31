@@ -1,0 +1,12 @@
+[workspace]
+root = "~/Development"
+path = "{{.Visibility}}/{{.Owner}}/{{.Repo}}"
+pins = ["prototyping"] # optional; omit when there is no such directory
+
+[defaults]
+clone_url = "ssh"
+concurrency = 8
+
+[[repos]]
+match = { id = 154873464 }
+path = "~/.dotfiles"
