@@ -18,13 +18,13 @@ assignees:
 milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:15Z
-updatedAt: 2026-10-21T10:23:48Z
-lastEditedAt: 2026-10-21T10:19:49Z
-closedAt: null
+updatedAt: 2026-10-21T11:03:01Z
+lastEditedAt: 2026-10-21T11:02:37Z
+closedAt: 2026-10-21T11:03:01Z
 ---
 
 # service: serve maintainer locally at maintainer.localhost
@@ -61,13 +61,13 @@ $ curl -fsS http://maintainer.localhost:17841/ -o /dev/null -w '%{http_code}\n'
 
 ## Acceptance criteria
 
-- [ ] `maintainer service run --listen 127.0.0.1:0 --listen '[::1]:0'` serves the page at `/` on both addresses with the headers above; `--listen 0.0.0.0:17841` and `--listen localhost:17841` fail with exit `2`.
-- [ ] Without flags the service listens on `127.0.0.1:17841` and `[::1]:17841`; a default address the system cannot assign is skipped with a message, an explicit one is an error.
-- [ ] `listen = ["127.0.0.1:0"]` in `service.toml` serves there; `--listen` overrides it; `listen = ["localhost:17841"]` and `listen = []` are rejected by the loader and by `service.cue`.
-- [ ] A first start without `service.toml` writes the commented default, which loads to the defaults, and with every key uncommented to the default addresses and weights; a second start leaves the file as it is, and an unwritable directory only warns.
-- [ ] `httptest` covers the routes, the methods, `HEAD`, the conditional request and a graceful shutdown with a request in flight.
-- [ ] The generated Formula has a `service do` block that runs `maintainer service run`, and its caveats name `http://maintainer.localhost:17841/` and `brew services start octolab/tap/maintainer`.
-- [ ] After `brew services start octolab/tap/maintainer`, `curl -fsS http://maintainer.localhost:17841/ -o /dev/null -w '%{http_code}\n'` prints `200`.
+- [x] `maintainer service run --listen 127.0.0.1:0 --listen '[::1]:0'` serves the page at `/` on both addresses with the headers above; `--listen 0.0.0.0:17841` and `--listen localhost:17841` fail with exit `2`.
+- [x] Without flags the service listens on `127.0.0.1:17841` and `[::1]:17841`; a default address the system cannot assign is skipped with a message, an explicit one is an error.
+- [x] `listen = ["127.0.0.1:0"]` in `service.toml` serves there; `--listen` overrides it; `listen = ["localhost:17841"]` and `listen = []` are rejected by the loader and by `service.cue`.
+- [x] A first start without `service.toml` writes the commented default, which loads to the defaults, and with every key uncommented to the default addresses and weights; a second start leaves the file as it is, and an unwritable directory only warns.
+- [x] `httptest` covers the routes, the methods, `HEAD`, the conditional request and a graceful shutdown with a request in flight.
+- [x] The generated Formula has a `service do` block that runs `maintainer service run`, and its caveats name `http://maintainer.localhost:17841/` and `brew services start octolab/tap/maintainer`.
+- [x] After `brew services start octolab/tap/maintainer`, `curl -fsS http://maintainer.localhost:17841/status -o /dev/null -w '%{http_code}\n'` prints `200` (since [[MAIN-155]], `/` redirects to `/status`).
 
 ## Out of scope
 

@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-21T10:30:09Z
+updatedAt: 2026-10-21T11:05:47Z
 closedAt: null
 ---
 
@@ -124,13 +124,11 @@ closedAt: null
 - [ ] [[MAIN-44]] — github: contribution: refactor command and view
 - [ ] [[MAIN-45]] — github: contribution: extend support lookup for a month
 - [ ] [[MAIN-48]] — ci/cd: tools: test act for local development
-- [ ] [[MAIN-125]] — release: homebrew: ship one formula with the service and retire the cask
 
 ## In progress
 
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
-- [ ] [[MAIN-151]] — service: serve maintainer locally at maintainer.localhost
 
 ## Done
 
@@ -338,6 +336,7 @@ closedAt: null
 - [x] [[MAIN-117]] — github: contribution: suggest doesn't work properly in headless mode
 - [x] [[MAIN-120]] — ci/cd: Continuous integration healthcheck doesn't work properly
 - [x] [[MAIN-121]] — github: contributions: GitHub changed a way to provide data
+- [x] [[MAIN-125]] — release: homebrew: ship one formula with the service and retire the cask
 - [x] [[MAIN-129]] — fetch: adopt: keep adoption of a pinned checkout additive
 - [x] [[MAIN-133]] — fetch: selection: honor owners, profiles and adoption filters
 - [x] [[MAIN-134]] — fetch: discovery: isolate repository failures and respect rate limits
@@ -355,6 +354,7 @@ closedAt: null
 - [x] [[MAIN-156]] — service: status: the checkout table in the browser
 - [x] [[MAIN-157]] — service: inbox: the issues of the collection as a mail app
 - [x] [[MAIN-158]] — service: tablo: the issues of the collection as a kanban board
+- [x] [[MAIN-151]] — service: serve maintainer locally at maintainer.localhost
 - [x] [[MAIN-131]] — command: exit codes: enforce the documented codes for usage errors
 - [x] [[MAIN-136]] — fetch: apply: refresh successfully reconciled checkouts in the same run
 - [x] [[MAIN-141]] — status: inventory: preserve distinct checkouts and useful errors
