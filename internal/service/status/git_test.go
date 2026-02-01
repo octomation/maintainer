@@ -448,3 +448,35 @@ func TestInspectAgainRecomputes(t *testing.T) {
 	assert.Equal(t, "error", broken.Status)
 	assert.False(t, broken.PushLocked, "an unreadable configuration shows no lock")
 }
+
+func TestRemoteName(t *testing.T) {
+	tests := []struct {
+		raw, want string
+	}{
+		{"git@github.com:octomation/maintainer.git\n", "octomation/maintainer"},
+		{"github.com:octomation/maintainer", "octomation/maintainer"},
+		{"ssh://git@github.com:2222/octomation/maintainer.git", "octomation/maintainer"},
+		{"https://github.com/octomation/maintainer.git", "octomation/maintainer"},
+		{"https://github.com/octomation/maintainer/", "octomation/maintainer"},
+		{"https://gitlab.com/group/subgroup/project.git", "group/subgroup/project"},
+		{"git@[::1]:octomation/maintainer.git", "octomation/maintainer"},
+		{"  first.last@github-work:octomation/maintainer.git  ", "octomation/maintainer"},
+
+		// No host, the file scheme or a single segment names no repository.
+		{"", ""},
+		{"/srv/git/octomation/maintainer.git", ""},
+		{"../octomation/maintainer", ""},
+		{"file:///srv/git/octomation/maintainer.git", ""},
+		{"file://host/srv/octomation/maintainer.git", ""},
+		{`C:\src\octomation\maintainer`, ""},
+		{"C:/src/octomation/maintainer", ""},
+		{"https://github.com/maintainer.git", ""},
+		{"svn://github.com/octomation/maintainer", ""},
+		{"ssh://git@github.com:octomation/maintainer.git", ""},
+	}
+	for _, tc := range tests {
+		t.Run(tc.raw, func(t *testing.T) {
+			assert.Equal(t, tc.want, remoteName(tc.raw))
+		})
+	}
+}

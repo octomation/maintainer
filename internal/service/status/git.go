@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	giturls "github.com/whilp/git-urls"
+	"go.octolab.org/toolset/maintainer/internal/pkg/giturl"
 )
 
 // Row is shared by the JSON, printable and interactive views. Counts describe
@@ -86,7 +86,7 @@ func oneLine(raw []byte) string {
 // remoteName returns owner/name of a remote URL. A local repository, even a
 // file:// URL with a host, names no repository.
 func remoteName(raw string) string {
-	u, err := giturls.Parse(strings.TrimSpace(raw))
+	u, err := giturl.Parse(strings.TrimSpace(raw))
 	if err != nil || u.Host == "" || u.Scheme == "file" {
 		return ""
 	}

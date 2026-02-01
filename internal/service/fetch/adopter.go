@@ -8,9 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	giturls "github.com/whilp/git-urls"
-
 	"go.octolab.org/toolset/maintainer/internal/config"
+	"go.octolab.org/toolset/maintainer/internal/pkg/giturl"
 	gitsvc "go.octolab.org/toolset/maintainer/internal/service/git"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
 	"go.octolab.org/toolset/maintainer/internal/service/workspace"
@@ -182,7 +181,7 @@ func (a *Adopter) inspect(ctx context.Context, dir string, byName map[string]int
 
 // parseRemote normalises a remote URL into (host, owner, name, transport).
 func parseRemote(raw string) (host, owner, name, transport string, ok bool) {
-	u, err := giturls.Parse(raw)
+	u, err := giturl.Parse(raw)
 	if err != nil {
 		return "", "", "", "", false
 	}
