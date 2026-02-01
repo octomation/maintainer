@@ -14,23 +14,23 @@ labels:
   - "effort: hard"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M2]]"
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:44Z
-updatedAt: 2026-10-21T08:24:33Z
-lastEditedAt: 2026-10-21T08:24:33Z
-closedAt: null
+updatedAt: 2026-10-21T10:24:00Z
+lastEditedAt: 2026-10-21T10:24:00Z
+closedAt: 2026-10-21T09:28:18Z
 ---
 
 # service: hub: runtime for the pages at maintainer.localhost
 
 ## Motivation
 
-The local service ([[MAIN-151]]) answers one static page. The v0.3 line ([[MAIN-M2]]) turns it into a hub: `/status`, `/inbox` and `/tablo` over what maintainer already works with, the local checkouts and their issue mirrors in `.github/issues` and `.github/roadmap`. The three pages share one runtime: configuration, an index of the mirrors, the task model and its queries, a cached status snapshot, a JSON API, the HTTP security that private data needs, and a frontend shell with the shared components. The runtime comes first and owns every resource handler and contract; the pages ([[MAIN-156]], [[MAIN-157]], [[MAIN-158]]) add presentation only.
+The local service ([[MAIN-151]]) answers one static page. The v0.3 line ([[MAIN-M3]]) turns it into a hub: `/status`, `/inbox` and `/tablo` over what maintainer already works with, the local checkouts and their issue mirrors in `.github/issues` and `.github/roadmap`. The three pages share one runtime: configuration, an index of the mirrors, the task model and its queries, a cached status snapshot, a JSON API, the HTTP security that private data needs, and a frontend shell with the shared components. The runtime comes first and owns every resource handler and contract; the pages ([[MAIN-156]], [[MAIN-157]], [[MAIN-158]]) add presentation only.
 
 ## Expected behavior
 
@@ -77,4 +77,4 @@ The local service ([[MAIN-151]]) answers one static page. The v0.3 line ([[MAIN-
 
 The three pages' presentation; GitHub synchronization; automatic polling or a file watcher; an advisory lock shared with the mirror tooling; a session cookie; browser end-to-end tests; drag and drop; a Linux service.
 
-Related: [[MAIN-151]], [[MAIN-156]], [[MAIN-157]], [[MAIN-158]], [[MAIN-M2]].
+Related: [[MAIN-151]], [[MAIN-156]], [[MAIN-157]], [[MAIN-158]], [[MAIN-M3]].

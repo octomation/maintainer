@@ -9,14 +9,14 @@ issueType: null
 labels: []
 assignees:
   - kamilsk
-milestone: "[[MAIN-M2]]"
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2022-05-11T14:06:20Z
-updatedAt: 2026-10-20T07:32:12Z
+updatedAt: 2026-10-21T10:22:04Z
 lastEditedAt: 2026-10-19T07:22:36Z
 closedAt: null
 ---

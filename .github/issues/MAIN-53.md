@@ -12,14 +12,14 @@ labels:
   - "scope: test"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M2]]"
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
 state: CLOSED
 stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2022-06-11T10:02:54Z
-updatedAt: 2026-10-20T07:40:42Z
+updatedAt: 2026-10-21T10:22:12Z
 lastEditedAt: 2026-10-19T07:22:48Z
 closedAt: 2026-10-20T07:40:42Z
 ---

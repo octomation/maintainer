@@ -14,16 +14,16 @@ labels:
   - "effort: medium"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M2]]"
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:57Z
-updatedAt: 2026-10-21T08:24:40Z
-lastEditedAt: 2026-10-21T08:24:40Z
-closedAt: null
+updatedAt: 2026-10-21T10:24:10Z
+lastEditedAt: 2026-10-21T10:24:10Z
+closedAt: 2026-10-21T09:28:20Z
 ---
 
 # service: tablo: the issues of the collection as a kanban board
@@ -44,7 +44,7 @@ The boards of the owner's projects differ, but most work fits five columns: Back
 ## Acceptance criteria
 
 - [ ] On the owner's collection the board shows the issues of this repository in the columns of `.github/roadmap/MAIN-P1.md` for its listed tasks, closed tasks under Done or Won't do by their state reason, and unlisted open tasks under Backlog.
-- [ ] The milestone filter `MAIN-M2` shows only its tasks across the columns and the counts add up to the milestone's total.
+- [ ] The milestone filter `MAIN-M3` shows only its tasks across the columns and the counts add up to the milestone's total.
 - [ ] Component tests cover the column layout, the per-column paging, the reset on a filter change and the flag marker against the mocked API of [[MAIN-155]]; `npm run check` and `npm test` pass in the page's branch, the full `make web-check` is the integration gate.
 - [ ] The page's Go side adds nothing beyond [[MAIN-155]]; if it needs a change there, the change is made in the runtime with its tests.
 
@@ -52,4 +52,4 @@ The boards of the owner's projects differ, but most work fits five columns: Back
 
 Drag and drop between columns; writing the board files; per-project column sets; swimlanes; work-in-progress limits.
 
-Related: [[MAIN-155]], [[MAIN-157]], [[MAIN-M2]].
+Related: [[MAIN-155]], [[MAIN-157]], [[MAIN-M3]].

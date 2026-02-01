@@ -14,25 +14,25 @@ labels:
   - "effort: medium"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M3]]"
+milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:25:03Z
-updatedAt: 2026-10-21T05:15:59Z
-lastEditedAt: 2026-10-21T05:15:59Z
+updatedAt: 2026-10-21T10:22:51Z
+lastEditedAt: 2026-10-21T10:22:51Z
 closedAt: 2026-10-20T06:25:07Z
 ---
 
 # org: release: prepare v0.2.0
 
-Publish v0.2.0, the first release of `maintainer fetch` and `maintainer status`, directly as a stable release, so that a user can install it from every documented channel, refresh a multi-owner collection of checkouts and inspect its state, with existing branches and working files preserved. There is no release candidate: the tag is `v0.2.0`, and the defects that do not block it follow in v0.2.x patches. The requirements and the scope are the tasks of [[MAIN-M3]]; this task is the release path itself, as [the release guide](../../AGENTS.md#releasing) describes it.
+Publish v0.2.0, the first release of `maintainer fetch` and `maintainer status`, directly as a stable release, so that a user can install it from every documented channel, refresh a multi-owner collection of checkouts and inspect its state, with existing branches and working files preserved. There is no release candidate: the tag is `v0.2.0`, and the defects that do not block it follow in v0.2.x patches. The requirements and the scope are the tasks of [[MAIN-M2]]; this task is the release path itself, as [the release guide](../../AGENTS.md#releasing) describes it.
 
 **Before the tag**
 
-- The milestone [[MAIN-M3]] holds the tasks of the release and of the patches after it, and [the issue review of 2026-10-19](../reviews/20261019T105848Z.md) says which task goes into v0.2.0.
+- The milestone [[MAIN-M2]] holds the tasks of the release and of the patches after it, and [the issue review of 2026-10-19](../reviews/20261019T105848Z.md) says which task goes into v0.2.0.
 - Scope: the only fix of behaviour before the tag is an origin update that leaves the rest of the Git configuration intact ([[MAIN-135]]); the guides, the help texts, the config template and the note describe the release binary ([[MAIN-132]]). [[MAIN-136]] does not ship, and the documentation keeps the second apply.
 - On the release commit: the checks of the release guide — `make verify`, `make go-integration-test` with a token, `make go-dist-check`, `make release-config-check`, and `make doctor` with no `fail` — then a read-only `status` and `fetch` on the real collection, then `fetch --apply` and the preservation check — local branch tips, HEAD, index, working files and push URLs of existing checkouts unchanged; refs, state and the planned paths and origins updated — and the convergence check: after at most two successful applies against unchanged inputs, the following plan contains no executable reconciliation action — no adopt, relocate, move, update_remote or clone — only routine `fetch` and report-only orphan or noop rows.
 - Existing practice survives: the current config and state load without manual migration, the four active pins and their inactive duplicates stay distinguished, and a `git-contrib` invocation keeps its stdout contract.

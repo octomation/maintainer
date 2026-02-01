@@ -13,15 +13,15 @@ labels:
   - "effort: medium"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M3]]"
+milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-20T06:24:55Z
-updatedAt: 2026-10-21T05:15:48Z
-lastEditedAt: 2026-10-21T05:15:48Z
+updatedAt: 2026-10-21T10:22:48Z
+lastEditedAt: 2026-10-21T10:22:48Z
 closedAt: 2026-10-20T06:24:57Z
 ---
 
@@ -29,7 +29,7 @@ closedAt: 2026-10-20T06:24:57Z
 
 **Motivation:** the site describes `fetch` and `status` as "not released yet; build from source", the home page presents v0.1.0 with three features, and the quickstart does not know the workspace. For v0.2.0, released directly as a stable release, the site, the README and the command help must describe both commands as released, on the scenarios that come from the owner's practice, with examples that reproduce on the built binary, and must claim nothing that the release binary does not do.
 
-**Scenarios**, in this order, from [[MAIN-M3]]: see where local attention is needed; refresh the collection in the weekly routine; bring existing checkouts under management; reconcile names and locations with the vault and the shell helpers; extract focused lists with JSON. Safety is shown inside each scenario, not as a separate story.
+**Scenarios**, in this order, from [[MAIN-M2]]: see where local attention is needed; refresh the collection in the weekly routine; bring existing checkouts under management; reconcile names and locations with the vault and the shell helpers; extract focused lists with JSON. Safety is shown inside each scenario, not as a separate story.
 
 **Requirements**
 

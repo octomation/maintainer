@@ -15,15 +15,15 @@ labels:
   - "effort: medium"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M2]]"
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2026-10-21T04:50:15Z
-updatedAt: 2026-10-21T04:50:16Z
-lastEditedAt: null
+updatedAt: 2026-10-21T10:23:48Z
+lastEditedAt: 2026-10-21T10:19:49Z
 closedAt: null
 ---
 

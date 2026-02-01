@@ -14,16 +14,16 @@ labels:
   - "effort: medium"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M2]]"
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:49Z
-updatedAt: 2026-10-21T08:24:35Z
-lastEditedAt: 2026-10-21T08:24:35Z
-closedAt: null
+updatedAt: 2026-10-21T10:24:04Z
+lastEditedAt: 2026-10-21T10:24:04Z
+closedAt: 2026-10-21T09:28:19Z
 ---
 
 # service: status: the checkout table in the browser
@@ -55,4 +55,4 @@ closedAt: null
 
 Actions on checkouts (fetch, sync, lock); columns the TUI does not have; a live update without refresh.
 
-Related: [[MAIN-155]], [[MAIN-143]], [[MAIN-M2]].
+Related: [[MAIN-155]], [[MAIN-143]], [[MAIN-M3]].

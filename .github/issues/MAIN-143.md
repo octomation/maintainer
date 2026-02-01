@@ -14,14 +14,14 @@ labels:
   - "impact: medium"
   - "effort: easy"
 assignees: []
-milestone: "[[MAIN-M3]]"
+milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:49:27Z
-updatedAt: 2026-10-21T04:51:28Z
+updatedAt: 2026-10-21T10:23:27Z
 lastEditedAt: 2026-10-21T04:51:28Z
 closedAt: 2026-10-21T04:49:30Z
 ---

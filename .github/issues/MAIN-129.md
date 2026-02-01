@@ -14,14 +14,14 @@ labels:
   - "impact: medium"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M3]]"
+milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-01T11:53:51Z
-updatedAt: 2026-10-21T05:15:42Z
+updatedAt: 2026-10-21T10:22:39Z
 lastEditedAt: 2026-10-21T05:15:42Z
 closedAt: 2026-10-20T12:35:45Z
 ---

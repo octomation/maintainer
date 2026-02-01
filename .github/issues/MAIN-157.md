@@ -14,16 +14,16 @@ labels:
   - "effort: medium"
 assignees:
   - kamilsk
-milestone: "[[MAIN-M2]]"
+milestone: "[[MAIN-M3]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:53Z
-updatedAt: 2026-10-21T08:24:38Z
-lastEditedAt: 2026-10-21T08:24:38Z
-closedAt: null
+updatedAt: 2026-10-21T10:24:07Z
+lastEditedAt: 2026-10-21T10:24:07Z
+closedAt: 2026-10-21T09:28:20Z
 ---
 
 # service: inbox: the issues of the collection as a mail app
@@ -55,4 +55,4 @@ Every checkout mirrors its issues in `.github/issues`, and the owner reads them 
 
 Editing the title, body or other labels; creating issues; pushing to GitHub (the mirror tooling does); read and unread state; notifications.
 
-Related: [[MAIN-155]], [[MAIN-158]], [[MAIN-M2]].
+Related: [[MAIN-155]], [[MAIN-158]], [[MAIN-M3]].

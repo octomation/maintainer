@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-21T05:08:40Z
+updatedAt: 2026-10-21T10:30:09Z
 closedAt: null
 ---
 
@@ -125,10 +125,6 @@ closedAt: null
 - [ ] [[MAIN-45]] — github: contribution: extend support lookup for a month
 - [ ] [[MAIN-48]] — ci/cd: tools: test act for local development
 - [ ] [[MAIN-125]] — release: homebrew: ship one formula with the service and retire the cask
-- [ ] [[MAIN-155]] — service: hub: runtime for the pages at maintainer.localhost
-- [ ] [[MAIN-156]] — service: status: the checkout table in the browser
-- [ ] [[MAIN-157]] — service: inbox: the issues of the collection as a mail app
-- [ ] [[MAIN-158]] — service: tablo: the issues of the collection as a kanban board
 
 ## In progress
 
@@ -355,6 +351,10 @@ closedAt: null
 - [x] [[MAIN-135]] — fetch: remote: change only the origin URL when updating a remote
 - [x] [[MAIN-138]] — org: release: prepare v0.2.0
 - [x] [[MAIN-140]] — release: publishing: write the tap through the OctoLab Releaser App
+- [x] [[MAIN-155]] — service: hub: runtime for the pages at maintainer.localhost
+- [x] [[MAIN-156]] — service: status: the checkout table in the browser
+- [x] [[MAIN-157]] — service: inbox: the issues of the collection as a mail app
+- [x] [[MAIN-158]] — service: tablo: the issues of the collection as a kanban board
 - [x] [[MAIN-131]] — command: exit codes: enforce the documented codes for usage errors
 - [x] [[MAIN-136]] — fetch: apply: refresh successfully reconciled checkouts in the same run
 - [x] [[MAIN-141]] — status: inventory: preserve distinct checkouts and useful errors
