@@ -1,25 +1,23 @@
 ---
 title: Local service
-description: Serve maintainer over HTTP at http://maintainer.localhost:17841/ on your computer, as your user, with the status, inbox and tablo pages over your checkouts and their issue mirrors.
+description: One local hub for your GitHub work at http://maintainer.localhost:17841/ — every checkout and every issue your repositories mirror from GitHub, in the status, inbox and tablo pages.
 ---
 
 # Local service
 
-> [!NOTE]
-> `maintainer service` is not released yet, and the Homebrew steps below apply from the release that ships it. To try it now, build `maintainer` from a source checkout:
->
-> ```sh
-> git clone https://github.com/octomation/maintainer.git
-> cd maintainer && go install .
-> ```
-
-`maintainer service run` serves maintainer over HTTP at
-`http://maintainer.localhost:17841/`: three pages over the collection that
-[`maintainer fetch`](/fetch/) and [`maintainer status`](/status/) know about,
-and the issues those checkouts mirror in `.github/issues` and
-`.github/roadmap`. It needs no token or network access, runs as your user and
-listens only on loopback: `.localhost` names resolve to your own computer, so
-there is nothing to set up and no administrator step.
+`maintainer service run` gives your development on GitHub one place on your
+computer: a hub at `http://maintainer.localhost:17841/` with every checkout of
+the collection that [`maintainer fetch`](/fetch/) and
+[`maintainer status`](/status/) know about, and every issue those
+repositories mirror from GitHub in `.github/issues` and `.github/roadmap`, with
+their milestones and project-board sections, across all your owners. Instead
+of opening repositories one by one, you see in three pages where local work
+waits, which issues matter most and where each one stands, with a link to
+GitHub when the mirror has one. The tool that keeps the mirror holds those
+files in step with GitHub; the hub itself never reads from or writes to
+GitHub. It needs no token or network access, runs as your user and listens
+only on loopback: `.localhost` names resolve to your own computer, so there is nothing
+to set up and no administrator step.
 
 | Page | What it shows |
 | --- | --- |
@@ -132,8 +130,8 @@ the collection; the issue you pick opens as a full page, as does an issue you
 open from the board or expand from the inbox. The page's address carries the
 issue, so a link or a reload opens it again; **Back** or Escape returns to
 the list. **Filter** (or the F key) narrows the inbox and the board by state,
-status, text, priority, estimate, labels, type, milestone, repository, owner
-or assignee. **View** groups the inbox by status, priority, estimate,
+text, priority, estimate, labels, type, milestone, repository, owner or
+assignee; the inbox also filters by status. **View** groups the inbox by status, priority, estimate,
 repository, owner, milestone or type; a group's count covers every issue of
 the selection, and **Load more** fills the groups. On the board, **View**
 orders the cards of every column
@@ -155,7 +153,9 @@ or in **Won't do** when it was closed as not planned or as a duplicate; an
 open issue is in the column of the board section that lists it, when the
 section is called To do, In progress or Backlog, and in **Backlog** otherwise.
 An open issue that two boards place differently stays in Backlog with a
-marker, as does one that a board lists as done.
+marker; an open issue that a board lists under Done or Won't do gets a
+contradiction marker, and another board's open section can still decide its
+column.
 
 ## Triage and the score
 
@@ -171,7 +171,7 @@ with the tooling that maintains the mirror. Do not run that tooling's export
 or push, or another editor of the issue files, while you triage in the
 browser.
 
-The inbox orders the issues (**Display**, then **Ordering**) by a score, by
+In the inbox, **View**, then **Ordering**, sorts the issues by a score, by
 priority (the `impact` label), or by the updated or created date. The score is a weighted sum that a repository
 weight multiplies:
 

@@ -48,6 +48,18 @@ $ maintainer status --format=plain
 
 See the [status guide][status.page] for columns, keys and JSON output.
 
+## 🗂️ `maintainer service`
+
+`maintainer service run` serves a local hub at `http://maintainer.localhost:17841/`:
+every checkout of the collection and every issue their repositories mirror
+from GitHub, in one place in the browser. On macOS, Homebrew keeps it running.
+
+```bash
+$ brew services start octolab/tap/maintainer
+```
+
+See the [service guide][service.page] for the pages, triage and `service.toml`.
+
 ## 🧩 Installation
 
 ### Homebrew
@@ -56,9 +68,9 @@ See the [status guide][status.page] for columns, keys and JSON output.
 $ brew install --formula octolab/tap/maintainer
 ```
 
-The formula is available for macOS and Linux. If you installed the cask,
-switch once as the [service guide][service.page] shows. The
-[local service][service.page], not released yet, will come with the formula.
+The formula is available for macOS and Linux and carries the
+[local service][service.page] on macOS. If you installed the cask, switch once
+as the service guide shows.
 
 ### Binary
 
@@ -71,7 +83,7 @@ $ wget -qO-  https://raw.githubusercontent.com/octomation/maintainer/main/bin/in
 The script installs the latest release into `./bin`. Pass `-b` to choose another directory and a tag to pin the version:
 
 ```bash
-$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.2.1
+$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.3.0
 ```
 
 > Don't forget about [security](https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/).

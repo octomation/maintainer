@@ -43,10 +43,10 @@ It exits with `1` when a copy is incompatible or was edited after maintainer ins
 
 ```text
 $ maintainer skill status --agent claude-code
-maintainer 0.2.1 ships the maintainer skill 0.2.1, sha256:…
+maintainer 0.3.0 ships the maintainer skill 0.3.0, sha256:…
 
 Claude Code user: ~/.claude/skills/maintainer
-  skill 0.2.1, compatible with this binary, same as this release, installed by maintainer, intact
+  skill 0.3.0, compatible with this binary, same as this release, installed by maintainer, intact
 ```
 
 `maintainer skill show` prints the skill, `maintainer skill info` its version and digest, and `maintainer skill export -o <dir>` writes it to any other directory.
@@ -61,7 +61,7 @@ The [octolab/skills](https://github.com/octolab/skills) catalog holds the skill 
 | Codex | `codex plugin marketplace add octolab/skills`, then `codex plugin add maintainer@octolab` | `codex plugin marketplace upgrade octolab` |
 | Any, with the [skills CLI](https://skills.sh/) | `npx skills add octolab/skills --skill maintainer -a claude-code -a codex -g` | `npx skills update` |
 
-The catalog follows the latest release, so an update can bring a skill newer than your binary. Each release is also tagged `maintainer--v0.2.1` in the catalog: `npx skills add 'octolab/skills#maintainer--v0.2.1' --skill maintainer` stays on that release. A `#maintainer--v0.2.1` suffix on `claude plugin marketplace add` pins the whole catalog.
+The catalog follows the latest release, so an update can bring a skill newer than your binary. Each release is also tagged `maintainer--v0.3.0` in the catalog: `npx skills add 'octolab/skills#maintainer--v0.3.0' --skill maintainer` stays on that release. A `#maintainer--v0.3.0` suffix on `claude plugin marketplace add` pins the whole catalog.
 
 ## When versions differ
 

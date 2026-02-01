@@ -1,6 +1,6 @@
 ---
 title: maintainer
-description: See your open source contribution pace, plan your next session and keep your GitHub checkouts current from the terminal.
+description: See your open source contribution pace, keep your GitHub checkouts current and follow every repository’s issues in one local hub.
 ---
 
 import Link from 'next/link'
@@ -24,13 +24,13 @@ Suggestion is 2026-01-26T08:53:14+03:00, 20 → 25`
 <div className="home">
   <section className="hero">
     <div className="hero-copy">
-      <Link className="release-pill" href="/changelog/v0.2.1/">Latest release · v0.2.1 <span aria-hidden="true">↗</span></Link>
+      <Link className="release-pill" href="/changelog/v0.3.0/">Latest release · v0.3.0 <span aria-hidden="true">↗</span></Link>
       <p className="eyebrow">OPEN SOURCE TOOLKIT</p>
       <h1>Keep the little things <em>moving.</em></h1>
-      <p className="hero-lead">See your recent open source activity, spot lighter days, and choose a contribution target for your next session. Turn the GitHub calendar into a practical plan.</p>
+      <p className="hero-lead">Bring your GitHub work into one local hub: every checkout and every mirrored issue across your repositories, ranked and on one board. Keep the checkouts current and plan your next contribution from the same CLI.</p>
       <div className="hero-actions">
         <Link className="button-primary" href="/quickstart/">Get started <span aria-hidden="true">→</span></Link>
-        <Link className="button-text" href="/changelog/v0.2.1/">What’s in v0.2.1 <span aria-hidden="true">↗</span></Link>
+        <Link className="button-text" href="/changelog/v0.3.0/">What’s in v0.3.0 <span aria-hidden="true">↗</span></Link>
       </div>
       <p className="hero-note">One CLI · macOS & Linux · Open source, MIT</p>
     </div>
@@ -44,6 +44,15 @@ Suggestion is 2026-01-26T08:53:14+03:00, 20 → 25`
   </section>
 
   <div className="flow-strip" aria-label="The contribution planning workflow"><span>01 <b>Look up recent weeks</b></span><span aria-hidden="true">→</span><span>02 <b>Choose a target</b></span><span aria-hidden="true">→</span><span>03 <b>Date your next commit</b></span></div>
+
+  <section className="use-cases">
+    <div className="section-heading"><p className="eyebrow">ONE PLACE FOR YOUR GITHUB WORK</p><h2>Every repository on one screen.<br />A local hub in your browser.</h2></div>
+    <div className="use-case-grid">
+      <Link className="use-case" href="/service/"><span className="card-number">01 / STATUS</span><h3>See every checkout</h3><p>Uncommitted work, divergence and push locks of the whole collection, grouped by state, in the browser.</p><span className="card-link">Open the hub <span aria-hidden="true">↗</span></span></Link>
+      <Link className="use-case" href="/service/#what-the-pages-read"><span className="card-number">02 / INBOX</span><h3>Read every issue</h3><p>The issues your repositories mirror from GitHub in one inbox, filtered, grouped and ranked by a score you tune, each a click away from GitHub.</p><span className="card-link">Triage the inbox <span aria-hidden="true">↗</span></span></Link>
+      <Link className="use-case" href="/service/#triage-and-the-score"><span className="card-number">03 / TABLO</span><h3>Plan on one board</h3><p>Backlog to Done across all repositories, with priority and estimate set where you read.</p><span className="card-link">Plan the work <span aria-hidden="true">↗</span></span></Link>
+    </div>
+  </section>
 
   <section className="use-cases">
     <div className="section-heading"><p className="eyebrow">START WITH YOUR CONTRIBUTION PACE</p><h2>Plan with the calendar.<br />Also in maintainer: small tools for upkeep.</h2></div>
@@ -63,6 +72,6 @@ Suggestion is 2026-01-26T08:53:14+03:00, 20 → 25`
     </div>
   </section>
 
-  <section className="release-band"><div><p className="eyebrow">THE LATEST RELEASE</p><h2>v0.2.1 — Safe moves, clear status.</h2><p>Fetch keeps to the repositories you select and to the workspace it manages, status sums up your checkouts in one line, and an agent skill ships with the binary.</p></div><Link className="button-primary" href="/changelog/v0.2.1/">Read the release <span aria-hidden="true">→</span></Link></section>
-  <p className="scope-note">Maintainer helps you keep up your open source contribution: the contribution commands read the calendar of the token’s account, status inspects your checkouts offline, and fetch clones, moves and refreshes them by a plan you review first. <Link href="/contributions/">The calendar guide</Link> and <Link href="/fetch/">the fetch guide</Link> say what each command reads and changes; <Link href="/agents/">the agent skill</Link> teaches your coding agent the same.</p>
+  <section className="release-band"><div><p className="eyebrow">THE LATEST RELEASE</p><h2>v0.3.0 — Your work at a glance.</h2><p>A local hub brings your checkouts and every issue your repositories mirror from GitHub into one place in the browser, and on macOS Homebrew keeps it running.</p></div><Link className="button-primary" href="/changelog/v0.3.0/">Read the release <span aria-hidden="true">→</span></Link></section>
+  <p className="scope-note">Maintainer helps you keep up your open source contribution: the contribution commands read the calendar of the token’s account, status inspects your checkouts offline, fetch clones, moves and refreshes them by a plan you review first, and the local hub shows the checkouts and the issues they mirror from GitHub in one place. <Link href="/contributions/">The calendar guide</Link>, <Link href="/fetch/">the fetch guide</Link> and <Link href="/service/">the service guide</Link> say what each command reads and changes; <Link href="/agents/">the agent skill</Link> teaches your coding agent the same.</p>
 </div>

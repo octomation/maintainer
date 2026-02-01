@@ -4,21 +4,23 @@ description: >-
   Manage a workspace of local GitHub checkouts with the maintainer CLI: plan
   and apply fetch (clone, refresh, move, adopt), check fetch.toml against its
   schema, read the state and pins, and see branches, uncommitted work,
-  divergence and push locks across checkouts with status. Also plans
-  contributions with the GitHub contribution calendar. Use when the user wants
-  to clone or refresh their repositories, find local work across checkouts, or
-  troubleshoot a maintainer command. Not for mirroring GitHub issues into
+  divergence and push locks across checkouts with status. Also runs the local
+  hub, maintainer service, that shows the checkouts and the issues they mirror
+  in one place in the browser, and plans contributions with the GitHub
+  contribution calendar. Use when the user wants to clone or refresh their
+  repositories, find local work across checkouts, run or configure the local
+  hub, or troubleshoot a maintainer command. Not for mirroring GitHub issues into
   .github/.
 license: MIT
 compatibility: >-
-  Requires the maintainer binary >=0.2.1 <0.3.0 on macOS or Linux and Git on
+  Requires the maintainer binary >=0.3.0 <0.4.0 on macOS or Linux and Git on
   PATH. fetch and the contribution commands need network access and a GitHub
   token; status works offline.
 metadata:
   author: octomation
-  version: "0.2.1"
+  version: "0.3.0"
   tool: maintainer
-  tool-version-range: ">=0.2.1 <0.3.0"
+  tool-version-range: ">=0.3.0 <0.4.0"
 ---
 
 # maintainer
@@ -28,11 +30,13 @@ step with GitHub. `maintainer fetch` discovers the user's repositories and
 plans what to clone, refresh, move or adopt, like `terraform plan`; `--apply`
 carries the plan out without touching branches or working files.
 `maintainer status` shows, offline, where local work needs attention. Both read
-one config, `fetch.toml`, and one state file.
+one config, `fetch.toml`, and one state file. `maintainer service run` brings
+the checkouts and the issues they mirror from GitHub into one local hub in the
+browser.
 
 ## 1. Check the binary first
 
-This skill describes maintainer `>=0.2.1 <0.3.0`. Before anything else:
+This skill describes maintainer `>=0.3.0 <0.4.0`. Before anything else:
 
 1. Run `maintainer version` and read the `version` line.
 2. Compare it with that range.
@@ -44,7 +48,7 @@ This skill describes maintainer `>=0.2.1 <0.3.0`. Before anything else:
      (`brew upgrade --formula octolab/tap/maintainer`) or reinstalling the
      skill from the binary
      (`maintainer skill install --agent claude-code --replace`, or `codex`).
-   - `dev`, a pseudo-version such as `v0.2.1-0.20261020…`, or unknown: treat
+   - `dev`, a pseudo-version such as `v0.3.0-0.20261021…`, or unknown: treat
      compatibility as unknown and rely on `--help`.
    - `maintainer skill` missing: the binary predates it; rely on `--help` only.
    - `maintainer` not found: explain how to install it
