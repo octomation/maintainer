@@ -41,8 +41,8 @@ This skill describes maintainer `>=0.2.1 <0.3.0`. Before anything else:
    - Older or newer: don't rely on the recipes here. Read the skill that ships
      with the binary, `maintainer skill show`, and tell the user the versions
      differ; suggest upgrading maintainer
-     (`brew upgrade --formula octolab/tap/maintainer`, or `--cask`, whichever
-     they installed) or reinstalling the skill from the binary
+     (`brew upgrade --formula octolab/tap/maintainer`) or reinstalling the
+     skill from the binary
      (`maintainer skill install --agent claude-code --replace`, or `codex`).
    - `dev`, a pseudo-version such as `v0.2.1-0.20261020…`, or unknown: treat
      compatibility as unknown and rely on `--help`.
@@ -95,6 +95,7 @@ This skill describes maintainer `>=0.2.1 <0.3.0`. Before anything else:
 | A time to contribute | `github contribution suggest`; also `contribution lookup`, `contribution histogram`, `contribution snapshot`, `contribution diff` |
 | Go vanity import pages | `go vanity build` |
 | Combined Makefiles | `makefile build` |
+| maintainer in a browser on this computer | `service run`, or `brew services start octolab/tap/maintainer` |
 
 `fetch` flags such as `--config`, `--owner`, `--format` and `--timeout` work
 for its subcommands too. Recipes:
@@ -152,7 +153,38 @@ this release: [references/cli.md](references/cli.md).
 
 Fields and examples: [references/output.md](references/output.md).
 
-## 6. When something fails
+## 6. The local service
+
+`maintainer service run` serves maintainer over HTTP at
+`http://maintainer.localhost:17841/`. This release answers `GET` and `HEAD`
+of `/` with a page that says "Service is running." and nothing else; it needs
+no token, config or network.
+
+- **Homebrew runs it.** On macOS the Formula carries the service:
+  `brew services start octolab/tap/maintainer`, `restart` after an upgrade,
+  `stop` to end it; it logs to `$(brew --prefix)/var/log/maintainer.log`.
+  Installing the Formula doesn't start it; start or stop it only with the
+  user's go-ahead.
+- **As the user, never as root.** Don't use `sudo maintainer` or
+  `sudo brew services`; nothing here needs an administrator.
+- **Loopback only.** By default it listens on `127.0.0.1:17841` and
+  `[::1]:17841`, as `maintainer.localhost` resolves to both; without an IPv6
+  loopback it skips `::1` and keeps running.
+- **`--listen` replaces both** and may repeat. Each value is a literal
+  loopback IP address with a port; `localhost`, `0.0.0.0` or another address
+  exits `2`, and an address it cannot bind, such as a taken port, stops it
+  with an error:
+
+  ```sh
+  maintainer service run --listen 127.0.0.1:8080 --listen '[::1]:8080'
+  ```
+
+- **Check it** with
+  `curl -fsS http://maintainer.localhost:17841/ -o /dev/null -w '%{http_code}\n'`,
+  which prints `200`. Run in a terminal, `Ctrl-C` stops it once the
+  responses in flight are sent.
+
+## 7. When something fails
 
 - `unknown key …; did you mean …?`: fix the key in the named file, then run
   `maintainer fetch config validate`.

@@ -339,6 +339,31 @@ Build Makefiles.
 maintainer makefile build
 ```
 
+## maintainer service
+
+run the local maintainer service
+
+```text
+maintainer service [command]
+```
+
+## maintainer service run
+
+Serves the local maintainer service over HTTP on loopback, at
+http://maintainer.localhost:17841/ by default: GET and HEAD of / answer with a page that
+says the service is running. It runs as your user and listens on
+127.0.0.1 and ::1; a default address the system lacks, as ::1 with IPv6
+turned off, is skipped. --listen replaces the defaults and may repeat.
+SIGINT or SIGTERM stops it once the responses in flight are sent.
+
+```text
+maintainer service run [flags]
+```
+
+Flags:
+
+- `--listen stringArray`: loopback address to listen on, repeatable; replaces the defaults (default [127.0.0.1:17841,[::1]:17841])
+
 ## maintainer skill
 
 Shows or installs the agent skill for this release.
