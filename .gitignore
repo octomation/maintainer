@@ -20,3 +20,6 @@
 *.env
 *.hosts
 http-client.private.env.json
+
+# frontend dependencies
+/web/node_modules/

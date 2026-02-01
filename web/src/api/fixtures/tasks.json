@@ -1,0 +1,541 @@
+{
+  "generation": 1,
+  "collected_at": "2026-10-20T12:00:00Z",
+  "refreshing": false,
+  "warnings": [
+    "/home/me/Development/public/kamilsk/dotfiles/.github/issues/DOT-1.md: duplicate mirror of github:kamilsk/dotfiles#1 (/home/me/Development/public/kamilsk/dotfiles-copy/.github/issues/DOT-1.md)",
+    "/home/me/Development/public/octomation/maintainer/.github/issues/MAIN-8.md: MAIN-8.md: frontmatter: yaml: line 4: found unexpected end of stream"
+  ],
+  "data": {
+    "total": 8,
+    "limit": 100,
+    "offset": 0,
+    "facets": {
+      "owners": [
+        {
+          "value": "octomation",
+          "count": 8
+        }
+      ],
+      "repositories": [
+        {
+          "value": "octomation/maintainer",
+          "count": 8
+        }
+      ],
+      "milestones": [
+        {
+          "value": "github:octomation/maintainer/milestones/1",
+          "count": 2
+        },
+        {
+          "value": "github:octomation/maintainer/milestones/2",
+          "count": 2
+        }
+      ],
+      "labels": [
+        {
+          "value": "impact: high",
+          "count": 2
+        },
+        {
+          "value": "scope: code",
+          "count": 2
+        },
+        {
+          "value": "type: feature",
+          "count": 2
+        },
+        {
+          "value": "effort: easy",
+          "count": 1
+        },
+        {
+          "value": "effort: hard",
+          "count": 1
+        },
+        {
+          "value": "effort: medium",
+          "count": 1
+        },
+        {
+          "value": "impact: low",
+          "count": 1
+        },
+        {
+          "value": "impact: medium",
+          "count": 1
+        },
+        {
+          "value": "scope: docs",
+          "count": 1
+        },
+        {
+          "value": "type: bug",
+          "count": 1
+        },
+        {
+          "value": "type: chore",
+          "count": 1
+        },
+        {
+          "value": "type:bug",
+          "count": 1
+        }
+      ],
+      "types": [
+        {
+          "value": "feature",
+          "count": 3
+        },
+        {
+          "value": "bug",
+          "count": 2
+        },
+        {
+          "value": "task",
+          "count": 2
+        },
+        {
+          "value": "chore",
+          "count": 1
+        }
+      ],
+      "assignees": [
+        {
+          "value": "kamilsk",
+          "count": 3
+        },
+        {
+          "value": "octocat",
+          "count": 1
+        }
+      ],
+      "columns": [
+        {
+          "value": "backlog",
+          "count": 4
+        },
+        {
+          "value": "done",
+          "count": 1
+        },
+        {
+          "value": "in_progress",
+          "count": 1
+        },
+        {
+          "value": "todo",
+          "count": 1
+        },
+        {
+          "value": "wont_do",
+          "count": 1
+        }
+      ],
+      "states": [
+        {
+          "value": "open",
+          "count": 6
+        },
+        {
+          "value": "closed",
+          "count": 2
+        }
+      ]
+    },
+    "tasks": [
+      {
+        "key": "github:octomation/maintainer#1",
+        "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lciMx",
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "code": "MAIN-1",
+        "number": 1,
+        "url": "https://github.com/octomation/maintainer/issues/1",
+        "title": "fetch: adopt existing checkouts",
+        "state": "open",
+        "state_reason": null,
+        "type": "feature",
+        "labels": [
+          "type: feature",
+          "scope: code",
+          "impact: high",
+          "effort: easy"
+        ],
+        "assignees": [
+          "kamilsk"
+        ],
+        "milestone": {
+          "key": "github:octomation/maintainer/milestones/1",
+          "title": "Workspace, v0.2"
+        },
+        "issue_fields": {
+          "Priority": "High"
+        },
+        "created_at": "2026-01-10T10:00:00Z",
+        "updated_at": "2026-10-01T12:00:00Z",
+        "closed_at": null,
+        "boards": [
+          {
+            "board": "PVT_org1",
+            "section": "Backlog"
+          }
+        ],
+        "column": "backlog",
+        "flags": {
+          "ambiguous": false,
+          "contradiction": false,
+          "duplicate_mirror": false,
+          "stale": false
+        },
+        "score": {
+          "total": 3.8922374429223745,
+          "repo_weight": 1,
+          "impact": 1,
+          "ease": 1,
+          "type": 0.5,
+          "age": 0.7755707762557077,
+          "due": 0.6166666666666667
+        },
+        "version": "sha256-7d063e9cb445d673717e2952f4338f26b2d9cfc7a0187f80a656e194c960ba30"
+      },
+      {
+        "key": "github:octomation/maintainer#9",
+        "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lciM5",
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "code": "MAIN-9",
+        "number": 9,
+        "url": "https://github.com/octomation/maintainer/issues/9",
+        "title": "flow: labels",
+        "state": "open",
+        "state_reason": null,
+        "type": "feature",
+        "labels": [
+          "impact: high",
+          "scope: code"
+        ],
+        "assignees": [],
+        "milestone": null,
+        "issue_fields": {},
+        "created_at": "2026-02-01T00:00:00Z",
+        "updated_at": "2026-02-01T00:00:00Z",
+        "closed_at": null,
+        "boards": [
+          {
+            "board": "PVT_org1",
+            "section": "To do"
+          }
+        ],
+        "column": "todo",
+        "flags": {
+          "ambiguous": false,
+          "contradiction": false,
+          "duplicate_mirror": false,
+          "stale": false
+        },
+        "score": {
+          "total": 2.2164383561643834,
+          "repo_weight": 1,
+          "impact": 1,
+          "ease": 0,
+          "type": 0.5,
+          "age": 0.7164383561643836,
+          "due": 0
+        },
+        "version": "sha256-1027a77cf256489d569c8ad6ad41c5ab1a769050bfbc800b2cf27bedaa0b05d2"
+      },
+      {
+        "key": "github:octomation/maintainer#4",
+        "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lciM0",
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "code": "MAIN-4",
+        "number": 4,
+        "url": "https://github.com/octomation/maintainer/issues/4",
+        "title": "docs: the service guide",
+        "state": "open",
+        "state_reason": null,
+        "type": "task",
+        "labels": [
+          "scope: docs",
+          "impact: medium",
+          "effort: medium"
+        ],
+        "assignees": [],
+        "milestone": {
+          "key": "github:octomation/maintainer/milestones/1",
+          "title": "Workspace, v0.2"
+        },
+        "issue_fields": {},
+        "created_at": "2026-05-01T00:00:00Z",
+        "updated_at": "2026-10-10T00:00:00Z",
+        "closed_at": null,
+        "boards": [
+          {
+            "board": "PVT_org1",
+            "section": "In progress"
+          },
+          {
+            "board": "PVT_repo2",
+            "section": "In progress"
+          }
+        ],
+        "column": "in_progress",
+        "flags": {
+          "ambiguous": false,
+          "contradiction": false,
+          "duplicate_mirror": false,
+          "stale": false
+        },
+        "score": {
+          "total": 2.089269406392694,
+          "repo_weight": 1,
+          "impact": 0.5,
+          "ease": 0.5,
+          "type": 0,
+          "age": 0.4726027397260274,
+          "due": 0.6166666666666667
+        },
+        "version": "sha256-a62a8fc2a1c1b656ff81cfc108603b7c7869b31fc2e8a955655f00e3c9158b51"
+      },
+      {
+        "key": "github:octomation/maintainer#2",
+        "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lciMy",
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "code": "MAIN-2",
+        "number": 2,
+        "url": "https://github.com/octomation/maintainer/issues/2",
+        "title": "status: show push locks",
+        "state": "closed",
+        "state_reason": "completed",
+        "type": "bug",
+        "labels": [],
+        "assignees": [],
+        "milestone": {
+          "key": "github:octomation/maintainer/milestones/2",
+          "title": "Hub, v0.3"
+        },
+        "issue_fields": {},
+        "created_at": "2025-06-01T00:00:00Z",
+        "updated_at": "2026-09-15T00:00:00Z",
+        "closed_at": "2026-09-15T00:00:00Z",
+        "boards": [
+          {
+            "board": "PVT_org1",
+            "section": "Done"
+          }
+        ],
+        "column": "done",
+        "flags": {
+          "ambiguous": false,
+          "contradiction": false,
+          "duplicate_mirror": false,
+          "stale": false
+        },
+        "score": {
+          "total": 2,
+          "repo_weight": 1,
+          "impact": 0,
+          "ease": 0,
+          "type": 1,
+          "age": 1,
+          "due": 0
+        },
+        "version": "sha256-64c4479132e26e04f8c64b94035011b8780c33ec96e28c4f336206a274f19b8f"
+      },
+      {
+        "key": "github:octomation/maintainer:MAIN-3",
+        "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lcjpNQUlOLTM",
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "code": "MAIN-3",
+        "number": null,
+        "url": null,
+        "title": "service: a local-only idea",
+        "state": "open",
+        "state_reason": null,
+        "type": "bug",
+        "labels": [
+          "type:bug",
+          "effort: hard"
+        ],
+        "assignees": [
+          "kamilsk"
+        ],
+        "milestone": null,
+        "issue_fields": {},
+        "created_at": null,
+        "updated_at": null,
+        "closed_at": null,
+        "boards": [],
+        "column": "backlog",
+        "flags": {
+          "ambiguous": false,
+          "contradiction": false,
+          "duplicate_mirror": false,
+          "stale": false
+        },
+        "score": {
+          "total": 1.25,
+          "repo_weight": 1,
+          "impact": 0,
+          "ease": 0.25,
+          "type": 1,
+          "age": 0,
+          "due": 0
+        },
+        "version": "sha256-7eadae30f8492b327a15185f2487bca41cc6ca14ad42ad2af2f1a0438e9b0d77"
+      },
+      {
+        "key": "github:octomation/maintainer#7",
+        "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lciM3",
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "code": "MAIN-7",
+        "number": 7,
+        "url": "https://github.com/octomation/maintainer/issues/7",
+        "title": "hostile: markdown",
+        "state": "closed",
+        "state_reason": "not_planned",
+        "type": "chore",
+        "labels": [
+          "type: chore"
+        ],
+        "assignees": [],
+        "milestone": null,
+        "issue_fields": {},
+        "created_at": "2026-01-01T00:00:00Z",
+        "updated_at": "2026-01-02T00:00:00Z",
+        "closed_at": "2026-01-02T00:00:00Z",
+        "boards": [
+          {
+            "board": "PVT_org1",
+            "section": "Won't do"
+          }
+        ],
+        "column": "wont_do",
+        "flags": {
+          "ambiguous": false,
+          "contradiction": false,
+          "duplicate_mirror": false,
+          "stale": false
+        },
+        "score": {
+          "total": 0.8013698630136986,
+          "repo_weight": 1,
+          "impact": 0,
+          "ease": 0,
+          "type": 0,
+          "age": 0.8013698630136986,
+          "due": 0
+        },
+        "version": "sha256-71fcae9b783b03e9c2e06cd9eb5030551204ac67f7cc094b3f2f214526c95499"
+      },
+      {
+        "key": "github:octomation/maintainer#6",
+        "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lciM2",
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "code": "MAIN-6",
+        "number": 6,
+        "url": "https://github.com/octomation/maintainer/issues/6",
+        "title": "hub: ambiguous boards",
+        "state": "open",
+        "state_reason": null,
+        "type": "feature",
+        "labels": [
+          "type: feature",
+          "type: bug"
+        ],
+        "assignees": [
+          "kamilsk",
+          "octocat"
+        ],
+        "milestone": null,
+        "issue_fields": {},
+        "created_at": "2026-09-01T00:00:00Z",
+        "updated_at": "2026-09-20T00:00:00Z",
+        "closed_at": null,
+        "boards": [
+          {
+            "board": "PVT_org1",
+            "section": "To do"
+          },
+          {
+            "board": "PVT_repo2",
+            "section": "In progress"
+          }
+        ],
+        "column": "backlog",
+        "flags": {
+          "ambiguous": true,
+          "contradiction": false,
+          "duplicate_mirror": false,
+          "stale": false
+        },
+        "score": {
+          "total": 0.6356164383561644,
+          "repo_weight": 1,
+          "impact": 0,
+          "ease": 0,
+          "type": 0.5,
+          "age": 0.13561643835616438,
+          "due": 0
+        },
+        "version": "sha256-ab3a5f010d3b781d42b02e3dd977cb82fa899053f7db78a562ebe3d5be068aee"
+      },
+      {
+        "key": "github:octomation/maintainer#5",
+        "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lciM1",
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "code": "MAIN-5",
+        "number": 5,
+        "url": "https://github.com/octomation/maintainer/issues/5",
+        "title": "release: prepare v0.3.0",
+        "state": "open",
+        "state_reason": null,
+        "type": "task",
+        "labels": [
+          "impact: low"
+        ],
+        "assignees": [],
+        "milestone": {
+          "key": "github:octomation/maintainer/milestones/2",
+          "title": "Hub, v0.3"
+        },
+        "issue_fields": {},
+        "created_at": "2026-08-01T00:00:00Z",
+        "updated_at": "2026-08-02T00:00:00Z",
+        "closed_at": null,
+        "boards": [
+          {
+            "board": "PVT_org1",
+            "section": "Done"
+          }
+        ],
+        "column": "backlog",
+        "flags": {
+          "ambiguous": false,
+          "contradiction": true,
+          "duplicate_mirror": false,
+          "stale": false
+        },
+        "score": {
+          "total": 0.4705479452054795,
+          "repo_weight": 1,
+          "impact": 0.25,
+          "ease": 0,
+          "type": 0,
+          "age": 0.22054794520547946,
+          "due": 0
+        },
+        "version": "sha256-d4f7dfdd8482f77349b945bb0b10f2dcd32f177bd875ebb8cebd2f503e228680"
+      }
+    ]
+  }
+}
+

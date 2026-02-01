@@ -1,0 +1,159 @@
+{
+  "generation": 1,
+  "collected_at": "2026-10-20T12:00:00Z",
+  "refreshing": false,
+  "warnings": [
+    "/home/me/Development/public/kamilsk/dotfiles/.github/issues/DOT-1.md: duplicate mirror of github:kamilsk/dotfiles#1 (/home/me/Development/public/kamilsk/dotfiles-copy/.github/issues/DOT-1.md)",
+    "/home/me/Development/public/octomation/maintainer/.github/issues/MAIN-8.md: MAIN-8.md: frontmatter: yaml: line 4: found unexpected end of stream"
+  ],
+  "data": {
+    "repositories": [
+      {
+        "repository": "kamilsk/dotfiles",
+        "owner": "kamilsk",
+        "name": "dotfiles",
+        "weight": 1,
+        "path": "/home/me/Development/public/kamilsk/dotfiles",
+        "tasks": 2,
+        "open": 1,
+        "private": false
+      },
+      {
+        "repository": "kamilsk/dotfiles",
+        "owner": "kamilsk",
+        "name": "dotfiles",
+        "weight": 1,
+        "path": "/home/me/Development/public/kamilsk/dotfiles-copy",
+        "tasks": 2,
+        "open": 1,
+        "private": false
+      },
+      {
+        "repository": "octomation/maintainer",
+        "owner": "octomation",
+        "name": "maintainer",
+        "weight": 1,
+        "path": "/home/me/Development/public/octomation/maintainer",
+        "tasks": 8,
+        "open": 6,
+        "private": false
+      },
+      {
+        "repository": "octomation/tool",
+        "owner": "octomation",
+        "name": "tool",
+        "weight": 2,
+        "path": "/home/me/Development/private/octomation/tool",
+        "tasks": 2,
+        "open": 1,
+        "private": true
+      }
+    ],
+    "milestones": [
+      {
+        "key": "github:kamilsk/dotfiles/milestones/1",
+        "repository": "kamilsk/dotfiles",
+        "code": "DOT-M1",
+        "number": 1,
+        "title": "Git flow",
+        "state": "open",
+        "due_on": "2026-12-31T00:00:00Z",
+        "url": "https://github.com/kamilsk/dotfiles/milestone/1"
+      },
+      {
+        "key": "github:octomation/maintainer/milestones/1",
+        "repository": "octomation/maintainer",
+        "code": "MAIN-M1",
+        "number": 1,
+        "title": "Workspace, v0.2",
+        "state": "open",
+        "due_on": "2026-11-01T00:00:00Z",
+        "url": "https://github.com/octomation/maintainer/milestone/1"
+      },
+      {
+        "key": "github:octomation/maintainer/milestones/2",
+        "repository": "octomation/maintainer",
+        "code": "MAIN-M2",
+        "number": 2,
+        "title": "Hub, v0.3",
+        "state": "open",
+        "due_on": null,
+        "url": "https://github.com/octomation/maintainer/milestone/2"
+      },
+      {
+        "key": "github:octomation/tool/milestones/1",
+        "repository": "octomation/tool",
+        "code": "milestone-1",
+        "number": 1,
+        "title": "tool 1.0",
+        "state": "open",
+        "due_on": null,
+        "url": "https://github.com/octomation/tool/milestone/1"
+      }
+    ],
+    "boards": [
+      {
+        "key": "PVT_kwHOABHIaM4AB1OK",
+        "title": "Delayed",
+        "url": "https://github.com/users/kamilsk/projects/8",
+        "repositories": [
+          "kamilsk/dotfiles"
+        ],
+        "sections": [
+          "Items"
+        ]
+      },
+      {
+        "key": "PVT_org1",
+        "title": "Platform",
+        "url": "https://github.com/orgs/octomation/projects/1",
+        "repositories": [
+          "octomation/maintainer",
+          "octomation/tool"
+        ],
+        "sections": [
+          "Items",
+          "Backlog",
+          "To do",
+          "In progress",
+          "Done",
+          "Won't do"
+        ]
+      },
+      {
+        "key": "PVT_repo2",
+        "title": "Current sprint",
+        "url": "https://github.com/orgs/octomation/projects/2",
+        "repositories": [
+          "octomation/maintainer"
+        ],
+        "sections": [
+          "In progress"
+        ]
+      }
+    ],
+    "labels": [
+      "effort: easy",
+      "effort: hard",
+      "effort: medium",
+      "impact: high",
+      "impact: low",
+      "impact: medium",
+      "scope: code",
+      "scope: docs",
+      "type: bug",
+      "type: chore",
+      "type: feature",
+      "type: improvement",
+      "type:bug"
+    ],
+    "columns": [
+      "backlog",
+      "todo",
+      "in_progress",
+      "done",
+      "wont_do"
+    ]
+  }
+}
+

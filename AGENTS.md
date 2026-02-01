@@ -19,6 +19,16 @@ A larger feature goes from its issue to the code to the user guide.
 - A guide stands on its own: no development history, implementation plans,
   test reports, internals or promises of unreleased behavior.
 
+## Hub frontend
+
+The pages of the local service live in `web/` (Preact, TypeScript, Vite; the
+built `web/dist` is committed and embedded in the binary). Their look is a
+contract: [web/DESIGN.md](web/DESIGN.md) holds the tokens and the component
+rules, in the design.md format, and `npx @google/design.md lint web/DESIGN.md`
+must report no errors. Change a token there before the code, keep both themes
+and the 390 px layout, and run `make web-check` before handing over;
+[web/README.md](web/README.md) explains the layout of the sources.
+
 ## Local services
 
 A local service listens on loopback only, on `127.0.0.1` and `::1`, and
@@ -70,6 +80,7 @@ for w in ci cd.docs tools doctor; do gh run list -w "$w.yml" -b main -L 1; done
 gh run list -R octolab/skills -w ci.yml -b main -L 1
 make doctor
 (cd docs && npm ci)
+make web-check
 ```
 
 - The latest `ci` and `cd.docs` runs on `main` are green.

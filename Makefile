@@ -319,6 +319,18 @@ config-vet:
 	done
 .PHONY: config-vet
 
+# the committed web/dist must be what the sources build: npm ci, the
+# TypeScript check, the tests, a build into a temporary directory and a
+# comparison with the working tree, so the check needs no git
+web-check:
+	$(AT) cd web && npm ci --no-audit --no-fund
+	$(AT) cd web && npm run check
+	$(AT) cd web && npm test
+	$(AT) out="$$(mktemp -d)"; \
+		(cd web && npx vite build --outDir "$$out" --emptyOutDir >/dev/null) && \
+		diff -r "$$out" web/dist && rm -rf "$$out"
+.PHONY: web-check
+
 # the tool versions the workflows pin follow tools/go.mod, the Go versions go.mod
 tool-pins-check:
 	$(AT) node .github/scripts/tool-pins-check.mjs

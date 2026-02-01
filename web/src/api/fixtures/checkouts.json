@@ -1,0 +1,145 @@
+{
+  "generation": 0,
+  "collected_at": "2026-10-20T12:00:00Z",
+  "refreshing": false,
+  "warnings": [],
+  "data": {
+    "rows": [
+      {
+        "id": 2,
+        "repository": "octomation/tool",
+        "path": "/home/me/Development/private/octomation/tool",
+        "branch": "feature",
+        "default_branch": "main",
+        "commit": "abc1234000000000000000000000000000000000",
+        "upstream": "origin/feature",
+        "added": 0,
+        "deleted": 0,
+        "changed_files": 0,
+        "untracked": 0,
+        "binary": 0,
+        "conflicts": 0,
+        "ahead": 2,
+        "behind": 1,
+        "status": "diverged",
+        "push_locked": true,
+        "pinned": true,
+        "visibility": "private",
+        "cells": [
+          "octomation/tool",
+          "feature",
+          "+0/-0",
+          "ahead 2 · behind 1",
+          "🔒",
+          "/home/me/Development/private/octomation/tool"
+        ],
+        "display_path": "/home/me/Development/private/octomation/tool",
+        "placeholder": false
+      },
+      {
+        "id": 1,
+        "repository": "octomation/maintainer",
+        "path": "/home/me/Development/public/octomation/maintainer",
+        "branch": "main",
+        "default_branch": "main",
+        "commit": "ce2936a0000000000000000000000000000000000",
+        "upstream": "origin/main",
+        "added": 12,
+        "deleted": 3,
+        "changed_files": 2,
+        "untracked": 1,
+        "binary": 0,
+        "conflicts": 0,
+        "ahead": 1,
+        "behind": 0,
+        "status": "ahead",
+        "push_locked": false,
+        "pinned": false,
+        "cells": [
+          "octomation/maintainer",
+          "main*",
+          "+12/-3 · 2f · ?1",
+          "ahead 1",
+          "",
+          "/home/me/Development/public/octomation/maintainer"
+        ],
+        "display_path": "/home/me/Development/public/octomation/maintainer",
+        "placeholder": false
+      },
+      {
+        "repository": "kamilsk/dotfiles",
+        "path": "/home/me/.dotfiles",
+        "branch": "main",
+        "default_branch": "main",
+        "added": 0,
+        "deleted": 0,
+        "changed_files": 0,
+        "untracked": 0,
+        "binary": 0,
+        "conflicts": 0,
+        "ahead": 0,
+        "behind": 0,
+        "status": "synced",
+        "push_locked": false,
+        "pinned": false,
+        "orphan_reason": "duplicate-pin",
+        "active_path": "/home/me/Development/public/kamilsk/dotfiles",
+        "cells": [
+          "kamilsk/dotfiles",
+          "main*",
+          "+0/-0",
+          "orphan · synced",
+          "",
+          "/home/me/.dotfiles"
+        ],
+        "display_path": "/home/me/.dotfiles",
+        "placeholder": false
+      },
+      {
+        "repository": "broken",
+        "path": "/home/me/Development/broken",
+        "branch": "",
+        "added": 0,
+        "deleted": 0,
+        "changed_files": 0,
+        "untracked": 0,
+        "binary": 0,
+        "conflicts": 0,
+        "ahead": 0,
+        "behind": 0,
+        "status": "error",
+        "push_locked": false,
+        "pinned": false,
+        "error": "git status: not a git repository",
+        "cells": [
+          "broken",
+          "—",
+          "?",
+          "error: git status: not a git repository",
+          "",
+          "/home/me/Development/broken"
+        ],
+        "display_path": "/home/me/Development/broken",
+        "placeholder": false
+      }
+    ],
+    "summary": {
+      "checkouts": 4,
+      "uncommitted": 1,
+      "ahead": 2,
+      "behind": 1,
+      "locked": 1,
+      "orphan": 1,
+      "errors": 1
+    },
+    "total": 4,
+    "sort": [
+      {
+        "column": "status",
+        "desc": true
+      }
+    ],
+    "query": ""
+  }
+}
+

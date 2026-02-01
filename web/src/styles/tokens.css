@@ -1,0 +1,228 @@
+/*
+ * The tokens of the hub, as web/DESIGN.md defines them. Dark is the
+ * default; data-theme on <html> picks light, or system, which follows the
+ * media query. Sizes never change with the theme.
+ */
+@import './fonts.css';
+
+:root {
+  color-scheme: dark;
+  /* Primary */
+  --primary: #5e6ad2;
+  --primary-hover: #575bc7;
+  --on-primary: #ffffff;
+  --link: #8c94ea;
+  --focus-ring: #5e6ad2;
+  /* Surfaces */
+  --bg-app: #181921;
+  --bg-sidebar: #191a23;
+  --bg-topbar: #191a23;
+  --bg-group: #21232e;
+  --bg-row-hover: #1c1d2a;
+  --bg-row-selected: #25263a;
+  --bg-item-selected: #2f303a;
+  --bg-item-hover: #24252f;
+  --bg-button: #292a35;
+  --bg-card: #1f2130;
+  --bg-menu: rgb(29 30 43 / 0.92);
+  --surface-menu: linear-gradient(135deg, rgb(30 32 43 / 0.92) 0%, rgb(26 28 38 / 0.92) 65%);
+  --surface-property: linear-gradient(135deg, rgb(31 32 42 / 0.94) 0%, rgb(26 28 38 / 0.94) 65%);
+  --surface-command: linear-gradient(135deg, rgb(31 32 42 / 0.94) 0%, rgb(26 28 38 / 0.94) 65%);
+  --shadow-command: 0 16px 64px #00000080;
+  --bg-rail: #191a23;
+  --bg-label-chip: #1a1b26;
+  --bg-menu-item-hover: #292b41;
+  --bg-chip: #1f2130;
+  --bg-input: #1d1e2b;
+  /* Borders */
+  --border: #2c2d3c;
+  --border-divider: #1c1d2b;
+  --border-button: #313248;
+  --border-button-hover: #393a4b;
+  --border-menu: transparent;
+  --border-activity: #22232e;
+  --separator-menu: #272935;
+  --separator-command: #292a39;
+  --bg-command-chip: #2a2b38;
+  --text-command-chip: #8e8da9;
+  --bg-command-kbd: #2a2b39;
+  --separator-command-group: rgb(44 45 60 / 0.5);
+  --border-rail: #212332;
+  --border-rail-toolbar: #292b41;
+  --border-card: #23242f;
+  --border-label-chip: #232432;
+  /* Text */
+  --text-primary: #eeeffc;
+  --text-secondary: #d2d3e0;
+  --text-muted: #858699;
+  --text-muted-raised: #9293a6;
+  --text-faint: #4c4f6b;
+  --icon-menu: #8988a2;
+  --kbd-menu: #2d2f3e;
+  /* Decoration */
+  --red: #eb5757;
+  --orange: #f2994a;
+  --yellow: #f2c94c;
+  --green: #4cb782;
+  --blue: #4ea7fc;
+  --purple: #bb87fc;
+  --teal: #00b2bf;
+  --brand: #4d7c0f;
+  --overlay: #0b0c1280;
+  --glyph-knockout: var(--bg-app);
+  /* Elevation */
+  --shadow-button: 0 1px 1px #00000026;
+  --shadow-menu: 0 4px 16px #00000026;
+  --blur-menu: blur(16px) saturate(140%);
+
+  /* Typography */
+  --font-sans: 'Inter Variable', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-features: 'cv01', 'ss03';
+
+  /* Shapes */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Sizes */
+  --sidebar: 220px;
+  --topbar: 56px;
+  --group-header: 36px;
+  --row: 44px;
+  --button: 24px;
+  --menu-item: 32px;
+  --properties: 340px;
+  --prop-row: 52px;
+  --rail-toolbar: 56px;
+  --issue-header: 48px;
+  --issue-content: 832px;
+  --sidebar-action: 28px;
+  --board-gap: 28px;
+  --inbox-avatar: 36px;
+  --command-bar: 642px;
+  --board-column: 320px;
+  --inbox-list: 420px;
+  --touch: 44px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --link: #4e5bc5;
+  --bg-app: #ffffff;
+  --bg-sidebar: #f7f7f9;
+  --bg-topbar: #ffffff;
+  --bg-group: #f4f4f7;
+  --bg-row-hover: #f7f7f9;
+  --bg-row-selected: #eeeff8;
+  --bg-item-selected: #e9e9ee;
+  --bg-item-hover: #efeff3;
+  --bg-button: #ffffff;
+  --bg-card: #ffffff;
+  --bg-menu: rgb(255 255 255 / 0.94);
+  --surface-menu: linear-gradient(135deg, rgb(255 255 255 / 0.94) 0%, rgb(246 246 249 / 0.94) 65%);
+  --surface-property: linear-gradient(135deg, rgb(255 255 255 / 0.96) 0%, rgb(246 246 249 / 0.96) 65%);
+  --surface-command: linear-gradient(135deg, rgb(255 255 255 / 0.96) 0%, rgb(246 246 249 / 0.96) 65%);
+  --shadow-command: 0 16px 64px #1c1d2729;
+  --bg-rail: #f7f7f9;
+  --bg-label-chip: #ffffff;
+  --bg-menu-item-hover: #f0f0f5;
+  --bg-chip: #ffffff;
+  --bg-input: #ffffff;
+  --border: #e6e6ec;
+  --border-divider: #efeff3;
+  --border-button: #dcdde4;
+  --border-button-hover: #c9cad4;
+  --border-menu: #e3e4ea;
+  --border-activity: #ededf1;
+  --separator-menu: #ececf1;
+  --separator-command: #e6e6ec;
+  --bg-command-chip: #ededf1;
+  --text-command-chip: #6b6f82;
+  --bg-command-kbd: #ececf1;
+  --separator-command-group: rgb(28 29 39 / 0.08);
+  --border-rail: #e6e6ec;
+  --border-rail-toolbar: #e6e6ec;
+  --border-card: #ececf1;
+  --border-label-chip: #e6e6ec;
+  --text-primary: #1c1d27;
+  --text-secondary: #3b3c4a;
+  --text-muted: #6b6f82;
+  --text-muted-raised: #6b6f82;
+  --text-faint: #b4b6c4;
+  --icon-menu: #7a7d90;
+  --kbd-menu: #ececf1;
+  --red: #d23b3b;
+  --orange: #e07b24;
+  --yellow: #e2b33c;
+  --green: #2f9e6a;
+  --blue: #2d8be0;
+  --purple: #9a5fe6;
+  --teal: #00939e;
+  --overlay: #1c1d2733;
+  --shadow-button: 0 1px 1px #0000000d;
+  --shadow-menu: 0 4px 16px #1c1d2714;
+}
+
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+    color-scheme: light;
+    --link: #4e5bc5;
+    --bg-app: #ffffff;
+    --bg-sidebar: #f7f7f9;
+    --bg-topbar: #ffffff;
+    --bg-group: #f4f4f7;
+    --bg-row-hover: #f7f7f9;
+    --bg-row-selected: #eeeff8;
+    --bg-item-selected: #e9e9ee;
+    --bg-item-hover: #efeff3;
+    --bg-button: #ffffff;
+    --bg-card: #ffffff;
+    --bg-menu: rgb(255 255 255 / 0.94);
+  --surface-menu: linear-gradient(135deg, rgb(255 255 255 / 0.94) 0%, rgb(246 246 249 / 0.94) 65%);
+  --surface-property: linear-gradient(135deg, rgb(255 255 255 / 0.96) 0%, rgb(246 246 249 / 0.96) 65%);
+  --surface-command: linear-gradient(135deg, rgb(255 255 255 / 0.96) 0%, rgb(246 246 249 / 0.96) 65%);
+  --shadow-command: 0 16px 64px #1c1d2729;
+  --bg-rail: #f7f7f9;
+  --bg-label-chip: #ffffff;
+    --bg-menu-item-hover: #f0f0f5;
+    --bg-chip: #ffffff;
+    --bg-input: #ffffff;
+    --border: #e6e6ec;
+    --border-divider: #efeff3;
+    --border-button: #dcdde4;
+    --border-button-hover: #c9cad4;
+    --border-menu: #e3e4ea;
+  --border-activity: #ededf1;
+  --separator-menu: #ececf1;
+  --separator-command: #e6e6ec;
+  --bg-command-chip: #ededf1;
+  --text-command-chip: #6b6f82;
+  --bg-command-kbd: #ececf1;
+  --separator-command-group: rgb(28 29 39 / 0.08);
+  --border-rail: #e6e6ec;
+  --border-rail-toolbar: #e6e6ec;
+  --border-card: #ececf1;
+  --border-label-chip: #e6e6ec;
+    --text-primary: #1c1d27;
+    --text-secondary: #3b3c4a;
+    --text-muted: #6b6f82;
+  --text-muted-raised: #6b6f82;
+    --text-faint: #b4b6c4;
+  --icon-menu: #7a7d90;
+  --kbd-menu: #ececf1;
+    --red: #d23b3b;
+    --orange: #e07b24;
+    --yellow: #e2b33c;
+    --green: #2f9e6a;
+    --blue: #2d8be0;
+    --purple: #9a5fe6;
+    --teal: #00939e;
+    --overlay: #1c1d2733;
+    --shadow-button: 0 1px 1px #0000000d;
+    --shadow-menu: 0 4px 16px #1c1d2714;
+  }
+}

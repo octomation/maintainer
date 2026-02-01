@@ -1,0 +1,112 @@
+/* /status: the checkouts as a grouped list (F 60:1776). */
+
+.status__content {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkouts {
+  flex: 1;
+}
+
+/* The row's properties in one column grid for the whole list (columnTemplate). */
+.checkout.list-row {
+  grid-template-columns: var(--checkout-columns, 16px 42px 14px 200px 120px 140px 100px minmax(0, 1fr));
+}
+
+.checkout__divergence {
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout__lock {
+  display: inline-flex;
+  width: 16px;
+  color: var(--text-muted);
+}
+
+.checkout__cell {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 16 px between the property columns: the row's 9 px gap and 7 px more. */
+.checkout__cell + .checkout__cell {
+  padding-left: 7px;
+}
+
+.checkout__branch,
+.checkout__changes,
+.checkout__path {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.checkout__changes {
+  text-align: right;
+}
+
+.checkout__status {
+  font-size: 12px;
+}
+
+.checkout__path {
+  text-align: right;
+  direction: rtl;
+}
+
+.status-word {
+  color: var(--text-muted);
+}
+
+.status-word--warn {
+  color: var(--text-secondary);
+}
+
+.status-word--danger {
+  color: var(--red);
+}
+
+.checkout.is-placeholder .checkout__repo,
+.checkout.is-orphan .checkout__repo {
+  color: var(--text-secondary);
+}
+
+@media (max-width: 899px) {
+  .checkout__path {
+    visibility: hidden;
+  }
+}
+
+@media (max-width: 599px) {
+  .checkout.list-row {
+    grid-template-columns: 16px 0 12px minmax(0, 1fr) auto;
+  }
+
+  .checkout__branch,
+  .checkout__changes,
+  .checkout__path {
+    display: none;
+  }
+
+  /* The slot stays in the grid at no width, so the title keeps its column. */
+  .checkout__divergence {
+    visibility: hidden;
+  }
+}
+
+.status__board {
+  flex: 1;
+  min-height: 0;
+  padding-top: 0;
+}
+
+.checkout-card .card__footer .board-chip {
+  flex: 0 1 auto;
+}

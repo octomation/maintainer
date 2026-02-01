@@ -1,0 +1,29 @@
+{
+  "name": "maintainer-hub",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The frontend of the maintainer local service: /status, /inbox and /tablo.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "5.3.0",
+    "preact": "11.0.1"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "2.10.6",
+    "@testing-library/preact": "3.2.4",
+    "happy-dom": "21.0.3",
+    "typescript": "7.0.2",
+    "vite": "8.3.4",
+    "vitest": "5.0.5"
+  }
+}

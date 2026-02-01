@@ -1,0 +1,82 @@
+{
+  "generation": 1,
+  "collected_at": "2026-10-20T12:00:00Z",
+  "refreshing": false,
+  "warnings": [
+    "/home/me/Development/public/kamilsk/dotfiles/.github/issues/DOT-1.md: duplicate mirror of github:kamilsk/dotfiles#1 (/home/me/Development/public/kamilsk/dotfiles-copy/.github/issues/DOT-1.md)",
+    "/home/me/Development/public/octomation/maintainer/.github/issues/MAIN-8.md: MAIN-8.md: frontmatter: yaml: line 4: found unexpected end of stream"
+  ],
+  "data": {
+    "key": "github:octomation/maintainer#1",
+    "id": "Z2l0aHViOm9jdG9tYXRpb24vbWFpbnRhaW5lciMx",
+    "repository": "octomation/maintainer",
+    "owner": "octomation",
+    "code": "MAIN-1",
+    "number": 1,
+    "url": "https://github.com/octomation/maintainer/issues/1",
+    "title": "fetch: adopt existing checkouts",
+    "state": "open",
+    "state_reason": null,
+    "type": "feature",
+    "labels": [
+      "type: feature",
+      "scope: code",
+      "impact: high",
+      "effort: easy"
+    ],
+    "assignees": [
+      "kamilsk"
+    ],
+    "milestone": {
+      "key": "github:octomation/maintainer/milestones/1",
+      "title": "Workspace, v0.2"
+    },
+    "issue_fields": {
+      "Priority": "High"
+    },
+    "created_at": "2026-01-10T10:00:00Z",
+    "updated_at": "2026-10-01T12:00:00Z",
+    "closed_at": null,
+    "boards": [
+      {
+        "board": "PVT_org1",
+        "section": "Backlog"
+      }
+    ],
+    "column": "backlog",
+    "flags": {
+      "ambiguous": false,
+      "contradiction": false,
+      "duplicate_mirror": false,
+      "stale": false
+    },
+    "score": {
+      "total": 3.8922374429223745,
+      "repo_weight": 1,
+      "impact": 1,
+      "ease": 1,
+      "type": 0.5,
+      "age": 0.7755707762557077,
+      "due": 0.6166666666666667
+    },
+    "version": "sha256-7d063e9cb445d673717e2952f4338f26b2d9cfc7a0187f80a656e194c960ba30",
+    "body_html": "<h1>fetch: adopt existing checkouts</h1>\n<p>The body of the first task, with a <a href=\"https://example.com/docs\">link</a> and <code>code</code>.</p>\n<!-- raw HTML omitted -->\n<pre><code class=\"language-bash\">maintainer fetch --adopt\n&lt;!-- 2026-01-01T00:00Z https://example.com/not-a-comment\n--&gt;\n</code></pre>\n",
+    "comments": [
+      {
+        "at": "2026-02-01T08:30:00Z",
+        "url": "https://github.com/octomation/maintainer/issues/1#issuecomment-1",
+        "html": "<p>First comment with <strong>bold</strong> text.</p>\n"
+      },
+      {
+        "at": "2026-03-01T09:45:10Z",
+        "url": "https://github.com/octomation/maintainer/issues/1#issuecomment-2",
+        "html": "<p>Second comment:</p>\n<ul>\n<li>one</li>\n<li>two</li>\n</ul>\n"
+      }
+    ],
+    "provenance": {
+      "path": "/home/me/Development/public/octomation/maintainer/.github/issues/MAIN-1.md",
+      "root": "/home/me/Development/public/octomation/maintainer"
+    }
+  }
+}
+
