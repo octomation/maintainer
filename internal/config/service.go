@@ -3,7 +3,9 @@ package config
 import (
 	"fmt"
 	"math"
+	"net"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/pelletier/go-toml/v2"
@@ -23,9 +25,11 @@ const (
 // outside it is an error. Weights are pointers so that an omitted key takes
 // its default while an explicit 0 stays 0; Weights and RepoWeight resolve them.
 type Service struct {
-	Fetch FetchRef      `toml:"fetch" yaml:"fetch"`
-	Score Score         `toml:"score" yaml:"score"`
-	Repos []ServiceRepo `toml:"repos" yaml:"repos"`
+	// Listen replaces the default loopback addresses; --listen replaces it.
+	Listen []string      `toml:"listen" yaml:"listen"`
+	Fetch  FetchRef      `toml:"fetch" yaml:"fetch"`
+	Score  Score         `toml:"score" yaml:"score"`
+	Repos  []ServiceRepo `toml:"repos" yaml:"repos"`
 
 	// Source is the path the config was loaded from; empty for the defaults.
 	Source string `toml:"-" yaml:"-"`
@@ -77,6 +81,16 @@ func (l ServiceConfigLookup) Resolve(fs afero.Fs) (path string, required bool) {
 	if l.ExplicitSet {
 		return l.Explicit, true
 	}
+	if candidate := l.Default(); candidate != "" && exists(fs, candidate) {
+		return candidate, false
+	}
+	return "", false
+}
+
+// Default is the path service.toml has when no --config names one, whether
+// or not a file is there; empty when neither XDG_CONFIG_HOME nor the home
+// directory is known.
+func (l ServiceConfigLookup) Default() string {
 	getenv := l.Getenv
 	if getenv == nil {
 		getenv = func(string) string { return "" }
@@ -86,13 +100,9 @@ func (l ServiceConfigLookup) Resolve(fs afero.Fs) (path string, required bool) {
 		base = filepath.Join(l.Home, ".config")
 	}
 	if base == "" {
-		return "", false
+		return ""
 	}
-	candidate := filepath.Join(base, "maintainer", "service.toml")
-	if exists(fs, candidate) {
-		return candidate, false
-	}
-	return "", false
+	return filepath.Join(base, "maintainer", "service.toml")
 }
 
 // LoadService decodes service.toml from path and applies the defaults. An
@@ -158,9 +168,18 @@ func (s *Service) applyDefaults() {
 	}
 }
 
-// Validate checks the values: finite non-negative weights, positive horizons,
-// and a match that names an id or both owner and name.
+// Validate checks the values: loopback addresses, finite non-negative
+// weights, positive horizons, and a match that names an id or both owner and
+// name.
 func (s *Service) Validate() error {
+	if s.Listen != nil && len(s.Listen) == 0 {
+		return fmt.Errorf("listen needs at least one address; omit it for the defaults")
+	}
+	for i, address := range s.Listen {
+		if err := CheckLoopback(address); err != nil {
+			return fmt.Errorf("listen[%d] %w", i, err)
+		}
+	}
 	for _, w := range []struct {
 		name  string
 		value *float64
@@ -185,6 +204,23 @@ func (s *Service) Validate() error {
 		if r.Weight != nil && (math.IsNaN(*r.Weight) || math.IsInf(*r.Weight, 0) || *r.Weight < 0) {
 			return fmt.Errorf("repos[%d].weight must be a finite non-negative number, got %v", i, *r.Weight)
 		}
+	}
+	return nil
+}
+
+// CheckLoopback accepts a literal loopback IP address with a port number:
+// an empty port or a service name would bind another port than the one
+// written, and 0 picks a free one. The error reads after the setting's name.
+func CheckLoopback(address string) error {
+	host, port, err := net.SplitHostPort(address)
+	if err != nil {
+		return fmt.Errorf("must be an address with a port: %w", err)
+	}
+	if ip := net.ParseIP(host); ip == nil || !ip.IsLoopback() {
+		return fmt.Errorf("must use a literal loopback IP address, not %q", host)
+	}
+	if _, err := strconv.ParseUint(port, 10, 16); err != nil {
+		return fmt.Errorf("must use a port number from 0 to 65535, not %q", port)
 	}
 	return nil
 }

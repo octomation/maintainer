@@ -162,8 +162,10 @@ with a reading pane, filters and a score, `/tablo` shows them on one board
 (Backlog, To do, In progress, Done, Won't do); `/` redirects to `/status`.
 It reads the fetch config and state as `status` does, from the home
 directory, and `service.toml` in `$XDG_CONFIG_HOME/maintainer` or
-`~/.config/maintainer` for the score weights (`--config` names another file,
-which must exist); it needs no token or network.
+`~/.config/maintainer` for the addresses (`listen`) and the score weights; on
+the first start it writes that file with every key commented out, so read it
+to learn where the service listens (`--config` names another file, which must
+exist). It needs no token or network.
 
 - **It writes issue files.** Setting `impact: *` or `effort: *` on a page
   changes those label lines in the issue file of the checkout and nothing

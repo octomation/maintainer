@@ -354,14 +354,15 @@ http://maintainer.localhost:17841/ by default: the pages /status, /inbox and /ta
 the checkouts of the collection and the issues mirrored in their
 .github/issues and .github/roadmap, over the JSON API under /api/v0.
 It reads service.toml from $XDG_CONFIG_HOME/maintainer, else
-~/.config/maintainer (--config names another file, which must exist),
-and the fetch config and state as `maintainer status` does, with the
-home directory as the working directory. It runs as your user and
-listens on 127.0.0.1 and ::1; a default address the system lacks, as
-::1 with IPv6 turned off, is skipped. --listen replaces the defaults and
-may repeat. SIGINT or SIGTERM stops it once the responses in flight are
-sent. Do not run the mirror's export or push, or another editor of the
-issue files, while triaging in the browser.
+~/.config/maintainer, and writes a commented default there when there is
+none (--config names another file, which must exist), and the fetch
+config and state as `maintainer status` does, with the home directory as
+the working directory. It runs as your user and listens on 127.0.0.1 and
+::1; a default address the system lacks, as ::1 with IPv6 turned off, is
+skipped. listen in service.toml replaces the defaults, and --listen, which
+may repeat, replaces both. SIGINT or SIGTERM stops it once the responses
+in flight are sent. Do not run the mirror's export or push, or another
+editor of the issue files, while triaging in the browser.
 
 ```text
 maintainer service run [flags]

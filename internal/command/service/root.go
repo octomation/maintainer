@@ -59,37 +59,41 @@ func runCommand() *cobra.Command {
 			"the checkouts of the collection and the issues mirrored in their\n" +
 			".github/issues and .github/roadmap, over the JSON API under /api/v0.\n" +
 			"It reads service.toml from $XDG_CONFIG_HOME/maintainer, else\n" +
-			"~/.config/maintainer (--config names another file, which must exist),\n" +
-			"and the fetch config and state as `maintainer status` does, with the\n" +
-			"home directory as the working directory. It runs as your user and\n" +
-			"listens on 127.0.0.1 and ::1; a default address the system lacks, as\n" +
-			"::1 with IPv6 turned off, is skipped. --listen replaces the defaults and\n" +
-			"may repeat. SIGINT or SIGTERM stops it once the responses in flight are\n" +
-			"sent. Do not run the mirror's export or push, or another editor of the\n" +
-			"issue files, while triaging in the browser.",
+			"~/.config/maintainer, and writes a commented default there when there is\n" +
+			"none (--config names another file, which must exist), and the fetch\n" +
+			"config and state as `maintainer status` does, with the home directory as\n" +
+			"the working directory. It runs as your user and listens on 127.0.0.1 and\n" +
+			"::1; a default address the system lacks, as ::1 with IPv6 turned off, is\n" +
+			"skipped. listen in service.toml replaces the defaults, and --listen, which\n" +
+			"may repeat, replaces both. SIGINT or SIGTERM stops it once the responses\n" +
+			"in flight are sent. Do not run the mirror's export or push, or another\n" +
+			"editor of the issue files, while triaging in the browser.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			for _, address := range listen {
-				host, port, err := net.SplitHostPort(address)
-				if err != nil {
-					return exit.WithUser(fmt.Errorf("--listen: %w", err))
-				}
-				if ip := net.ParseIP(host); ip == nil || !ip.IsLoopback() {
-					return exit.WithUser(fmt.Errorf("--listen must use a literal loopback IP address, not %q", host))
-				}
-				// A number only: an empty port or a service name would bind
-				// another port than the one written; 0 picks a free one.
-				if _, err := strconv.ParseUint(port, 10, 16); err != nil {
-					return exit.WithUser(fmt.Errorf("--listen must use a port number from 0 to 65535, not %q", port))
+				if err := config.CheckLoopback(address); err != nil {
+					return exit.WithUser(fmt.Errorf("--listen %w", err))
 				}
 			}
-			runtime, err := load(configPath, cmd.Flags().Changed("config"))
+			stderr := cmd.ErrOrStderr()
+			runtime, err := load(configPath, cmd.Flags().Changed("config"), func(path string, err error) {
+				if err != nil {
+					fmt.Fprintf(stderr, "maintainer service: cannot write the default config %s: %v\n", path, err)
+					return
+				}
+				fmt.Fprintf(stderr, "maintainer service: wrote the default config %s\n", path)
+			})
 			if err != nil {
 				return exit.WithUser(err)
 			}
+			// --listen replaces listen in service.toml, which replaces the
+			// defaults; only a default address may be missing on the system.
+			optional := !cmd.Flags().Changed("listen")
+			if optional && runtime.service.Listen != nil {
+				listen, optional = runtime.service.Listen, false
+			}
 			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
-			stderr := cmd.ErrOrStderr()
-			listeners, err := web.Listen(ctx, listen, !cmd.Flags().Changed("listen"), func(address string, err error) {
+			listeners, err := web.Listen(ctx, listen, optional, func(address string, err error) {
 				fmt.Fprintf(stderr, "maintainer service: skipping %s: %v\n", address, err)
 			})
 			if err != nil {
@@ -135,15 +139,34 @@ type runtime struct {
 // load reads service.toml, the fetch config and the state with the home
 // directory as the working directory, and prepares the index and the
 // checkouts cache. State is read once per collection through Store.Load.
-func load(configPath string, explicit bool) (*runtime, error) {
+// Without --config and without a file at the default path, it writes the
+// commented default there first and tells wrote; a failure leaves the
+// defaults in effect.
+func load(configPath string, explicit bool, wrote func(path string, err error)) (*runtime, error) {
 	fs := afero.NewOsFs()
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, fmt.Errorf("home directory: %w", err)
 	}
-	servicePath, _ := config.ServiceConfigLookup{Explicit: configPath, ExplicitSet: explicit, Getenv: os.Getenv, Home: home}.Resolve(fs)
+	lookup := config.ServiceConfigLookup{Explicit: configPath, ExplicitSet: explicit, Getenv: os.Getenv, Home: home}
+	servicePath, _ := lookup.Resolve(fs)
 	if explicit {
 		servicePath = config.ResolveAgainst(home, configPath)
+	}
+	if servicePath == "" {
+		if path := lookup.Default(); path != "" {
+			created, err := config.EnsureServiceFile(path)
+			switch {
+			case err != nil:
+				wrote(path, err)
+			case created:
+				wrote(path, nil)
+				servicePath = path
+			default:
+				// Another process wrote it between the lookup and now.
+				servicePath = path
+			}
+		}
 	}
 	service, err := config.LoadService(fs, servicePath)
 	if err != nil {

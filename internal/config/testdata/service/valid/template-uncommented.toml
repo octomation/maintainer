@@ -1,0 +1,35 @@
+# maintainer service configuration, read by `maintainer service run`.
+# The service wrote this file because there was none; it never changes it
+# again. Every key is optional: a commented key keeps its default, an unknown
+# key is an error. Reference: https://maintainer.octolab.org/service/
+# Schema: https://github.com/octomation/maintainer/blob/main/internal/config/service.cue
+
+# The loopback addresses the service listens on, at
+# http://maintainer.localhost:17841/: literal loopback IP addresses with a
+# port. --listen replaces them. After a change, restart the service:
+# brew services restart octolab/tap/maintainer
+listen = ["127.0.0.1:17841", "[::1]:17841"]
+
+[fetch]
+# The fetch config to read the checkouts from, relative to the home
+# directory; empty means the usual lookup, as `maintainer status` from home.
+config = ""
+
+[score]
+# The score is the repository weight × (impact × w_impact + ease × w_effort
+# + type × w_type + age × w_age + due × w_due), every input in [0, 1].
+impact = 1
+effort = 1
+type = 1
+age = 1
+due = 1
+# Days from the creation of an issue until its age counts as 1.
+age_horizon_days = 365
+# Days before a milestone's due date when its due input starts rising.
+due_horizon_days = 30
+
+# A repository weight multiplies the score of its issues; the first matching
+# rule wins. An id survives renames and transfers.
+[[repos]]
+match = { owner = "octomation", name = "maintainer" }
+weight = 1

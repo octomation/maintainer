@@ -82,14 +82,16 @@ func TestFetchExampleFixtures(t *testing.T) {
 	checkExampleFixtures(t, examples, filepath.Join("testdata", "valid"), []string{"guide-*", "template*"}, "TestFetchExampleFixtures")
 }
 
-// The service guide writes service.toml with a heredoc; its example, with the
-// commented-out keys enabled as well, is a fixture that `make config-vet`
-// checks against service.cue: `go test ./internal/config -run
-// TestServiceExampleFixtures -update` rewrites it.
+// The template the service writes and the service.toml examples of the
+// guides (fences with filename="service.toml"), with their commented-out keys
+// enabled as well, are fixtures that `make config-vet` checks against
+// service.cue: `go test ./internal/config -run TestServiceExampleFixtures
+// -update` rewrites them.
 func TestServiceExampleFixtures(t *testing.T) {
 	examples := guideExamples(t, "service")
-	require.NotEmpty(t, examples, "the service guide lost its service.toml example")
-	checkExampleFixtures(t, examples, filepath.Join("testdata", "service", "valid"), []string{"guide-*"}, "TestServiceExampleFixtures")
+	require.GreaterOrEqual(t, len(examples), 2, "the service guide lost its service.toml examples")
+	examples = append(examples, example{name: "template", file: "service.toml", body: string(ServiceTemplate)})
+	checkExampleFixtures(t, examples, filepath.Join("testdata", "service", "valid"), []string{"guide-*", "template*"}, "TestServiceExampleFixtures")
 }
 
 func checkExampleFixtures(t *testing.T, examples []example, dir string, patterns []string, test string) {
@@ -133,7 +135,7 @@ func checkExampleFixtures(t *testing.T, examples []example, dir string, patterns
 type example struct{ name, file, body string }
 
 var (
-	fence   = regexp.MustCompile("^```(\\w*)")
+	fence   = regexp.MustCompile("^```(\\w*)(?: filename=\"((?:fetch|service)\\.toml)\")?")
 	heredoc = regexp.MustCompile(`cat > (?:\S*/)?((?:fetch|service)\.(?:toml|yaml)) <<'?EOF'?`)
 	setting = regexp.MustCompile(`^(\s*)# ?(\[\[?[a-z_]+|[a-z_]+\s*=)`)
 )
@@ -182,11 +184,16 @@ func allGuideExamples(t *testing.T) []example {
 			case inHeredoc:
 				body.WriteString(line + "\n")
 			case !inFence && fence.MatchString(line):
-				inFence, lang = true, fence.FindStringSubmatch(line)[1]
+				m := fence.FindStringSubmatch(line)
+				inFence, lang, file = true, m[1], m[2]
 				body.Reset()
 			case inFence && strings.HasPrefix(line, "```"):
 				if lang == "toml" {
-					out = append(out, example{name: name(), file: "fetch.toml", body: body.String()})
+					// A fence without a filename shows the fetch config.
+					if file == "" {
+						file = "fetch.toml"
+					}
+					out = append(out, example{name: name(), file: file, body: body.String()})
 				}
 				inFence = false
 			case inFence && heredoc.MatchString(line):

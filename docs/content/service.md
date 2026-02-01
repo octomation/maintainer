@@ -97,6 +97,15 @@ is refused with exit code `2`. An address given with `--listen` that cannot be
 bound, as when its port is taken, stops the service with an error. `Ctrl-C` or
 `SIGTERM` stops it once the responses in flight are sent.
 
+`brew services` runs the service without flags. To move it to another port
+there, set `listen` in [`service.toml`](#the-config-file) and restart it with
+`brew services restart octolab/tap/maintainer`; the same rules apply, and
+`--listen` replaces `listen` when you run the service yourself:
+
+```toml filename="service.toml"
+listen = ["127.0.0.1:8080", "[::1]:8080"]
+```
+
 Browsers and `curl` resolve `.localhost` names themselves; on Linux, a system
 without such a resolver reaches the service at `http://127.0.0.1:17841/`.
 
@@ -178,13 +187,11 @@ milestone's due date and is 1 from the due date on. A missing label or date
 counts as 0. The inbox shows the terms of every score next to the issue.
 
 The weights, the horizons and the repository weights come from
-`service.toml` in `$XDG_CONFIG_HOME/maintainer`, else `~/.config/maintainer`;
-without the file every weight is `1`, the age horizon is 365 days, the due
-horizon 30 days, and every repository weighs `1`. `--config` names another
-file, which must exist. The file is strict: an unknown key is an error.
+[`service.toml`](#the-config-file); by default every weight is `1`, the age
+horizon is 365 days, the due horizon 30 days, and every repository weighs `1`.
+For example:
 
-```sh
-cat > ~/.config/maintainer/service.toml <<'EOF'
+```toml filename="service.toml"
 # [fetch]
 # config = "~/.config/maintainer/fetch.toml"  # the fetch config to read; the usual lookup otherwise
 
@@ -204,12 +211,26 @@ weight = 2
 [[repos]]
 match = { id = 672356038 }  # a repository id survives renames and transfers
 weight = 0.5
-EOF
 ```
 
 A repository rule matches by `id`, or by `owner` and `name` together, without
-regard to case; the first matching rule wins. A relative path in the file is
-resolved against your home directory.
+regard to case; the first matching rule wins.
+
+## The config file
+
+The service reads `service.toml` in `$XDG_CONFIG_HOME/maintainer`, else
+`~/.config/maintainer`. When there is none, the first start writes it there,
+says so, and never changes it again: every key is commented out with its
+default, so the file shows where the service listens and what you can change.
+
+```text
+maintainer service: wrote the default config /Users/you/.config/maintainer/service.toml
+```
+
+Uncomment a key to change it, then restart the service. `--config` names
+another file, which must exist and is never created. The file is strict: an
+unknown key or a bad value is an error, and the service does not start. A
+relative path in it is resolved against your home directory.
 
 ## What it answers
 

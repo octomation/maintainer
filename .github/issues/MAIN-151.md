@@ -50,6 +50,8 @@ $ curl -fsS http://maintainer.localhost:17841/ -o /dev/null -w '%{http_code}\n'
 ## Expected behavior
 
 - `maintainer service run` serves HTTP on loopback only. Without flags it listens on `127.0.0.1:17841` and `[::1]:17841`, because `maintainer.localhost` resolves to both; 17840 belongs to indexit, and the ports of local services are recorded in AGENTS.md. `--listen` is repeatable and replaces the defaults; each value must be a literal loopback IP address, IPv4 or IPv6, with a port, and anything else is a usage error, exit `2`.
+- The addresses are configurable where `brew services` runs it, without flags: `listen` in `service.toml` ([[MAIN-155]]) replaces the defaults, `--listen` replaces both, and each value follows the rule above; a bad value is a usage error, exit `2`. Addresses from the file are explicit, so one that cannot be bound is an error.
+- When the service finds no `service.toml` at its default path, it writes one there, every key commented out with its default, starting with the addresses: the file shows where the service is hosted and what can be changed. It never replaces or rewrites a file, not even an empty one; a file it cannot write is a warning, and the service starts on the defaults. An explicit `--config` must exist and is never created.
 - When one default address cannot be bound because the system lacks it, as when IPv6 is turned off, the service runs on the other and says so; when none can, or an address given with `--listen` fails, it stops with an error.
 - The first version answers `GET` and `HEAD` of `/` with a plain HTML page that says "Service is running.": `Content-Type: text/html; charset=utf-8`, `X-Content-Type-Options: nosniff`, `Cache-Control: no-store`. Other paths are `404`, other methods `405` with `Allow: GET, HEAD`.
 - `SIGINT` and `SIGTERM`, which `brew services stop` sends, stop it gracefully: responses in flight finish, then it exits with `0`.
@@ -61,6 +63,8 @@ $ curl -fsS http://maintainer.localhost:17841/ -o /dev/null -w '%{http_code}\n'
 
 - [ ] `maintainer service run --listen 127.0.0.1:0 --listen '[::1]:0'` serves the page at `/` on both addresses with the headers above; `--listen 0.0.0.0:17841` and `--listen localhost:17841` fail with exit `2`.
 - [ ] Without flags the service listens on `127.0.0.1:17841` and `[::1]:17841`; a default address the system cannot assign is skipped with a message, an explicit one is an error.
+- [ ] `listen = ["127.0.0.1:0"]` in `service.toml` serves there; `--listen` overrides it; `listen = ["localhost:17841"]` and `listen = []` are rejected by the loader and by `service.cue`.
+- [ ] A first start without `service.toml` writes the commented default, which loads to the defaults, and with every key uncommented to the default addresses and weights; a second start leaves the file as it is, and an unwritable directory only warns.
 - [ ] `httptest` covers the routes, the methods, `HEAD`, the conditional request and a graceful shutdown with a request in flight.
 - [ ] The generated Formula has a `service do` block that runs `maintainer service run`, and its caveats name `http://maintainer.localhost:17841/` and `brew services start octolab/tap/maintainer`.
 - [ ] After `brew services start octolab/tap/maintainer`, `curl -fsS http://maintainer.localhost:17841/ -o /dev/null -w '%{http_code}\n'` prints `200`.

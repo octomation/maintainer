@@ -10,6 +10,11 @@
 package config
 
 #Service: {
+	// The loopback addresses the service listens on; --listen replaces them.
+	// Default: ["127.0.0.1:17841", "[::1]:17841"]. The loader also checks
+	// that each is a loopback address and the port is at most 65535.
+	listen?: [#Loopback, ...#Loopback]
+
 	// The fetch config the service reads its workspace, pins and state from.
 	fetch?: #FetchRef
 
@@ -49,6 +54,10 @@ package config
 	// Multiplies the score of the repository's tasks.
 	weight: number & >=0 | *1
 }
+
+// A literal loopback IP address with a port number: 127.x.x.x:port or
+// [IPv6]:port, never a name such as localhost.
+#Loopback: string & =~"^(127\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}|\\[[0-9A-Fa-f:.]+\\]):[0-9]{1,5}$"
 
 // Either an id, or both owner and name.
 #ServiceRepoMatch: {
