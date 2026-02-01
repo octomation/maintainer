@@ -18,24 +18,27 @@ import (
 // Row is shared by the JSON, printable and interactive views. Counts describe
 // local refs only; no network operation is performed.
 type Row struct {
-	ID              int64      `json:"id,omitempty"`
-	Repository      string     `json:"repository"`
-	Path            string     `json:"path"`
-	Branch          string     `json:"branch"`
-	DefaultBranch   string     `json:"default_branch,omitempty"`
-	Commit          string     `json:"commit,omitempty"`
-	Upstream        string     `json:"upstream,omitempty"`
-	Added           int        `json:"added"`
-	Deleted         int        `json:"deleted"`
-	Changed         int        `json:"changed_files"`
-	Untracked       int        `json:"untracked"`
-	Binary          int        `json:"binary"`
-	Conflicts       int        `json:"conflicts"`
-	Ahead           int        `json:"ahead"`
-	Behind          int        `json:"behind"`
-	Status          string     `json:"status"`
-	PushLocked      bool       `json:"push_locked"`
-	Pinned          bool       `json:"pinned"`
+	ID            int64  `json:"id,omitempty"`
+	Repository    string `json:"repository"`
+	Path          string `json:"path"`
+	Branch        string `json:"branch"`
+	DefaultBranch string `json:"default_branch,omitempty"`
+	Commit        string `json:"commit,omitempty"`
+	Upstream      string `json:"upstream,omitempty"`
+	Added         int    `json:"added"`
+	Deleted       int    `json:"deleted"`
+	Changed       int    `json:"changed_files"`
+	Untracked     int    `json:"untracked"`
+	Binary        int    `json:"binary"`
+	Conflicts     int    `json:"conflicts"`
+	Ahead         int    `json:"ahead"`
+	Behind        int    `json:"behind"`
+	Status        string `json:"status"`
+	PushLocked    bool   `json:"push_locked"`
+	Pinned        bool   `json:"pinned"`
+	// Visibility is the repository's visibility on GitHub as the fetch state
+	// recorded it (public, private, internal); empty when no record knows it.
+	Visibility      string     `json:"visibility,omitempty"`
 	OrphanReason    string     `json:"orphan_reason,omitempty"`
 	ActivePath      string     `json:"active_path,omitempty"`
 	RemoteCheckedAt *time.Time `json:"remote_checked_at,omitempty"`
@@ -83,9 +86,9 @@ func oneLine(raw []byte) string {
 	return strings.Join(lines, " ")
 }
 
-// remoteName returns owner/name of a remote URL. A local repository, even a
+// RemoteName returns owner/name of a remote URL. A local repository, even a
 // file:// URL with a host, names no repository.
-func remoteName(raw string) string {
+func RemoteName(raw string) string {
 	u, err := giturl.Parse(strings.TrimSpace(raw))
 	if err != nil || u.Host == "" || u.Scheme == "file" {
 		return ""
@@ -128,7 +131,7 @@ func inspect(ctx context.Context, row *Row) error {
 	raw, statusErr := git(ctx, row.Path, "status", "--porcelain=v2", "--branch", "-z", "--find-renames", "--untracked-files=all", "--ignore-submodules=none")
 	// Identity is best effort and remains available when git status fails.
 	if origin, err := git(ctx, row.Path, "remote", "get-url", "origin"); err == nil {
-		if name := remoteName(origin); name != "" {
+		if name := RemoteName(origin); name != "" {
 			row.Repository = name
 		}
 	}

@@ -23,6 +23,19 @@ func relativePath(path, root, home string) string {
 	return path
 }
 
+// DisplayPath is the path relative to the workspace root, or to home for an
+// external checkout, as the Path cell shows it.
+func (row Row) DisplayPath() string {
+	if row.displayPath != "" {
+		return row.displayPath
+	}
+	return row.Path
+}
+
+// IsPlaceholder reports a row that stands for no checkout: a scan obstruction
+// or an unresolved pin is shown, but nothing is inspected in its place.
+func (row Row) IsPlaceholder() bool { return row.placeholder }
+
 func (row Row) pathCell() string {
 	if row.displayPath != "" {
 		return safeText(row.displayPath)
@@ -39,7 +52,9 @@ func safeText(s string) string {
 	}, s)
 }
 
-func cells(row Row) []string {
+// Cells renders the display cells of a row in column order: Repository,
+// Branch (the default branch marked with *), Uncommitted, Status, Lock, Path.
+func Cells(row Row) []string {
 	branch := row.Branch
 	if branch == "" {
 		branch = "—"
@@ -100,7 +115,7 @@ func newTable(rows []Row) table {
 	}
 	t := table{widths: make([]int, len(headers)), rows: [][]string{headers}}
 	for _, row := range rows {
-		t.rows = append(t.rows, cells(row))
+		t.rows = append(t.rows, Cells(row))
 	}
 	for _, row := range t.rows {
 		for i, cell := range row {
@@ -122,39 +137,58 @@ func (t table) line(i int) string {
 	return out.String()
 }
 
-// summary counts rows by category; a row can fall into several. An error row
+// Summary counts rows by category; a row can fall into several. An error row
 // counts only as an error, locked or orphan: its changes and divergence are
-// unknown, never clean.
-func summary(rows []Row) string {
-	var uncommitted, ahead, behind, locked, orphan, failed int
+// unknown, never clean. Checkouts excludes the placeholders.
+type Summary struct {
+	Checkouts   int `json:"checkouts"`
+	Uncommitted int `json:"uncommitted"`
+	Ahead       int `json:"ahead"`
+	Behind      int `json:"behind"`
+	Locked      int `json:"locked"`
+	Orphan      int `json:"orphan"`
+	Errors      int `json:"errors"`
+}
+
+// Summarize counts the rows.
+func Summarize(rows []Row) Summary {
+	var s Summary
+	s.Checkouts = Checkouts(rows)
 	for _, row := range rows {
 		if row.Error != "" {
-			failed++
+			s.Errors++
 		} else {
 			if row.Added+row.Deleted+row.Changed+row.Untracked+row.Binary+row.Conflicts > 0 {
-				uncommitted++
+				s.Uncommitted++
 			}
 			if row.Ahead > 0 {
-				ahead++
+				s.Ahead++
 			}
 			if row.Behind > 0 {
-				behind++
+				s.Behind++
 			}
 		}
 		if row.PushLocked {
-			locked++
+			s.Locked++
 		}
 		if row.OrphanReason != "" {
-			orphan++
+			s.Orphan++
 		}
 	}
-	return fmt.Sprintf("%d uncommitted · %d ahead · %d behind · %d locked · %d orphan · %s",
-		uncommitted, ahead, behind, locked, orphan, plural(failed, "error"))
+	return s
 }
 
-// checkouts counts the rows that stand for a checkout: a scan obstruction or
+// String is the summary line of the TUI header and of Plain.
+func (s Summary) String() string {
+	return fmt.Sprintf("%d uncommitted · %d ahead · %d behind · %d locked · %d orphan · %s",
+		s.Uncommitted, s.Ahead, s.Behind, s.Locked, s.Orphan, plural(s.Errors, "error"))
+}
+
+func summary(rows []Row) string { return Summarize(rows).String() }
+
+// Checkouts counts the rows that stand for a checkout: a scan obstruction or
 // an unresolved pin is shown, but it is none.
-func checkouts(rows []Row) int {
+func Checkouts(rows []Row) int {
 	n := 0
 	for _, row := range rows {
 		if !row.placeholder {
@@ -174,7 +208,7 @@ func plural(n int, noun string) string {
 // Plain writes every row, without terminal controls or interactive input.
 func Plain(w io.Writer, rows []Row) error {
 	t := newTable(rows)
-	if _, err := fmt.Fprintf(w, "Repository status · %s · %s · local refs (no fetch)\n\n", plural(checkouts(rows), "checkout"), summary(rows)); err != nil {
+	if _, err := fmt.Fprintf(w, "Repository status · %s · %s · local refs (no fetch)\n\n", plural(Checkouts(rows), "checkout"), summary(rows)); err != nil {
 		return err
 	}
 	for i := range t.rows {

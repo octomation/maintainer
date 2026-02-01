@@ -1,0 +1,19 @@
+# [fetch]
+# config = "~/.config/maintainer/fetch.toml"  # the fetch config to read; the usual lookup otherwise
+
+[score]
+impact = 2
+effort = 1
+type = 0.5
+age = 1
+due = 3
+age_horizon_days = 180
+due_horizon_days = 14
+
+[[repos]]
+match = { owner = "octomation", name = "maintainer" }
+weight = 2
+
+[[repos]]
+match = { id = 672356038 }  # a repository id survives renames and transfers
+weight = 0.5

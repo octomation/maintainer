@@ -83,7 +83,7 @@ func (m *screen) View() tea.View {
 			continue
 		}
 		row := m.rows[m.visible[index]]
-		values := cells(row)
+		values := Cells(row)
 		prefix := "  "
 		if index == m.selection.Index {
 			prefix = "› "

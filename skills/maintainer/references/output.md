@@ -53,6 +53,7 @@ An array of rows, `[]` when there are none:
 | `ahead`, `behind`, `status` | divergence from the local upstream ref, and its text such as `synced` |
 | `push_locked` | a remote has the push URL `no_push` |
 | `pinned` | kept in place by a pin |
+| `visibility` | `public`, `private` or `internal` as the fetch state recorded it |
 | `orphan_reason`, `active_path`, `remote_checked_at` | for orphan rows |
 | `error` | the inspection failed; counts are unknown, not zero |
 

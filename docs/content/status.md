@@ -244,7 +244,8 @@ absolute `path` (an `unresolved pin` keeps the path of its rule as written),
 `branch`, `added`, `deleted`,
 `changed_files`, `untracked`, `binary`, `conflicts`, `ahead`, `behind`, `status`,
 `push_locked` (boolean), and `pinned`. `id`, `default_branch`, `commit`,
-`upstream`, and `error` are omitted when unavailable or empty. Orphan rows also expose
+`upstream`, `visibility` (`public`, `private` or `internal`, as the fetch state
+recorded it), and `error` are omitted when unavailable or empty. Orphan rows also expose
 `orphan_reason`, optional `active_path`, and `remote_checked_at` for cached
 `remote-gone` observations saved by fetch apply. Text/TUI shows only `orphan`,
 without bracketed reason codes; the reason remains in JSON and searchable.

@@ -21,7 +21,7 @@ func Interactive(ctx context.Context, in, out *os.File, rows []Row) error {
 type screen struct {
 	rows          []Row
 	visible       []int
-	keys          []sortKey
+	keys          []SortKey
 	column        Column
 	selection     Selection
 	anchor        int
@@ -74,7 +74,7 @@ func (m *screen) resize(width, height int) {
 }
 
 func (m *screen) rebuild() {
-	m.visible = queryRows(m.rows, m.keys, m.search.Value())
+	m.visible = Query(m.rows, m.keys, m.search.Value())
 	m.selection.Index = max(0, slices.Index(m.visible, m.anchor))
 	m.selection.Move("", len(m.visible), m.pageSize())
 }

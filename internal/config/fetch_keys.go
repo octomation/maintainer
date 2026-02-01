@@ -41,21 +41,34 @@ func (u unknownKey) String() string {
 // unknownKeysError names every unknown key with its table and the file, so a
 // typo such as include_owner never silently widens or skips a rule.
 func unknownKeysError(path string, keys []unknownKey) error {
+	return unknownKeysErrorOf("fetch config", path, keys)
+}
+
+func unknownKeysErrorOf(kind, path string, keys []unknownKey) error {
 	if len(keys) == 1 {
-		return fmt.Errorf("fetch config %q: unknown %s", path, keys[0])
+		return fmt.Errorf("%s %q: unknown %s", kind, path, keys[0])
 	}
 	lines := make([]string, 0, len(keys))
 	for _, k := range keys {
 		lines = append(lines, "  "+k.String())
 	}
-	return fmt.Errorf("fetch config %q has unknown keys:\n%s", path, strings.Join(lines, "\n"))
+	return fmt.Errorf("%s %q has unknown keys:\n%s", kind, path, strings.Join(lines, "\n"))
 }
 
 // unknownKeys walks a generically decoded TOML or YAML document along the
 // tags of Fetch and reports, in a stable order, every key it does not declare.
 func unknownKeys(doc map[string]any) []unknownKey {
+	return unknownKeysOf(doc, reflect.TypeFor[Fetch]())
+}
+
+// unknownServiceKeys does the same along the tags of Service.
+func unknownServiceKeys(doc map[string]any) []unknownKey {
+	return unknownKeysOf(doc, reflect.TypeFor[Service]())
+}
+
+func unknownKeysOf(doc map[string]any, typ reflect.Type) []unknownKey {
 	var out []unknownKey
-	checkKeys(nil, doc, reflect.TypeFor[Fetch](), &out)
+	checkKeys(nil, doc, typ, &out)
 	sort.SliceStable(out, func(i, j int) bool {
 		a, b := strings.Join(out[i].table, "."), strings.Join(out[j].table, ".")
 		if a != b {

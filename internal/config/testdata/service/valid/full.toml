@@ -1,0 +1,23 @@
+[fetch]
+config = ".config/maintainer/fetch.toml"
+
+[score]
+impact = 2
+effort = 1.5
+type = 0
+age = 0.5
+due = 3
+age_horizon_days = 180
+due_horizon_days = 14
+
+[[repos]]
+match = { id = 42 }
+weight = 2
+
+[[repos]]
+match = { owner = "octomation", name = "maintainer" }
+weight = 1.5
+
+[[repos]]
+match = { owner = "octopot", name = "idle" }
+weight = 0

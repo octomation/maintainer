@@ -476,7 +476,7 @@ func TestRemoteName(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.raw, func(t *testing.T) {
-			assert.Equal(t, tc.want, remoteName(tc.raw))
+			assert.Equal(t, tc.want, RemoteName(tc.raw))
 		})
 	}
 }

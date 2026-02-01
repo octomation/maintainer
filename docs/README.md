@@ -45,7 +45,7 @@ Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH
 | `content/status.md` | `status`: inspect local repository work |
 | `content/workspace.md` | Workspace layout shared by `fetch` and `status` |
 | `content/agents.md` | The agent skill: install, keep in step, catalog |
-| `content/service.md` | `service`: the local service at `maintainer.localhost` |
+| `content/service.md` | `service`: the local service at `maintainer.localhost`, its pages, triage and `service.toml` |
 | `content/changelog/index.mdx` | Release overview |
 | `content/changelog/v0.2.1.md` | Fetch selection, workspace safety, status summary and agent skill release notes |
 | `content/changelog/v0.2.0.md` | Fetch and status release notes |

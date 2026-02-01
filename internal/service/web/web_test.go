@@ -5,8 +5,6 @@ import (
 	"io"
 	"net"
 	"net/http"
-	"net/http/httptest"
-	"strconv"
 	"testing"
 	"time"
 
@@ -15,51 +13,6 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/service/web"
 )
-
-func TestHandler(t *testing.T) {
-	handler := web.Handler()
-	serve := func(method, path string) *httptest.ResponseRecorder {
-		w := httptest.NewRecorder()
-		handler.ServeHTTP(w, httptest.NewRequestWithContext(context.Background(), method, path, http.NoBody))
-		return w
-	}
-
-	for _, path := range []string{"/", "/?v=1"} {
-		w := serve(http.MethodGet, path)
-		assert.Equal(t, http.StatusOK, w.Code, path)
-		assert.Equal(t, "text/html; charset=utf-8", w.Header().Get("Content-Type"), path)
-		assert.Equal(t, "nosniff", w.Header().Get("X-Content-Type-Options"), path)
-		assert.Equal(t, "no-store", w.Header().Get("Cache-Control"), path)
-		assert.Equal(t, strconv.Itoa(len(web.Page)), w.Header().Get("Content-Length"), path)
-		assert.Equal(t, web.Page, w.Body.String(), path)
-		assert.Contains(t, w.Body.String(), "Service is running.", path)
-	}
-
-	t.Run("head", func(t *testing.T) {
-		w := serve(http.MethodHead, "/")
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Equal(t, "text/html; charset=utf-8", w.Header().Get("Content-Type"))
-		assert.Equal(t, strconv.Itoa(len(web.Page)), w.Header().Get("Content-Length"))
-		assert.Empty(t, w.Body.Bytes())
-	})
-
-	t.Run("not found", func(t *testing.T) {
-		for _, path := range []string{"/index.html", "/og.png", "/favicon.ico", "//"} {
-			w := serve(http.MethodGet, path)
-			assert.Equal(t, http.StatusNotFound, w.Code, path)
-			assert.Equal(t, "nosniff", w.Header().Get("X-Content-Type-Options"), path)
-			assert.NotContains(t, w.Body.String(), "Service is running.", path)
-		}
-	})
-
-	t.Run("method not allowed", func(t *testing.T) {
-		for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions} {
-			w := serve(method, "/")
-			assert.Equal(t, http.StatusMethodNotAllowed, w.Code, method)
-			assert.Equal(t, "GET, HEAD", w.Header().Get("Allow"), method)
-		}
-	})
-}
 
 func TestServe(t *testing.T) {
 	t.Run("graceful shutdown", func(t *testing.T) {
@@ -128,9 +81,10 @@ func TestServe(t *testing.T) {
 		first, second := listen(t), listen(t)
 		ctx, cancel := context.WithCancel(context.Background())
 		served := make(chan error, 1)
-		go func() { served <- web.Serve(ctx, []net.Listener{first, second}, web.Handler(), time.Second) }()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { _, _ = io.WriteString(w, "page") })
+		go func() { served <- web.Serve(ctx, []net.Listener{first, second}, handler, time.Second) }()
 		for _, listener := range []net.Listener{first, second} {
-			assert.Equal(t, web.Page, get(t, "http://"+listener.Addr().String()+"/"))
+			assert.Equal(t, "page", get(t, "http://"+listener.Addr().String()+"/"))
 		}
 		cancel()
 		require.NoError(t, <-served)

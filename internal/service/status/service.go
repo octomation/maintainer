@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 
@@ -18,12 +20,41 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
-// Collect combines disk discovery, remembered checkouts and explicit pins.
-// State is only a snapshot loaded by the caller and is never mutated.
+// Discovery is what Collect knows before any Git inspection: the candidate
+// rows with their paths, pins and diagnostics, and the placeholders. Rows
+// finishes it without Git, Inspect with it.
+type Discovery struct {
+	cnf           *config.Fetch
+	home          string
+	root          string
+	owners        []string
+	rows          []Row
+	extra         []Row
+	listed        map[string]bool
+	byName        map[string]state.Record
+	pins          map[string]string
+	explicitPaths map[string]bool
+	obstructed    map[string]string
+}
+
+// Collect combines disk discovery, remembered checkouts and explicit pins,
+// and inspects every checkout with Git. State is only a snapshot loaded by
+// the caller and is never mutated.
 func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd string, owners []string, concurrency int) ([]Row, error) {
 	if concurrency < 1 {
 		return nil, fmt.Errorf("concurrency must be positive")
 	}
+	d, err := Discover(ctx, cnf, st, home, cwd, owners)
+	if err != nil {
+		return nil, err
+	}
+	return d.Inspect(ctx, concurrency)
+}
+
+// Discover combines disk discovery, remembered checkouts and explicit pins
+// without running Git. State is only a snapshot loaded by the caller and is
+// never mutated.
+func Discover(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd string, owners []string) (*Discovery, error) {
 	renderer, err := fetchsvc.NewPathRenderer(cnf.WorkspaceConfig().Root, home, cwd)
 	if err != nil {
 		return nil, err
@@ -49,7 +80,7 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		if rec.OwnerLogin != "" {
 			name = rec.OwnerLogin + "/" + rec.Name
 		}
-		byPath[path] = Row{ID: rec.ID, Repository: name, Path: path, DefaultBranch: rec.DefaultBranch}
+		byPath[path] = Row{ID: rec.ID, Repository: name, Path: path, DefaultBranch: rec.DefaultBranch, Visibility: rec.Visibility}
 		if rec.RemoteStatus == "gone" {
 			orphans[path] = workspace.OrphanRemoteGone
 			row := byPath[path]
@@ -164,6 +195,33 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 		rows = append(rows, row)
 	}
+	// The map order is random: a stable order keeps Rows and Inspect alike.
+	sort.Slice(rows, func(i, j int) bool { return rows[i].Path < rows[j].Path })
+	listed := make(map[string]bool, len(byPath))
+	for path := range byPath {
+		listed[path] = true
+	}
+	return &Discovery{cnf: cnf, home: home, root: renderer.Root(), owners: owners, rows: rows, extra: extra,
+		listed: listed, byName: byName, pins: pins, explicitPaths: explicitPaths, obstructed: obstructed}, nil
+}
+
+// Root is the workspace root the rows were discovered under.
+func (d *Discovery) Root() string { return d.root }
+
+// Rows returns the rows without inspecting Git: identity comes from state
+// only, and the Git columns stay empty. The order and the diagnostics follow
+// the same rules as Inspect.
+func (d *Discovery) Rows() []Row {
+	return d.finish(slices.Clone(d.rows))
+}
+
+// Inspect reads every checkout with Git, at most concurrency at a time, and
+// returns the finished rows.
+func (d *Discovery) Inspect(ctx context.Context, concurrency int) ([]Row, error) {
+	if concurrency < 1 {
+		return nil, fmt.Errorf("concurrency must be positive")
+	}
+	rows := slices.Clone(d.rows)
 	var group errgroup.Group
 	group.SetLimit(concurrency)
 	for i := range rows {
@@ -181,6 +239,14 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
+	return d.finish(rows), nil
+}
+
+// finish applies the rules that need every row: learned pins, duplicates,
+// ignores, obstructions, the owner filter, the placeholders and the order.
+func (d *Discovery) finish(rows []Row) []Row {
+	cnf, owners, byName, explicitPaths, obstructed := d.cnf, d.owners, d.byName, d.explicitPaths, d.obstructed
+	pins := maps.Clone(d.pins)
 	// A literal ID-only pin can learn its display identity from its origin.
 	for _, row := range rows {
 		if explicitPaths[row.Path] && row.identified() {
@@ -227,8 +293,8 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 		selected = append(selected, row)
 	}
-	for _, row := range extra {
-		if _, listed := byPath[row.Path]; listed {
+	for _, row := range d.extra {
+		if d.listed[row.Path] {
 			continue
 		}
 		// A path without a known owner is kept under every owner filter.
@@ -243,7 +309,7 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 		return selected[i].Path < selected[j].Path
 	})
-	return selected, nil
+	return selected
 }
 
 // identified reports whether origin or state names the row owner/name; the

@@ -76,10 +76,24 @@ func TestFetchSchemaFixtures(t *testing.T) {
 // commented-out keys enabled as well, are current: `go test ./internal/config
 // -run TestFetchExampleFixtures -update` rewrites them.
 func TestFetchExampleFixtures(t *testing.T) {
-	examples := guideExamples(t)
+	examples := guideExamples(t, "fetch")
 	require.GreaterOrEqual(t, len(examples), 4, "the guides lost their config examples")
 	examples = append(examples, example{name: "template", file: "fetch.toml", body: FetchConfigTemplate})
+	checkExampleFixtures(t, examples, filepath.Join("testdata", "valid"), []string{"guide-*", "template*"}, "TestFetchExampleFixtures")
+}
 
+// The service guide writes service.toml with a heredoc; its example, with the
+// commented-out keys enabled as well, is a fixture that `make config-vet`
+// checks against service.cue: `go test ./internal/config -run
+// TestServiceExampleFixtures -update` rewrites it.
+func TestServiceExampleFixtures(t *testing.T) {
+	examples := guideExamples(t, "service")
+	require.NotEmpty(t, examples, "the service guide lost its service.toml example")
+	checkExampleFixtures(t, examples, filepath.Join("testdata", "service", "valid"), []string{"guide-*"}, "TestServiceExampleFixtures")
+}
+
+func checkExampleFixtures(t *testing.T, examples []example, dir string, patterns []string, test string) {
+	t.Helper()
 	want := map[string]string{}
 	for _, ex := range examples {
 		ext := filepath.Ext(ex.file)
@@ -90,8 +104,8 @@ func TestFetchExampleFixtures(t *testing.T) {
 	}
 	generated := func() map[string]string {
 		var paths []string
-		for _, pattern := range []string{"guide-*", "template*"} {
-			found, err := filepath.Glob(filepath.Join("testdata", "valid", pattern))
+		for _, pattern := range patterns {
+			found, err := filepath.Glob(filepath.Join(dir, pattern))
 			require.NoError(t, err)
 			paths = append(paths, found...)
 		}
@@ -106,28 +120,39 @@ func TestFetchExampleFixtures(t *testing.T) {
 	got := generated()
 	if *update {
 		for name := range got {
-			require.NoError(t, os.Remove(filepath.Join("testdata", "valid", name)))
+			require.NoError(t, os.Remove(filepath.Join(dir, name)))
 		}
 		for name, body := range want {
-			require.NoError(t, os.WriteFile(filepath.Join("testdata", "valid", name), []byte(body), 0o644))
+			require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte(body), 0o644))
 		}
 		got = generated()
 	}
-	assert.Equal(t, want, got, "run go test ./internal/config -run TestFetchExampleFixtures -update")
+	assert.Equal(t, want, got, "run go test ./internal/config -run "+test+" -update")
 }
 
 type example struct{ name, file, body string }
 
 var (
 	fence   = regexp.MustCompile("^```(\\w*)")
-	heredoc = regexp.MustCompile(`cat > (fetch\.(?:toml|yaml)) <<'?EOF'?`)
+	heredoc = regexp.MustCompile(`cat > (?:\S*/)?((?:fetch|service)\.(?:toml|yaml)) <<'?EOF'?`)
 	setting = regexp.MustCompile(`^(\s*)# ?(\[\[?[a-z_]+|[a-z_]+\s*=)`)
 )
 
-// guideExamples extracts every TOML block and every fetch config written by a
-// shell heredoc from the guides, named after the page and their order on it;
+// guideExamples extracts every TOML block (a fetch config) and every fetch or
+// service config written by a shell heredoc from the guides, named after the
+// page and their order on it, and keeps those of kind ("fetch" or "service");
 // the release notes are frozen and skipped.
-func guideExamples(t *testing.T) []example {
+func guideExamples(t *testing.T, kind string) []example {
+	var kept []example
+	for _, ex := range allGuideExamples(t) {
+		if strings.HasPrefix(ex.file, kind+".") {
+			kept = append(kept, ex)
+		}
+	}
+	return kept
+}
+
+func allGuideExamples(t *testing.T) []example {
 	t.Helper()
 	pages, err := filepath.Glob(filepath.Join("..", "..", "docs", "content", "*.md"))
 	require.NoError(t, err)

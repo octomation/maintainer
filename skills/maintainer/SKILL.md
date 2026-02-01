@@ -156,9 +156,20 @@ Fields and examples: [references/output.md](references/output.md).
 ## 6. The local service
 
 `maintainer service run` serves maintainer over HTTP at
-`http://maintainer.localhost:17841/`. This release answers `GET` and `HEAD`
-of `/` with a page that says "Service is running." and nothing else; it needs
-no token, config or network.
+`http://maintainer.localhost:17841/`: `/status` is the status table in the
+browser, `/inbox` lists every issue the checkouts mirror in `.github/issues`
+with a reading pane, filters and a score, `/tablo` shows them on one board
+(Backlog, To do, In progress, Done, Won't do); `/` redirects to `/status`.
+It reads the fetch config and state as `status` does, from the home
+directory, and `service.toml` in `$XDG_CONFIG_HOME/maintainer` or
+`~/.config/maintainer` for the score weights (`--config` names another file,
+which must exist); it needs no token or network.
+
+- **It writes issue files.** Setting `impact: *` or `effort: *` on a page
+  changes those label lines in the issue file of the checkout and nothing
+  else. Don't run `dump`, `sync` or push the mirror, and don't edit the issue
+  files, while the user triages in the browser; after you changed issue files,
+  **Reindex** in the navigation bar rebuilds the index.
 
 - **Homebrew runs it.** On macOS the Formula carries the service:
   `brew services start octolab/tap/maintainer`, `restart` after an upgrade,
@@ -180,7 +191,7 @@ no token, config or network.
   ```
 
 - **Check it** with
-  `curl -fsS http://maintainer.localhost:17841/ -o /dev/null -w '%{http_code}\n'`,
+  `curl -fsS http://maintainer.localhost:17841/status -o /dev/null -w '%{http_code}\n'`,
   which prints `200`. Run in a terminal, `Ctrl-C` stops it once the
   responses in flight are sent.
 

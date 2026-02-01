@@ -8,7 +8,6 @@ import (
 	"net"
 	"net/http"
 	"strconv"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -26,29 +25,6 @@ func URLFor(addr net.Addr) string {
 		return URL(tcp.Port)
 	}
 	return "http://" + addr.String() + "/"
-}
-
-// Page is what the service answers at its root: it has nothing else to serve
-// yet, so the page only says that it is running.
-const Page = "<!doctype html>\n<html lang=\"en\">\n<head><meta charset=\"utf-8\"><title>maintainer service</title></head>\n<body><p>Service is running.</p></body>\n</html>\n"
-
-// Handler answers GET and HEAD of / with Page. Every other path is not found.
-func Handler() http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet && r.Method != http.MethodHead {
-			w.Header().Set("Allow", "GET, HEAD")
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-		if r.URL.Path != "/" {
-			http.NotFound(w, r)
-			return
-		}
-		w.Header().Set("Cache-Control", "no-store")
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		http.ServeContent(w, r, "index.html", time.Time{}, strings.NewReader(Page))
-	})
 }
 
 // Listen binds every address. With optional set, an address that the system

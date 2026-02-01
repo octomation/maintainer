@@ -27,7 +27,7 @@ func TestOrphanKeepsDirtyStatusAndIsSearchable(t *testing.T) {
 	rows, err := Collect(context.Background(), cnf, st, root, root, nil, 1)
 	require.NoError(t, err)
 	require.Len(t, rows, 2)
-	indexes := queryRows(rows, nil, "orphan duplicate-pin")
+	indexes := Query(rows, nil, "orphan duplicate-pin")
 	require.Len(t, indexes, 1)
 	row := rows[indexes[0]]
 	assert.Equal(t, old, row.Path)
@@ -56,7 +56,7 @@ func TestOrphanKeepsDirtyStatusAndIsSearchable(t *testing.T) {
 func TestCachedRemoteOrphanRetainsTrackingStatus(t *testing.T) {
 	now := time.Date(2026, 9, 8, 12, 0, 0, 0, time.UTC)
 	row := Row{Repository: "acme/tool", Path: "/work/tool", Status: "behind", Behind: 12, OrphanReason: "remote-gone", RemoteCheckedAt: &now}
-	assert.Equal(t, "orphan · behind 12", cells(row)[3])
+	assert.Equal(t, "orphan · behind 12", Cells(row)[3])
 	var out bytes.Buffer
 	require.NoError(t, Plain(&out, []Row{row}))
 	assert.Contains(t, out.String(), "GitHub check (cached): 2026-09-08T12:00:00Z")

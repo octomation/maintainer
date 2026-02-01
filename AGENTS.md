@@ -325,8 +325,8 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
   stable release) outside a checkout, and Homebrew:
   `brew update && brew upgrade --formula octolab/tap/maintainer && maintainer version`.
 - On macOS, after `brew services restart octolab/tap/maintainer`,
-  `curl -fsS http://maintainer.localhost:17841/ | grep -q "Service is running"`
-  passes on the release commit.
+  `curl -fsS http://maintainer.localhost:17841/status -o /dev/null -w '%{http_code}'`
+  prints `200` on the release commit.
 - A stable release only: the catalog tag `maintainer--vX.Y.Z` points at a
   verified commit, and `ci (install)` there is green for that tag.
 - A stable release only: the catalog plugins are updated, then

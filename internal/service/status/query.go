@@ -22,7 +22,21 @@ const (
 
 var columnNames = []string{"Repository", "Branch", "Uncommitted", "Status", "Lock", "Path"}
 
-type sortKey struct {
+// ColumnNames returns the header names in column order.
+func ColumnNames() []string { return slices.Clone(columnNames) }
+
+// ParseColumn finds a column by its header name, case-insensitively.
+func ParseColumn(name string) (Column, bool) {
+	for i, known := range columnNames {
+		if strings.EqualFold(known, name) {
+			return Column(i), true
+		}
+	}
+	return 0, false
+}
+
+// SortKey is one key of a sort chain: a column and its direction.
+type SortKey struct {
 	Column Column
 	Desc   bool
 }
@@ -30,9 +44,9 @@ type sortKey struct {
 // cycleSort preserves the precedence of existing keys in additive mode.
 // A plain activation replaces the whole chain, while still cycling the
 // activated column's current direction: absent -> asc -> desc -> absent.
-func cycleSort(keys []sortKey, column Column, additive bool) []sortKey {
-	index := slices.IndexFunc(keys, func(key sortKey) bool { return key.Column == column })
-	next := sortKey{Column: column}
+func cycleSort(keys []SortKey, column Column, additive bool) []SortKey {
+	index := slices.IndexFunc(keys, func(key SortKey) bool { return key.Column == column })
+	next := SortKey{Column: column}
 	remove := false
 	if index >= 0 {
 		next.Desc = !keys[index].Desc
@@ -42,7 +56,7 @@ func cycleSort(keys []sortKey, column Column, additive bool) []sortKey {
 		if remove {
 			return nil
 		}
-		return []sortKey{next}
+		return []SortKey{next}
 	}
 	result := slices.Clone(keys)
 	switch {
@@ -56,15 +70,18 @@ func cycleSort(keys []sortKey, column Column, additive bool) []sortKey {
 	return result
 }
 
-// queryRows returns indexes into an immutable snapshot. Fuzzy relevance orders
-// an unsorted search; explicit sort keys take precedence over relevance.
-func queryRows(rows []Row, keys []sortKey, query string) []int {
+// Query returns indexes into an immutable snapshot: the rows every term of
+// the fuzzy query matches, in the order of the sort chain. Fuzzy relevance
+// orders an unsorted search; explicit sort keys take precedence over
+// relevance; unknown numbers stay last in either direction; the repository
+// and the path break ties. The TUI, Plain and the HTTP API share it.
+func Query(rows []Row, keys []SortKey, query string) []int {
 	type candidate struct{ index, score int }
 	candidates := make([]candidate, 0, len(rows))
 	terms := strings.Fields(query)
 	for i, row := range rows {
 		score, matches := 0, true
-		fields := append(cells(row), safeText(row.Path), safeText(row.Upstream), safeText(row.Commit), safeText(row.ActivePath), safeText(row.OrphanReason))
+		fields := append(Cells(row), safeText(row.Path), safeText(row.Upstream), safeText(row.Commit), safeText(row.ActivePath), safeText(row.OrphanReason))
 		for _, term := range terms {
 			found := fuzzy.Find(term, fields)
 			if len(found) == 0 {

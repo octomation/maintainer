@@ -317,6 +317,10 @@ config-vet:
 	$(AT) for f in internal/config/testdata/invalid/*.toml internal/config/testdata/invalid/*.yaml; do \
 		test -e "$$f"; ! cue vet -c internal/config/fetch.cue "$$f" 2>/dev/null || { echo "$$f: fetch.cue accepts it" >&2; exit 1; }; \
 	done
+	$(AT) for f in internal/config/testdata/service/valid/*.toml; do cue vet -c internal/config/service.cue "$$f"; done
+	$(AT) for f in internal/config/testdata/service/invalid/*.toml; do \
+		test -e "$$f"; ! cue vet -c internal/config/service.cue "$$f" 2>/dev/null || { echo "$$f: service.cue accepts it" >&2; exit 1; }; \
+	done
 .PHONY: config-vet
 
 # the committed web/dist must be what the sources build: npm ci, the
