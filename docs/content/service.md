@@ -6,7 +6,7 @@ description: Serve maintainer over HTTP at http://maintainer.localhost:17841/ on
 # Local service
 
 > [!NOTE]
-> `maintainer service` is not released yet. To try it, build `maintainer` from a source checkout:
+> `maintainer service` is not released yet, and the Homebrew steps below apply from the release that ships it. To try it now, build `maintainer` from a source checkout:
 >
 > ```sh
 > git clone https://github.com/octomation/maintainer.git
@@ -20,7 +20,50 @@ access, runs as your user and listens only on loopback: `.localhost` names
 resolve to your own computer, so there is nothing to set up and no
 administrator step.
 
-## Run the service
+## Install and start
+
+On macOS, the Homebrew Formula `octolab/tap/maintainer` installs the CLI and
+the service definition; the service is the same binary as the CLI and
+upgrades with it.
+
+```sh
+brew install --formula octolab/tap/maintainer
+brew services start octolab/tap/maintainer
+curl -fsS http://maintainer.localhost:17841/ -o /dev/null -w '%{http_code}\n'
+```
+
+```text
+200
+```
+
+Open `http://maintainer.localhost:17841/` in a browser to see the page.
+The service runs as your user and logs to
+`$(brew --prefix)/var/log/maintainer.log`. Installing the Formula does not
+start it. Do not run `sudo brew services`.
+
+## Move from the Cask
+
+If you installed the Cask, switch to the Formula once:
+
+```sh
+brew uninstall --cask maintainer && brew install --formula octolab/tap/maintainer
+```
+
+Your fetch configuration and state stay where they are.
+
+## Upgrade, stop and remove
+
+```sh
+brew update
+brew upgrade --formula octolab/tap/maintainer
+brew services restart octolab/tap/maintainer
+brew services stop octolab/tap/maintainer
+brew uninstall --formula octolab/tap/maintainer
+```
+
+## Run it yourself
+
+Without Homebrew, run the service in a terminal:
 
 ```sh
 maintainer service run

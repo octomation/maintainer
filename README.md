@@ -54,12 +54,11 @@ See the [status guide][status.page] for columns, keys and JSON output.
 
 ```bash
 $ brew install --formula octolab/tap/maintainer
-# or
-$ brew install --cask octolab/tap/maintainer
 ```
 
-The formula and the cask install the same release on macOS and Linux; keep
-only one of them.
+The formula is available for macOS and Linux. If you installed the cask,
+switch once as the [service guide][service.page] shows. The
+[local service][service.page], not released yet, will come with the formula.
 
 ### Binary
 
@@ -106,6 +105,7 @@ $ source <(maintainer completion)
 [docs.page]:        https://maintainer.octolab.org/
 [fetch.page]:       https://maintainer.octolab.org/fetch/
 [status.page]:      https://maintainer.octolab.org/status/
+[service.page]:     https://maintainer.octolab.org/service/
 [docs.icon]:        https://img.shields.io/badge/docs-GitHub%20Pages-blue
 [mirror.page]:      https://bitbucket.org/kamilsk/maintainer
 [mirror.icon]:      https://img.shields.io/badge/mirror-bitbucket-blue

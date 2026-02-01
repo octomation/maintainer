@@ -58,7 +58,7 @@ test('release notes render site links but preserve code examples', () => fixture
 }))
 
 test('preflight refuses missing App credentials and hands the tap to the token step', () => fixture(({ cwd, run, withEnv }) => {
-  writeFileSync(join(cwd, '.goreleaser.yml'), 'homebrew_casks:\n  - name: maintainer\n    repository:\n      owner: octolab\n      name: homebrew-tap\n      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"\n')
+  writeFileSync(join(cwd, '.goreleaser.yml'), 'brews:\n  - name: maintainer\n    repository:\n      owner: octolab\n      name: homebrew-tap\n      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"\n')
   const output = join(cwd, 'github-output')
   withEnv({ GITHUB_OUTPUT: output })
   const missing = run('preflight')

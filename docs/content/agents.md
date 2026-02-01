@@ -25,7 +25,7 @@ Start a new agent session. Ask for `/maintainer` in Claude Code or `$maintainer`
 After upgrading maintainer, replace the skill with the new binary’s copy:
 
 ```sh
-brew upgrade --formula octolab/tap/maintainer   # or: brew upgrade --cask octolab/tap/maintainer
+brew upgrade --formula octolab/tap/maintainer
 maintainer skill install --agent claude-code,codex --replace
 ```
 

@@ -97,8 +97,12 @@ make release-config-check
 ```
 
 `make release-config-check` accepts exactly the GoReleaser `brews`
-deprecation and nothing else: `brews` publishes the Formula next to the Cask
-([MAIN-152](.github/issues/MAIN-152.md)).
+deprecation and nothing else: `brews` ships the CLI and the macOS service as
+one Formula, and the Cask is no longer published
+([MAIN-125](.github/issues/MAIN-125.md)). Existing Cask users need the
+one-time move in the
+[service guide](docs/content/service.md#move-from-the-cask). Published notes
+keep their original Cask commands.
 
 ### 1. Changelog
 
@@ -124,7 +128,7 @@ Lead paragraph: what the release does, in terms of commands and results.
 
 - What the release does not do yet, in user terms.
 
-**Upgrade:** with Homebrew, run `brew update` followed by `brew upgrade --formula octolab/tap/maintainer` or `brew upgrade --cask octolab/tap/maintainer`, whichever you installed. With the install script, pass the tag: `sh -s -- -b ~/.local/bin vX.Y.Z`. With Go, run `go install go.octolab.org/toolset/maintainer@vX.Y.Z`. For a manual installation, use a [vX.Y.Z release archive](https://github.com/octomation/maintainer/releases/tag/vX.Y.Z). Run `maintainer version` to check the installed version.
+**Upgrade:** with Homebrew, run `brew update` followed by `brew upgrade --formula octolab/tap/maintainer`. With the install script, pass the tag: `sh -s -- -b ~/.local/bin vX.Y.Z`. With Go, run `go install go.octolab.org/toolset/maintainer@vX.Y.Z`. For a manual installation, use a [vX.Y.Z release archive](https://github.com/octomation/maintainer/releases/tag/vX.Y.Z). Run `maintainer version` to check the installed version.
 ```
 
 - English; a short slogan ending with a period. v0.1.0, "Find your rhythm",
@@ -254,7 +258,7 @@ For a prerelease, record the stable channels first:
 
 ```sh
 gh release view --json tagName -q .tagName
-for f in Formula Casks; do gh api repos/octolab/homebrew-tap/contents/$f/maintainer.rb -q .sha; done
+gh api repos/octolab/homebrew-tap/contents/Formula/maintainer.rb -q .sha
 ```
 
 Then:
@@ -285,7 +289,7 @@ before the GitHub release exists; after that, ship the next patch.
 ```sh
 gh run watch --exit-status "$(gh run list -w cd.yml -c "$(git rev-parse 'vX.Y.Z^{commit}')" -L 1 --json databaseId -q '.[0].databaseId')"
 gh release view vX.Y.Z --json name,isPrerelease,assets -q '.name, .isPrerelease, .assets[].name'
-gh api 'repos/octolab/homebrew-tap/commits?per_page=2' -q '.[] | .commit.verification.verified, .commit.message'
+gh api 'repos/octolab/homebrew-tap/commits?per_page=1' -q '.[] | .commit.verification.verified, .commit.message'
 gh api repos/octolab/skills/commits/maintainer--vX.Y.Z -q '.commit.verification.verified, .commit.message'
 gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
 ```
@@ -294,19 +298,24 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
   says the run is not found, `cd` hasn't started yet: run the line again.
 - The release has the note's title and body, four archives and
   `checksums.txt`.
-- A stable release: the Formula and Cask commits for vX.Y.Z in the tap are
-  verified, signed as the App.
+- A stable release: the Formula commit for vX.Y.Z in the tap is verified,
+  signed as the App. After the first release with the service, delete
+  `Casks/maintainer.rb` from `octolab/homebrew-tap` as a separate reviewed
+  change ([MAIN-125](.github/issues/MAIN-125.md)): GoReleaser does not delete
+  the old Cask.
 - A prerelease: `isPrerelease` is `true`,
   `gh release view --json tagName -q .tagName` still names the previous stable
-  release, and both tap files have the recorded `sha`.
+  release, and the Formula has the recorded `sha`.
 - Every channel delivers vX.Y.Z, checked by `maintainer version`,
-  `maintainer fetch --help` and `maintainer status --help`, not by a
-  successful download alone: the archives, `bin/install` with the tag,
+  `maintainer fetch --help`, `maintainer status --help` and
+  `maintainer service run --help`, not by a successful download alone: the
+  archives, `bin/install` with the tag,
   `go install go.octolab.org/toolset/maintainer@vX.Y.Z` (and `@latest` for a
-  stable release) outside a checkout, and Homebrew, with the Formula and the
-  Cask in separate installations: `brew update`, then
-  `brew upgrade --formula octolab/tap/maintainer` or
-  `brew upgrade --cask octolab/tap/maintainer`, and `maintainer version`.
+  stable release) outside a checkout, and Homebrew:
+  `brew update && brew upgrade --formula octolab/tap/maintainer && maintainer version`.
+- On macOS, after `brew services restart octolab/tap/maintainer`,
+  `curl -fsS http://maintainer.localhost:17841/ | grep -q "Service is running"`
+  passes on the release commit.
 - A stable release only: the catalog tag `maintainer--vX.Y.Z` points at a
   verified commit, and `ci (install)` there is green for that tag.
 - A stable release only: the catalog plugins are updated, then
@@ -330,7 +339,7 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
   the tag with `git push --delete origin vX.Y.Z && git tag -d vX.Y.Z`, fix the
   cause on `main` or in your signing setup, and go back to step 4.
 - **A prerelease reached a stable channel** (*Latest* or the tap changed):
-  restore the previous stable release as *Latest* and the tap files, then
+  restore the previous stable release as *Latest* and the Formula, then
   file an issue before the next candidate.
 - **Only the skill job failed**: the release and the tap are out and stay.
   Fix the cause, for example the App's installation on `octolab/skills` or

@@ -3,7 +3,7 @@
 | Workflow | Name | Runs on | Does |
 | --- | --- | --- | --- |
 | [ci](#ci) | Continuous integration | PR and push to main (Go files, `skills/`, release config), `v*` tag, monthly, manual | Lint, tests, coverage to Codecov, vulnerabilities, release config |
-| [cd](#cd) | Continuous delivery | `v*` tag, manual | Check the tag, test, publish the release, the Homebrew Formula and Cask and the agent skill; a snapshot on manual runs |
+| [cd](#cd) | Continuous delivery | `v*` tag, manual | Check the tag, test, publish the release, the Homebrew Formula and the agent skill; a snapshot on manual runs |
 | [docs](#docs) | Documentation delivery | PR and push to main (`docs/`), monthly, manual, reusable | Build the site; deploy it to Pages from main |
 | [tools](#tools) | Tools validation | PR and push to main (`tools/`), monthly, manual | Install the tools module, check generated code and tool vulnerabilities |
 | [doctor](#doctor) | Repository doctor | daily, manual | Compare the repository with GitHub and explain fixes |
@@ -45,7 +45,7 @@ flowchart LR
 
 | Secret | Used by | Purpose |
 | --- | --- | --- |
-| `OCTOLAB_RELEASER_CLIENT_ID` | cd, doctor | Client ID of the GitHub App "OctoLab Releaser" that pushes the Formula and the Cask to the tap named in `.goreleaser.yml` and the skill to `octolab/skills` |
+| `OCTOLAB_RELEASER_CLIENT_ID` | cd, doctor | Client ID of the GitHub App "OctoLab Releaser" that pushes the Formula to the tap named in `.goreleaser.yml` and the skill to `octolab/skills` |
 | `OCTOLAB_RELEASER_KEY` | cd, doctor | Private key of that App |
 | `SLACK_WEBHOOK` | all but doctor and pulls | Notifications, optional |
 
@@ -112,7 +112,7 @@ flowchart TB
   tag([push v* tag]) --> check[check the tag and its note] --> signature[GitHub verifies the tag] --> secrets[check release secrets] --> token[mint the tap token] --> pages[resolve the Pages URL] --> render[render the note]
   render --> go[set up Go, restore the release build cache, make tools] --> test[release-verify and tests] --> publish[goreleaser release]
   publish --> release[(GitHub release: body and title from the note)]
-  publish --> tap[(Formula and Cask in the tap)]
+  publish --> tap[(Formula in the tap)]
   publish --> archives[check the skill in the archives]
   archives --> skill[skill job: publish the skill, stable tags only] --> catalog[(octolab/skills)]
   skill --> notify[notify]
@@ -137,24 +137,34 @@ flowchart TB
   to goreleaser (`release.name_template`).
 - **Policy lives in `.github/settings.json`**, documented by `.github/settings.cue`:
   tag pattern, maintenance branches (e.g. `v5.*` tags on branch `v5`), note path.
-- The release uses the workflow token. The Formula and the Cask go to the tap
-  named in `.goreleaser.yml` with a token minted per run by
+- The release uses the workflow token. The Formula goes to the tap named in
+  `.goreleaser.yml` with a token minted per run by
   `actions/create-github-app-token` from a GitHub App installed on the tap,
   with Contents: Read and write; minting it fails if the App cannot write
   there. goreleaser then omits the committer
-  (`commit_author.use_github_app_token`), so GitHub signs the tap commits as
+  (`commit_author.use_github_app_token`), so GitHub signs the tap commit as
   the App; a personal token does not get signed commits.
-- The Formula and the Cask install the same release on macOS and Linux, see
-  [MAIN-152](../issues/MAIN-152.md). Homebrew
-  cannot declare a conflict between a formula and a cask, so the Formula
-  carries a caveat and the Cask preflight warns when the Formula owns the
-  binary link. GoReleaser deprecates `brews`, so `make release-config-check`
-  accepts exactly that deprecation and fails on any other.
+- One Formula ships the CLI and its shell completions on macOS and Linux,
+  and the service definition on macOS: `brew install --formula
+  octolab/tap/maintainer`, then `brew services start octolab/tap/maintainer`
+  runs `maintainer service run`, the same binary as the CLI, at
+  `http://maintainer.localhost:17841/`. GoReleaser generates and publishes it
+  directly through `brews`, the only section with the `service` block.
+  GoReleaser deprecates `brews`, so `make release-config-check` and the doctor
+  accept exactly that deprecation and fail on any other or on an invalid
+  config. Revisit the packaging before upgrading to a version that removes
+  `brews`.
+- The Cask of v0.2.x is no longer published. GoReleaser does not delete it:
+  after the first release with the service, a reviewed change in the tap
+  removes `Casks/maintainer.rb`, see
+  [MAIN-125](../issues/MAIN-125.md). Existing Cask installations need the
+  one-time move in the
+  [service guide](../../docs/content/service.md#move-from-the-cask).
 - A tag with a prerelease suffix, such as `v0.3.0-rc1`, is published as a
   prerelease that never becomes *Latest*: with `release.prerelease: auto`
   GoReleaser marks it so and sends `make_latest: false`. `skip_upload: auto`
-  on `brews` and `homebrew_casks` leaves the Formula and the Cask in the tap
-  as they are, see [#491](https://github.com/octomation/maintainer/issues/491),
+  on `brews` leaves the Formula in the tap as it is, see
+  [#491](https://github.com/octomation/maintainer/issues/491),
   and the `skill` job skips it, so the catalog keeps stable releases only.
 - **The agent skill ships with the release.** `skills/maintainer/` is embedded
   in the binary and packed into every archive; `release.mjs skill` checks that
@@ -171,9 +181,8 @@ flowchart TB
   release stays as it is; the action is idempotent. Dependabot proposes the
   action's next release with its release note; review the note before
   accepting it.
-- The binary is neither signed nor notarized. The Cask preflight clears its
-  quarantine attribute: it has to run before the completions are generated,
-  which execute the binary, so a `postflight` hook would be too late.
+- The binary is neither signed nor notarized. Homebrew does not quarantine
+  what a Formula downloads, so the Formula needs no step to clear it.
 - A manual run on a branch builds a snapshot and publishes nothing, but still
   checks the skill in the archives; on a tag it publishes, as a tag push does.
 
