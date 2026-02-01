@@ -1,15 +1,15 @@
 ---
 code: MAIN-150
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYusO2A
+databaseId: 5954539224
+number: 506
+url: https://github.com/octomation/maintainer/issues/506
 title: "fetch: identity: preserve checkout identity through repository changes"
 issueType: Bug
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: major"
   - "impact: high"
   - "effort: medium"
@@ -21,10 +21,10 @@ issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-10-21T04:50:07Z
+updatedAt: 2026-10-21T04:51:49Z
 lastEditedAt: null
-closedAt: null
+closedAt: 2026-10-21T04:50:10Z
 ---
 
 # fetch: identity: preserve checkout identity through repository changes
@@ -75,6 +75,6 @@ The origin update itself, which must keep the rest of the Git configuration ([[M
 - [[20260710T095546Z#4. Successful fetches leave last-observed repository metadata stale]].
 - Split off [[MAIN-135]], which keeps the origin update for v0.2.0.
 
-<!-- 2026-10-01T12:25Z
+<!-- 2026-10-01T12:25Z https://github.com/octomation/maintainer/issues/506#issuecomment-6308340733
 Preparation for implementation, from the spec reviews of #466 (2026-10-01): reconfirmed on `main` — `applier.go:79-97` runs `Move`, then `UpdateRemote` (returning before any commit on error), then one `commit`, so a failed remote update leaves state at the old path and recovery goes through `relocate`. Separately, `planner.go:288` adopts a workspace checkout with no path cross-check: a clone of a fork's parent at the fork's path is adopted as the parent and moved on the next run. #466 now specifies that a path belonging to another known id is a conflict, not an adoption; this identity work is the natural place for the check.
 -->

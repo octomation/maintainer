@@ -7,10 +7,10 @@ url: https://github.com/octomation/maintainer/milestone/3
 title: "Workspace, v0.2"
 state: OPEN
 openIssueCount: 4
-closedIssueCount: 17
+closedIssueCount: 30
 dueOn: null
 createdAt: 2026-09-26T09:14:44Z
-updatedAt: 2026-10-20T12:35:45Z
+updatedAt: 2026-10-21T04:50:39Z
 closedAt: null
 ---
 

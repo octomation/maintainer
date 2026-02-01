@@ -1,16 +1,16 @@
 ---
 code: MAIN-148
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYusFYQ
+databaseId: 5954536801
+number: 504
+url: https://github.com/octomation/maintainer/issues/504
 title: "fetch: clone: do not adopt an interrupted clone as a checkout"
 issueType: Bug
 labels:
-  - "type: bug"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: bug"
   - "severity: minor"
   - "impact: low"
   - "effort: medium"
@@ -22,10 +22,10 @@ issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-10-21T04:49:51Z
+updatedAt: 2026-10-21T04:49:54Z
 lastEditedAt: null
-closedAt: null
+closedAt: 2026-10-21T04:49:54Z
 ---
 
 # fetch: clone: do not adopt an interrupted clone as a checkout

@@ -1,24 +1,29 @@
 ---
 code: MAIN-131
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYurjNA
+databaseId: 5954528052
+number: 497
+url: https://github.com/octomation/maintainer/issues/497
 title: "command: exit codes: enforce the documented codes for usage errors"
+issueType: null
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: minor"
   - "impact: medium"
   - "effort: easy"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: 2026-09-26T09:31:00Z
-updatedAt: 2026-09-26T09:31:00Z
+duplicateOf: null
+createdAt: 2026-10-21T04:48:56Z
+updatedAt: 2026-10-21T04:48:59Z
 lastEditedAt: null
-closedAt: null
+closedAt: 2026-10-21T04:48:59Z
 ---
 
 # command: exit codes: enforce the documented codes for usage errors

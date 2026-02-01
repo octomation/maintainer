@@ -1,16 +1,16 @@
 ---
 code: MAIN-147
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYusAnw
+databaseId: 5954535583
+number: 503
+url: https://github.com/octomation/maintainer/issues/503
 title: "fetch: worktrees: keep linked worktrees usable and read them as Git does"
 issueType: Bug
 labels:
-  - "type: bug"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: bug"
   - "severity: minor"
   - "impact: medium"
   - "effort: medium"
@@ -22,10 +22,10 @@ issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
-createdAt: null
-updatedAt: null
-lastEditedAt: null
-closedAt: null
+createdAt: 2026-10-21T04:49:43Z
+updatedAt: 2026-10-21T04:51:31Z
+lastEditedAt: 2026-10-21T04:51:31Z
+closedAt: 2026-10-21T04:49:46Z
 ---
 
 # fetch: worktrees: keep linked worktrees usable and read them as Git does

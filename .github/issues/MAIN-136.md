@@ -1,24 +1,29 @@
 ---
 code: MAIN-136
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYurndg
+databaseId: 5954529142
+number: 498
+url: https://github.com/octomation/maintainer/issues/498
 title: "fetch: apply: refresh successfully reconciled checkouts in the same run"
+issueType: null
 labels:
-  - "type: improvement"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: improvement"
   - "impact: medium"
   - "effort: medium"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: 2026-09-26T09:28:00Z
-updatedAt: 2026-09-26T09:28:00Z
-lastEditedAt: null
-closedAt: null
+duplicateOf: null
+createdAt: 2026-10-21T04:49:04Z
+updatedAt: 2026-10-21T04:51:46Z
+lastEditedAt: 2026-10-21T04:51:20Z
+closedAt: 2026-10-21T04:49:07Z
 ---
 
 # fetch: apply: refresh successfully reconciled checkouts in the same run
@@ -49,6 +54,6 @@ Today the first apply reports `adopt=1 fetch=0` and the remote-tracking ref stay
 
 Related: [[MAIN-150]], [[MAIN-137]], [[MAIN-132]], [[MAIN-92]].
 
-<!-- 2026-10-01T12:25Z
+<!-- 2026-10-01T12:25Z https://github.com/octomation/maintainer/issues/498#issuecomment-6308340152
 Preparation for implementation, from the spec reviews of #466 (2026-10-01): the dependent fetch is still absent on `main` — `service.go:475-479` runs fixed passes with only a failure counter (`service.go:435-440`), `applier.go:43-54` records an adoption without a fetch — and the user documentation says the opposite of the requirement: `docs/content/fetch.md:172` ("adoption/remote update fetch refs on the next invocation") and `:328` (a separate third command). The docs task must flip both lines when this lands. #466 deliberately does not build on this mechanism: `upstream` after clone or adopt is a second stage of the same action, like the origin update of `move`.
 -->

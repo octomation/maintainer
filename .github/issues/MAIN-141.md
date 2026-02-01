@@ -1,24 +1,29 @@
 ---
 code: MAIN-141
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYursLQ
+databaseId: 5954530349
+number: 499
+url: https://github.com/octomation/maintainer/issues/499
 title: "status: inventory: preserve distinct checkouts and useful errors"
+issueType: null
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: major"
   - "impact: high"
   - "effort: easy"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: 2026-09-26T09:29:00Z
-updatedAt: 2026-09-26T09:29:00Z
-lastEditedAt: null
-closedAt: null
+duplicateOf: null
+createdAt: 2026-10-21T04:49:11Z
+updatedAt: 2026-10-21T04:51:23Z
+lastEditedAt: 2026-10-21T04:51:23Z
+closedAt: 2026-10-21T04:49:14Z
 ---
 
 # status: inventory: preserve distinct checkouts and useful errors

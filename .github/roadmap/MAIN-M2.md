@@ -6,11 +6,11 @@ number: 2
 url: https://github.com/octomation/maintainer/milestone/2
 title: "Hub, v0.3"
 state: OPEN
-openIssueCount: 4
+openIssueCount: 9
 closedIssueCount: 1
 dueOn: null
 createdAt: 2022-06-15T10:13:13Z
-updatedAt: 2026-10-20T07:43:09Z
+updatedAt: 2026-10-21T04:50:57Z
 closedAt: null
 ---
 
@@ -42,3 +42,7 @@ The v0.3 line supports one backend, GitHub. Linear, Jira and other trackers are 
 - [ ] [[MAIN-105]] — linear: generate client
 - [ ] [[MAIN-125]] — release: homebrew: ship one formula with the service and retire the cask
 - [ ] [[MAIN-151]] — service: serve maintainer locally at maintainer.localhost
+- [ ] [[MAIN-155]] — service: hub: runtime for the pages at maintainer.localhost
+- [ ] [[MAIN-156]] — service: status: the checkout table in the browser
+- [ ] [[MAIN-157]] — service: inbox: the issues of the collection as a mail app
+- [ ] [[MAIN-158]] — service: tablo: the issues of the collection as a kanban board

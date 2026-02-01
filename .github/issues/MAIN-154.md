@@ -1,16 +1,16 @@
 ---
 code: MAIN-154
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYusgdQ
+databaseId: 5954543733
+number: 510
+url: https://github.com/octomation/maintainer/issues/510
 title: "skill: ship an agent skill for the maintainer CLI and publish it to octolab/skills"
 issueType: Task
 labels:
-  - "type: feature"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: feature"
   - "impact: medium"
   - "effort: medium"
 assignees:
@@ -21,10 +21,10 @@ issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-10-21T04:50:36Z
+updatedAt: 2026-10-21T04:50:39Z
 lastEditedAt: null
-closedAt: null
+closedAt: 2026-10-21T04:50:39Z
 ---
 
 # skill: ship an agent skill for the maintainer CLI and publish it to octolab/skills

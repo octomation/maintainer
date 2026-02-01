@@ -1,15 +1,15 @@
 ---
 code: MAIN-152
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYusWww
+databaseId: 5954541251
+number: 508
+url: https://github.com/octomation/maintainer/issues/508
 title: "release: homebrew: keep the Formula without a deprecation"
 issueType: Task
 labels:
+  - "scope: docs"
   - "type: improvement"
   - "scope: inventory"
-  - "scope: docs"
   - "impact: high"
   - "effort: easy"
 assignees:
@@ -20,10 +20,10 @@ issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-10-21T04:50:20Z
+updatedAt: 2026-10-21T04:50:23Z
 lastEditedAt: null
-closedAt: null
+closedAt: 2026-10-21T04:50:23Z
 ---
 
 # release: homebrew: keep the Formula without a deprecation

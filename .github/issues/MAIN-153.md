@@ -1,16 +1,16 @@
 ---
 code: MAIN-153
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYusbug
+databaseId: 5954542522
+number: 509
+url: https://github.com/octomation/maintainer/issues/509
 title: "fetch: config: reject a broken per-repository path template and report it per repository"
 issueType: Bug
 labels:
-  - "type: bug"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: bug"
   - "severity: minor"
   - "impact: medium"
   - "effort: easy"
@@ -22,10 +22,10 @@ issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
-createdAt: null
-updatedAt: null
-lastEditedAt: null
-closedAt: null
+createdAt: 2026-10-21T04:50:28Z
+updatedAt: 2026-10-21T04:51:33Z
+lastEditedAt: 2026-10-21T04:51:33Z
+closedAt: 2026-10-21T04:50:31Z
 ---
 
 # fetch: config: reject a broken per-repository path template and report it per repository

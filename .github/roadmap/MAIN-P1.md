@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-20T12:45:20Z
+updatedAt: 2026-10-21T05:08:40Z
 closedAt: null
 ---
 
@@ -125,11 +125,16 @@ closedAt: null
 - [ ] [[MAIN-45]] — github: contribution: extend support lookup for a month
 - [ ] [[MAIN-48]] — ci/cd: tools: test act for local development
 - [ ] [[MAIN-125]] — release: homebrew: ship one formula with the service and retire the cask
+- [ ] [[MAIN-155]] — service: hub: runtime for the pages at maintainer.localhost
+- [ ] [[MAIN-156]] — service: status: the checkout table in the browser
+- [ ] [[MAIN-157]] — service: inbox: the issues of the collection as a mail app
+- [ ] [[MAIN-158]] — service: tablo: the issues of the collection as a kanban board
 
 ## In progress
 
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
+- [ ] [[MAIN-151]] — service: serve maintainer locally at maintainer.localhost
 
 ## Done
 
@@ -350,6 +355,19 @@ closedAt: null
 - [x] [[MAIN-135]] — fetch: remote: change only the origin URL when updating a remote
 - [x] [[MAIN-138]] — org: release: prepare v0.2.0
 - [x] [[MAIN-140]] — release: publishing: write the tap through the OctoLab Releaser App
+- [x] [[MAIN-131]] — command: exit codes: enforce the documented codes for usage errors
+- [x] [[MAIN-136]] — fetch: apply: refresh successfully reconciled checkouts in the same run
+- [x] [[MAIN-141]] — status: inventory: preserve distinct checkouts and useful errors
+- [x] [[MAIN-142]] — status: inspection: recompute counters when a row is inspected again
+- [x] [[MAIN-143]] — status: overview: summarize the inventory and preserve the selection
+- [x] [[MAIN-146]] — fetch: state: write the state file without following a planted link
+- [x] [[MAIN-147]] — fetch: worktrees: keep linked worktrees usable and read them as Git does
+- [x] [[MAIN-148]] — fetch: clone: do not adopt an interrupted clone as a checkout
+- [x] [[MAIN-149]] — fetch: config: reject unknown keys and keep a CUE schema next to the config
+- [x] [[MAIN-150]] — fetch: identity: preserve checkout identity through repository changes
+- [x] [[MAIN-152]] — release: homebrew: keep the Formula without a deprecation
+- [x] [[MAIN-153]] — fetch: config: reject a broken per-repository path template and report it per repository
+- [x] [[MAIN-154]] — skill: ship an agent skill for the maintainer CLI and publish it to octolab/skills
 
 ## Won't do
 

@@ -1,16 +1,16 @@
 ---
 code: MAIN-149
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYusKIg
+databaseId: 5954538018
+number: 505
+url: https://github.com/octomation/maintainer/issues/505
 title: "fetch: config: reject unknown keys and keep a CUE schema next to the config"
 issueType: Bug
 labels:
-  - "type: bug"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: bug"
   - "severity: minor"
   - "impact: medium"
   - "effort: easy"
@@ -22,10 +22,10 @@ issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-10-21T04:49:59Z
+updatedAt: 2026-10-21T04:50:02Z
 lastEditedAt: null
-closedAt: null
+closedAt: 2026-10-21T04:50:02Z
 ---
 
 # fetch: config: reject unknown keys and keep a CUE schema next to the config

@@ -1,15 +1,15 @@
 ---
 code: MAIN-146
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYur7wg
+databaseId: 5954534338
+number: 502
+url: https://github.com/octomation/maintainer/issues/502
 title: "fetch: state: write the state file without following a planted link"
 issueType: Bug
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: minor"
   - "impact: low"
   - "effort: easy"
@@ -21,10 +21,10 @@ issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-10-21T04:49:35Z
+updatedAt: 2026-10-21T04:49:38Z
 lastEditedAt: null
-closedAt: null
+closedAt: 2026-10-21T04:49:38Z
 ---
 
 # fetch: state: write the state file without following a planted link

@@ -1,24 +1,29 @@
 ---
 code: MAIN-143
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYur2EA
+databaseId: 5954532880
+number: 501
+url: https://github.com/octomation/maintainer/issues/501
 title: "status: overview: summarize the inventory and preserve the selection"
+issueType: null
 labels:
-  - "type: improvement"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: improvement"
   - "impact: medium"
   - "effort: easy"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: 2026-09-26T09:30:00Z
-updatedAt: 2026-09-26T09:30:00Z
-lastEditedAt: null
-closedAt: null
+duplicateOf: null
+createdAt: 2026-10-21T04:49:27Z
+updatedAt: 2026-10-21T04:51:28Z
+lastEditedAt: 2026-10-21T04:51:28Z
+closedAt: 2026-10-21T04:49:30Z
 ---
 
 # status: overview: summarize the inventory and preserve the selection

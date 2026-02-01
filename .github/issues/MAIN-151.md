@@ -1,16 +1,16 @@
 ---
 code: MAIN-151
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYusT6Q
+databaseId: 5954540521
+number: 507
+url: https://github.com/octomation/maintainer/issues/507
 title: "service: serve maintainer locally at maintainer.localhost"
 issueType: Feature
 labels:
-  - "type: feature"
+  - "scope: docs"
   - "scope: code"
   - "scope: test"
-  - "scope: docs"
+  - "type: feature"
   - "impact: medium"
   - "effort: medium"
 assignees:
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-10-21T04:50:15Z
+updatedAt: 2026-10-21T04:50:16Z
 lastEditedAt: null
 closedAt: null
 ---

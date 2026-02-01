@@ -1,24 +1,29 @@
 ---
 code: MAIN-142
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABYurxBg
+databaseId: 5954531590
+number: 500
+url: https://github.com/octomation/maintainer/issues/500
 title: "status: inspection: recompute counters when a row is inspected again"
+issueType: null
 labels:
-  - "type: bug"
   - "scope: code"
   - "scope: test"
+  - "type: bug"
   - "severity: minor"
   - "impact: low"
   - "effort: easy"
+assignees: []
 milestone: "[[MAIN-M3]]"
+parent: null
+issueFields: {}
 state: CLOSED
 stateReason: COMPLETED
-createdAt: 2026-09-28T07:30:00Z
-updatedAt: 2026-09-28T07:30:00Z
-lastEditedAt: null
-closedAt: null
+duplicateOf: null
+createdAt: 2026-10-21T04:49:19Z
+updatedAt: 2026-10-21T04:51:26Z
+lastEditedAt: 2026-10-21T04:51:26Z
+closedAt: 2026-10-21T04:49:22Z
 ---
 
 # status: inspection: recompute counters when a row is inspected again
