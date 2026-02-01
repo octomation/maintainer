@@ -9,6 +9,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/command/github"
 	"go.octolab.org/toolset/maintainer/internal/command/golang"
 	"go.octolab.org/toolset/maintainer/internal/command/makefile"
+	"go.octolab.org/toolset/maintainer/internal/command/service"
 	"go.octolab.org/toolset/maintainer/internal/command/status"
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/pkg/buildinfo"
@@ -42,6 +43,7 @@ func New() *cobra.Command {
 		github.New(&cnf),
 		golang.New(),
 		makefile.New(),
+		service.New(),
 		skillCommand(skills.Maintainer()),
 		cli.NewVersionCommand(buildinfo.Version, buildinfo.Date, buildinfo.Commit, config.Features...),
 	)

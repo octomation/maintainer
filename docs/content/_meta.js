@@ -14,6 +14,7 @@ export default {
   status: 'Repository status',
   workspace: 'Workspace',
   agents: 'Use with coding agents',
+  service: 'Local service',
   releaseHistory: { title: 'Changelog', type: 'separator' },
   changelog: { title: 'Changelog', display: 'children', theme: { pagination: false } },
 }

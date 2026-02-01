@@ -215,7 +215,9 @@ for name, im in [("before", a), ("after", b)]:
 print("Only the version label changed:", bounds)
 ```
 
-Save the result as RGB PNG (`optimize=True, compress_level=9`).
+Save the result as RGB PNG (`optimize=True, compress_level=9`). The binary
+embeds this file (`main.go`) and `maintainer service` answers with it, so the
+release build carries the new label; there is no second copy to update.
 
 A prerelease doesn't change the image. Regenerate it in full only when the
 wordmark, the slogan, the monospaced line or the brand colors change: with
