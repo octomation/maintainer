@@ -25,6 +25,10 @@ to set up and no administrator step.
 | `/inbox` | Every mirrored issue in one list with the open issue beside it, filters, a score and the `impact` and `effort` labels you set in place as its priority and estimate |
 | `/tablo` | The same issues on one board with the columns Backlog, To do, In progress, Done and Won't do |
 
+![The hub at maintainer.localhost: the inbox with an open issue in front of the status page](/images/hub/hero.webp)
+
+*Illustrations of the hub on demo data.*
+
 ## Install and start
 
 On macOS, the Homebrew Formula `octolab/tap/maintainer` installs the CLI and
@@ -109,6 +113,8 @@ without such a resolver reaches the service at `http://127.0.0.1:17841/`.
 
 ## What the pages read
 
+![How it fits: GitHub mirrors issues into .github/issues of your checkouts, the hub at maintainer.localhost reads them, brew services runs it and service.toml configures it](/images/hub/how-it-works.webp)
+
 The service reads your fetch configuration and state the way
 `maintainer status` does, with your home directory as the working directory,
 and finds the checkouts of the [workspace](/workspace/), the pins included.
@@ -139,6 +145,8 @@ by score, priority, or the updated or created date (by default the open
 columns by score and Done and Won't do by the last update), hides the empty
 columns and chooses what a card shows.
 
+![The inbox grouped by priority next to an issue opened as a full page with its properties and score](/images/hub/inbox.webp)
+
 The status page collects the Git state of the checkouts on its first visit
 and on **Refresh** in its **View** menu, which also shows the summary of
 the collection and the time of the snapshot. Ordering and searching never run
@@ -148,6 +156,8 @@ list (branch, changes, status, path), which line up from row to row;
 **Filter** searches the checkouts by repository, branch and path, and the
 list/board switch shows the groups as board columns.
 
+![The status page: checkouts grouped by state with aligned columns, and the repository tree with locks on private repositories](/images/hub/status.webp)
+
 An issue goes to a board column by its state: a closed issue is in **Done**,
 or in **Won't do** when it was closed as not planned or as a duplicate; an
 open issue is in the column of the board section that lists it, when the
@@ -156,6 +166,8 @@ An open issue that two boards place differently stays in Backlog with a
 marker; an open issue that a board lists under Done or Won't do gets a
 contradiction marker, and another board's open section can still decide its
 column.
+
+![The board with issues of several repositories in five columns and the search open over it](/images/hub/tablo.webp)
 
 ## Triage and the score
 
@@ -170,6 +182,8 @@ reload the issue and set the label again. Pushing the labels to GitHub stays
 with the tooling that maintains the mirror. Do not run that tooling's export
 or push, or another editor of the issue files, while you triage in the
 browser.
+
+![The priority menu open on an issue page: No priority, High, Medium, Low](/images/hub/triage.webp)
 
 In the inbox, **View**, then **Ordering**, sorts the issues by a score, by
 priority (the `impact` label), or by the updated or created date. The score is a weighted sum that a repository
