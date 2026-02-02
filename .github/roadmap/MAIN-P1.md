@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-21T11:05:47Z
+updatedAt: 2026-10-21T11:44:56Z
 closedAt: null
 ---
 
@@ -26,6 +26,8 @@ closedAt: null
 ![Image](https://user-images.githubusercontent.com/1165416/167242144-47241efe-a94e-4884-a3ae-7d24000c41bd.png)
 
 ## Backlog
+
+> state: OPEN
 
 - [ ] draft: Taskfiles core concept
 - [ ] octomation/go-tool#20 — ci/cd: sign commits from goreleaser
@@ -121,16 +123,22 @@ closedAt: null
 
 ## To do
 
+> state: OPEN
+
 - [ ] [[MAIN-44]] — github: contribution: refactor command and view
 - [ ] [[MAIN-45]] — github: contribution: extend support lookup for a month
 - [ ] [[MAIN-48]] — ci/cd: tools: test act for local development
 
 ## In progress
 
+> state: OPEN
+
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
 
 ## Done
+
+> state: CLOSED · stateReason: COMPLETED
 
 - [x] [[MAIN-33]] — provide github access token by command flag
 - [x] [[MAIN-26]] — implement github contribution lookup command
@@ -145,10 +153,6 @@ closedAt: null
 - [x] [[MAIN-30]] — org: prepare release v0.1.0
 - [x] octomation/breakout#1 — add openvpn alternative
 - [x] [[MAIN-6]] — issue with modules without go files on the root
-- [x] [[MAIN-14]] — add dry-run option for github labels
-- [x] [[MAIN-15]] — extend octolab preset by other repositories
-- [x] [[MAIN-16]] — org: prepare release v0.2.0
-- [x] [[MAIN-32]] — command: labels classify issue
 - [x] octomation/go-service#38 — deps: tools: up grpc-gateway to v2.10.1
 - [x] [[MAIN-29]] — implement github contribution histogram command
 - [x] [[MAIN-43]] — github: contribution: expand heat map by merging with neighbors
@@ -183,6 +187,7 @@ closedAt: null
 - [x] [[MAIN-62]] — deps: up github.com/google/go-github to v45.2.0
 - [x] [[MAIN-63]] — github: contribution: highlight suggested day
 - [x] [[MAIN-64]] — github: api: switch to graphql
+- [x] [[MAIN-65]] — github: contribution: lookup has problem with timezone
 - [x] octomation/go-tool#24 — Taskfile: forks: migration style and bulletproof
 - [x] [[MAIN-66]] — github: contribution: lookup doesn't show last week on Sunday
 - [x] [[MAIN-67]] — github: contribution: suggest doesn't work on last week with Sunday
@@ -257,12 +262,10 @@ closedAt: null
 - [x] octomation/go-module#73 — ci/cd: setup cache
 - [x] [[MAIN-87]] — deps: up go-github to v48.2.0
 - [x] octomation/go-module#74 — ci/cd: fix broken build related to caching
-- [x] [[MAIN-89]] — git: config: contribution since
 - [x] [[MAIN-90]] — github: contribution: lookup call throw panic
 - [x] octomation/go-module#78 — ci/cd: allow dispatch some workflows
 - [x] octomation/go-module#79 — ci/cd: run dependabot on weekends
 - [x] [[MAIN-92]] — github: setup: add command to manage all available projects and repositories
-- [x] [[MAIN-93]] — github: contribution: invalid suggestion for 2022 year
 - [x] octomation/go-module#83 — ci/cd: docs: configure environment
 - [x] octomation/makefiles#68 — go: support 1.20
 - [x] octomation/go-module#84 — dev: support go 1.20
@@ -287,7 +290,6 @@ closedAt: null
 - [x] [[MAIN-96]] — github: contribution: lookup command is corrupted
 - [x] [[MAIN-97]] — github: contribution: suggest works incorrectly after refactoring
 - [x] octomation/go-module#103 — ci/cd: extend Notifying
-- [x] [[MAIN-98]] — github: contribution: suggest and lookup paniced on Sunday
 - [x] [[MAIN-99]] — github: contribution: suggest use incorrect center
 - [x] [[MAIN-100]] — github: contribution: incorrect shows stats for future
 - [x] octomation/vanity#9 — ci/cd: switch GitHub Pages from branch to GitHub Actions model
@@ -371,10 +373,16 @@ closedAt: null
 
 ## Won't do
 
+> state: CLOSED · stateReason: NOT_PLANNED, DUPLICATE
+
 - [x] octomation/go-service#15 — octomate service creation
 - [x] octomation/go-service#8 — up service boilerplate
 - [x] octomation/go-service#7 — describe boilerplate api
 - [x] octomation/makefiles#53 — run tests
+- [x] [[MAIN-14]] — add dry-run option for github labels
+- [x] [[MAIN-15]] — extend octolab preset by other repositories
+- [x] [[MAIN-16]] — org: prepare release v0.2.0
+- [x] [[MAIN-32]] — command: labels classify issue
 - [x] octomation/go-module#34 — ci/cd: experimental labeler
 - [x] octomation/go-module#37 — deps: tools: add benchcmp
 - [x] octomation/go-module#38 — deps: tools: add gomvpkg
@@ -383,9 +391,11 @@ closedAt: null
 - [x] octomation/go-module#41 — deps: tools: add git-vertag
 - [x] [[MAIN-52]] — tools: experimental: integrate slides and describe v0.1.x using it
 - [x] [[MAIN-53]] — tools: experimental: investigate cli dashboard for GitHub
-- [x] [[MAIN-65]] — github: contribution: lookup has problem with timezone
 - [x] [[MAIN-69]] — boilerplate: fetch latest changes from go-tool before publishing v0.1.0
 - [x] octomation/go-module#47 — ci/cd: add DevSkim as security check step
 - [x] octomation/go-service#52 — ci/cd: add DevSkim as security check step
 - [x] octomation/go-tool#28 — ci/cd: add DevSkim as security check step
+- [x] [[MAIN-89]] — git: config: contribution since
+- [x] [[MAIN-93]] — github: contribution: invalid suggestion for 2022 year
+- [x] [[MAIN-98]] — github: contribution: suggest and lookup paniced on Sunday
 - [x] [[MAIN-109]] — github: contribution: incorrect suggest for today
