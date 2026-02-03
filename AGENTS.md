@@ -43,6 +43,30 @@ AGENTS.md of the other repository:
 
 A new service takes the next free port and adds it to both tables.
 
+## Issues and the board
+
+The issues are mirrored in `.github/issues/` and laid out on the board
+[🏗 Platform](.github/roadmap/MAIN-P1.md) by the `projects:maintainer` skill.
+Its columns are Backlog, To do, In progress, Done and Won't do; the rule under
+each says which `state` and `stateReason` it takes, and `maintainer.py lint`
+checks them.
+
+- A new issue goes to Backlog, or to To do once it is picked for the near
+  work.
+- Taking an issue into work moves its card to In progress.
+- A closed issue moves to Done when completed and to Won't do when not
+  planned: `maintainer.py boards publish MAIN-P1 --closed --yes` places the
+  closed ones by those rules, in the file and on GitHub.
+- A new card is `maintainer.py boards add MAIN-P1 --column "<column>"
+  --cards MAIN-<n> --yes` in the file. `add` refuses a card already on the
+  board, so any other move cuts the card's line from its column and puts it
+  at the end of the new one, ticked (`- [x]`) once the issue is closed, and
+  `maintainer.py lint` checks it. Then `maintainer.py boards publish MAIN-P1
+  --cards MAIN-<n> --yes` puts the card in that column on GitHub, or names a
+  conflict when the card moved there after the last `boards`: look at it
+  before `--force` overwrites it. The file goes with the commit that changes
+  the issue's state, or with the next sync of the mirror.
+
 ## Releasing
 
 A release is a curated note plus a signed tag. A stable release also publishes
@@ -56,10 +80,24 @@ conventions are in [docs/README.md](docs/README.md#keep-the-release-accurate).
 
 ### Ground rules
 
-- The maintainer commits, tags and pushes. Stage one self-contained change at a
-  time and propose its message in a code block: one line,
-  `type(scope): summary`, with issues as `, issue #N` or `, closes #N`; no
-  body.
+- The agent brings the shells, the maintainer fires: the agent prepares each
+  step in full and hands over one command; the maintainer reviews it, commits,
+  tags and pushes. Nothing else waits for him.
+- A change is a series of commits planned up front, each bound to its issue
+  (`, issue #N` while it is in progress, `, closes #N` on the commit that
+  finishes it). The agent stages one self-contained commit at a time, writes
+  its message to a file outside the repository and gives
+  `git contrib < <file>`: `type(scope): summary`, then, when it helps, a body
+  wrapped at 72 columns. An intermediate state the working tree no longer has
+  is staged from blobs (`git hash-object -w` and `git update-index
+  --cacheinfo`), leaving the tree as it is. Tests and linters run on the end
+  state, not on each commit.
+- What can be verified mechanically the agent does without asking: the checks
+  before the release, the release commit, the note, the image and the tag
+  annotation, the checks after the push with the upgrade of this Mac, the
+  issue mirror and the board, the announcement row, `.agents/self-control.md`
+  and the cleanup. It asks only for decisions: scope, wording the owner cares
+  about, a criterion to change.
 - Product changes first, release commit last: `chore(release): prepare vX.Y.Z`.
   A guide that explains new behavior changes with the product commit, and so
   does the agent skill in `skills/maintainer/`; `go test ./skills` keeps its
@@ -67,9 +105,15 @@ conventions are in [docs/README.md](docs/README.md#keep-the-release-accurate).
   `go generate ./skills` rewrites the reference.
 - The CLI is the source of truth for what the docs, the notes and the skill
   claim.
-- A published release is frozen: its note, annotation, image and catalog entry
-  stay as tagged. A missed fix ships in the next patch, or in the next candidate
+- A published release is frozen: its tag, annotation, image and catalog entry
+  stay as tagged. Its note may still get pictures or wording that keep it true
+  to the tag. A missed fix ships in the next patch, or in the next candidate
   before the final tag.
+- A release that changes stored data, configuration or URLs ships with the way
+  to move to it, and the agent moves this Mac with it: it backs up the data
+  and the configuration, migrates them, checks that the running hub and the
+  commands work on the result, and removes the backup once the owner
+  confirms.
 
 ### Before you start
 
@@ -150,6 +194,8 @@ Lead paragraph: what the release does, in terms of commands and results.
 - Links are site-relative with a trailing slash. Markdown and HTML, no MDX.
 - After v0.2.1, end the **Upgrade:** paragraph with
   `If you use the agent skill, [replace it](/agents/#keep-it-in-step) with the new binary’s copy.`
+- A release that changes the service also says, in a bullet or the
+  **Upgrade:** paragraph, to run `brew services restart octolab/tap/maintainer`.
 
 A prerelease note, `vX.Y.Z-rcN.md`, is short and self-contained: what to try,
 what to report, and links only to pages that are already on the site, not to
@@ -257,11 +303,8 @@ at 72 columns.
 Release notes: docs/content/changelog/vX.Y.Z.md
 ```
 
-Same scope as the note. Write it to a file outside the repository:
-
-```sh
-annotation="$(mktemp -d)/annotation.txt"
-```
+Same scope as the note. Write it to `.agents/release/vX.Y.Z/annotation.txt`:
+`.agents/` is not tracked, so it never reaches a commit.
 
 ### 4. Tag, check, push
 
@@ -272,16 +315,14 @@ gh release view --json tagName -q .tagName
 gh api repos/octolab/homebrew-tap/contents/Formula/maintainer.rb -q .sha
 ```
 
-Then:
+Then the maintainer runs one line, which the agent hands over with the
+release commit:
 
 ```sh
-git tag -s vX.Y.Z -F "$annotation"
-git tag -v vX.Y.Z
-make release-check TAG=vX.Y.Z
-git push --atomic origin main vX.Y.Z
+git tag -s vX.Y.Z -F .agents/release/vX.Y.Z/annotation.txt && git tag -v vX.Y.Z && make release-check TAG=vX.Y.Z && git push --atomic origin main vX.Y.Z
 ```
 
-Run them on `main` with the release commit checked out: `make release-check`
+Run it on `main` with the release commit checked out: `make release-check`
 checks the tag against the branch you are about to push, as the `pre-push`
 hook does, together with tidy modules and the GoReleaser config.
 
@@ -296,6 +337,9 @@ Never push the tag separately. A tag pushed by mistake can be deleted only
 before the GitHub release exists; after that, ship the next patch.
 
 ### 5. After the push
+
+The agent runs this section by itself once the push is done, the upgrade of
+this Mac included, and reports what it saw.
 
 ```sh
 gh run watch --exit-status "$(gh run list -w cd.yml -c "$(git rev-parse 'vX.Y.Z^{commit}')" -L 1 --json databaseId -q '.[0].databaseId')"
@@ -342,6 +386,14 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
   the plugin is a leftover: remove it, the agent would load both.
 - The site shows the new changelog page and release band once `cd.docs`
   finishes for the release commit.
+- The change of the release works with the installed binary on this Mac, on
+  the owner's real checkouts and state where it touches them.
+- Criteria ticked by the release commit go to GitHub
+  (`maintainer.py sync --only <N> --yes`); the server fields it brings back
+  and the board moves are the next `chore(project): sync the mirror …`
+  commit.
+- What the owner has to see himself, such as the hub in a browser, goes to
+  `.agents/self-control.md`.
 
 ### When `cd` fails
 
@@ -361,8 +413,10 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
 
 ### 6. Announcement
 
-Propose a row for "Latest contributions" in the
-[kamilsk/kamilsk](https://github.com/kamilsk/kamilsk) profile README:
+Add a row for "Latest contributions" in the
+[kamilsk/kamilsk](https://github.com/kamilsk/kamilsk) profile README, in the
+checkout `~/Development/public/kamilsk/kamilsk`, stage it with the message
+`chore: add new contribution log entry` and hand over its `git contrib`:
 
 ```md
 | 2026-09-25   | 👨‍🔧 [maintainer][]           | [v0.1.0][om010]                   | Contribution calendar planning in CLI     |
@@ -373,3 +427,15 @@ Propose a row for "Latest contributions" in the
 Newest first, one row per release day; a prerelease gets no row. The
 reference label is `o` + project initials + version digits. Notes is a short
 phrase, no longer than the existing ones, saying what the user gets.
+
+### 7. Self-control and cleanup
+
+`.agents/self-control.md` holds the checks that outlive a session: each item
+says when to look, what proves it and what to do if it fails. The agent adds
+the checks a release leaves open, closes an item with what proved it and
+removes it once proven, and keeps the follow-ups that still need an issue.
+
+The drafts of a release live in `.agents/release/vX.Y.Z/` (plan, note,
+annotation, migration). After the checks of step 5 the agent removes them,
+its scratch services, builds and test folders, and any backup the owner has
+confirmed.
