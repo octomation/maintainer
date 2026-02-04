@@ -1,6 +1,7 @@
 package github_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -8,7 +9,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"sort"
+	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -21,57 +26,195 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
-func TestService_FetchContributionsFromGraphQL(t *testing.T) {
-	const payload = `{"data":{"user":{"contributionsCollection":{"contributionCalendar":{"weeks":[
-		{"contributionDays":[
-			{"date":"2026-08-30","contributionCount":25},
-			{"date":"2026-08-31","contributionCount":23}
-		]},
-		{"contributionDays":[{"date":"2026-09-01","contributionCount":17}]}
-	]}}}}}`
+func day(year int, month time.Month, d int) time.Time {
+	return xtime.UTC().Year(year).Month(month).Day(d).Time()
+}
 
-	var request struct {
-		Query     string `json:"query"`
-		Variables struct {
-			Login string `json:"login"`
-			From  string `json:"from"`
-			To    string `json:"to"`
-		} `json:"variables"`
+func TestService_FetchContributionsPlacement(t *testing.T) {
+	fake := &calendar{
+		zone:     9 * time.Hour, // the account is in Tokyo
+		pageSize: 2,             // every list of more than two events takes pages
+		commits:  map[string]uint{"2026-08-30": 25, "2026-01-01": 3},
+		reviews: []event{
+			{"2025-12-31T20:00:00Z", "PR_E"}, // January 1 in Tokyo, but the day of 2025
+			{"2026-01-03T20:06:00Z", "PR_A"},
+			{"2026-04-30T19:21:00Z", "PR_F"}, // in the collection of May
+			{"2026-03-01T10:00:00Z", "PR_A"}, // the year counts the latest review of PR_A only
+			{"2026-08-31T23:30:00Z", "PR_B"}, // already September 1 in Tokyo
+			{"2026-08-31T01:00:00Z", ""},     // a review without a pull request counts as is
+			{"2026-08-31T02:00:00Z", "PR_C"},
+			{"2026-08-31T03:00:00Z", "PR_D"},
+		},
+		issues: []event{{"2026-09-01T18:00:00Z", ""}, {"2026-09-01T23:59:59Z", ""}, {"2026-08-30T00:00:00Z", ""}},
 	}
-	service := serve(t, func(rw http.ResponseWriter, req *http.Request) {
-		assert.Equal(t, http.MethodPost, req.Method)
-		assert.Equal(t, "/graphql", req.URL.Path)
-		assert.Equal(t, "application/json", req.Header.Get("Content-Type"))
-		assert.NoError(t, json.NewDecoder(req.Body).Decode(&request))
-		_, _ = io.WriteString(rw, payload)
-	})
-
+	service := serve(t, fake.handle(t))
 	now := xtime.UTC().Year(2026).Month(time.September).Day(2).Hour(12).Minute(7).Second(31).Nanosecond(500).Time()
 	service.WithClock(func() time.Time { return now })
 
 	chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
 	require.NoError(t, err)
 
-	assert.Contains(t, request.Query, "contributionCalendar")
-	assert.Equal(t, "kamilsk", request.Variables.Login)
+	// Every day from January 1 up to today, and no later one.
+	assert.Len(t, chm, 245)
+	assert.Equal(t, map[string]uint{
+		"2026-01-01": 3,
+		"2026-03-01": 1,
+		"2026-04-30": 1,
+		"2026-08-30": 26,
+		"2026-08-31": 4,
+		"2026-09-01": 2,
+	}, nonzero(chm))
+
 	// The current year is bounded by the present second, so every call asks
 	// for a range GitHub has not cached yet (issue#457).
-	assert.Equal(t, "2026-01-01T00:00:00Z", request.Variables.From)
-	assert.Equal(t, "2026-09-02T12:07:31Z", request.Variables.To)
-
-	require.Len(t, chm, 3)
+	totals := fake.requests("totals")
+	require.Len(t, totals, 1)
+	assert.Equal(t, "2026-01-01T00:00:00Z", totals[0]["from0"])
+	assert.Equal(t, "2026-01-31T23:59:59Z", totals[0]["to0"])
+	assert.Equal(t, "2026-09-01T00:00:00Z", totals[0]["from8"])
+	assert.Equal(t, "2026-09-02T12:07:31Z", totals[0]["to8"])
+	// The day before the year, and no month after now.
+	assert.Equal(t, "2025-12-31T00:00:00Z", totals[0]["from9"])
+	assert.Equal(t, "2025-12-31T23:59:59Z", totals[0]["to9"])
+	assert.NotContains(t, totals[0], "from10")
+	// A month without contributions is not fetched.
+	assert.ElementsMatch(t, []string{"2026-01", "2026-03", "2026-05", "2026-08", "2026-09"}, fake.months())
+	assert.NotEmpty(t, fake.requests("next"), "the lists take pages")
 
 	t.Run("past year", func(t *testing.T) {
+		chm, err := service.FetchContributions(context.Background(), "kamilsk", 2025)
+		require.NoError(t, err)
+		assert.Len(t, chm, 365)
+		assert.Equal(t, map[string]uint{"2025-12-31": 1}, nonzero(chm), "the review of the day after the year")
+		totals := fake.requests("totals")
+		last := totals[len(totals)-1]
+		assert.Equal(t, "2025-12-01T00:00:00Z", last["from11"])
+		assert.Equal(t, "2025-12-31T23:59:59Z", last["to11"])
+		assert.Equal(t, "2026-01-01T00:00:00Z", last["from13"])
+		assert.Equal(t, "2026-01-01T23:59:59Z", last["to13"])
+	})
+}
+
+func TestService_FetchContributionsCache(t *testing.T) {
+	fake := &calendar{
+		commits: map[string]uint{"2025-03-10": 5},
+		reviews: []event{{"2025-07-04T12:00:00Z", "PR_A"}, {"2025-11-05T12:00:00Z", "PR_A"}},
+	}
+	dir := t.TempDir()
+	service := serve(t, fake.handle(t)).WithCache(dir)
+	service.WithClock(func() time.Time { return day(2026, time.October, 31) })
+	fetch := func() map[string]uint {
+		t.Helper()
+		fake.reset()
+		chm, err := service.FetchContributions(context.Background(), "kamilsk", 2025)
+		require.NoError(t, err)
+		return nonzero(chm)
+	}
+
+	expected := map[string]uint{"2025-03-10": 5, "2025-11-05": 1}
+	assert.Equal(t, expected, fetch())
+	assert.ElementsMatch(t, []string{"2025-03", "2025-07", "2025-11"}, fake.months())
+
+	t.Run("unchanged totals", func(t *testing.T) {
+		assert.Equal(t, expected, fetch())
+		assert.Len(t, fake.requests("totals"), 1)
+		assert.Empty(t, fake.months(), "no month is fetched again")
+	})
+
+	t.Run("a changed month", func(t *testing.T) {
+		fake.issues = append(fake.issues, event{"2025-07-20T08:00:00Z", ""})
+		assert.Equal(t, map[string]uint{"2025-03-10": 5, "2025-07-20": 1, "2025-11-05": 1}, fetch())
+		assert.Equal(t, []string{"2025-07"}, fake.months())
+		// The cached July still takes part in the review of the year.
+		fake.reviews = append(fake.reviews, event{"2025-12-01T12:00:00Z", "PR_A"})
+		assert.Equal(t, map[string]uint{"2025-03-10": 5, "2025-07-20": 1, "2025-12-01": 1}, fetch())
+		assert.Equal(t, []string{"2025-12"}, fake.months())
+	})
+
+	t.Run("a corrupt cache", func(t *testing.T) {
+		require.NoError(t, os.WriteFile(filepath.Join(dir, "kamilsk", "2025.json"), []byte("{"), 0o600))
+		assert.Equal(t, map[string]uint{"2025-03-10": 5, "2025-07-20": 1, "2025-12-01": 1}, fetch())
+		assert.ElementsMatch(t, []string{"2025-03", "2025-07", "2025-11", "2025-12"}, fake.months())
+	})
+
+	t.Run("an unwritable cache", func(t *testing.T) {
+		service := serve(t, fake.handle(t)).WithCache(filepath.Join(dir, "kamilsk", "2025.json", "file"))
+		service.WithClock(func() time.Time { return day(2026, time.October, 31) })
 		_, err := service.FetchContributions(context.Background(), "kamilsk", 2025)
 		require.NoError(t, err)
-		// The collection must span the whole year and no more: GitHub rejects
-		// a range longer than one year.
-		assert.Equal(t, "2025-01-01T00:00:00Z", request.Variables.From)
-		assert.Equal(t, "2025-12-31T23:59:59Z", request.Variables.To)
 	})
-	assert.Equal(t, uint(25), chm.Count(xtime.UTC().Year(2026).Month(time.August).Day(30).Time()))
-	assert.Equal(t, uint(23), chm.Count(xtime.UTC().Year(2026).Month(time.August).Day(31).Time()))
-	assert.Equal(t, uint(17), chm.Count(xtime.UTC().Year(2026).Month(time.September).Day(1).Time()))
+}
+
+func TestService_FetchContributionsUndated(t *testing.T) {
+	fake := &calendar{
+		commits: map[string]uint{"2023-06-10": 5, "2023-07-04": 2},
+		reviews: []event{{"2023-06-15T12:00:00Z", "PR_A"}},
+		undated: map[string]uint{"2023-06": 36, "2023-09": 1},
+	}
+	var warnings bytes.Buffer
+	service := serve(t, fake.handle(t)).WithWarnings(&warnings)
+	service.WithClock(func() time.Time { return day(2026, time.October, 31) })
+
+	chm, err := service.FetchContributions(context.Background(), "kamilsk", 2023)
+	require.NoError(t, err)
+	// The months with contributions the API does not date take its calendar.
+	assert.Equal(t, map[string]uint{"2023-06-01": 36, "2023-06-10": 5, "2023-06-15": 1, "2023-07-04": 2, "2023-09-01": 1}, nonzero(chm))
+	assert.Len(t, fake.requests("days"), 2)
+	// Only a month with reviews may be a day off.
+	assert.Equal(t, "warn: the GitHub API gives no date for some contributions of 2023-06, "+
+		"such as ones in private repositories the token cannot read, "+
+		"so the days there are those of its calendar, where a review may be a day off\n", warnings.String())
+}
+
+func TestService_FetchContributionsLaggingMonth(t *testing.T) {
+	// The lists of the current month may lag behind its total: its calendar
+	// is used for a run, but not kept for the next one.
+	fake := &calendar{commits: map[string]uint{"2026-10-10": 2}, undated: map[string]uint{"2026-10": 3}}
+	service := serve(t, fake.handle(t)).WithCache(t.TempDir())
+	service.WithClock(func() time.Time { return xtime.UTC().Year(2026).Month(time.October).Day(31).Hour(1).Time() })
+
+	for range 2 {
+		fake.reset()
+		chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
+		require.NoError(t, err)
+		assert.Equal(t, map[string]uint{"2026-10-01": 3, "2026-10-10": 2}, nonzero(chm))
+		assert.Equal(t, []string{"2026-10"}, fake.months())
+	}
+}
+
+func TestService_FetchContributionsIncomplete(t *testing.T) {
+	tests := map[string]struct {
+		fake     *calendar
+		expected string
+	}{
+		"a list ends before its total": {
+			fake:     &calendar{issues: []event{{"2025-02-01T10:00:00Z", ""}}, lose: "issueContributions"},
+			expected: "issueContributions has 0 of 1 events",
+		},
+		"commits in more than 100 repositories": {
+			fake:     &calendar{commits: map[string]uint{"2025-02-01": 3}, hidden: 2},
+			expected: "the commits of 1 repositories are 3 of 5",
+		},
+		"commits outside the month": {
+			fake:     &calendar{commits: map[string]uint{"2025-02-01": 3}, shift: 31 * xtime.Day},
+			expected: "commits of 2025-03-04 are outside 2025-02",
+		},
+		"malformed date": {
+			fake:     &calendar{issues: []event{{"01.02.2025", ""}}, month: "2025-02"},
+			expected: `parse contribution date "01.02.2025"`,
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			service := serve(t, test.fake.handle(t))
+			service.WithClock(func() time.Time { return day(2026, time.October, 31) })
+
+			_, err := service.FetchContributions(context.Background(), "kamilsk", 2025)
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), `fetch contributions of "kamilsk" for 2025-02`)
+			assert.Contains(t, err.Error(), test.expected)
+		})
+	}
 }
 
 func TestService_FetchContributionsGraphQLErrors(t *testing.T) {
@@ -100,18 +243,29 @@ func TestService_FetchContributionsGraphQLErrors(t *testing.T) {
 		assert.Contains(t, err.Error(), "401 Unauthorized")
 		assert.Contains(t, err.Error(), "Bad credentials")
 	})
+}
 
-	t.Run("malformed date", func(t *testing.T) {
-		service := serve(t, func(rw http.ResponseWriter, _ *http.Request) {
-			_, _ = io.WriteString(rw, `{"data":{"user":{"contributionsCollection":{"contributionCalendar":{
-				"weeks":[{"contributionDays":[{"date":"31.08.2026","contributionCount":23}]}]
-			}}}}}`)
+func TestService_FetchContributionsWithoutCalendar(t *testing.T) {
+	tests := map[string]string{
+		"no data":       `{"data":null}`,
+		"no user":       `{"data":{"user":null}}`,
+		"no collection": `{"data":{"user":{"m0":null}}}`,
+		"no calendar":   `{"data":{"user":{"m0":{"contributionCalendar":null}}}}`,
+		"no total":      `{"data":{"user":{"m0":{"contributionCalendar":{}}}}}`,
+	}
+	for name, payload := range tests {
+		t.Run(name, func(t *testing.T) {
+			service := serve(t, func(rw http.ResponseWriter, _ *http.Request) {
+				_, _ = io.WriteString(rw, payload)
+			})
+
+			chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
+			require.Error(t, err)
+			assert.Nil(t, chm)
+			assert.Contains(t, err.Error(), `fetch contributions of "kamilsk" for 2026`)
+			assert.Contains(t, err.Error(), "no contribution calendar")
 		})
-
-		_, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), `parse contribution date "31.08.2026"`)
-	})
+	}
 }
 
 func TestService_ContributionHeatMapYears(t *testing.T) {
@@ -142,40 +296,28 @@ func TestService_ContributionHeatMapYears(t *testing.T) {
 	}
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			var (
-				mu    sync.Mutex
-				years []int
-			)
-			service := serve(t, func(rw http.ResponseWriter, req *http.Request) {
-				if req.URL.Path == "/user" {
-					_, _ = io.WriteString(rw, `{"login":"kamilsk"}`)
-					return
-				}
-
-				var request struct {
-					Variables struct {
-						From string `json:"from"`
-					} `json:"variables"`
-				}
-				assert.NoError(t, json.NewDecoder(req.Body).Decode(&request))
-				from, err := time.Parse(time.RFC3339, request.Variables.From)
-				assert.NoError(t, err)
-
-				mu.Lock()
-				years = append(years, from.Year())
-				mu.Unlock()
-				_, _ = fmt.Fprintf(rw, `{"data":{"user":{"contributionsCollection":{"contributionCalendar":{
-					"weeks":[{"contributionDays":[{"date":"%d-06-01","contributionCount":1}]}]
-				}}}}}`, from.Year())
-			})
+			fake := &calendar{}
+			service := serve(t, fake.handle(t))
 			service.WithClock(func() time.Time { return now })
 
 			chm, err := service.ContributionHeatMap(context.Background(), test.scope)
 			require.NoError(t, err)
 
+			var years []int
+			for _, vars := range fake.requests("totals") {
+				from, err := time.Parse(time.RFC3339, vars["from0"])
+				require.NoError(t, err)
+				years = append(years, from.Year())
+			}
 			sort.Ints(years)
 			assert.Equal(t, test.years, years)
-			assert.Len(t, chm, len(test.years), "a day of every requested year")
+			assert.Empty(t, fake.months(), "a year without contributions takes one request")
+			for _, year := range test.years {
+				first := day(year, time.January, 1)
+				if test.scope.Contains(first) {
+					assert.Contains(t, chm, first, "a day of every requested year")
+				}
+			}
 		})
 	}
 }
@@ -186,20 +328,13 @@ func TestService_ContributionHeatMapLimit(t *testing.T) {
 	var inFlight, peak, total atomic.Int32
 	queued := make(chan struct{})
 	var once sync.Once
+	fake := &calendar{}
+	handle := fake.handle(t)
 	service := serve(t, func(rw http.ResponseWriter, req *http.Request) {
 		if req.URL.Path == "/user" {
-			_, _ = io.WriteString(rw, `{"login":"kamilsk"}`)
+			handle(rw, req)
 			return
 		}
-
-		var request struct {
-			Variables struct {
-				From string `json:"from"`
-			} `json:"variables"`
-		}
-		assert.NoError(t, json.NewDecoder(req.Body).Decode(&request))
-		from, err := time.Parse(time.RFC3339, request.Variables.From)
-		assert.NoError(t, err)
 
 		current := inFlight.Add(1)
 		for {
@@ -218,20 +353,271 @@ func TestService_ContributionHeatMapLimit(t *testing.T) {
 			t.Error("the requests are not concurrent")
 		}
 		inFlight.Add(-1)
-
-		_, _ = fmt.Fprintf(rw, `{"data":{"user":{"contributionsCollection":{"contributionCalendar":{
-			"weeks":[{"contributionDays":[{"date":"%d-06-01","contributionCount":1}]}]
-		}}}}}`, from.Year())
+		handle(rw, req)
 	})
-	service.WithClock(func() time.Time { return xtime.UTC().Year(2026).Month(time.September).Day(25).Time() })
+	service.WithClock(func() time.Time { return day(2026, time.September, 25) })
 
 	scope := xtime.RangeByYears(xtime.UTC().Year(1990).Time(), 19, false)
-	chm, err := service.ContributionHeatMap(context.Background(), scope)
+	_, err := service.ContributionHeatMap(context.Background(), scope)
 	require.NoError(t, err)
 
-	assert.Len(t, chm, 20)
 	assert.Equal(t, int32(20), total.Load())
 	assert.Equal(t, int32(limit), peak.Load(), "no more requests at once than the limit")
+}
+
+// event is a single contribution at a moment, of a pull request for a review.
+type event struct{ at, pr string }
+
+// calendar answers the contribution queries of the service the way GitHub
+// does: the totals of the months, and the events of a month by pages, with
+// one review a pull request in a range, the latest.
+type calendar struct {
+	zone     time.Duration   // the offset of the account's days from UTC
+	pageSize int             // nodes of a page, 100 without it
+	commits  map[string]uint // by day
+	reviews  []event
+	issues   []event
+	undated  map[string]uint // calendar totals without events, by month
+
+	lose   string        // the list that loses its last node
+	hidden uint          // commits counted in the total, but in no repository
+	shift  time.Duration // moves the days of commits
+	month  string        // the month a malformed event is in
+
+	mu   sync.Mutex
+	seen []map[string]string // the variables of the requests, with "kind"
+}
+
+func (c *calendar) reset() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.seen = nil
+}
+
+func (c *calendar) requests(kind string) []map[string]string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	var out []map[string]string
+	for _, vars := range c.seen {
+		if vars["kind"] == kind {
+			out = append(out, vars)
+		}
+	}
+	return out
+}
+
+// months returns the months whose events are fetched, as YYYY-MM.
+func (c *calendar) months() []string {
+	var out []string
+	for _, vars := range c.requests("month") {
+		out = append(out, vars["from"][:7])
+	}
+	return out
+}
+
+func (c *calendar) handle(t *testing.T) http.HandlerFunc {
+	return func(rw http.ResponseWriter, req *http.Request) {
+		if req.URL.Path == "/user" {
+			_, _ = io.WriteString(rw, `{"login":"kamilsk"}`)
+			return
+		}
+
+		var request struct {
+			Query     string         `json:"query"`
+			Variables map[string]any `json:"variables"`
+		}
+		if !assert.NoError(t, json.NewDecoder(req.Body).Decode(&request)) {
+			return
+		}
+		vars := make(map[string]string, len(request.Variables))
+		for k, v := range request.Variables {
+			vars[k] = fmt.Sprint(v)
+		}
+		switch {
+		case strings.Contains(request.Query, "contributionDays"):
+			vars["kind"] = "days"
+		case strings.Contains(request.Query, "contributionCalendar"):
+			vars["kind"] = "totals"
+		case strings.Contains(request.Query, "commitContributionsByRepository"):
+			vars["kind"] = "month"
+		default:
+			vars["kind"] = "next"
+		}
+		c.mu.Lock()
+		c.seen = append(c.seen, vars)
+		c.mu.Unlock()
+
+		var data map[string]any
+		switch vars["kind"] {
+		case "totals":
+			data = map[string]any{}
+			for i := 0; ; i++ {
+				from, present := vars[fmt.Sprintf("from%d", i)]
+				if !present {
+					break
+				}
+				total := c.total(t, from, vars[fmt.Sprintf("to%d", i)])
+				data[fmt.Sprintf("m%d", i)] = map[string]any{"contributionCalendar": map[string]any{"totalContributions": total}}
+			}
+		case "days":
+			var days []any
+			from, err := time.Parse(time.RFC3339, vars["from"])
+			require.NoError(t, err)
+			for d := xtime.TruncateToDay(from); d.Format(xtime.DateOnly) <= vars["to"][:10]; d = d.Add(xtime.Day) {
+				date := d.Format(xtime.DateOnly)
+				days = append(days, map[string]any{"date": date, "contributionCount": c.total(t, date+"T00:00:00Z", date+"T23:59:59Z")})
+			}
+			data = map[string]any{"contributionsCollection": map[string]any{
+				"contributionCalendar": map[string]any{"weeks": []any{map[string]any{"contributionDays": days}}},
+			}}
+		case "month":
+			collection := map[string]any{}
+			var count uint
+			var nodes []map[string]any
+			for _, d := range c.days(t, vars["from"], vars["to"]) {
+				ts, err := time.Parse(xtime.DateOnly, d)
+				require.NoError(t, err)
+				nodes = append(nodes, map[string]any{
+					"occurredAt":  ts.Add(8*time.Hour + c.shift).Format(time.RFC3339),
+					"commitCount": c.commits[d],
+				})
+				count += c.commits[d]
+			}
+			collection["totalCommitContributions"] = count + c.hidden
+			collection["commitContributionsByRepository"] = []any{
+				map[string]any{"contributions": map[string]any{"pageInfo": map[string]any{"hasNextPage": false}, "nodes": nodes}},
+			}
+			for _, field := range []string{"pullRequestReviewContributions", "issueContributions", "pullRequestContributions", "repositoryContributions"} {
+				collection[field] = c.page(t, field, vars, 0)
+			}
+			data = map[string]any{"contributionsCollection": collection}
+		case "next":
+			offset, err := strconv.Atoi(vars["after"])
+			require.NoError(t, err)
+			collection := map[string]any{}
+			for _, field := range []string{"pullRequestReviewContributions", "issueContributions", "pullRequestContributions", "repositoryContributions"} {
+				if strings.Contains(request.Query, field) {
+					collection[field] = c.page(t, field, vars, offset)
+				}
+			}
+			data = map[string]any{"contributionsCollection": collection}
+		}
+		assert.NoError(t, json.NewEncoder(rw).Encode(map[string]any{"data": map[string]any{"user": data}}))
+	}
+}
+
+// in tells if the moment is on the days of the range in the account's zone:
+// the days whose dates from and to have in UTC.
+func (c *calendar) in(t *testing.T, at, from, to string) bool {
+	ts, err := time.Parse(time.RFC3339, at)
+	require.NoError(t, err)
+	date := ts.Add(c.zone).UTC().Format(xtime.DateOnly)
+	return date >= from[:10] && date <= to[:10]
+}
+
+func (c *calendar) days(t *testing.T, from, to string) []string {
+	var out []string
+	for d := range c.commits {
+		if c.in(t, d+"T08:00:00Z", from, to) {
+			out = append(out, d)
+		}
+	}
+	sort.Strings(out)
+	return out
+}
+
+// events returns the events of the list in the range, newest first.
+func (c *calendar) events(t *testing.T, field, from, to string) []event {
+	var source []event
+	switch field {
+	case "pullRequestReviewContributions":
+		latest := map[string]event{}
+		for _, e := range c.reviews {
+			if !c.in(t, e.at, from, to) {
+				continue
+			}
+			if e.pr == "" {
+				source = append(source, e)
+				continue
+			}
+			if prev, present := latest[e.pr]; !present || e.at > prev.at {
+				latest[e.pr] = e
+			}
+		}
+		for _, e := range latest {
+			source = append(source, e)
+		}
+	case "issueContributions":
+		for _, e := range c.issues {
+			if c.month != "" {
+				if strings.HasPrefix(from, c.month) {
+					source = append(source, e)
+				}
+				continue
+			}
+			if c.in(t, e.at, from, to) {
+				source = append(source, e)
+			}
+		}
+	}
+	sort.Slice(source, func(i, j int) bool { return source[i].at > source[j].at })
+	return source
+}
+
+func (c *calendar) page(t *testing.T, field string, vars map[string]string, offset int) map[string]any {
+	all := c.events(t, field, vars["from"], vars["to"])
+	size := c.pageSize
+	if size == 0 {
+		size = 100
+	}
+	end := min(offset+size, len(all))
+	nodes := []any{}
+	listed := all[offset:end]
+	if c.lose == field && end == len(all) && len(listed) > 0 {
+		listed = listed[:len(listed)-1]
+	}
+	for _, e := range listed {
+		n := map[string]any{"occurredAt": e.at}
+		if field == "pullRequestReviewContributions" {
+			n["pullRequest"] = nil
+			if e.pr != "" {
+				n["pullRequest"] = map[string]any{"id": e.pr}
+			}
+		}
+		nodes = append(nodes, n)
+	}
+	return map[string]any{
+		"totalCount": len(all),
+		"pageInfo":   map[string]any{"hasNextPage": end < len(all), "endCursor": strconv.Itoa(end)},
+		"nodes":      nodes,
+	}
+}
+
+// total is the calendar total of the range: the events the lists have in it,
+// and the contributions without events.
+func (c *calendar) total(t *testing.T, from, to string) uint {
+	var total uint
+	for _, d := range c.days(t, from, to) {
+		total += c.commits[d]
+	}
+	total += c.hidden * uint(len(c.days(t, from, to)))
+	for _, field := range []string{"pullRequestReviewContributions", "issueContributions"} {
+		total += uint(len(c.events(t, field, from, to)))
+	}
+	if month := from[:7]; from[8:10] == "01" {
+		total += c.undated[month]
+	}
+	return total
+}
+
+func nonzero(chm map[time.Time]uint) map[string]uint {
+	out := make(map[string]uint)
+	for ts, count := range chm {
+		if count > 0 {
+			out[ts.Format(xtime.DateOnly)] = count
+		}
+	}
+	return out
 }
 
 // serve returns a service whose every request lands on the handler.
@@ -256,26 +642,4 @@ func (r redirect) RoundTrip(req *http.Request) (*http.Response, error) {
 	proxy.Host = r.target.Host
 
 	return http.DefaultTransport.RoundTrip(proxy)
-}
-
-func TestService_FetchContributionsWithoutCalendar(t *testing.T) {
-	tests := map[string]string{
-		"no data":       `{"data":null}`,
-		"no user":       `{"data":{"user":null}}`,
-		"no weeks":      `{"data":{"user":{"contributionsCollection":{"contributionCalendar":{"weeks":[]}}}}}`,
-		"no collection": `{"data":{"user":{"contributionsCollection":null}}}`,
-	}
-	for name, payload := range tests {
-		t.Run(name, func(t *testing.T) {
-			service := serve(t, func(rw http.ResponseWriter, _ *http.Request) {
-				_, _ = io.WriteString(rw, payload)
-			})
-
-			chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
-			require.Error(t, err)
-			assert.Nil(t, chm)
-			assert.Contains(t, err.Error(), `fetch contributions of "kamilsk" for 2026`)
-			assert.Contains(t, err.Error(), "no contribution calendar")
-		})
-	}
 }

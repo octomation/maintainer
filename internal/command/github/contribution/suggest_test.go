@@ -304,7 +304,7 @@ func TestSuggest_Printed(t *testing.T) {
 			random := jitter.FullCustom(rand.New(rand.NewSource(1)))
 			for range 1000 {
 				moment := Moment(suggestion.Time, now, schedule, random)
-				printed, err := time.Parse(time.RFC3339, moment.Local().Format(time.RFC3339))
+				printed, err := time.Parse(time.RFC3339, moment.UTC().Format(time.RFC3339))
 				require.NoError(t, err)
 
 				assert.False(t, printed.Before(anchor), "before the anchor")
@@ -340,14 +340,14 @@ func TestMoment_Delta(t *testing.T) {
 				assert.False(t, moment.Before(suggested), "before the suggestion")
 				assert.False(t, moment.After(now), "after now")
 
-				printed, err := time.Parse(time.RFC3339, moment.Local().Format(time.RFC3339))
+				printed, err := time.Parse(time.RFC3339, moment.UTC().Format(time.RFC3339))
 				require.NoError(t, err)
 				shift := now.Sub(printed)
 				expected := "-" + strings.ToUpper(shift.String())
 				if days := shift / xtime.Day; days > 0 {
 					expected = fmt.Sprintf("-%dd%s", days, strings.ToUpper((shift % xtime.Day).String()))
 				}
-				assert.Equal(t, expected, Datetime(moment.Local(), now))
+				assert.Equal(t, expected, Datetime(moment.UTC(), now))
 			}
 		}
 	}
@@ -359,7 +359,7 @@ func TestMoment_Delta(t *testing.T) {
 func TestMissed(t *testing.T) {
 	day := xtime.UTC().Year(2026).Month(time.October)
 	schedule, target := xtime.Everyday(xtime.Hours(5, 19, 0)), uint(5)
-	local := func(t time.Time) string { return t.Local().Format(time.RFC3339) }
+	stamp := func(t time.Time) string { return t.UTC().Format(time.RFC3339) }
 	upstream := func(thursday uint) contribution.HeatMap {
 		chm := make(contribution.HeatMap)
 		for ts := xtime.UTC().Year(2026).Month(time.September).Day(27).Time(); ts.Before(day.Day(11).Time()); ts = ts.Add(xtime.Day) {
@@ -390,7 +390,7 @@ func TestMissed(t *testing.T) {
 			expected: []string{
 				"Oct 15", "distribution{20: 5, 25: 14}",
 				"Every day since Oct 11 has what its week requires, 20 in #42.\n",
-				"The next gap opens at " + local(day.Day(16).Hour(5).Time()) + ", in +12H9M24S.\n",
+				"The next gap opens at " + stamp(day.Day(16).Hour(5).Time()) + ", in +12H9M24S.\n",
 				"Or raise the target: maintainer suggest --target=21\n",
 			},
 		},
@@ -419,7 +419,7 @@ func TestMissed(t *testing.T) {
 			now:    day.Day(15).Hour(3).Time(),
 			reason: "the schedule has not opened yet",
 			expected: []string{
-				"Oct 15 has 0 of 20, but its schedule opens at " + local(day.Day(15).Hour(5).Time()) + ", in +2H0M0S.\n",
+				"Oct 15 has 0 of 20, but its schedule opens at " + stamp(day.Day(15).Hour(5).Time()) + ", in +2H0M0S.\n",
 				"Or raise the target: maintainer suggest --target=21\n", // Sunday has 20
 			},
 			absent: []string{"next gap"},
@@ -435,7 +435,7 @@ func TestMissed(t *testing.T) {
 			now:    day.Day(18).Time(), // Sunday midnight, the week of it starts at now
 			reason: "the schedule has not opened yet",
 			expected: []string{
-				"Oct 18 has 0 of 5, but its schedule opens at " + local(day.Day(18).Hour(5).Time()) + ", in +5H0M0S.\n",
+				"Oct 18 has 0 of 5, but its schedule opens at " + stamp(day.Day(18).Hour(5).Time()) + ", in +5H0M0S.\n",
 				"Or raise the target: maintainer suggest --target=21 2026-10-11/0\n", // the week before has 20
 			},
 			absent: []string{"Day / Week"}, // no weeks to show up to now
@@ -447,7 +447,7 @@ func TestMissed(t *testing.T) {
 			reason: "the schedule is over by the anchor",
 			expected: []string{
 				"Oct 15 has 19 of 20, but its schedule is over by the anchor.\n",
-				"The next gap opens at " + local(day.Day(16).Hour(5).Time()) + ", in +8H0M0S.\n",
+				"The next gap opens at " + stamp(day.Day(16).Hour(5).Time()) + ", in +8H0M0S.\n",
 			},
 			absent: []string{"raise the target"}, // no other day is in the window
 		},
@@ -464,7 +464,7 @@ func TestMissed(t *testing.T) {
 			reason: "the schedule is over by the anchor",
 			expected: []string{
 				"Oct 11 has 20 of 25, but its schedule is over by the anchor.\n",
-				"The next gap opens at " + local(day.Day(16).Hour(5).Time()) + ", in +13H0M0S.\n",
+				"The next gap opens at " + stamp(day.Day(16).Hour(5).Time()) + ", in +13H0M0S.\n",
 				"Or raise the target: maintainer suggest --target=26\n", // 21 is closed on Oct 11
 			},
 		},

@@ -112,7 +112,8 @@ to find a moment to contribute, and to keep and compare snapshots of it.
 
 The calendar is read through the GitHub GraphQL API, which requires a token
 even for a public profile: set GITHUB_TOKEN or pass --token. Only diff of two
-snapshot files works without it.
+snapshot files works without it. The days are counted as the profile counts
+them, by UTC dates, wherever the machine and the account are.
 
 A date of lookup and suggest that is empty or git is the author date of HEAD
 in the current repository, or in the one GIT_DIR points to; outside
@@ -144,7 +145,10 @@ made by snapshot. Two files need no token; a year does:
 
 The contribution calendar is read through the GitHub GraphQL API for
 the owner of the token, which is required even for a public profile:
-set GITHUB_TOKEN or pass --token.
+set GITHUB_TOKEN or pass --token. The days are counted as the profile
+counts them, by UTC dates, wherever the machine and the account are.
+The events of each month are kept in $XDG_CACHE_HOME/maintainer/contributions,
+or ~/.cache without it, and a month is fetched again when its total changes.
 
 ```text
 maintainer github contribution diff
@@ -170,7 +174,10 @@ with --with-zero.
 
 The contribution calendar is read through the GitHub GraphQL API for
 the owner of the token, which is required even for a public profile:
-set GITHUB_TOKEN or pass --token.
+set GITHUB_TOKEN or pass --token. The days are counted as the profile
+counts them, by UTC dates, wherever the machine and the account are.
+The events of each month are kept in $XDG_CACHE_HOME/maintainer/contributions,
+or ~/.cache without it, and a month is fetched again when its total changes.
 
 ```text
 maintainer github contribution histogram [flags]
@@ -209,7 +216,10 @@ Weeks start on Sunday, and the week that contains January 1 is #01.
 
 The contribution calendar is read through the GitHub GraphQL API for
 the owner of the token, which is required even for a public profile:
-set GITHUB_TOKEN or pass --token.
+set GITHUB_TOKEN or pass --token. The days are counted as the profile
+counts them, by UTC dates, wherever the machine and the account are.
+The events of each month are kept in $XDG_CACHE_HOME/maintainer/contributions,
+or ~/.cache without it, and a month is fetched again when its total changes.
 
 ```text
 maintainer github contribution lookup
@@ -235,7 +245,10 @@ a year in the future is an error, and it is not before 1970.
 
 The contribution calendar is read through the GitHub GraphQL API for
 the owner of the token, which is required even for a public profile:
-set GITHUB_TOKEN or pass --token.
+set GITHUB_TOKEN or pass --token. The days are counted as the profile
+counts them, by UTC dates, wherever the machine and the account are.
+The events of each month are kept in $XDG_CACHE_HOME/maintainer/contributions,
+or ~/.cache without it, and a month is fetched again when its total changes.
 
 ```text
 maintainer github contribution snapshot
@@ -256,7 +269,8 @@ of the week has, but not less than --target. A moment is within the
 schedule, 05:00-19:00 UTC every day, and a random jitter of less than an
 hour moves it neither after now nor after the schedule. The table of the
 weeks around the suggestion marks its day with brackets in stderr, and stdout
-gets only the timestamp, e.g., to pass it to git commit --date.
+gets only the timestamp, in UTC, e.g., to pass it to git commit --date:
+the commit keeps the chosen day in any time zone.
 
 The argument is date[/weeks], the same as lookup has: the date is empty,
 git, now, YYYY, YYYY-MM, YYYY-MM-DD, or RFC 3339, the weeks add to the week
@@ -273,7 +287,10 @@ or if there is no suitable moment up to now.
 
 The contribution calendar is read through the GitHub GraphQL API for
 the owner of the token, which is required even for a public profile:
-set GITHUB_TOKEN or pass --token.
+set GITHUB_TOKEN or pass --token. The days are counted as the profile
+counts them, by UTC dates, wherever the machine and the account are.
+The events of each month are kept in $XDG_CACHE_HOME/maintainer/contributions,
+or ~/.cache without it, and a month is fetched again when its total changes.
 
 ```text
 maintainer github contribution suggest [flags]

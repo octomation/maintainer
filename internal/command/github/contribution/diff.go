@@ -11,7 +11,6 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
@@ -62,7 +61,7 @@ made by snapshot. Two files need no token; a year does:
 			if err := RequireToken(cnf); err != nil {
 				return exit.WithUser(err)
 			}
-			service = github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+			service = NewService(cmd, cnf)
 		}
 		source := func(i int) ContributionSource {
 			if year, is := years[i]; is {

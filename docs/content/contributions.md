@@ -26,6 +26,8 @@ maintainer github contribution lookup 2026-01-12/4
                distribution{15: 19, 17: 1, 25: 15}
 ```
 
+Each day shows what the calendar of that year on your profile shows, wherever you and your computer are: a pull request review, an opened issue or pull request, and a created repository count on their UTC date, and commits on the date they carry. A pull request you reviewed more than once in a year counts once, on the day of the latest review, as on the profile.
+
 The table lets you compare days across weeks. Weeks start on Sunday, and the week that contains January 1 is `#01`. A `-` is a day with no contributions; a `?` marks a future day in the displayed window. The final Date column locates each row in the last week. The footer counts the shown past days by their number of contributions: here 19 days had 15. Counts show GitHub activity, not the value or difficulty of the work. Without a token, the command fails before any request and names `GITHUB_TOKEN` and `--token`.
 
 ## See your recent pace
@@ -47,7 +49,7 @@ maintainer github contribution suggest --short --target 25 2026-01-12
 git commit --date="$(maintainer github contribution suggest)"
 ```
 
-`suggest` takes the same `date[/weeks]` argument, with `5` weeks by default; the date is the anchor. It answers with the first moment from the anchor up to now, within 05:00–19:00 UTC, on a day with fewer contributions than its week requires: the highest count in that week, but not less than `--target` (default `5`). The table goes to stderr with the day marked by brackets, such as `[20]`, and stdout gets only the timestamp, so it can feed `git commit --date`. `--short` hides the table and `--delta` prints the time relative to now.
+`suggest` takes the same `date[/weeks]` argument, with `5` weeks by default; the date is the anchor. It answers with the first moment from the anchor up to now, within 05:00–19:00 UTC, on a day with fewer contributions than its week requires: the highest count in that week, but not less than `--target` (default `5`). The table goes to stderr with the day marked by brackets, such as `[20]`, and stdout gets only the timestamp in UTC, such as `2026-01-26T05:51:27Z`, so it can feed `git commit --date` and the commit lands on the chosen day in any time zone. `--short` hides the table and `--delta` prints the time relative to now.
 
 The moment includes a random jitter of less than an hour, so repeat runs differ, but it never moves past now or out of the schedule. An anchor in the future or another input error, such as a zero `--target`, exits with `2`. If no suitable moment exists up to now, `suggest` says why in stderr instead of guessing: every day since the anchor has what its week requires, or the day's schedule is over or not open yet. It tells when the next gap opens, proposes a higher `--target` when one has a moment, and exits with `4`. Nothing is committed or scheduled.
 
@@ -81,6 +83,18 @@ maintainer github contribution histogram --with-zero 2026-09-25
 ```
 
 `histogram` groups days by their contribution count and draws one `#` per day. Pass a year, month, or day; a day selects its week. Zero-count days are hidden by default, and `--with-zero` includes them.
+
+## Fast repeat runs
+
+The commands keep the contributions they read in `$XDG_CACHE_HOME/maintainer/contributions`, or in `~/.cache/maintainer/contributions` without it. Each run asks GitHub for the totals of the months it shows and reads again only the months whose totals have changed, so a repeated `lookup` takes about a second; the first run of a year takes several seconds. Deleting the folder is safe: the next run reads everything again.
+
+## Contributions without a date
+
+GitHub counts some contributions without saying when they happened, such as ones in private repositories your token cannot read. A month with them shows the days of GitHub's own calendar instead, which puts reviews on the dates of your GitHub account's time zone, so a review there can be a day off. If such a month has reviews, the command names it on stderr:
+
+```text
+warn: the GitHub API gives no date for some contributions of 2023-06, such as ones in private repositories the token cannot read, so the days there are those of its calendar, where a review may be a day off
+```
 
 ## Useful boundaries
 

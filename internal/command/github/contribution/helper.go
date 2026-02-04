@@ -17,7 +17,9 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/assert"
+	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
+	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
 // maxWeeks limits the span of weeks around a date to a year:
@@ -35,13 +37,26 @@ var rfc3339 = regexp.MustCompile(
 const tokenNote = `
 The contribution calendar is read through the GitHub GraphQL API for
 the owner of the token, which is required even for a public profile:
-set GITHUB_TOKEN or pass --token.`
+set GITHUB_TOKEN or pass --token. The days are counted as the profile
+counts them, by UTC dates, wherever the machine and the account are.
+The events of each month are kept in $XDG_CACHE_HOME/maintainer/contributions,
+or ~/.cache without it, and a month is fetched again when its total changes.`
 
 // ErrNoToken reports a command that needs GitHub data, but has no token.
 var ErrNoToken = errors.New(
 	"a GitHub token is required: the contribution calendar is read through the GitHub GraphQL API, " +
 		"which needs one even for a public profile; please set GITHUB_TOKEN or pass --token",
 )
+
+// NewService returns the GitHub service of the commands: authorized by the
+// token, keeping the contributions it fetched in the user's cache, and
+// reporting on stderr what it cannot show.
+func NewService(cmd *cobra.Command, cnf *config.Tool) *github.Service {
+	home, _ := os.UserHomeDir()
+	return github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token)).
+		WithCache(github.DefaultCacheDir(os.Getenv, home)).
+		WithWarnings(cmd.ErrOrStderr())
+}
 
 // RequireToken declines a command that needs GitHub data before any request,
 // if there is no token to authorize it.

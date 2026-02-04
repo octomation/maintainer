@@ -10,9 +10,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
-	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
 func Histogram(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
@@ -48,7 +46,7 @@ with --with-zero.
 		if err := RequireToken(cnf); err != nil {
 			return exit.WithUser(err)
 		}
-		service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+		service := NewService(cmd, cnf)
 		chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 		if err != nil {
 			return err

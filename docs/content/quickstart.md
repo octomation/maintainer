@@ -57,7 +57,7 @@ Without an argument, `lookup` shows the week of the latest commit in the current
  Day / Week    #04   #05     Date
  Monday        25    [20]   Jan 26
 
-Suggestion is 2026-01-26T08:51:27+03:00, 20 → 25
+Suggestion is 2026-01-26T05:51:27Z, 20 → 25
 ```
 
 `suggest` looks for the first moment from the anchor up to now, between 05:00 and 19:00 UTC, on a day below its target, and marks that day with brackets: this example shows 20 contributions toward a minimum target of 25. Your counts and suggested time will differ, but the time is never later than now; if no such moment exists, `suggest` says why and exits with `4` instead. The time is a suggestion; maintainer does **not** create a commit.

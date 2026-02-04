@@ -10,9 +10,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
-	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
 func Snapshot(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
@@ -40,7 +38,7 @@ a year in the future is an error, and it is not before 1970.
 		if err := RequireToken(cnf); err != nil {
 			return exit.WithUser(err)
 		}
-		service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+		service := NewService(cmd, cnf)
 		chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 		if err != nil {
 			return err

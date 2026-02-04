@@ -129,8 +129,12 @@ maintainer github contribution diff snap.json 2026
 ```
 
 These read the calendar of the token's owner and need a token even for a
-public profile. `suggest` prints a timestamp to stdout and exits `4` when no
-moment fits up to now; it never creates a commit.
+public profile. The days match the profile's calendar of the year in any time
+zone, and a repeated run reads only the months that changed, from the cache in
+`$XDG_CACHE_HOME/maintainer/contributions` (or `~/.cache`). `suggest` prints a
+UTC timestamp to stdout and exits `4` when no moment fits up to now; it never
+creates a commit. A `warn:` line names the months whose reviews may be a day
+off because GitHub gives no date for some of their contributions.
 
 ## Project helpers
 

@@ -8,9 +8,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
-	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
 func Lookup(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
@@ -54,7 +52,7 @@ Weeks start on Sunday, and the week that contains January 1 is #01.
 		if err := RequireToken(cnf); err != nil {
 			return exit.WithUser(err)
 		}
-		service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+		service := NewService(cmd, cnf)
 		chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 		if err != nil {
 			return err

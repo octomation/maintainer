@@ -18,7 +18,8 @@ to find a moment to contribute, and to keep and compare snapshots of it.
 
 The calendar is read through the GitHub GraphQL API, which requires a token
 even for a public profile: set GITHUB_TOKEN or pass --token. Only diff of two
-snapshot files works without it.
+snapshot files works without it. The days are counted as the profile counts
+them, by UTC dates, wherever the machine and the account are.
 
 A date of lookup and suggest that is empty or git is the author date of HEAD
 in the current repository, or in the one GIT_DIR points to; outside

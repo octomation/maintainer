@@ -39,6 +39,12 @@ func (srv *Service) queryGraphQL(
 	}
 	req.Header.Set("Content-Type", "application/json")
 
+	select {
+	case srv.slots <- struct{}{}:
+		defer func() { <-srv.slots }()
+	case <-ctx.Done():
+		return fmt.Errorf("send graphql request: %w", ctx.Err())
+	}
 	resp, err := srv.client.Client().Do(req) //nolint:bodyclose // safe.Close closes it below
 	if err != nil {
 		return fmt.Errorf("send graphql request: %w", err)

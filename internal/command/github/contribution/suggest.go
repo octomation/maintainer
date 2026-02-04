@@ -13,10 +13,8 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
 	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
-	"go.octolab.org/toolset/maintainer/internal/pkg/http"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
 	"go.octolab.org/toolset/maintainer/internal/pkg/time/jitter"
-	"go.octolab.org/toolset/maintainer/internal/service/github"
 )
 
 // jitterLimit is the most a random jitter shifts a suggestion by.
@@ -39,7 +37,8 @@ of the week has, but not less than --target. A moment is within the
 schedule, 05:00-19:00 UTC every day, and a random jitter of less than an
 hour moves it neither after now nor after the schedule. The table of the
 weeks around the suggestion marks its day with brackets in stderr, and stdout
-gets only the timestamp, e.g., to pass it to git commit --date.
+gets only the timestamp, in UTC, e.g., to pass it to git commit --date:
+the commit keeps the chosen day in any time zone.
 
 The argument is date[/weeks], the same as lookup has: the date is empty,
 git, now, YYYY, YYYY-MM, YYYY-MM-DD, or RFC 3339, the weeks add to the week
@@ -85,7 +84,7 @@ or if there is no suitable moment up to now.
 		if err := RequireToken(cnf); err != nil {
 			return exit.WithUser(err)
 		}
-		service := github.New(http.TokenSourcedClient(cmd.Context(), cnf.Token))
+		service := NewService(cmd, cnf)
 		chm, err := service.ContributionHeatMap(cmd.Context(), scope)
 		if err != nil {
 			return err
@@ -115,10 +114,10 @@ or if there is no suitable moment up to now.
 		}
 		cmd.PrintErr("Suggestion is ")
 		if delta {
-			cmd.PrintErr(suggestion.Time.Local().Format(time.RFC3339), ": ")
-			cmd.Print(Datetime(suggestion.Time.Local(), now))
+			cmd.PrintErr(suggestion.Time.UTC().Format(time.RFC3339), ": ")
+			cmd.Print(Datetime(suggestion.Time.UTC(), now))
 		} else {
-			cmd.Print(suggestion.Time.Local().Format(time.RFC3339))
+			cmd.Print(suggestion.Time.UTC().Format(time.RFC3339))
 		}
 		cmd.PrintErrf(", %d → %d\n", suggestion.Actual, suggestion.Target)
 		return nil
@@ -239,12 +238,12 @@ func Explanation(cmd *cobra.Command, miss contribution.Miss, anchor, now time.Ti
 	case contribution.Pending:
 		reason = "the schedule has not opened yet"
 		cmd.PrintErrf("%s has %d of %d, but its schedule opens at %s, in %s.\n", day, miss.Actual, miss.Target,
-			miss.Next.Local().Format(time.RFC3339), Datetime(miss.Next.Local(), now))
+			miss.Next.UTC().Format(time.RFC3339), Datetime(miss.Next.UTC(), now))
 		return reason
 	}
 	if !miss.Next.IsZero() {
 		cmd.PrintErrf("The next gap opens at %s, in %s.\n",
-			miss.Next.Local().Format(time.RFC3339), Datetime(miss.Next.Local(), now))
+			miss.Next.UTC().Format(time.RFC3339), Datetime(miss.Next.UTC(), now))
 	}
 	return reason
 }
