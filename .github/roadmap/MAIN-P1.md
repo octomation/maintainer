@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-10-21T11:44:56Z
+updatedAt: 2026-11-07T14:24:47Z
 closedAt: null
 ---
 
@@ -120,6 +120,7 @@ closedAt: null
 - [ ] octomation/go-service#306 — deps: broken go.mod
 - [ ] octomation/go-module#394 — dev: support agents.md
 - [ ] octomation/go-module#395 — dev: support new schedule for dependabot
+- [ ] [[MAIN-160]] — github: contribution: lose no contribution at the edges of the monthly slices
 
 ## To do
 
@@ -135,6 +136,7 @@ closedAt: null
 
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
+- [ ] [[MAIN-159]] — github: contribution: count the days as the profile does, wherever the account is
 
 ## Done
 

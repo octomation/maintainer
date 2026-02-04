@@ -6,11 +6,11 @@ number: 1
 url: https://github.com/octomation/maintainer/milestone/1
 title: "GCC, v0.1"
 state: OPEN
-openIssueCount: 24
+openIssueCount: 26
 closedIssueCount: 90
 dueOn: null
 createdAt: 2022-06-15T10:12:33Z
-updatedAt: 2026-10-20T07:40:37Z
+updatedAt: 2026-11-07T14:23:34Z
 closedAt: null
 ---
 
@@ -138,3 +138,5 @@ The milestone carries the v0.1 line: v0.1.0, its patches, and everything the pro
 - [x] [[MAIN-121]] — github: contributions: GitHub changed a way to provide data
 - [x] [[MAIN-122]] — github: contribution: incorrect week number
 - [x] [[MAIN-126]] — github: contribution: calendar counts are read from an inconsistent source
+- [ ] [[MAIN-159]] — github: contribution: count the days as the profile does, wherever the account is
+- [ ] [[MAIN-160]] — github: contribution: lose no contribution at the edges of the monthly slices
