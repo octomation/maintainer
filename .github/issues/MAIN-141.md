@@ -13,7 +13,8 @@ labels:
   - "severity: major"
   - "impact: high"
   - "effort: easy"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
@@ -21,7 +22,7 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:49:11Z
-updatedAt: 2026-10-21T10:23:20Z
+updatedAt: 2026-10-23T05:46:52Z
 lastEditedAt: 2026-10-21T04:51:23Z
 closedAt: 2026-10-21T04:49:14Z
 ---

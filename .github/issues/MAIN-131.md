@@ -13,7 +13,8 @@ labels:
   - "severity: minor"
   - "impact: medium"
   - "effort: easy"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
@@ -21,7 +22,7 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:48:56Z
-updatedAt: 2026-10-21T10:23:15Z
+updatedAt: 2026-10-23T05:46:48Z
 lastEditedAt: null
 closedAt: 2026-10-21T04:48:59Z
 ---

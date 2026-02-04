@@ -13,7 +13,8 @@ labels:
   - "type: improvement"
   - "impact: medium"
   - "effort: medium"
-assignees: []
+assignees:
+  - kamilsk
 milestone: "[[MAIN-M2]]"
 parent: null
 issueFields: {}
@@ -21,7 +22,7 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:49:04Z
-updatedAt: 2026-10-21T10:23:18Z
+updatedAt: 2026-10-23T05:46:50Z
 lastEditedAt: 2026-10-21T04:51:20Z
 closedAt: 2026-10-21T04:49:07Z
 ---
