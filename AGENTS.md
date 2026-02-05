@@ -95,7 +95,7 @@ conventions are in [docs/README.md](docs/README.md#keep-the-release-accurate).
 - What can be verified mechanically the agent does without asking: the checks
   before the release, the release commit, the note, the image and the tag
   annotation, the checks after the push with the upgrade of this Mac, the
-  issue mirror and the board, the announcement row, `.agents/self-control.md`
+  issue mirror and the board, the announcement row, `.github/self-control.md`
   and the cleanup. It asks only for decisions: scope, wording the owner cares
   about, a criterion to change.
 - Product changes first, release commit last: `chore(release): prepare vX.Y.Z`.
@@ -410,7 +410,7 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
   and the board moves are the next `chore(project): sync the mirror …`
   commit.
 - What the owner has to see himself, such as the hub in a browser, goes to
-  `.agents/self-control.md`.
+  [.github/self-control.md](.github/self-control.md).
 
 ### When `cd` fails
 
@@ -447,10 +447,13 @@ phrase, no longer than the existing ones, saying what the user gets.
 
 ### 7. Self-control and cleanup
 
-`.agents/self-control.md` holds the checks that outlive a session: each item
-says when to look, what proves it and what to do if it fails. The agent adds
-the checks a release leaves open, closes an item with what proved it and
-removes it once proven, and keeps the follow-ups that still need an issue.
+[.github/self-control.md](.github/self-control.md) holds the checks that
+outlive a session: each item says when to look, what proves it and what to do
+if it fails. The agent adds the checks a release leaves open, removes an item
+once it is proven or filed as an issue, and keeps the follow-ups that still
+need one. The file is public: no private paths, notes, secrets or names of
+agent sessions. Its changes go with the commit they belong to, or with the
+next `chore(project): sync the mirror …` commit.
 
 The drafts of a release live in `.agents/release/vX.Y.Z/` (plan, note,
 annotation, migration). After the checks of step 5 the agent removes them,
