@@ -10,7 +10,7 @@ ignore (
 
 require (
 	charm.land/bubbles/v2 v2.2.1
-	charm.land/bubbletea/v2 v2.1.0
+	charm.land/bubbletea/v2 v2.1.1
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/charmbracelet/x/ansi v0.11.9
@@ -25,10 +25,10 @@ require (
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
-	github.com/spf13/pflag v1.0.10
+	github.com/spf13/pflag v1.1.0
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.12.1
-	github.com/yuin/goldmark v1.8.6
+	github.com/yuin/goldmark v1.8.7
 	go.octolab.org v0.12.2
 	go.octolab.org/toolkit/cli v0.6.4
 	go.octolab.org/toolkit/config v0.0.5
