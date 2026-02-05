@@ -7,11 +7,11 @@ url: https://github.com/octomation/maintainer/issues/522
 title: "github: contribution: lose no contribution at the edges of the monthly slices"
 issueType: Task
 labels:
-  - "effort: medium"
-  - "impact: medium"
   - "scope: code"
   - "scope: test"
   - "type: improvement"
+  - "impact: medium"
+  - "effort: medium"
 assignees:
   - kamilsk
 milestone: "[[MAIN-M1]]"

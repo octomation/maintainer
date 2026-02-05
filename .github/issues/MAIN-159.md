@@ -7,25 +7,25 @@ url: https://github.com/octomation/maintainer/issues/521
 title: "github: contribution: count the days as the profile does, wherever the account is"
 issueType: Bug
 labels:
-  - "effort: medium"
-  - "impact: high"
-  - "scope: code"
   - "scope: docs"
+  - "scope: code"
   - "scope: test"
-  - "severity: major"
   - "type: bug"
+  - "severity: major"
+  - "impact: high"
+  - "effort: medium"
 assignees:
   - kamilsk
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-07T13:07:38Z
-updatedAt: 2026-11-07T14:23:11Z
+updatedAt: 2026-11-07T14:46:36Z
 lastEditedAt: null
-closedAt: null
+closedAt: 2026-11-07T14:46:35Z
 ---
 
 # github: contribution: count the days as the profile does, wherever the account is

@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-11-07T14:24:47Z
+updatedAt: 2026-11-07T15:23:14Z
 closedAt: null
 ---
 
@@ -136,7 +136,6 @@ closedAt: null
 
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
-- [ ] [[MAIN-159]] — github: contribution: count the days as the profile does, wherever the account is
 
 ## Done
 
@@ -372,6 +371,7 @@ closedAt: null
 - [x] [[MAIN-152]] — release: homebrew: keep the Formula without a deprecation
 - [x] [[MAIN-153]] — fetch: config: reject a broken per-repository path template and report it per repository
 - [x] [[MAIN-154]] — skill: ship an agent skill for the maintainer CLI and publish it to octolab/skills
+- [x] [[MAIN-159]] — github: contribution: count the days as the profile does, wherever the account is
 
 ## Won't do
 
