@@ -161,6 +161,23 @@ keep their original Cask commands.
 
 ### 1. Changelog
 
+The note covers everything that changed since the last stable release, not
+only the issues of the milestone, and a final note after candidates also
+counts from that stable tag. Read the whole range before writing:
+
+```sh
+base="$(git describe --tags --abbrev=0 --exclude='*-rc*')"
+git log --oneline "$base"..HEAD
+git diff --stat "$base"..HEAD -- . ':!docs' ':!tools' ':!.github/issues' ':!.github/roadmap' ':!.github/reports' ':!.github/reviews' ':!AGENTS.md'
+```
+
+Go through every product change the second command lists: the code, the
+hub pages, the agent skill, the release channels, and each dependency the
+binary ships with (`go.mod`, `web/package.json` outside `devDependencies`),
+whose own release notes say whether users see a difference. Only what
+users get goes into the note; tooling, CI, docs and the mirror stay out,
+however large.
+
 Write `docs/content/changelog/vX.Y.Z.md`; it becomes the GitHub release:
 
 ```md

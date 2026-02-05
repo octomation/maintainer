@@ -83,7 +83,7 @@ $ wget -qO-  https://raw.githubusercontent.com/octomation/maintainer/main/bin/in
 The script installs the latest release into `./bin`. Pass `-b` to choose another directory and a tag to pin the version:
 
 ```bash
-$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.3.0
+$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.4.0
 ```
 
 > Don't forget about [security](https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/).
