@@ -40,8 +40,17 @@ tell. No run has shown it so far (15 of 15 identical requests on 2026-10-31
 agreed), but identical calendar requests did alternate between two zones in an
 earlier session.
 
+The last slice of the current year has an edge of its own: it ends now, but
+GitHub ends it with today in the zone of the request. With the account in
+Tokyo, today ends at 15:00Z, and a review after that is in tomorrow, which no
+slice asks for. On 2026-11-07 the profile had 17 contributions on that day,
+and `lookup` and `suggest` had 5 until the next UTC day. The total of the month
+did not change either, so the cache looked fresh.
+
 ## Scope
 
+- The current year reaches now in any zone: an event of today after the end
+  of today in the zone of the request counts on its day.
 - The slices of a year overlap at their edges, and an event that two slices
   return is counted once.
 - A run that still cannot tell whether an edge event belongs to the year is an
@@ -49,6 +58,9 @@ earlier session.
 
 ## Acceptance criteria
 
+- [ ] A review of today after the end of today in the zone of the request,
+  such as one at 17:56Z with the account in Tokyo, counts today on the next
+  run, and the commands agree with the profile on that day.
 - [ ] With the requests of one run placed in different zones, every day of the
   year keeps the count of the profile.
 - [ ] An event returned by two slices is counted once, including the commits of
