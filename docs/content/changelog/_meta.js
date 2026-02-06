@@ -1,5 +1,6 @@
 export default {
   index: { title: 'All releases', theme: { toc: false, breadcrumb: false } },
+  'v0.4.1': 'v0.4.1 — Today counts in full.',
   'v0.4.0': 'v0.4.0 — Days as on your profile.',
   'v0.3.0': 'v0.3.0 — Your work at a glance.',
   'v0.2.1': 'v0.2.1 — Safe moves, clear status.',

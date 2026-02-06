@@ -13,14 +13,14 @@ description: >-
   .github/.
 license: MIT
 compatibility: >-
-  Requires the maintainer binary >=0.4.0 <0.5.0 on macOS or Linux and Git on
+  Requires the maintainer binary >=0.4.1 <0.5.0 on macOS or Linux and Git on
   PATH. fetch and the contribution commands need network access and a GitHub
   token; status works offline.
 metadata:
   author: octomation
-  version: "0.4.0"
+  version: "0.4.1"
   tool: maintainer
-  tool-version-range: ">=0.4.0 <0.5.0"
+  tool-version-range: ">=0.4.1 <0.5.0"
 ---
 
 # maintainer
@@ -36,7 +36,7 @@ browser.
 
 ## 1. Check the binary first
 
-This skill describes maintainer `>=0.4.0 <0.5.0`. Before anything else:
+This skill describes maintainer `>=0.4.1 <0.5.0`. Before anything else:
 
 1. Run `maintainer version` and read the `version` line.
 2. Compare it with that range.
@@ -48,7 +48,7 @@ This skill describes maintainer `>=0.4.0 <0.5.0`. Before anything else:
      (`brew upgrade --formula octolab/tap/maintainer`) or reinstalling the
      skill from the binary
      (`maintainer skill install --agent claude-code --replace`, or `codex`).
-   - `dev`, a pseudo-version such as `v0.4.0-0.20261107…`, or unknown: treat
+   - `dev`, a pseudo-version such as `v0.4.1-0.20261107…`, or unknown: treat
      compatibility as unknown and rely on `--help`.
    - `maintainer skill` missing: the binary predates it; rely on `--help` only.
    - `maintainer` not found: explain how to install it
