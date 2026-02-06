@@ -73,10 +73,12 @@ func TestService_FetchContributionsPlacement(t *testing.T) {
 	assert.Equal(t, "2026-01-31T23:59:59Z", totals[0]["to0"])
 	assert.Equal(t, "2026-09-01T00:00:00Z", totals[0]["from8"])
 	assert.Equal(t, "2026-09-02T12:07:31Z", totals[0]["to8"])
-	// The day before the year, and no month after now.
+	// The day before the year, the day after today, and no month after now.
 	assert.Equal(t, "2025-12-31T00:00:00Z", totals[0]["from9"])
 	assert.Equal(t, "2025-12-31T23:59:59Z", totals[0]["to9"])
-	assert.NotContains(t, totals[0], "from10")
+	assert.Equal(t, "2026-09-03T00:00:00Z", totals[0]["from10"])
+	assert.Equal(t, "2026-09-03T23:59:59Z", totals[0]["to10"])
+	assert.NotContains(t, totals[0], "from11")
 	// A month without contributions is not fetched.
 	assert.ElementsMatch(t, []string{"2026-01", "2026-03", "2026-05", "2026-08", "2026-09"}, fake.months())
 	assert.NotEmpty(t, fake.requests("next"), "the lists take pages")
@@ -93,6 +95,65 @@ func TestService_FetchContributionsPlacement(t *testing.T) {
 		assert.Equal(t, "2026-01-01T00:00:00Z", last["from13"])
 		assert.Equal(t, "2026-01-01T23:59:59Z", last["to13"])
 	})
+}
+
+func TestService_FetchContributionsToday(t *testing.T) {
+	// The current year ends now, but a collection ends with a day of the
+	// account's zone: in Tokyo, today ends at 15:00Z, and a later review is
+	// in the collection of tomorrow.
+	tests := map[string]struct {
+		zone  time.Duration
+		now   time.Time
+		after string // the day after the days of the year
+	}{
+		"ahead of UTC": {
+			zone:  9 * time.Hour,
+			now:   xtime.UTC().Year(2026).Month(time.November).Day(7).Hour(18).Minute(2).Second(51).Time(),
+			after: "2026-11-08",
+		},
+		"behind UTC": {
+			zone:  -8 * time.Hour,
+			now:   xtime.UTC().Year(2026).Month(time.November).Day(7).Hour(18).Minute(2).Second(51).Time(),
+			after: "2026-11-08",
+		},
+		"on the last day of the year": {
+			zone:  9 * time.Hour,
+			now:   xtime.UTC().Year(2026).Month(time.December).Day(31).Hour(18).Minute(2).Second(51).Time(),
+			after: "2027-01-01",
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			today := test.now.Format(xtime.DateOnly)
+			fake := &calendar{
+				zone:    test.zone,
+				reviews: []event{{today + "T14:58:50Z", "PR_A"}, {today + "T16:30:44Z", "PR_B"}},
+			}
+			service := serve(t, fake.handle(t)).WithCache(t.TempDir())
+			service.WithClock(func() time.Time { return test.now })
+			fetch := func() map[string]uint {
+				t.Helper()
+				fake.reset()
+				chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
+				require.NoError(t, err)
+				return nonzero(chm)
+			}
+
+			assert.Equal(t, map[string]uint{today: 2}, fetch())
+			totals := fake.requests("totals")
+			require.Len(t, totals, 1)
+			// The months up to now, the day before the year and the day after.
+			after := int(test.now.Month()) + 1
+			assert.Equal(t, test.after+"T00:00:00Z", totals[0][fmt.Sprintf("from%d", after)])
+			assert.Equal(t, test.after+"T23:59:59Z", totals[0][fmt.Sprintf("to%d", after)])
+			assert.NotContains(t, totals[0], fmt.Sprintf("from%d", after+1))
+
+			// The next run sees a new review and fetches only the range it is in.
+			fake.reviews = append(fake.reviews, event{today + "T17:56:46Z", "PR_C"})
+			assert.Equal(t, map[string]uint{today: 3}, fetch())
+			assert.Len(t, fake.requests("month"), 1)
+		})
+	}
 }
 
 func TestService_FetchContributionsCache(t *testing.T) {

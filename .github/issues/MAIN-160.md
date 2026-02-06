@@ -58,7 +58,7 @@ did not change either, so the cache looked fresh.
 
 ## Acceptance criteria
 
-- [ ] A review of today after the end of today in the zone of the request,
+- [x] A review of today after the end of today in the zone of the request,
   such as one at 17:56Z with the account in Tokyo, counts today on the next
   run, and the commands agree with the profile on that day.
 - [ ] With the requests of one run placed in different zones, every day of the

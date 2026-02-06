@@ -34,9 +34,11 @@ import (
 // dates from and to have in UTC. So the months of a year do not overlap,
 // but an event of a UTC year can be in the collection of a day next to it,
 // such as a review on December 31 at 20:00Z in Tokyo, and the year takes
-// the last day before it and the first day after it as well. The totals of
-// the collections tell which of them have changed since their events were
-// cached.
+// the last day before it and the first day after it as well. The current
+// year ends now, which may be past the end of today in the account's zone,
+// so it takes the day after today instead: in Tokyo, a review today at
+// 20:00Z is in the collection of tomorrow. The totals of the collections
+// tell which of them have changed since their events were cached.
 
 // contributionPage is the most nodes GitHub returns for a page of a list.
 const contributionPage = 100
@@ -148,10 +150,10 @@ func (events monthEvents) complete(month span) bool {
 }
 
 // span is a month of a year, cut at now in the current one, or a day next to
-// the year at its edge.
+// the days of the year at their edge.
 type span struct {
 	from, to time.Time
-	edge     bool // a day next to the year
+	edge     bool // a day next to the days of the year
 	open     bool // the current month, cut at now
 }
 
@@ -247,13 +249,14 @@ func (srv *Service) fetchYear(
 		}
 		months = append(months, span{from: start, to: end, open: end.Equal(to) && to.Before(start.AddDate(0, 1, 0).Add(-time.Second))})
 	}
-	// The days next to the year hold the events of the year that are on them
-	// in the account's zone; the day after it is in the future until the last
-	// day of the year begins.
-	months = append(months, span{from: from.AddDate(0, 0, -1), to: from.Add(-time.Second), edge: true})
-	if last := xtime.TruncateToDay(to); last.Month() == time.December && last.Day() == 31 {
-		months = append(months, span{from: last.Add(xtime.Day), to: last.Add(2*xtime.Day - time.Second), edge: true})
-	}
+	// The days next to the days of the year hold the events of the year that
+	// are on them in the account's zone: the day before the year, and the day
+	// after its last day, which is tomorrow in the current year.
+	last := xtime.TruncateToDay(to)
+	months = append(months,
+		span{from: from.AddDate(0, 0, -1), to: from.Add(-time.Second), edge: true},
+		span{from: last.Add(xtime.Day), to: last.Add(2*xtime.Day - time.Second), edge: true},
+	)
 
 	totals, err := srv.monthTotals(ctx, user, months)
 	if err != nil {
@@ -435,8 +438,9 @@ func (srv *Service) fetchMonth(ctx context.Context, user string, month span, tot
 		}
 	}
 
-	// A day at the edge is a day of the month of the year next to it,
-	// which takes the calendar if it needs to.
+	// A day at the edge is a day of another month, which takes the calendar
+	// if it needs to: a month of the year next to it, or the month of
+	// tomorrow once tomorrow comes.
 	if month.edge || events.dated() >= total {
 		return events, nil
 	}
