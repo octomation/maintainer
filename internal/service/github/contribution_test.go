@@ -41,23 +41,24 @@ func TestService_FetchContributions(t *testing.T) {
 
 // TestService_FetchContributions_ProfileDays covers MAIN-159: the calendar of
 // the API put the reviews of these days on the dates of the account's time
-// zone, 0, 22 and 23, while the profile shows 15 a day.
+// zone, 0, 30 and 15 in Tokyo, while the profile shows 15 a day. The year is
+// 2024, whose contributions no longer change, unlike the ones still filled in.
 func TestService_FetchContributions_ProfileDays(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
 
 	service := github.New(xhttp.TokenSourcedClient(ctx, config.Secret(os.Getenv("GITHUB_TOKEN"))))
-	chm, err := service.FetchContributions(ctx, "kamilsk", 2025)
+	chm, err := service.FetchContributions(ctx, "kamilsk", 2024)
 	require.NoError(t, err)
-	assert.Len(t, chm, 365)
-	for _, day := range []int{3, 4, 5} {
-		assert.Equal(t, uint(15), chm.Count(xtime.UTC().Year(2025).Month(time.January).Day(day).Time()), "January %d", day)
+	assert.Len(t, chm, 366)
+	for _, day := range []int{28, 29, 30} {
+		assert.Equal(t, uint(15), chm.Count(xtime.UTC().Year(2024).Month(time.January).Day(day).Time()), "January %d", day)
 	}
 	var total uint
 	for _, count := range chm {
 		total += count
 	}
-	assert.Equal(t, uint(6141), total)
+	assert.Equal(t, uint(5910), total)
 }
 
 // TestService_FetchContributions_Consistency covers issue#457: the profile HTML
