@@ -14,6 +14,11 @@ is proven or moved into an issue; a release adds the checks it leaves open
   [contribution-profile-diff.mjs](scripts/contribution-profile-diff.mjs) checks
   a snapshot of the year against the profile. A day that differs goes into
   [MAIN-160](issues/MAIN-160.md) with its date and both counts.
+- [ ] **When `golang.org/x/crypto` tags a release after v0.58.0** (v0.4.1):
+  bump it in `tools/` with `go get golang.org/x/crypto@<tag>` there. GO-2026-5932
+  is fixed only in an untagged commit, so v0.4.1 shipped with `tools` failing on
+  it; `cd` installs the tools but doesn't scan them. Proven when `tools` on
+  `main` is green or fails only on advisories with `Fixed in: N/A`.
 - [ ] **On the first Nextra release after 4.6.1**: move the `nextra-theme-docs`
   override in `docs/package.json` to Zod 4.6.6 or later, or drop it, and check
   the static build. The Dependabot alert on Zod is dismissed as a tolerable risk

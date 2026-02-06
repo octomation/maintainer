@@ -120,7 +120,6 @@ closedAt: null
 - [ ] octomation/go-service#306 — deps: broken go.mod
 - [ ] octomation/go-module#394 — dev: support agents.md
 - [ ] octomation/go-module#395 — dev: support new schedule for dependabot
-- [ ] [[MAIN-160]] — github: contribution: lose no contribution at the edges of the monthly slices
 
 ## To do
 
@@ -136,6 +135,7 @@ closedAt: null
 
 - [ ] [[MAIN-50]] — command: separate command structure and command execution
 - [ ] [[MAIN-51]] — di: define service provider to inject it into command for lazy service initialization
+- [ ] [[MAIN-160]] — github: contribution: lose no contribution at the edges of the monthly slices
 
 ## Done
 
