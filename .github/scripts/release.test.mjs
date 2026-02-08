@@ -65,6 +65,7 @@ test('preflight refuses missing App credentials and hands the tap to the token s
   assert.equal(missing.status, 1)
   assert.match(missing.stderr, /OCTOLAB_RELEASER_CLIENT_ID is empty/)
   assert.match(missing.stderr, /OCTOLAB_RELEASER_KEY is empty/)
+  assert.match(missing.stderr, /installed on octolab\/homebrew-tap, octolab\/skills, octolab\/vanity only/)
   assert.equal(existsSync(output), false)
   withEnv({ GITHUB_OUTPUT: output, OCTOLAB_RELEASER_CLIENT_ID: 'Iv1.fixture', OCTOLAB_RELEASER_KEY: 'fixture' })
   const ready = run('preflight')

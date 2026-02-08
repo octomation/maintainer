@@ -66,3 +66,14 @@ jobs:
           owner: octolab
           repositories: skills
           permission-contents: write
+      # checks the App installation on the module catalog, which the vanity
+      # job of cd.yml publishes to
+      - name: Mint the vanity token
+        if: (success() || failure()) && steps.preflight.outcome == 'success'
+        uses: actions/create-github-app-token@v3.3.0
+        with:
+          client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
+          private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
+          owner: octolab
+          repositories: vanity
+          permission-contents: write

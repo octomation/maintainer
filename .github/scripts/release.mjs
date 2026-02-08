@@ -452,16 +452,16 @@ function tap() {
 }
 
 // The tap and catalog tokens are not secrets: cd.yml mints them per run from
-// the OctoLab Releaser GitHub App installed on the tap and on octolab/skills,
-// so GitHub signs the commits made there.
+// the OctoLab Releaser GitHub App installed on the tap and on the catalogs
+// cd.yml publishes to, so GitHub signs the commits made there.
 const RELEASER_APP = { id: 'OCTOLAB_RELEASER_CLIENT_ID', key: 'OCTOLAB_RELEASER_KEY' }
-const CATALOG = 'octolab/skills'
+const CATALOGS = ['octolab/skills', 'octolab/vanity']
 
 function secretGuide(name, t) {
   const save = `(gh secret set ${name} -o <org> or -R <owner>/<repo>)`
   if (t && (name === RELEASER_APP.id || name === RELEASER_APP.key)) {
     const app = `a GitHub App owned by ${t.owner} with no webhook and Repository permissions → Contents: Read and write, ` +
-      `installed on ${t.owner}/${t.name} and ${CATALOG} only`
+      `installed on ${[`${t.owner}/${t.name}`, ...CATALOGS].join(', ')} only`
     return name === RELEASER_APP.id
       ? `create ${app}; save its Client ID as secret ${name} ${save}`
       : `generate a private key for ${app}; save the .pem file as secret ${name} ${save}`
