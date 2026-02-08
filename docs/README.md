@@ -36,7 +36,7 @@ Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH
 
 | Location | Purpose |
 | --- | --- |
-| `content/index.mdx` | Product introduction and paths into the guides |
+| `content/index.mdx` | The landing page: the hub, the CLI and paths into the guides |
 | `content/quickstart.md` | Installation and a first calendar workflow |
 | `content/contributions.md` | GitHub contribution calendar commands |
 | `content/vanity.md` | Go vanity import page generation |
@@ -55,8 +55,10 @@ Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH
 | `content/changelog/v0.1.0.md` | First stable release notes |
 | `content/**/_meta.js` | Navigation order and labels |
 | `navigation.mjs` | Release groups in the sidebar; keeps published release URLs unchanged |
-| `app/globals.css` | Shared colors, responsive layouts, and landing page styles; kept identical to indexit |
+| `app/globals.css` | Shared colors, responsive layouts and the styles of the guides; kept identical to indexit |
 | `app/brand.css` | maintainer colors over the shared styles |
+| `app/landing.css` | The landing page and its illustrations of the hub, dark in either theme, on the tokens of `web/DESIGN.md` |
+| `components/hub.jsx` | The landing's illustrations: the hub with its three pages, the score, the board and the calendar, on the demo data of `public/images/hub/` |
 | `app/layout.jsx` | Site identity and Nextra theme |
 | `app/[[...mdxPath]]/page.jsx` | Page-specific titles and social metadata |
 | `public/` | Favicon, social preview and `images/hub/`: illustrations of the hub on demo data for the service guide and the v0.3.0 note |

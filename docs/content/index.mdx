@@ -1,77 +1,128 @@
 ---
 title: maintainer
-description: See your open source contribution pace, keep your GitHub checkouts current and follow every repository’s issues in one local hub.
+description: The whole picture of your open source work on your own computer. A local hub shows every checkout and every issue across your repositories; the CLI keeps the checkouts current and plans your next contribution.
 ---
 
 import Link from 'next/link'
+import { HubStage, Reveal, StatusFigure, ScoreDemo, BoardFigure, CalendarFigure, Command } from '../components/hub'
 
-export const suggestRun = ` maintainer github contribution suggest --target 25 git/3
+export const statusRun = ` maintainer status --format=plain
+Repository status · 3 checkouts · 2 uncommitted · 1 ahead · 1 behind · 1 locked · 0 orphan · 0 errors · local refs (no fetch)
 
- Day / Week   #04   #05    #06    Date
------------- ----- ------ ----- --------
- Sunday       25     25    15    Feb  1
- Monday       25    [20]   15    Feb  2
- Tuesday      25     15    15    Feb  3
- Wednesday    25     15    15    Feb  4
- Thursday     25     15    15    Feb  5
- Friday       25     15    15    Feb  6
- Saturday     25     15    15    Feb  7
------------- ----- ------ ----- --------
-     distribution{15: 12, 20: 1, 25: 8}
+REPOSITORY             │ BRANCH  │ UNCOMMITTED       │ STATUS     │ LOCK │ PATH
+kamilsk/dotfiles        │ main*   │ +39/-0 · 3f       │ synced     │      │ ~/.dotfiles
+kamilsk/egg             │ main*   │ +0/-0             │ behind 409 │      │ public/kamilsk/egg
+octomation/maintainer   │ fetcher │ +12/-1 · 2f · ?1  │ ahead 1    │ 🔒   │ public/octomation/maintainer`
 
-Suggestion is 2026-01-26T05:53:14Z, 20 → 25`
-
-<div className="home">
-  <section className="hero">
-    <div className="hero-copy">
-      <Link className="release-pill" href="/changelog/v0.4.1/">Latest release · v0.4.1 <span aria-hidden="true">↗</span></Link>
-      <p className="eyebrow">OPEN SOURCE TOOLKIT</p>
-      <h1>Keep the little things <em>moving.</em></h1>
-      <p className="hero-lead">Bring your GitHub work into one local hub: every checkout and every mirrored issue across your repositories, ranked and on one board. Keep the checkouts current and plan your next contribution from the same CLI.</p>
-      <div className="hero-actions">
-        <Link className="button-primary" href="/quickstart/">Get started <span aria-hidden="true">→</span></Link>
-        <Link className="button-text" href="/changelog/v0.4.1/">What’s in v0.4.1 <span aria-hidden="true">↗</span></Link>
-      </div>
-      <p className="hero-note">One CLI · macOS & Linux · Open source, MIT</p>
+<div className="mnt-home">
+  <section className="mnt-hero">
+    <Link className="release-pill" href="/changelog/v0.4.1/">Latest release · v0.4.1 <span aria-hidden="true">↗</span></Link>
+    <h1>See all of your open source. <em>Move it every day.</em></h1>
+    <p className="mnt-lead">maintainer is a daily companion for open source work. A local hub shows every checkout and every issue across your repositories in one place, and one CLI keeps the checkouts current and plans your next contribution.</p>
+    <div className="mnt-hero-actions">
+      <Command label="install maintainer with Homebrew">{'brew install --formula octolab/tap/maintainer'}</Command>
+      <Link className="button-text" href="/quickstart/">Get started <span aria-hidden="true">→</span></Link>
     </div>
-    <div className="terminal" aria-label="A contribution planning example">
-      <div className="terminal-bar"><span className="terminal-dots">● ● ●</span><span>plan a contribution · example run</span></div>
-      <div className="terminal-body">
-        <pre><span>$</span>{suggestRun}</pre>
-      </div>
-      <p className="terminal-caption">A real run in a checkout whose latest commit is dated 12 January 2026. Every day from 12 to 25 January already had 25 contributions, so the brackets mark Monday, 26 January: 20 toward a target of 25. The suggested moment is never later than now; your counts and suggested time will differ.</p>
+    <p className="hero-note">One binary · macOS and Linux · runs locally · open source, MIT</p>
+  </section>
+
+  <HubStage />
+
+  <section className="mnt-figs" aria-label="How maintainer is built">
+    <Reveal className="mnt-figs-head">
+      <h2>Open source is daily upkeep. <span>Dozens of repositories, hundreds of issues, and work left on a branch you forgot. maintainer puts all of it on one screen and leaves the decisions to you.</span></h2>
+    </Reveal>
+    <div className="mnt-figs-grid">
+      <div><p className="eyebrow">FIG 0.1</p><h3>Local first</h3><p>The hub listens on loopback only and runs as your user. It needs no token and no network, and it never reads from or writes to GitHub.</p></div>
+      <div><p className="eyebrow">FIG 0.2</p><h3>One collection</h3><p>One workspace layout and a few pins decide which checkouts <code>fetch</code>, <code>status</code> and the hub work with.</p></div>
+      <div><p className="eyebrow">FIG 0.3</p><h3>Plain files</h3><p>Issues are Markdown files that your repositories mirror from GitHub. Setting a priority changes only the label lines of one file.</p></div>
     </div>
   </section>
 
-  <div className="flow-strip" aria-label="The contribution planning workflow"><span>01 <b>Look up recent weeks</b></span><span aria-hidden="true">→</span><span>02 <b>Choose a target</b></span><span aria-hidden="true">→</span><span>03 <b>Date your next commit</b></span></div>
+  <section className="mnt-feature">
+    <Reveal className="mnt-feature-copy">
+      <p className="eyebrow">01 / STATUS</p>
+      <h2>Every checkout on one screen.</h2>
+      <p>The status page groups the whole collection by state: uncommitted changes, branches ahead or behind, push locks and clean checkouts, each with its branch and path.</p>
+      <p>Group by state or by owner, search by repository, branch or path, and switch the list to a board. The same view is in the terminal as <code>maintainer status</code>, offline and without a token.</p>
+      <Link className="mnt-more" href="/status/">Inspect your checkouts <span aria-hidden="true">→</span></Link>
+    </Reveal>
+    <StatusFigure />
+  </section>
 
-  <section className="use-cases">
-    <div className="section-heading"><p className="eyebrow">ONE PLACE FOR YOUR GITHUB WORK</p><h2>Every repository on one screen.<br />A local hub in your browser.</h2></div>
-    <div className="use-case-grid">
-      <Link className="use-case" href="/service/"><span className="card-number">01 / STATUS</span><h3>See every checkout</h3><p>Uncommitted work, divergence and push locks of the whole collection, grouped by state, in the browser.</p><span className="card-link">Open the hub <span aria-hidden="true">↗</span></span></Link>
-      <Link className="use-case" href="/service/#what-the-pages-read"><span className="card-number">02 / INBOX</span><h3>Read every issue</h3><p>The issues your repositories mirror from GitHub in one inbox, filtered, grouped and ranked by a score you tune, each a click away from GitHub.</p><span className="card-link">Triage the inbox <span aria-hidden="true">↗</span></span></Link>
-      <Link className="use-case" href="/service/#triage-and-the-score"><span className="card-number">03 / TABLO</span><h3>Plan on one board</h3><p>Backlog to Done across all repositories, with priority and estimate set where you read.</p><span className="card-link">Plan the work <span aria-hidden="true">↗</span></span></Link>
+  <section className="mnt-feature is-flipped">
+    <Reveal className="mnt-feature-copy">
+      <p className="eyebrow">02 / INBOX</p>
+      <h2>Know what matters next.</h2>
+      <p>The inbox lists every issue your repositories mirror, across all your owners, with the open issue beside it. Filter and group it, then order it by a score.</p>
+      <p>The score adds impact, ease, type, age and the milestone’s due date, and a repository weight multiplies the sum. You set priority and estimate where you read, and the weights in <code>service.toml</code>. Pick another priority in the picture and watch the score follow.</p>
+      <Link className="mnt-more" href="/service/#triage-and-the-score">Triage and the score <span aria-hidden="true">→</span></Link>
+    </Reveal>
+    <ScoreDemo />
+  </section>
+
+  <section className="mnt-feature">
+    <Reveal className="mnt-feature-copy">
+      <p className="eyebrow">03 / TABLO</p>
+      <h2>One board for all repositories.</h2>
+      <p>Tablo puts the same issues into five columns, Backlog, To do, In progress, Done and Won’t do, whichever repository they come from.</p>
+      <p>Order the cards of each column by score, priority or date, hide the empty columns, and open any issue as a full page with a link to GitHub.</p>
+      <Link className="mnt-more" href="/service/#what-the-pages-read">How the board places an issue <span aria-hidden="true">→</span></Link>
+    </Reveal>
+    <BoardFigure />
+  </section>
+
+  <section className="mnt-cli">
+    <Reveal className="mnt-cli-head">
+      <p className="eyebrow">04 / THE CLI</p>
+      <h2>The same collection, from the terminal.</h2>
+      <p>The hub shows the picture; the CLI does the daily work on it. Both read one configuration.</p>
+    </Reveal>
+    <div className="mnt-terminal" aria-label="A status example">
+      <div className="mnt-terminal-bar"><span className="hub-dots"><i /><i /><i /></span><span>maintainer status</span></div>
+      <pre><span>$</span>{statusRun}</pre>
+    </div>
+    <div className="mnt-cli-grid">
+      <Link href="/status/"><code>maintainer status</code><h3>Find local work</h3><p>Uncommitted changes, divergence and push locks across every checkout, read from local refs.</p></Link>
+      <Link href="/fetch/"><code>maintainer fetch</code><h3>Refresh the collection</h3><p>Review a plan of clones, moves and fetches, then apply it with <code>{'--apply'}</code>. Local work stays.</p></Link>
+      <Link href="/workspace/"><code>fetch.toml</code><h3>Share one layout</h3><p>The workspace root, the path template and the pins that both commands and the hub follow.</p></Link>
+      <Link href="/agents/"><code>maintainer skill install</code><h3>Teach your agent</h3><p>A skill for Claude Code and Codex that ships with the binary and matches its version.</p></Link>
     </div>
   </section>
 
-  <section className="use-cases">
-    <div className="section-heading"><p className="eyebrow">START WITH YOUR CONTRIBUTION PACE</p><h2>Plan with the calendar.<br />Also in maintainer: small tools for upkeep.</h2></div>
-    <div className="use-case-grid">
-      <Link className="use-case" href="/contributions/"><span className="card-number">01 / GITHUB</span><h3>Understand your productivity</h3><p>See active and quiet weeks, then choose a realistic target for your next open source session.</p><span className="card-link">Plan with the calendar <span aria-hidden="true">↗</span></span></Link>
-      <Link className="use-case" href="/vanity/"><span className="card-number">02 / GO</span><h3>Own your Go namespace</h3><p>Keep a branded import space such as go.octolab.org with static pages you can host on GitHub Pages.</p><span className="card-link">View the guide <span aria-hidden="true">↗</span></span></Link>
-      <Link className="use-case" href="/makefiles/"><span className="card-number">03 / MAKE</span><h3>Assemble Makefiles</h3><p>Compose small, focused build fragments into one Makefile you can share.</p><span className="card-link">View the guide <span aria-hidden="true">↗</span></span></Link>
-    </div>
+  <section className="mnt-feature is-flipped">
+    <Reveal className="mnt-feature-copy">
+      <p className="eyebrow">05 / CONTRIBUTIONS</p>
+      <h2>Keep a pace you can hold.</h2>
+      <p><code>contribution lookup</code> shows your recent weeks as GitHub counts them. <code>contribution suggest</code> finds the first day below your target and a moment to date the next commit.</p>
+      <p>The time is a suggestion: maintainer does not create a commit.</p>
+      <Link className="mnt-more" href="/contributions/">Plan with the calendar <span aria-hidden="true">→</span></Link>
+    </Reveal>
+    <CalendarFigure />
   </section>
 
-  <section className="use-cases">
-    <div className="section-heading"><p className="eyebrow">KEEP YOUR CHECKOUTS CURRENT</p><h2>See where local work needs attention.<br />Refresh the collection from GitHub.</h2></div>
-    <div className="use-case-grid">
-      <Link className="use-case" href="/status/"><span className="card-number">01 / STATUS</span><h3>Inspect local work</h3><p>Uncommitted changes, branches ahead or behind, and push locks across every checkout, offline and without a token.</p><span className="card-link">Inspect your checkouts <span aria-hidden="true">↗</span></span></Link>
-      <Link className="use-case" href="/fetch/"><span className="card-number">02 / FETCH</span><h3>Refresh the collection</h3><p>Review a plan of clones, moves and fetches, then apply it; existing checkouts and local work are retained.</p><span className="card-link">Plan a fetch <span aria-hidden="true">↗</span></span></Link>
-      <Link className="use-case" href="/workspace/"><span className="card-number">03 / WORKSPACE</span><h3>Share one layout</h3><p>One layout and a few pins decide which checkouts both commands work with.</p><span className="card-link">View the guide <span aria-hidden="true">↗</span></span></Link>
+  <section className="mnt-also">
+    <p className="eyebrow">ALSO IN THE BOX</p>
+    <div>
+      <Link href="/vanity/"><h3>Go vanity URLs <span aria-hidden="true">↗</span></h3><p>Keep a branded import space such as go.octolab.org with static pages you can host on GitHub Pages.</p></Link>
+      <Link href="/makefiles/"><h3>Makefiles <span aria-hidden="true">↗</span></h3><p>Compose small, focused build fragments into one Makefile you can share.</p></Link>
     </div>
   </section>
 
   <section className="release-band"><div><p className="eyebrow">THE LATEST RELEASE</p><h2>v0.4.1 — Today counts in full.</h2><p>The contribution commands count the reviews of today on the next run, wherever your GitHub account is, as your profile does.</p></div><Link className="button-primary" href="/changelog/v0.4.1/">Read the release <span aria-hidden="true">→</span></Link></section>
+
+  <section className="mnt-install">
+    <div>
+      <p className="eyebrow">GET MAINTAINER</p>
+      <h2>Two commands. Then open the hub.</h2>
+      <p>Homebrew installs the CLI and the service as one Formula. On macOS, <code>brew services</code> runs the hub as your user at <a href="http://maintainer.localhost:17841/">maintainer.localhost:17841</a>; on Linux, start it with <code>maintainer service run</code>.</p>
+    </div>
+    <div className="install">
+      <Command label="install maintainer with Homebrew">{'brew install --formula octolab/tap/maintainer'}</Command>
+      <Command label="start the hub">{'brew services start octolab/tap/maintainer'}</Command>
+    </div>
+    <p className="mnt-install-note">No Homebrew? The <Link href="/quickstart/">quick start</Link> has the install script, <code>go install</code> and the release archives.</p>
+  </section>
+
   <p className="scope-note">Maintainer helps you keep up your open source contribution: the contribution commands read the calendar of the token’s account, status inspects your checkouts offline, fetch clones, moves and refreshes them by a plan you review first, and the local hub shows the checkouts and the issues they mirror from GitHub in one place. <Link href="/contributions/">The calendar guide</Link>, <Link href="/fetch/">the fetch guide</Link> and <Link href="/service/">the service guide</Link> say what each command reads and changes; <Link href="/agents/">the agent skill</Link> teaches your coding agent the same.</p>
 </div>

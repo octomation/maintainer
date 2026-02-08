@@ -4,6 +4,7 @@ import { getPageMap } from 'nextra/page-map'
 import 'nextra-theme-docs/style.css'
 import './globals.css'
 import './brand.css'
+import './landing.css'
 import { siteUrl } from '../site.mjs'
 import { groupReleases } from '../navigation.mjs'
 
@@ -25,7 +26,10 @@ function withExportLinks(items) {
 export default async function RootLayout({ children }) {
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
-      <Head color={{ hue: 85, saturation: 78, lightness: { light: 27, dark: 66 } }} backgroundColor={{ light: 'rgb(250, 249, 246)', dark: 'rgb(20, 24, 23)' }} />
+      <Head color={{ hue: 85, saturation: 78, lightness: { light: 27, dark: 66 } }} backgroundColor={{ light: 'rgb(250, 249, 246)', dark: 'rgb(20, 24, 23)' }}>
+        {/* The site has its own dark theme, and the pictures of the hub their own palette. */}
+        <meta name="darkreader-lock" />
+      </Head>
       <body>
         <Layout
           navbar={<Navbar logo={<span className="wordmark"><span className="brand-emoji" aria-hidden="true">👨‍🔧</span>maintainer</span>} projectLink="https://github.com/octomation/maintainer" />}
