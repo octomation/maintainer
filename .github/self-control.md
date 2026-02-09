@@ -50,8 +50,9 @@ is proven or moved into an issue; a release adds the checks it leaves open
 - [ ] **Tool pins**: `make update` would move goreleaser in `tools/go.mod`
   ahead of the version the workflows pin. Hold `make update` until the pins
   move together; `make tool-pins-check` catches a drift.
-- [ ] **`internal/command/proxy` and `internal/command/hub`** are not wired
-  into the root command. Decide whether they have a purpose or go.
+- [x] **`internal/command/proxy` and `internal/command/hub`** are not wired
+  into the root command. Decided on 2026-11-20 ([[MAIN-163]]): `proxy` was a
+  bare `diff` wrapper and goes; `hub` stays for the issue work to come.
 
 ## Follow-ups to file
 

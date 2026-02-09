@@ -6,9 +6,6 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
-//go:generate mockgen -source $GOFILE -destination mocks_test.go -package ${GOPACKAGE}_test
-//go:generate goimports -local go.octolab.org/toolset/maintainer -w mocks_test.go
-
 // Repository represents a Git repository.
 type Repository interface {
 	Remotes() ([]*git.Remote, error)

@@ -16,9 +16,8 @@ make go-tools-update        # go get tool, tidy, reinstall
 | `golangci-lint` | `make lint`; the version matches `ci.yml` |
 | `goreleaser` | `make go-dist-check`, `make release-config-check`; the version matches `cd.yml` |
 | `govulncheck` | `make go-deps-check` for the application, `make go-tools-check` for the tools |
-| `mockgen` | `make generate`: the mocks of the application |
 | `mod` | `./Taskfile github <major>`: upgrade go-github to a new major version |
-| `goimports` | `make format`, and `make generate` through `go:generate` in `contract.go`: groups the local imports of the generated mocks |
+| `goimports` | `make format`: groups the local imports |
 | `gorelease` | the `release` helper of `bin/activate`: check API compatibility against the latest tag |
 | `benchcmp`, `gomvpkg`, `gorename` | code maintenance by hand; `gorename` is deprecated upstream |
 
