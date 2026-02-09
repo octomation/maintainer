@@ -311,22 +311,6 @@ maintainer github contribution suggest --target=5 2013/+10
 maintainer github contribution suggest --short 2013-11/-10
 ```
 
-## maintainer makefile
-
-Makefiles manager.
-
-```text
-maintainer makefile [command]
-```
-
-## maintainer makefile build
-
-Build Makefiles.
-
-```text
-maintainer makefile build
-```
-
 ## maintainer service
 
 run the local maintainer service

@@ -39,7 +39,6 @@ Static output is written to `docs/dist/`. `SITE_URL` is required; add `BASE_PATH
 | `content/index.mdx` | The landing page: the hub, the CLI and paths into the guides |
 | `content/quickstart.md` | Installation and a first calendar workflow |
 | `content/contributions.md` | GitHub contribution calendar commands |
-| `content/makefiles.md` | Makefile bundling |
 | `content/fetch.md` | `fetch`: reconcile local GitHub checkouts |
 | `content/status.md` | `status`: inspect local repository work |
 | `content/workspace.md` | Workspace layout shared by `fetch` and `status` |

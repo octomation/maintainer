@@ -136,16 +136,6 @@ UTC timestamp to stdout and exits `4` when no moment fits up to now; it never
 creates a commit. A `warn:` line names the months whose reviews may be a day
 off because GitHub gives no date for some of their contributions.
 
-## Project helpers
-
-```sh
-maintainer makefile build release.mk
-```
-
-`makefile build` expands the `include` lines of each Makefile into
-`dist/<name>/Makefile`. It writes files: tell the user where before running it
-in their repository.
-
 ## Install and update this skill
 
 The binary carries the skill for its own version:

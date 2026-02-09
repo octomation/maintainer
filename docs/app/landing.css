@@ -302,17 +302,9 @@ html.dark:has(.mnt-home) { --nextra-bg: 8, 9, 12; }
 .mnt-cli-grid a:hover h3::after { opacity: 1; }
 .mnt-cli-grid p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6 !important; }
 
-/* ——— Also, release, install ——— */
+/* ——— Release, install ——— */
 
-.mnt-also { max-width: 1120px; margin: 120px auto 0; }
-.mnt-also > div { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
-.mnt-also a { padding: 24px 26px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); color: var(--ink); transition: border-color 0.2s; }
-.mnt-also a:hover { border-color: var(--accent); }
-.mnt-also h3 { display: flex; justify-content: space-between; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
-.mnt-also h3 span { color: var(--soft); }
-.mnt-also a p { margin: 8px 0 0; color: var(--muted); font-size: 14.5px; line-height: 1.6 !important; }
-
-.mnt-home .release-band { max-width: 1120px; margin: 16px auto 0; border: 1px solid var(--line); border-radius: 14px; background: var(--wash); }
+.mnt-home .release-band { max-width: 1120px; margin: 120px auto 0; border: 1px solid var(--line); border-radius: 14px; background: var(--wash); }
 .mnt-home .release-band .button-primary { border-radius: 8px; gap: 14px; }
 
 .mnt-install {
@@ -351,14 +343,13 @@ html.dark:has(.mnt-home) { --nextra-bg: 8, 9, 12; }
   .stage-tabs button { padding: 8px 12px 10px; }
   .stage-tabs button span { display: none; }
   .hub-app { height: 480px; }
-  .mnt-figs, .mnt-also, .mnt-install { margin-top: 80px; }
+  .mnt-figs, .mnt-install, .mnt-home .release-band { margin-top: 80px; }
   .mnt-figs-grid { grid-template-columns: 1fr; }
   .mnt-figs-grid > div, .mnt-figs-grid > div + div { padding: 22px 0 18px; border-left: 0; }
   .mnt-figs-grid > div + div { border-top: 1px solid var(--line); }
   .mnt-feature { grid-template-columns: minmax(0, 1fr); padding-top: 80px; }
   .mnt-feature.is-flipped > :first-child { order: 0; }
   .mnt-cli { padding-top: 80px; }
-  .mnt-also > div { grid-template-columns: 1fr; }
   .mnt-install { grid-template-columns: minmax(0, 1fr); padding: 32px 22px; }
 }
 @media (max-width: 520px) {
