@@ -32,7 +32,7 @@ make-verbose:
 .PHONY: make-verbose
 
 COMMIT  := $(shell git rev-parse --short --verify HEAD)
-# Only a tagged commit represents a release; a build between tags is dev.
+# Only a tagged commit represents a release; branch builds may embed a newer skill.
 RELEASE := $(shell git describe --tags --exact-match 2>/dev/null || printf dev)
 
 git-config:
@@ -535,5 +535,6 @@ release-config-check:
 release-verify: config-vet source-check go-deps-check go-deps-tidy go-generate git-check
 .PHONY: release-verify
 
+# the application checks of every push, see .github/hooks/pre-push
 verify: go-deps-check generate check git-check
 .PHONY: verify

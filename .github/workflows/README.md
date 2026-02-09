@@ -2,7 +2,7 @@
 
 | Workflow | Name | Runs on | Does |
 | --- | --- | --- | --- |
-| [ci](#ci) | Continuous integration | PR and push to main (Go files, `skills/`, release config), `v*` tag, monthly, manual | Lint, tests, coverage to Codecov, vulnerabilities, release config |
+| [ci](#ci) | Continuous integration | PR and push to main (Go files, config schema, `skills/`, release config), `v*` tag, monthly, manual | Lint, tests, coverage to Codecov, vulnerabilities, release config |
 | [cd](#cd) | Continuous delivery | `v*` tag, manual | Check the tag, test, publish the release, the Homebrew Formula, the agent skill and the module to go.octolab.org; a snapshot on manual runs |
 | [docs](#docs) | Documentation delivery | PR and push to main (`docs/`), monthly, manual, reusable | Build the site; deploy it to Pages from main |
 | [tools](#tools) | Tools validation | PR and push to main (`tools/`), monthly, manual | Install the tools module, check generated code and tool vulnerabilities |
@@ -69,8 +69,8 @@ Nothing here is stored in the repository, so a fresh repository or a fork needs 
 5. Enable the workflows that were disabled by hand, after pushing the YAML that
    should run: `gh workflow enable <file> -R octomation/maintainer`. The doctor
    reports every workflow that is not active, except those that
-   `workflows` in `.github/settings.json` keeps off on purpose:
-   `cleanup.stale.yml` for now.
+   `workflows` in `.github/settings.json` keeps off on purpose, with the
+   reason it prints: `cleanup.stale.yml` for now.
 
 Then dispatch ci, tools and docs, run doctor after the first Pages
 deployment (`make workflow-doctor`), and dispatch cd on main for a snapshot.
@@ -84,16 +84,17 @@ Do not dispatch the cleanups to try them out: they delete data.
 flowchart LR
   lint[lint: golangci-lint]
   test[test: vet and format, tidy modules, tests, coverage, install and skill install checks] --> report[report: Codecov via OIDC]
-  vulns[vulns: tool pins, release helpers, settings, goreleaser config, application vulnerabilities, generated code]
+  vulns[vulns: tool pins, release helpers, settings and config schema, goreleaser config, application vulnerabilities, generated code]
   lint & test & report & vulns --> notify[notify]
 ```
 
 - Runs on PRs and pushes to main that touch Go code (outside `tools/`),
-  `go.mod`, `Makefile`, `Taskfile`, the agent skill in `skills/`, the lint or
-  release configuration, the release helpers or hooks, or the workflow itself;
-  on `v*` tags; monthly; manually.
+  `go.mod`, `Makefile`, `Taskfile`, the config schema and its test data, the
+  agent skill in `skills/`, the lint or release configuration, the release
+  helpers or hooks, or the workflow itself; on `v*` tags; monthly; manually.
 - Every gate of the release runs here first: an untidy `go.mod`, a broken
-  `.goreleaser.yml` or a vulnerable dependency fails on main, not on the tag.
+  `.goreleaser.yml`, a broken release helper or hook, or a vulnerable
+  dependency fails on main, not on the tag.
 - `vulns` scans the application only; tool vulnerabilities belong to [tools](#tools).
 - Codecov uses GitHub OIDC (`id-token: write`). The repository must be activated
   in Codecov; no `CODECOV_TOKEN` is needed.
@@ -102,6 +103,8 @@ flowchart LR
   skill with it into an empty temporary home for Claude Code and Codex and
   requires `skill status --exact` to report both copies intact: the maintainer
   installs the skill through the catalog, so this keeps the CLI path checked.
+  Makefile builds use the exact tag as their version, or `dev` between tags.
+  A branch build must not claim the previous release while embedding a newer skill.
 
 ## cd
 
@@ -131,8 +134,9 @@ flowchart TB
   against the branch of the same push, then the application checks of every
   push, `make go-deps-tidy verify`. The first steps here repeat the tag check
   against `origin` for pushes that bypassed the hook, check that GitHub
-  verifies the tag's signature (`release.mjs signature`), then mint the tap
-  token, all before Go is even installed.
+  verifies the tag's signature (`release.mjs signature`; the catalog refuses an
+  unverified tag, by then too late to replace it), then mint the tap token, all
+  before Go is even installed.
 - **The note becomes the release.** `release.mjs render` strips the frontmatter
   and the H1, makes site links absolute from the Pages URL and hands the title
   to goreleaser (`release.name_template`).

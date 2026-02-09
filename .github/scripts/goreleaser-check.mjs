@@ -1,8 +1,8 @@
 import { spawnSync } from 'node:child_process'
 import { pathToFileURL } from 'node:url'
 
-// GoReleaser v2.18.2 supports the Formula service block only through brews,
-// but check exits 2 for it. Accept only this deliberate exception, never
+// GoReleaser v2.18.2 generates a Formula, and its service block, only through
+// brews, but check exits 2 for it. Accept only this deliberate exception, never
 // arbitrary validation failures.
 export function acceptedBrewsDeprecation(status, output) {
   const plain = output.replace(/\x1b\[[0-9;]*m/g, '')
@@ -27,6 +27,6 @@ export function checkGoreleaser(env = process.env) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const result = checkGoreleaser()
   process.stdout.write(result.output)
-  if (result.accepted) console.log('Accepted: brews is required for the Formula service block.')
+  if (result.accepted) console.log('Accepted: brews is required for the Formula.')
   process.exitCode = result.ok ? 0 : 1
 }

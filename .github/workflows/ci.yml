@@ -97,7 +97,8 @@ jobs:
             tools/go.sum
           check-latest: true
 
-      # the release helpers and the GoReleaser config fail here, not on a tag
+      # the release helpers, the hooks and the GoReleaser config fail here,
+      # not on a tag
       - name: Set up Node.js environment
         uses: actions/setup-node@v7.1.0
         with: { node-version: 24, package-manager-cache: false }
