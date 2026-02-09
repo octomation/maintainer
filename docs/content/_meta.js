@@ -8,7 +8,6 @@ export default {
   releases: { title: 'Changelog', type: 'page', href: '/changelog/' },
   quickstart: 'Get started',
   contributions: 'GitHub contributions',
-  vanity: 'Go vanity URLs',
   makefiles: 'Makefiles',
   fetch: 'Fetch repositories',
   status: 'Repository status',

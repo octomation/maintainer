@@ -97,7 +97,6 @@ This skill describes maintainer `>=0.4.1 <0.5.0`. Before anything else:
 | What fetch remembers | `fetch state show` |
 | To forget checkouts whose directory is gone | `fetch state prune` (writes the state at once) |
 | A time to contribute | `github contribution suggest`; also `contribution lookup`, `contribution histogram`, `contribution snapshot`, `contribution diff` |
-| Go vanity import pages | `go vanity build` |
 | Combined Makefiles | `makefile build` |
 | maintainer in a browser on this computer | `service run`, or `brew services start octolab/tap/maintainer` |
 

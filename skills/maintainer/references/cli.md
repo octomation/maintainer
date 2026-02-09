@@ -311,35 +311,6 @@ maintainer github contribution suggest --target=5 2013/+10
 maintainer github contribution suggest --short 2013-11/-10
 ```
 
-## maintainer go
-
-Go manager.
-
-```text
-maintainer go [command]
-```
-
-## maintainer go vanity
-
-Vanity URL manager.
-
-```text
-maintainer go vanity [command]
-```
-
-Flags of every `maintainer go vanity` command:
-
-- `-f, --file string`: file with modules (default "modules.yml")
-- `--host string`: host for vanity url (default "go.octolab.org")
-
-## maintainer go vanity build
-
-Build vanity URLs
-
-```text
-maintainer go vanity build
-```
-
 ## maintainer makefile
 
 Makefiles manager.

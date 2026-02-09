@@ -39,15 +39,15 @@ maintainer.
 
 ```bash
 grep -rln vanity internal/ docs/content skills/maintainer README.md
-gh api repos/octolab/vanity/contents/.github/actions/setup/action.yml --jq .content | base64 -d | grep -n MAINTAINER
+gh search code --repo octolab/vanity maintainer --json path --jq .[].path   # no workflow or script installs it
 ```
 
 ## Acceptance criteria
 
 - [ ] octolab/vanity#510 is closed: octolab/vanity installs no maintainer.
-- [ ] `maintainer go` and `maintainer go vanity` are gone with `internal/command/golang`
+- [x] `maintainer go` and `maintainer go vanity` are gone with `internal/command/golang`
       and `internal/model/golang`; `go test ./...` passes.
-- [ ] README, the site (`docs/content/vanity.md`, `_meta.js`, the «02 / GO» card on
+- [x] README, the site (`docs/content/vanity.md`, `_meta.js`, the «02 / GO» card on
       `index.mdx`, the link in `quickstart.md`), `docs/README.md` and the skill
       (`SKILL.md`, `references/cli.md`, `references/workflows.md`) no longer mention the
       command; the changelog of the next release names its removal.
@@ -58,3 +58,12 @@ gh api repos/octolab/vanity/contents/.github/actions/setup/action.yml --jq .cont
 - The `vanity` job of `cd.yml` and the go.octolab.org check of `doctor.yml` and
   `release.mjs`: they publish maintainer itself to the catalog and stay.
 - Changelogs of past releases.
+
+<!-- 2026-11-20T19:00Z
+Prepared in the working tree, to ship with the next release; octolab/vanity#510 is done in its working tree and waits for the push.
+
+- `internal/command/golang` and `internal/model/golang` are gone, `maintainer go` with them; `go.mod` is unchanged (afero, yaml.v2 and go.octolab.org/strings are still used by `internal/config`); `go build`, `go vet` and `go test ./...` pass.
+- README shows `maintainer status` in place of `go vanity build`; the site has no `vanity` page, menu item, home card or quick start link, and `next build` passes; `docs/README.md` no longer lists the page.
+- The skill: the row in `SKILL.md` and the example in `references/workflows.md` are gone, `references/cli.md` is regenerated with `go generate ./skills`.
+- Left: the changelog of the next release (written when the release is prepared), and closing MAIN-4, MAIN-21 and MAIN-107 as not planned when this lands.
+-->

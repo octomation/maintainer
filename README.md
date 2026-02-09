@@ -12,7 +12,7 @@
 ## 💡 Idea
 
 ```bash
-$ maintainer go vanity build
+$ maintainer status
 ```
 
 ## 🏆 Motivation
