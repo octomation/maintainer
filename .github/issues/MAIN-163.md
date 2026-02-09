@@ -1,9 +1,9 @@
 ---
 code: MAIN-163
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABhOjypw
+databaseId: 6524826279
+number: 538
+url: https://github.com/octomation/maintainer/issues/538
 title: "cli: drop the proxy command, the unused mocks and the boilerplate feature"
 issueType: Task
 labels:
@@ -18,8 +18,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-21T05:16:46Z
+updatedAt: 2026-11-21T05:17:17Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -73,7 +73,7 @@ go run . version | grep features
 - Dead functions inside live packages (`pkg/time`, `service/fetch`, `skill`, …): a
   separate pass, one by one, as some are used by tests.
 
-<!-- 2026-11-20T21:30Z
+<!-- 2026-11-20T21:30Z https://github.com/octomation/maintainer/issues/538#issuecomment-7057807892
 Prepared in the working tree for v0.5.0; local only, not on GitHub yet.
 
 - Removed: `internal/command/proxy/root.go`, `internal/command/github/contract.go`, `internal/command/github/mocks_test.go`, `internal/service/git/mocks_test.go`, the two `go:generate` lines of `internal/service/git/contract.go`.

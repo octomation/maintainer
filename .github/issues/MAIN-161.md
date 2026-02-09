@@ -1,9 +1,9 @@
 ---
 code: MAIN-161
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABhOjt0A
+databaseId: 6524825040
+number: 536
+url: https://github.com/octomation/maintainer/issues/536
 title: "go: vanity: remove the go vanity command"
 issueType: Task
 labels:
@@ -18,8 +18,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-21T05:16:38Z
+updatedAt: 2026-11-21T05:17:12Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -59,7 +59,7 @@ gh search code --repo octolab/vanity maintainer --json path --jq .[].path   # no
   `release.mjs`: they publish maintainer itself to the catalog and stay.
 - Changelogs of past releases.
 
-<!-- 2026-11-20T19:00Z
+<!-- 2026-11-20T19:00Z https://github.com/octomation/maintainer/issues/536#issuecomment-7057806937
 Prepared in the working tree, to ship with the next release; octolab/vanity#510 is done in its working tree and waits for the push.
 
 - `internal/command/golang` and `internal/model/golang` are gone, `maintainer go` with them; `go.mod` is unchanged (afero, yaml.v2 and go.octolab.org/strings are still used by `internal/config`); `go build`, `go vet` and `go test ./...` pass.

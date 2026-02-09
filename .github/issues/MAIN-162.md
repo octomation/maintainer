@@ -1,9 +1,9 @@
 ---
 code: MAIN-162
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABhOjwLA
+databaseId: 6524825644
+number: 537
+url: https://github.com/octomation/maintainer/issues/537
 title: "makefile: remove the makefile build command"
 issueType: Task
 labels:
@@ -18,9 +18,9 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
-lastEditedAt: null
+createdAt: 2026-11-21T05:16:42Z
+updatedAt: 2026-11-21T05:17:14Z
+lastEditedAt: 2026-11-21T05:17:09Z
 closedAt: null
 ---
 
@@ -55,7 +55,7 @@ grep -rln makefile internal docs/content skills/maintainer
 - The repository's own `Makefile`, sourced from octomation/makefiles.
 - Changelogs of past releases.
 
-<!-- 2026-11-20T20:00Z
+<!-- 2026-11-20T20:00Z https://github.com/octomation/maintainer/issues/537#issuecomment-7057807416
 Prepared in the working tree for v0.5.0; local only, not on GitHub yet.
 
 - `internal/command/makefile` and `docs/content/makefiles.md` are gone, `root.go` no longer wires the command; `go build` and `go test ./...` pass, `go.mod` is unchanged.
