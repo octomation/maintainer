@@ -16,29 +16,59 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2022-05-06T06:26:52Z
-updatedAt: 2026-10-21T10:22:01Z
-lastEditedAt: 2026-09-25T05:11:23Z
+updatedAt: 2026-11-20T15:42:35Z
+lastEditedAt: 2026-11-20T15:42:35Z
 closedAt: null
 ---
 
 # add possibility to compare configuration of repos
 
-Compare repository settings and show the deviations from a chosen reference. This helps to configure a family of projects identically and to spot differences that currently have to be hunted down on separate GitHub pages.
+## Motivation
 
-A provisional interface:
+A family of projects should be configured the same way: the same features
+enabled, the same merge settings, the same protections. Today a difference is
+found by opening the settings pages of each repository on GitHub one by one,
+so drift goes unnoticed until it bites. The idea is to compare the settings of
+repositories against a chosen reference and show the deviations, and later to
+apply the reference to the others.
+
+## PoC
 
 ```bash
-maintainer config compare octomation/maintainer kamilsk/retry
-# issues: enabled → disabled
-# merge settings: differ
+$ maintainer config compare octomation/maintainer kamilsk/retry
+# reference: octomation/maintainer
+# kamilsk/retry
+#   issues:         enabled → disabled
+#   merge settings: squash only → merge, squash, rebase
+#   unreadable:     branch protection (no admin access)
 ```
-
-The mandatory outcome is a comparison that changes nothing: which properties differ, what was taken as the reference, and which data could not be read. The set of compared settings has to be defined explicitly; lack of access is not the same as an absent setting.
 
 Applying the difference was proposed as an **optional follow-up**:
 
 ```bash
-maintainer config apply octomation/maintainer kamilsk/retry kamilsk/semaphore
+$ maintainer config apply octomation/maintainer kamilsk/retry kamilsk/semaphore
 ```
 
-It should rest on a reviewable plan ([[MAIN-19]]). Synchronizing template files is the different task [[MAIN-10]]; fetch does not change GitHub settings either.
+## Acceptance criteria
+
+- [ ] `compare` changes nothing on GitHub.
+- [ ] The set of compared settings is defined explicitly and documented.
+- [ ] The output names the reference, every property that differs, and every
+  property that could not be read; lack of access is never shown as an absent
+  or disabled setting.
+- [ ] A JSON mode gives the same comparison for further processing.
+- [ ] If `apply` is built, it rests on a reviewable plan of transitions
+  ([[MAIN-19]]) and changes only what the plan lists.
+
+## Out of scope
+
+- Synchronizing template files: [[MAIN-10]].
+- Changing GitHub settings from `fetch`: fetch reads repositories, it does not
+  configure them.
+
+Related: [[MAIN-19]], [[MAIN-10]].
+
+<!-- 2026-11-20T21:00Z https://github.com/octomation/maintainer/issues/25#issuecomment-7043716345
+Maturity: idea. There is no config command group (internal/command/root.go). The closest code is fetch discovery, which reads a repository's identity, visibility, default branch and the fork, template and archived flags (internal/service/github/discovery_rest.go), but no feature or merge settings.
+Proposal for v0.5.0: keep. Comparing the configuration of the contributor's repositories on GitHub is repository work across all projects, the one picture the mission asks for, and the read-only compare can reuse the GitHub client of fetch. Not a v0.5.0 deliverable: it stays in its milestone.
+-->

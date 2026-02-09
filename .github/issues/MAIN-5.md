@@ -16,21 +16,53 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2021-01-06T09:33:18Z
-updatedAt: 2026-10-20T07:32:44Z
-lastEditedAt: 2026-10-19T07:22:45Z
+updatedAt: 2026-11-20T15:42:41Z
+lastEditedAt: 2026-11-20T15:42:40Z
 closedAt: null
 ---
 
 # integrate or implement embedmd
 
-Keep Markdown examples in sync with the source files they come from. Examples in the README and under `docs/` are maintained by hand today, so a code change easily leaves the documentation holding a stale copy.
+## Motivation
 
-The reference is [embedmd](https://github.com/campoy/embedmd): the document stores a reference to a file or a fragment of it, and the tool refreshes the code block that follows. A prototype of the markup for an existing file:
+The examples in the README and under `docs/` are copied from source files and
+command output by hand. A code change easily leaves the documentation with a
+stale copy, and nothing tells.
+
+The reference is [embedmd](https://github.com/campoy/embedmd): the document keeps
+a reference to a file or a fragment of it, and the tool refreshes the code block
+that follows. Either integrating the existing tool or implementing compatible
+behaviour in maintainer is acceptable.
+
+## PoC
+
+The markup for an existing file:
 
 ```markdown
 [embedmd]:# (main.go go /func main/ $)
 ```
 
-Either integrating the existing tool or implementing compatible behaviour in maintainer is acceptable. The user must be able to refresh the insertions and to see divergences without modifying the file; a bad path or fragment boundary must produce a clear error. Text around the insertions is preserved, and a re-run without changes produces no diff.
+The command name is provisional:
 
-Related: Markdown processing [[MAIN-11]].
+```bash
+maintainer embedmd -w README.md    # refresh the code blocks in place
+maintainer embedmd -d README.md    # print the divergences, change nothing
+```
+
+## Acceptance criteria
+
+- [ ] The user can refresh the insertions, and can see the divergences without
+      modifying the file; a divergence gives a non-zero exit, so CI can check it.
+- [ ] A bad path or fragment boundary is an error that names the document line.
+- [ ] Text around the insertions is preserved.
+- [ ] A re-run with no source change produces no diff.
+
+## Out of scope
+
+- Parsing Markdown in general: [[MAIN-11]].
+- Inserting command output, not file contents.
+
+<!-- 2026-11-20T21:00Z https://github.com/octomation/maintainer/issues/5#issuecomment-7043718224
+Maturity: idea. No embedding command is wired in `internal/command/root.go`, and no Markdown tooling is in `go.mod`. The part of the drift that hurt most, the CLI reference of the skill, is already generated from the commands (`go generate ./skills` writes `skills/maintainer/references/cli.md`).
+v0.5.0 proposal: not planned. Keeping Markdown examples in sync is a documentation build helper, off the mission; campoy/embedmd already does it as a standalone tool any repository can run.
+-->
