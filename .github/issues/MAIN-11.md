@@ -12,13 +12,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2021-03-06T16:28:34Z
-updatedAt: 2026-11-20T15:42:49Z
+updatedAt: 2026-11-21T05:33:44Z
 lastEditedAt: 2026-11-20T15:42:24Z
-closedAt: null
+closedAt: 2026-11-21T05:33:44Z
 ---
 
 # integrate markdown parser
@@ -75,4 +75,9 @@ Related: [[MAIN-2]], [[MAIN-5]].
 Maturity: partly built, in another place. A Markdown parser is integrated: goldmark (go.mod) renders the bodies and comments of mirrored issues in the hub (internal/service/hub/markdown.go, added in 44af83a). Nothing extracts links from a README or checks its sections, and there is no docs command.
 Proposal for v0.5.0: not planned. The parser the mission needs already serves the hub; README link extraction and section checks are documentation tooling, like the table of contents of #2, closed as not planned. The facts a contributor needs about a repository come from GitHub (homepage, topics), not from badges.
 The title is kept for history: the parser is integrated, the README work is not.
+-->
+
+<!-- 2026-11-21T05:30Z https://github.com/octomation/maintainer/issues/11#issuecomment-7057976511
+Closed as not planned: this is no longer the focus of maintainer. From v0.5.0 maintainer is the contributor's central tool: one picture of the repositories, issue trackers and GitHub across all projects, not build or release tooling.
+goldmark already renders issue bodies in the hub. README checks are recorded on #153 as a candidate for an external tool.
 -->

@@ -20,7 +20,7 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2024-01-20T19:51:39Z
-updatedAt: 2026-11-20T15:42:30Z
+updatedAt: 2026-11-21T05:31:30Z
 lastEditedAt: 2026-11-20T15:42:30Z
 closedAt: null
 ---
@@ -68,4 +68,8 @@ $ maintainer insights deps go github.com/spf13/cobra@v1.10.2 --format json
 Maturity: idea. Nothing in code: there is no insights group and no deps.dev client (`git grep -i deps.dev` finds only the issue mirror and reviews), and git history has no attempt.
 GitHub's dependency graph and Dependabot already show versions, licences and advisories of a repository's dependencies.
 Proposal for v0.5.0: not planned. Package risk analysis reads a package registry, not the contributor's repositories, issue trackers or GitHub work, so it is off the mission of the slimmed tool.
+-->
+
+<!-- 2026-11-21T05:30Z https://github.com/octomation/maintainer/issues/197#issuecomment-7057977503
+Decision for v0.5.0: kept for now. Insights about dependencies can help maintain the projects that use them; not part of v0.5.0.
 -->

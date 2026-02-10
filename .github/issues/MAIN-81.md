@@ -14,13 +14,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2022-08-12T11:11:50Z
-updatedAt: 2026-11-21T05:18:09Z
+updatedAt: 2026-11-21T05:33:35Z
 lastEditedAt: 2026-11-21T05:18:09Z
-closedAt: null
+closedAt: 2026-11-21T05:33:35Z
 ---
 
 # makefile: build: allow include recursively
@@ -80,4 +80,9 @@ I have to avoid recursive including and deep-nesting cases.
 Maturity: partly built, then removed. `Makefile.AppendTo` in `internal/command/makefile/entity.go` expanded `include` and `-include` recursively since the 2022 snapshot; paths resolved against the working directory and there was no visited set, so `a.mk` <-> `b.mk` failed with `too many open files` (reviews of 2026-09-13, 2026-09-25 and 2026-09-26).
 The command and `internal/command/makefile` went in commit 7cc45e0 (MAIN-162).
 v0.5.0 proposal: not planned. Assembling Makefiles is a build helper, not work with repositories, issue trackers or GitHub; octomation/makefiles does not call it.
+-->
+
+<!-- 2026-11-21T05:30Z https://github.com/octomation/maintainer/issues/81#issuecomment-7057979250
+Closed as not planned: this is no longer the focus of maintainer. From v0.5.0 maintainer is the contributor's central tool: one picture of the repositories, issue trackers and GitHub across all projects, not build or release tooling.
+`makefile build` went with #537, and recursive includes with it.
 -->

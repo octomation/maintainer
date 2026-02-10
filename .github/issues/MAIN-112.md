@@ -20,7 +20,7 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2023-07-31T14:14:42Z
-updatedAt: 2026-11-20T15:42:51Z
+updatedAt: 2026-11-21T05:31:28Z
 lastEditedAt: 2026-11-20T15:42:27Z
 closedAt: null
 ---
@@ -81,4 +81,18 @@ related to #135
 Maturity: idea. Nothing in code: the root command registers fetch, status, github, service and skill (internal/command/root.go), there is no template or new command, and git history has no attempt.
 `gonew` and GitHub's "Use this template" (`gh repo create --template`) already cover the job.
 Proposal for v0.5.0: not planned. Scaffolding source code from a stack template is a build helper, not work with repositories, issue trackers or GitHub, the same kind as `go vanity build` (MAIN-161) and `makefile build` (MAIN-162) that this release removes.
+-->
+
+<!-- 2026-11-21T05:30Z https://github.com/octomation/maintainer/issues/153#issuecomment-7057976991
+Decision for v0.5.0: kept. Starting a new project is one of the important jobs of maintainer, so this issue stays open.
+While it is built, think through the tooling a new project needs. These issues were closed as not the focus of maintainer, and their needs land here:
+
+- #4, #21, #134: Go modules and their vanity import paths (`go vanity build` went with #536);
+- #81: Makefiles (`makefile build` went with #537), and Taskfiles the same way;
+- #5: code examples in Markdown kept in sync with the sources (embedmd);
+- #135: renaming the module and its imports after the template;
+- #10: keeping a project in sync with its template. This is a frequent manual job today and should become semi-automatic or automatic: a Dependabot for templates. copier and cruft already merge template updates; a signal "this checkout is behind its template" in status or the hub fits the mission;
+- #11: README checks (sections, mirror links, badges) as a candidate for an external tool.
+
+Either maintainer starts a project from a template out of the box, or this moves into a separate tool that maintainer calls. In the second case, revisit #4, #21 and #134 there.
 -->

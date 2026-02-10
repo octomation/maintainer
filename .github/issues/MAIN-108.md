@@ -16,13 +16,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2023-04-18T11:32:08Z
-updatedAt: 2026-11-20T15:42:21Z
+updatedAt: 2026-11-21T05:33:39Z
 lastEditedAt: 2026-11-20T15:42:21Z
-closedAt: null
+closedAt: 2026-11-21T05:33:39Z
 ---
 
 # go: rename: command to rename current module and others
@@ -71,4 +71,9 @@ second changes the path of a chosen dependency.
 <!-- 2026-11-20T21:00Z https://github.com/octomation/maintainer/issues/135#issuecomment-7043713379
 Maturity: idea. There is no `go rename` command and no `go` group any more (it went in commit 1f95e2d). `tools/go.mod` pins `mod`, `gomvpkg` and `gorename` through the tool directive, as developer tools of this repository only.
 v0.5.0 proposal: not planned. Rewriting Go module and import paths is a source codemod, not work with repositories, issue trackers or GitHub; `mod` and gopls already do it.
+-->
+
+<!-- 2026-11-21T05:30Z https://github.com/octomation/maintainer/issues/135#issuecomment-7057975976
+Closed as not planned: this is no longer the focus of maintainer. From v0.5.0 maintainer is the contributor's central tool: one picture of the repositories, issue trackers and GitHub across all projects, not build or release tooling.
+`mod` and gopls rewrite Go sources. Renaming a module after a template is part of starting a new project, which #153 keeps open.
 -->

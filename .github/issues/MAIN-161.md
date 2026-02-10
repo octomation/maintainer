@@ -7,8 +7,8 @@ url: https://github.com/octomation/maintainer/issues/536
 title: "go: vanity: remove the go vanity command"
 issueType: Task
 labels:
-  - "scope: code"
   - "scope: docs"
+  - "scope: code"
   - "type: improvement"
 assignees:
   - kamilsk
@@ -19,8 +19,8 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2026-11-21T05:16:38Z
-updatedAt: 2026-11-21T05:17:12Z
-lastEditedAt: null
+updatedAt: 2026-11-21T05:32:22Z
+lastEditedAt: 2026-11-21T05:32:22Z
 closedAt: null
 ---
 
@@ -51,7 +51,7 @@ gh search code --repo octolab/vanity maintainer --json path --jq .[].path   # no
       `index.mdx`, the link in `quickstart.md`), `docs/README.md` and the skill
       (`SKILL.md`, `references/cli.md`, `references/workflows.md`) no longer mention the
       command; the changelog of the next release names its removal.
-- [ ] [[MAIN-4]], [[MAIN-21]] and [[MAIN-107]] are closed as not planned with a link here.
+- [x] [[MAIN-4]], [[MAIN-21]] and [[MAIN-107]] are closed as not planned with a link here.
 
 ## Out of scope
 

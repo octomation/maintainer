@@ -36,4 +36,4 @@ closedAt: null
 - [ ] [[MAIN-77]] — github: contribution: snapshot and diff must support multiple date input · project: maintainer
 - [x] [[MAIN-80]] — github: labels: remove scope · project: maintainer
 
-<!-- скрыто: 48 карточек (чужие репозитории и черновики): доска приватная, репозиторий публичный -->
+<!-- hidden: 48 cards (other repositories and drafts): private board, public repository -->

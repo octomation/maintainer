@@ -7,8 +7,8 @@ url: https://github.com/octomation/maintainer/issues/537
 title: "makefile: remove the makefile build command"
 issueType: Task
 labels:
-  - "scope: code"
   - "scope: docs"
+  - "scope: code"
   - "type: improvement"
 assignees:
   - kamilsk
@@ -19,8 +19,8 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2026-11-21T05:16:42Z
-updatedAt: 2026-11-21T05:17:14Z
-lastEditedAt: 2026-11-21T05:17:09Z
+updatedAt: 2026-11-21T05:32:24Z
+lastEditedAt: 2026-11-21T05:32:24Z
 closedAt: null
 ---
 
@@ -48,7 +48,7 @@ grep -rln makefile internal docs/content skills/maintainer
 - [x] `docs/README.md` and the skill (`SKILL.md`, `references/workflows.md`,
       `references/cli.md`) no longer mention the command.
 - [ ] The changelog of v0.5.0 names the removal.
-- [ ] [[MAIN-81]] is closed as not planned with a link here.
+- [x] [[MAIN-81]] is closed as not planned with a link here.
 
 ## Out of scope
 

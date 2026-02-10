@@ -6,11 +6,11 @@ number: 1
 url: https://github.com/octomation/maintainer/milestone/1
 title: "GCC, v0.1"
 state: OPEN
-openIssueCount: 25
-closedIssueCount: 91
+openIssueCount: 17
+closedIssueCount: 99
 dueOn: null
 createdAt: 2022-06-15T10:12:33Z
-updatedAt: 2026-11-07T14:46:36Z
+updatedAt: 2026-11-21T05:33:44Z
 closedAt: null
 ---
 
@@ -27,14 +27,14 @@ The milestone carries the v0.1 line: v0.1.0, its patches, and everything the pro
 - [x] [[MAIN-1]] — import go code from vanity project
 - [x] [[MAIN-2]] — implement doctoc
 - [x] [[MAIN-3]] — import go code from makefiles project
-- [ ] [[MAIN-4]] — how to warmup godoc and vanity url
-- [ ] [[MAIN-5]] — integrate or implement embedmd
+- [x] [[MAIN-4]] — how to warmup godoc and vanity url
+- [x] [[MAIN-5]] — integrate or implement embedmd
 - [x] [[MAIN-6]] — issue with modules without go files on the root
 - [x] [[MAIN-7]] — remove double new lines
 - [x] [[MAIN-8]] — big picture: labels
 - [x] [[MAIN-9]] — research: automate update golangci-lint config
-- [ ] [[MAIN-10]] — template: automate sync with upstream
-- [ ] [[MAIN-11]] — integrate markdown parser
+- [x] [[MAIN-10]] — template: automate sync with upstream
+- [x] [[MAIN-11]] — integrate markdown parser
 - [x] [[MAIN-12]] — fetch current state of labels of all repositories
 - [x] [[MAIN-13]] — label presets
 - [x] [[MAIN-14]] — add dry-run option for github labels
@@ -43,7 +43,7 @@ The milestone carries the v0.1 line: v0.1.0, its patches, and everything the pro
 - [x] [[MAIN-17]] — extend gh tool
 - [x] [[MAIN-18]] — update github client
 - [x] [[MAIN-20]] — contribution chart
-- [ ] [[MAIN-21]] — improve vanity support
+- [x] [[MAIN-21]] — improve vanity support
 - [x] [[MAIN-22]] — update github client
 - [x] [[MAIN-23]] — sync with latest template
 - [x] [[MAIN-24]] — use contributions chart for git at suggestion
@@ -98,7 +98,7 @@ The milestone carries the v0.1 line: v0.1.0, its patches, and everything the pro
 - [ ] [[MAIN-78]] — github: contribution: tips and tricks, daily snapshot
 - [ ] [[MAIN-79]] — github: contribution: extend suggest command by stats
 - [x] [[MAIN-80]] — github: labels: remove scope
-- [ ] [[MAIN-81]] — makefile: build: allow include recursively
+- [x] [[MAIN-81]] — makefile: build: allow include recursively
 - [x] [[MAIN-82]] — deps: up go-github to v46.0.0
 - [x] [[MAIN-83]] — deps: up go-github top v47.0.0
 - [x] [[MAIN-84]] — github: contribution: invalid suggestion for past
@@ -122,8 +122,8 @@ The milestone carries the v0.1 line: v0.1.0, its patches, and everything the pro
 - [ ] [[MAIN-103]] — github: contribution: calculate contrib to define better day for commits
 - [ ] [[MAIN-104]] — github: contribution: refactor histogram command
 - [x] [[MAIN-106]] — github: contribution: suggest for cmm
-- [ ] [[MAIN-107]] — go: vanity: build from git submodules and go.work instead of modules.yml
-- [ ] [[MAIN-108]] — go: rename: command to rename current module and others
+- [x] [[MAIN-107]] — go: vanity: build from git submodules and go.work instead of modules.yml
+- [x] [[MAIN-108]] — go: rename: command to rename current module and others
 - [x] [[MAIN-109]] — github: contribution: incorrect suggest for today
 - [x] [[MAIN-110]] — github: contribution: edge case for contrib suggestion
 - [x] [[MAIN-111]] — github: contribution: broken heatmap

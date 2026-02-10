@@ -12,13 +12,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2021-03-06T16:24:19Z
-updatedAt: 2026-11-20T15:42:13Z
+updatedAt: 2026-11-21T05:33:42Z
 lastEditedAt: 2026-11-20T15:42:13Z
-closedAt: null
+closedAt: 2026-11-21T05:33:42Z
 ---
 
 # template: automate sync with upstream
@@ -97,4 +97,9 @@ add support to
 Maturity: idea. Nothing in code: there is no template or layer command (internal/command/root.go), and nothing records a checkpoint. Fetch discovery reads only whether a repository is itself a template (`IsTemplate` in internal/service/github/discovery_rest.go), not which template it came from.
 Proposal for v0.5.0: not planned. The job is merging template files into a project's tree, which is boilerplate maintenance like the removed build helpers, and copier or cruft already do it.
 A read-only signal fits the mission and could be a separate task: which checkouts of the workspace lag their template, shown by status or the hub.
+-->
+
+<!-- 2026-11-21T05:30Z https://github.com/octomation/maintainer/issues/10#issuecomment-7057974961
+Closed as not planned: this is no longer the focus of maintainer. From v0.5.0 maintainer is the contributor's central tool: one picture of the repositories, issue trackers and GitHub across all projects, not build or release tooling.
+The need itself stays: keeping a project in sync with its template is recorded on #153, together with copier and cruft.
 -->

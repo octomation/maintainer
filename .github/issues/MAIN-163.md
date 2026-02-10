@@ -8,8 +8,8 @@ title: "cli: drop the proxy command, the unused mocks and the boilerplate featur
 issueType: Task
 labels:
   - "scope: code"
-  - "scope: deps"
   - "type: improvement"
+  - "scope: deps"
 assignees:
   - kamilsk
 milestone: null

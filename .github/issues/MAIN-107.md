@@ -16,13 +16,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2023-04-17T16:51:00Z
-updatedAt: 2026-11-21T05:18:02Z
+updatedAt: 2026-11-21T05:33:33Z
 lastEditedAt: 2026-11-21T05:18:02Z
-closedAt: null
+closedAt: 2026-11-21T05:33:33Z
 ---
 
 # go: vanity: build from git submodules and go.work instead of modules.yml
@@ -75,4 +75,9 @@ Related: [[MAIN-161]].
 Maturity: idea. `go vanity build` only decoded the YAML named by `--file` (`internal/command/golang/vanity.go`); there was never any `go.work` or submodule discovery. The command went in commit 1f95e2d (MAIN-161).
 There is no central list left to discover: octomation/vanity-action runs in each module's release workflow and lists that module's packages at the released commit.
 v0.5.0 proposal: not planned. Module discovery for vanity pages is a Go build helper off the mission, and the push model of vanity-action removes the duplicate list it was meant to replace.
+-->
+
+<!-- 2026-11-21T05:30Z https://github.com/octomation/maintainer/issues/134#issuecomment-7057975464
+Closed as not planned: this is no longer the focus of maintainer. From v0.5.0 maintainer is the contributor's central tool: one picture of the repositories, issue trackers and GitHub across all projects, not build or release tooling.
+Publishing from the modules removed the central list this task replaced; `go vanity build` went with #536.
 -->

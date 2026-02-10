@@ -12,13 +12,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: NOT_PLANNED
 duplicateOf: null
 createdAt: 2021-01-02T08:55:25Z
-updatedAt: 2026-11-21T05:18:06Z
+updatedAt: 2026-11-21T05:33:28Z
 lastEditedAt: 2026-11-21T05:18:06Z
-closedAt: null
+closedAt: 2026-11-21T05:33:28Z
 ---
 
 # how to warmup godoc and vanity url
@@ -76,4 +76,9 @@ https://go.dev/about#adding-a-package
 Maturity: idea. Nothing was built: `go vanity` only ever had `build` (`internal/command/golang/vanity.go`), and the whole `internal/command/golang` and `internal/model/golang` went in commit 1f95e2d (MAIN-161).
 The need moved with the catalog: octolab/vanity checks the live site itself (`bin/verify.py --url`, and `bin/lib/core/check.bash` downloads modules through `GOPROXY=direct` with an empty cache), and octomation/vanity-action publishes each release from the module's own workflow.
 v0.5.0 proposal: not planned. Checking the Go proxy and pkg.go.dev after a release is release tooling for one vanity host, not work with repositories, issue trackers or GitHub; if it is still wanted, it belongs to octolab/vanity or vanity-action.
+-->
+
+<!-- 2026-11-21T05:30Z https://github.com/octomation/maintainer/issues/4#issuecomment-7057978370
+Closed as not planned: this is no longer the focus of maintainer. From v0.5.0 maintainer is the contributor's central tool: one picture of the repositories, issue trackers and GitHub across all projects, not build or release tooling.
+Checking the Go proxy and pkg.go.dev after a release stays with octolab/vanity (`bin/verify.py --url`); the command it would extend went with #536.
 -->
