@@ -64,7 +64,8 @@ go run . version | grep features
 - [x] The `boilerplate` feature is gone, `maintainer version` prints `features : -`; the
       feature list of `internal/config/features.go` stays for the features to come.
 - [x] `make lint`, `go test ./...` and `make go-generate` pass and leave the tree clean.
-- [ ] The changelog of v0.5.0 names the removal of the dependency.
+- [x] The tag annotation of v0.5.0 names the removal of the dependency: it never shipped in
+      the binary, so the changelog, which lists only what users get, leaves it out.
 
 ## Out of scope
 

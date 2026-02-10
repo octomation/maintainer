@@ -47,7 +47,7 @@ grep -rln makefile internal docs/content skills/maintainer
       «ALSO IN THE BOX» block; `next build` passes.
 - [x] `docs/README.md` and the skill (`SKILL.md`, `references/workflows.md`,
       `references/cli.md`) no longer mention the command.
-- [ ] The changelog of v0.5.0 names the removal.
+- [x] The changelog of v0.5.0 names the removal.
 - [x] [[MAIN-81]] is closed as not planned with a link here.
 
 ## Out of scope
