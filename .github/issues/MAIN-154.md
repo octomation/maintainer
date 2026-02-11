@@ -22,8 +22,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:36Z
-updatedAt: 2026-10-21T10:23:57Z
-lastEditedAt: null
+updatedAt: 2026-11-21T06:33:01Z
+lastEditedAt: 2026-11-21T06:33:01Z
 closedAt: 2026-10-21T04:50:39Z
 ---
 
@@ -57,12 +57,12 @@ $ go test ./skills && go generate ./skills && git diff --exit-code skills
 
 ## Acceptance criteria
 
-- [ ] `go test -race ./skills/... ./internal/skill/... ./internal/command/...` passes and `go generate ./skills` leaves no diff.
-- [ ] `maintainer skill install --agent claude-code,codex` into an empty home, then `maintainer skill status --agent claude-code,codex --exact` exits `0`; `ci` checks it on every change.
-- [ ] `node .github/scripts/release.mjs check vX.Y.Z` fails when `skills/maintainer/SKILL.md` names another version; `node --test .github/scripts/*.test.mjs` covers it.
-- [ ] `make go-dist-check` builds archives that hold `skills/maintainer/`, and `node .github/scripts/release.mjs skill` accepts them.
-- [ ] `cd.yml` has a `skill` job for stable tags only; `actionlint` passes.
-- [ ] `catalog.json` of `octolab/skills` registers `maintainer` for `octomation/maintainer`, `skills/maintainer`, before the first release with the skill.
+- [x] `go test -race ./skills/... ./internal/skill/... ./internal/command/...` passes and `go generate ./skills` leaves no diff.
+- [x] `maintainer skill install --agent claude-code,codex` into an empty home, then `maintainer skill status --agent claude-code,codex --exact` exits `0`; `ci` checks it on every change.
+- [x] `node .github/scripts/release.mjs check vX.Y.Z` fails when `skills/maintainer/SKILL.md` names another version; `node --test .github/scripts/*.test.mjs` covers it.
+- [x] `make go-dist-check` builds archives that hold `skills/maintainer/`, and `node .github/scripts/release.mjs skill` accepts them.
+- [x] `cd.yml` has a `skill` job for stable tags only; `actionlint` passes.
+- [x] `catalog.json` of `octolab/skills` registers `maintainer` for `octomation/maintainer`, `skills/maintainer`, before the first release with the skill.
 
 ## Out of scope
 

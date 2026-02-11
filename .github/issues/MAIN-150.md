@@ -22,8 +22,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:07Z
-updatedAt: 2026-10-21T10:23:45Z
-lastEditedAt: null
+updatedAt: 2026-11-21T06:32:54Z
+lastEditedAt: 2026-11-21T06:32:54Z
 closedAt: 2026-10-21T04:50:10Z
 ---
 
@@ -58,11 +58,11 @@ A failed remote update after a move: a fake Git port whose `UpdateRemote` fails 
 
 ## Acceptance criteria
 
-- [ ] The name-reuse test yields a conflict naming ids 1 and 2, or a move of id 1, and never `adopt id=2` plus `clone id=1`; the same for the pin rule and for a path in `previous_paths`. The checkout's branches, HEAD, index and files are byte-identical afterwards.
-- [ ] A case-only rename on a case-insensitive filesystem converges in one apply, and the second plan is `fetch` only; on a case-sensitive filesystem an occupied destination stays a conflict.
-- [ ] A remote-only convergence: after a remote update without a rename, the next plan proposes nothing for that checkout but `fetch`.
-- [ ] After a successful rename and a failed remote update, the record is at the new path, and the rerun plans only `update_remote`.
-- [ ] After an ordinary fetch, a record whose visibility, default branch or flags changed on GitHub carries the new values and a new `last_seen`.
+- [x] The name-reuse test yields a conflict naming ids 1 and 2, or a move of id 1, and never `adopt id=2` plus `clone id=1`; the same for the pin rule and for a path in `previous_paths`. The checkout's branches, HEAD, index and files are byte-identical afterwards.
+- [x] A case-only rename on a case-insensitive filesystem converges in one apply, and the second plan is `fetch` only; on a case-sensitive filesystem an occupied destination stays a conflict.
+- [x] A remote-only convergence: after a remote update without a rename, the next plan proposes nothing for that checkout but `fetch`.
+- [x] After a successful rename and a failed remote update, the record is at the new path, and the rerun plans only `update_remote`.
+- [x] After an ordinary fetch, a record whose visibility, default branch or flags changed on GitHub carries the new values and a new `last_seen`.
 
 ## Out of scope
 

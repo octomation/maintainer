@@ -22,8 +22,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:49:35Z
-updatedAt: 2026-10-21T10:23:30Z
-lastEditedAt: null
+updatedAt: 2026-11-21T06:32:44Z
+lastEditedAt: 2026-11-21T06:32:44Z
 closedAt: 2026-10-21T04:49:38Z
 ---
 
@@ -53,9 +53,9 @@ A save never writes through a path that existed before it started: whatever lies
 
 ## Acceptance criteria
 
-- [ ] The PoC leaves `victim.txt` unchanged, and `state.json` is a regular file with mode 0600.
-- [ ] A store test plants a symlink and, separately, a regular file at `<state_file>.tmp`; `Save` leaves both targets byte-identical and never leaves the state path as a link.
-- [ ] A store test with a save that fails midway keeps the previous state file byte-identical.
+- [x] The PoC leaves `victim.txt` unchanged, and `state.json` is a regular file with mode 0600.
+- [x] A store test plants a symlink and, separately, a regular file at `<state_file>.tmp`; `Save` leaves both targets byte-identical and never leaves the state path as a link.
+- [x] A store test with a save that fails midway keeps the previous state file byte-identical.
 
 ## Out of scope
 

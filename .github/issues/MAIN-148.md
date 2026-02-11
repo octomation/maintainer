@@ -23,8 +23,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:49:51Z
-updatedAt: 2026-10-21T10:23:38Z
-lastEditedAt: null
+updatedAt: 2026-11-21T06:32:49Z
+lastEditedAt: 2026-11-21T06:32:49Z
 closedAt: 2026-10-21T04:49:54Z
 ---
 
@@ -50,10 +50,10 @@ The next run neither adopts nor fetches an interrupted clone as if it were compl
 
 ## Acceptance criteria
 
-- [ ] After a clone cut by `--timeout`, the next plan has no `adopt` and no `fetch` for that path, but an action that names the path as an incomplete clone.
-- [ ] The tests of [[MAIN-124]] for an empty upstream still pass.
-- [ ] The partial checkout is never removed recursively ([[MAIN-123]]).
-- [ ] `fetch.md` says what happens after an interrupted clone.
+- [x] After a clone cut by `--timeout`, the next plan has no `adopt` and no `fetch` for that path, but an action that names the path as an incomplete clone.
+- [x] The tests of [[MAIN-124]] for an empty upstream still pass.
+- [x] The partial checkout is never removed recursively ([[MAIN-123]]).
+- [x] `fetch.md` says what happens after an interrupted clone.
 
 ## Out of scope
 

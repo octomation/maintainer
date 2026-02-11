@@ -23,8 +23,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:28Z
-updatedAt: 2026-10-21T10:23:54Z
-lastEditedAt: 2026-10-21T04:51:33Z
+updatedAt: 2026-11-21T06:32:58Z
+lastEditedAt: 2026-11-21T06:32:58Z
 closedAt: 2026-10-21T04:50:31Z
 ---
 
@@ -56,10 +56,10 @@ maintainer status --config "$tmp/fetch.toml" --format=plain; echo "exit=$?"
 
 ## Acceptance criteria
 
-- [ ] The PoC's `validate` fails with the error above and exit `2`; a valid per-repository template, `lower` and `upper` included, still validates.
-- [ ] A fetch planner test: a broken per-repository template yields one conflict carrying the parse error and a plan for the other repositories.
-- [ ] A status test: a broken per-repository template, with and without a state record of the repository, yields one error row with the rule's path and the parse error next to the other rows, without an error from the collection.
-- [ ] The fetch guide says that `fetch config validate` rejects a per-repository path that is not a valid template, and the status guide that `status` reports it as an error row.
+- [x] The PoC's `validate` fails with the error above and exit `2`; a valid per-repository template, `lower` and `upper` included, still validates.
+- [x] A fetch planner test: a broken per-repository template yields one conflict carrying the parse error and a plan for the other repositories.
+- [x] A status test: a broken per-repository template, with and without a state record of the repository, yields one error row with the rule's path and the parse error next to the other rows, without an error from the collection.
+- [x] The fetch guide says that `fetch config validate` rejects a per-repository path that is not a valid template, and the status guide that `status` reports it as an error row.
 
 ## Out of scope
 

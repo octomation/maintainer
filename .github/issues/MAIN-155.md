@@ -21,8 +21,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:44Z
-updatedAt: 2026-10-21T10:24:00Z
-lastEditedAt: 2026-10-21T10:24:00Z
+updatedAt: 2026-11-21T06:33:16Z
+lastEditedAt: 2026-11-21T06:33:04Z
 closedAt: 2026-10-21T09:28:18Z
 ---
 
@@ -52,13 +52,13 @@ The local service ([[MAIN-151]]) answers one static page. The v0.3 line ([[MAIN-
 
 ## Acceptance criteria
 
-- [ ] `go build ./...`, `go test ./...`, `go test -race ./internal/service/hub/... ./internal/service/web/...`, `make config-vet` and `make go-dist-check` pass with Node absent from `PATH`; `make web-check` passes with Node 24.
-- [ ] `httptest` covers: the three page paths, the redirect, the asset cache headers, `404` elsewhere, `421` on a foreign `Host` and `200` on a bound literal, `403` on a foreign or missing `Origin` and on a missing `X-Requested-With`, `405` and `Allow` on wrong methods, `415` on a non-JSON patch, the CSP and the other headers, and both id forms through the real router.
+- [x] `go build ./...`, `go test ./...`, `go test -race ./internal/service/hub/... ./internal/service/web/...`, `make config-vet` and `make go-dist-check` pass with Node absent from `PATH`; `make web-check` passes with Node 24.
+- [x] `httptest` covers: the three page paths, the redirect, the asset cache headers, `404` elsewhere, `421` on a foreign `Host` and `200` on a bound literal, `403` on a foreign or missing `Origin` and on a missing `X-Requested-With`, `405` and `Allow` on wrong methods, `415` on a non-JSON patch, the CSP and the other headers, and both id forms through the real router.
 - [ ] A fixture mirror with the three generations, a local-only issue, an organization board with cross-repository references and partial copies in two mirrors, a disagreeing pair of boards, an open task under Done, an "Items" board, milestones with and without `dueOn`, a task without dates, a malformed file, LF and CRLF, `labels: []`, block and flow lists, hostile Markdown (raw HTML, `javascript:` links, remote images, a delimiter inside fenced code) and a duplicate mirror produces the documented tasks, columns, flags, comments and warnings; a generated mirror of 3000 tasks answers a filtered `GET /tasks` in under 100 ms warm.
-- [ ] The triage patch keeps every other byte of the file (golden tests over the three generations, LF and CRLF, `labels: []`), implements omitted versus `null`, returns `400`, `409`, `412`, `422` and `428` as specified, survives a crash between the temporary file and the rename without a corrupt original, and a scan racing a write cannot publish the older parse.
-- [ ] `service.toml` fixtures under `internal/config/testdata/service/{valid,invalid}/` pass `make config-vet`; the loader rejects an unknown key, a negative weight, a zero horizon, an owner-only `match` and an explicitly named missing file.
-- [ ] The exported status adapter gives the TUI, `Plain` and `GET /checkouts` the same order, cells and summary for the same keys and query (table-driven test).
-- [ ] Go and TypeScript DTOs agree: the JSON fixtures under `web/src/api/` decode with the Go types in a test.
+- [x] The triage patch keeps every other byte of the file (golden tests over the three generations, LF and CRLF, `labels: []`), implements omitted versus `null`, returns `400`, `409`, `412`, `422` and `428` as specified, survives a crash between the temporary file and the rename without a corrupt original, and a scan racing a write cannot publish the older parse.
+- [x] `service.toml` fixtures under `internal/config/testdata/service/{valid,invalid}/` pass `make config-vet`; the loader rejects an unknown key, a negative weight, a zero horizon, an owner-only `match` and an explicitly named missing file.
+- [x] The exported status adapter gives the TUI, `Plain` and `GET /checkouts` the same order, cells and summary for the same keys and query (table-driven test).
+- [x] Go and TypeScript DTOs agree: the JSON fixtures under `web/src/api/` decode with the Go types in a test.
 - [ ] The shell renders on the owner's collection: the sidebar, both themes, indexing state, `TaskFilters` with facets, and one end-to-end flow of a filtered task list and an `impact` edit in `TaskDetails` with a `412` conflict.
 
 ## Notes from the implementation
@@ -78,3 +78,7 @@ The local service ([[MAIN-151]]) answers one static page. The v0.3 line ([[MAIN-
 The three pages' presentation; GitHub synchronization; automatic polling or a file watcher; an advisory lock shared with the mirror tooling; a session cookie; browser end-to-end tests; drag and drop; a Linux service.
 
 Related: [[MAIN-151]], [[MAIN-156]], [[MAIN-157]], [[MAIN-158]], [[MAIN-M3]].
+
+<!-- 2026-11-21T06:45Z https://github.com/octomation/maintainer/issues/511#issuecomment-7058681312
+Audit of the criteria after v0.5.0: six criteria are proven by the tests of `internal/service/{hub,web,status}` and `internal/config`, `make config-vet` and the green `make web-check` in CI. Left unticked: the fixture criterion times 3000 tasks in process (`TestGeneratedMirrorAnswersFast`), not through `GET /tasks` over HTTP; the shell on the owner's collection is a manual check with no record.
+-->

@@ -23,8 +23,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:49:43Z
-updatedAt: 2026-10-21T10:23:34Z
-lastEditedAt: 2026-10-21T04:51:31Z
+updatedAt: 2026-11-21T06:32:46Z
+lastEditedAt: 2026-11-21T06:32:46Z
 closedAt: 2026-10-21T04:49:46Z
 ---
 
@@ -58,11 +58,11 @@ After a successful move, every linked worktree of the moved checkout works as be
 
 ## Acceptance criteria
 
-- [ ] In the service test, `git -C <worktree> status` succeeds after the move, and the worktree's branch, HEAD, index and files are byte-identical to before.
-- [ ] A worktree that cannot be brought back — its directory gone or unwritable — is named in the apply output and counted as an error; the move itself stands.
-- [ ] The plan of a move lists the linked worktrees of the checkout, in the human and the JSON output.
-- [ ] In the adapter test, `Inspect(w)` returns the same origin and push URLs as `git -C w config --local --get-all remote.origin.url` and `… remote.origin.pushurl`, and the same as `Inspect(a)`.
-- [ ] `fetch.md` says how a move treats linked worktrees.
+- [x] In the service test, `git -C <worktree> status` succeeds after the move, and the worktree's branch, HEAD, index and files are byte-identical to before.
+- [x] A worktree that cannot be brought back — its directory gone or unwritable — is named in the apply output and counted as an error; the move itself stands.
+- [x] The plan of a move lists the linked worktrees of the checkout, in the human and the JSON output.
+- [x] In the adapter test, `Inspect(w)` returns the same origin and push URLs as `git -C w config --local --get-all remote.origin.url` and `… remote.origin.pushurl`, and the same as `Inspect(a)`.
+- [x] `fetch.md` says how a move treats linked worktrees.
 
 ## Out of scope
 

@@ -21,8 +21,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:49Z
-updatedAt: 2026-10-21T10:24:04Z
-lastEditedAt: 2026-10-21T10:24:04Z
+updatedAt: 2026-11-21T06:33:18Z
+lastEditedAt: 2026-11-21T06:33:06Z
 closedAt: 2026-10-21T09:28:19Z
 ---
 
@@ -49,10 +49,14 @@ closedAt: 2026-10-21T09:28:19Z
 
 - [ ] For the fixtures of `internal/service/status`, the page's requests to `GET /api/v0/checkouts` with a sort chain and a query render the cells, the order and the summary that the exported adapter gives `Plain` for the same input (component test against the JSON fixtures of [[MAIN-155]]).
 - [ ] On the owner's collection the table shows every row of `maintainer status --format=plain`, sorting and searching answer under 100 ms, and refresh completes without freezing the page.
-- [ ] `npm run check` and `npm test` pass in the page's branch; the full `make web-check`, with the rebuilt `web/dist`, is the integration gate; the page has no dependency beyond the shell's.
+- [x] `npm run check` and `npm test` pass in the page's branch; the full `make web-check`, with the rebuilt `web/dist`, is the integration gate; the page has no dependency beyond the shell's.
 
 ## Out of scope
 
 Actions on checkouts (fetch, sync, lock); columns the TUI does not have; a live update without refresh.
 
 Related: [[MAIN-155]], [[MAIN-143]], [[MAIN-M3]].
+
+<!-- 2026-11-21T06:45Z https://github.com/octomation/maintainer/issues/512#issuecomment-7058681706
+Audit of the criteria after v0.5.0: `make web-check` is the gate and is green in CI. Left unticked: the component test renders only the `sort=-status` fixture, so a recorded fixture with a sort chain and a query is missing (chains and queries are covered at the Go level by `TestCheckoutsAPI`); the table on the owner's collection is a manual check with no record.
+-->

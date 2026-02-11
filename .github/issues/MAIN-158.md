@@ -21,8 +21,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:57Z
-updatedAt: 2026-10-21T10:24:10Z
-lastEditedAt: 2026-10-21T10:24:10Z
+updatedAt: 2026-11-21T06:33:23Z
+lastEditedAt: 2026-11-21T06:33:11Z
 closedAt: 2026-10-21T09:28:20Z
 ---
 
@@ -45,11 +45,15 @@ The boards of the owner's projects differ, but most work fits five columns: Back
 
 - [ ] On the owner's collection the board shows the issues of this repository in the columns of `.github/roadmap/MAIN-P1.md` for its listed tasks, closed tasks under Done or Won't do by their state reason, and unlisted open tasks under Backlog.
 - [ ] The milestone filter `MAIN-M3` shows only its tasks across the columns and the counts add up to the milestone's total.
-- [ ] Component tests cover the column layout, the per-column paging, the reset on a filter change and the flag marker against the mocked API of [[MAIN-155]]; `npm run check` and `npm test` pass in the page's branch, the full `make web-check` is the integration gate.
-- [ ] The page's Go side adds nothing beyond [[MAIN-155]]; if it needs a change there, the change is made in the runtime with its tests.
+- [x] Component tests cover the column layout, the per-column paging, the reset on a filter change and the flag marker against the mocked API of [[MAIN-155]]; `npm run check` and `npm test` pass in the page's branch, the full `make web-check` is the integration gate.
+- [x] The page's Go side adds nothing beyond [[MAIN-155]]; if it needs a change there, the change is made in the runtime with its tests.
 
 ## Out of scope
 
 Drag and drop between columns; writing the board files; per-project column sets; swimlanes; work-in-progress limits.
 
 Related: [[MAIN-155]], [[MAIN-157]], [[MAIN-M3]].
+
+<!-- 2026-11-21T06:45Z https://github.com/octomation/maintainer/issues/514#issuecomment-7058682562
+Audit of the criteria after v0.5.0: the component tests and the Go side are proven. Left unticked: the board on the owner's collection and the `MAIN-M3` filter are manual checks with no record; the column rules are tested by `TestDeriveColumn`.
+-->

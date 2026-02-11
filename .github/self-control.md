@@ -24,6 +24,13 @@ is proven or moved into an issue; a release adds the checks it leaves open
   has a PID and `/status` answers `200` before anyone restarts it. On
   2026-11-07 the log had six starts and no errors, but every start since the
   upgrade was by hand.
+- [ ] **Next time the hub is open on the real collection** (v0.3.0,
+  [MAIN-155](issues/MAIN-155.md)–[MAIN-158](issues/MAIN-158.md)): `/status`
+  shows every row of `maintainer status --format=plain` and sorts and searches
+  without a visible delay; setting `impact: high` in `/inbox` changes only that
+  label line of the issue file (`git diff`); `/tablo` shows the columns of
+  `MAIN-P1` and the `MAIN-M3` filter adds up to the milestone's count. Tick the
+  matching criteria of those issues, or file what differs.
 
 ## Waiting for a decision
 
@@ -68,3 +75,8 @@ is proven or moved into an issue; a release adds the checks it leaves open
   remove the ones no workflow uses.
 - [ ] **Deferred**: move from golang/mock to go.uber.org/mock; an agent quick
   start page.
+- [ ] **Hub tests that the criteria still miss**: a `/status` component test
+  against a fixture recorded with a sort chain and a query
+  ([MAIN-156](issues/MAIN-156.md)), and the 3000-task check of
+  [MAIN-155](issues/MAIN-155.md) through `GET /tasks` over HTTP rather than in
+  process.

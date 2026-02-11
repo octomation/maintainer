@@ -21,8 +21,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:50:53Z
-updatedAt: 2026-10-21T10:24:07Z
-lastEditedAt: 2026-10-21T10:24:07Z
+updatedAt: 2026-11-21T06:33:21Z
+lastEditedAt: 2026-11-21T06:33:09Z
 closedAt: 2026-10-21T09:28:20Z
 ---
 
@@ -48,11 +48,15 @@ Every checkout mirrors its issues in `.github/issues`, and the owner reads them 
 
 - [ ] On the owner's collection the inbox lists the open issues of every mirrored repository, filters and sorts answer under 100 ms, and the body of a long issue with comments renders readably in both themes.
 - [ ] Setting `impact: high` on an issue changes only that label line in the file (checked with `git diff` in the repository), the row and the pane reflect it, and a second edit after an external change of the file ends in `412` with the reload offer.
-- [ ] Component tests cover the list, the sort select, the requery after a triage and the conflict flow against the mocked API of [[MAIN-155]]; `npm run check` and `npm test` pass in the page's branch, the full `make web-check` is the integration gate.
-- [ ] The page's Go side adds nothing beyond [[MAIN-155]]; if it needs a change there, the change is made in the runtime with its tests.
+- [x] Component tests cover the list, the sort select, the requery after a triage and the conflict flow against the mocked API of [[MAIN-155]]; `npm run check` and `npm test` pass in the page's branch, the full `make web-check` is the integration gate.
+- [x] The page's Go side adds nothing beyond [[MAIN-155]]; if it needs a change there, the change is made in the runtime with its tests.
 
 ## Out of scope
 
 Editing the title, body or other labels; creating issues; pushing to GitHub (the mirror tooling does); read and unread state; notifications.
 
 Related: [[MAIN-155]], [[MAIN-158]], [[MAIN-M3]].
+
+<!-- 2026-11-21T06:45Z https://github.com/octomation/maintainer/issues/513#issuecomment-7058682103
+Audit of the criteria after v0.5.0: the component tests and the Go side are proven. Left unticked: the inbox on the owner's collection and the `impact: high` triage checked with `git diff` are manual checks with no record; their automated equivalents are `TestPatchGolden` and `web/src/pages/inbox/index.test.tsx`.
+-->

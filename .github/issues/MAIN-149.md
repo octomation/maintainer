@@ -23,8 +23,8 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-10-21T04:49:59Z
-updatedAt: 2026-10-21T10:23:41Z
-lastEditedAt: null
+updatedAt: 2026-11-21T06:32:51Z
+lastEditedAt: 2026-11-21T06:32:51Z
 closedAt: 2026-10-21T04:50:02Z
 ---
 
@@ -50,10 +50,10 @@ Every command that loads the fetch config — `fetch` and its subcommands, and `
 
 ## Acceptance criteria
 
-- [ ] The PoC fails with the error above and exit `2`.
-- [ ] The same for a YAML config, for an unknown table and for unknown keys inside `[filters]` and `[[repos]]`.
-- [ ] A CUE schema of the fetch config lives in the repository; the template written by `maintainer fetch config init` and every config example of the guides validate against it in a test, and load without an error.
-- [ ] `fetch.md` says that unknown keys are rejected and where the schema is.
+- [x] The PoC fails with the error above and exit `2`.
+- [x] The same for a YAML config, for an unknown table and for unknown keys inside `[filters]` and `[[repos]]`.
+- [x] A CUE schema of the fetch config lives in the repository; the template written by `maintainer fetch config init` and every config example of the guides validate against it in a test, and load without an error.
+- [x] `fetch.md` says that unknown keys are rejected and where the schema is.
 
 ## Out of scope
 

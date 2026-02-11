@@ -19,7 +19,7 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-09-25T05:49:59Z
-updatedAt: 2026-10-21T11:02:59Z
+updatedAt: 2026-11-21T06:33:14Z
 lastEditedAt: 2026-10-21T11:02:34Z
 closedAt: 2026-10-21T11:02:59Z
 ---
@@ -52,3 +52,7 @@ Expected: `brew services` runs the local service from the same Formula as the CL
 Out of scope: signing and notarizing the macOS binary; a Linux service; keeping prereleases out of the tap ([[MAIN-139]]).
 
 Related: [[MAIN-30]], [[MAIN-151]], [[MAIN-152]], [GoReleaser: brews deprecation](https://goreleaser.com/deprecations/#brews), [Homebrew: deprecating and disabling](https://docs.brew.sh/Deprecating-Disabling-and-Removing).
+
+<!-- 2026-11-21T06:45Z https://github.com/octomation/maintainer/issues/456#issuecomment-7058680863
+Audit of the criteria after v0.5.0: the last one is an owner check that nothing in the repository records. The tap got the v0.3.0 Formula on 2026-10-21 and the Cask was retired the same day; this Mac now runs the Formula 0.5.0 under `brew services`, and the hub answers 200. Left unticked as unrecorded.
+-->
