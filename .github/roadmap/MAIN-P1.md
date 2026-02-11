@@ -13,7 +13,7 @@ shortDescription: "OctoLab Platform development."
 public: true
 closed: false
 createdAt: 2022-05-07T06:25:58Z
-updatedAt: 2026-11-21T05:36:02Z
+updatedAt: 2026-11-21T06:22:03Z
 closedAt: null
 ---
 
@@ -117,6 +117,8 @@ closedAt: null
 - [ ] octomation/pulse#92 — core: indexit as the vault provider
 - [ ] octomation/pulse#93 — core: a seen mark snoozes for a quarter
 - [ ] octomation/pulse#94 — web: flow mode, one card at a time
+- [ ] [[MAIN-25]] — add possibility to compare configuration of repos
+- [ ] [[MAIN-128]] — fetch: remotes: configure upstream for forks and check remote consistency
 
 ## To do
 
@@ -375,6 +377,7 @@ closedAt: null
 - [x] octomation/pulse#85 — core: trend-watch without repeats
 - [x] [[MAIN-162]] — makefile: remove the makefile build command
 - [x] [[MAIN-163]] — cli: drop the proxy command, the unused mocks and the boilerplate feature
+- [x] [[MAIN-161]] — go: vanity: remove the go vanity command
 
 ## Won't do
 
