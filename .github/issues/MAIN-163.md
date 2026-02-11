@@ -15,13 +15,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-21T05:16:46Z
-updatedAt: 2026-11-21T05:17:17Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-21T06:11:58Z
+lastEditedAt: 2026-11-21T06:11:58Z
+closedAt: 2026-11-21T06:05:54Z
 ---
 
 # cli: drop the proxy command, the unused mocks and the boilerplate feature

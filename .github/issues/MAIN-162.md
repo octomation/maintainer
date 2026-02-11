@@ -15,13 +15,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-21T05:16:42Z
-updatedAt: 2026-11-21T05:32:24Z
-lastEditedAt: 2026-11-21T05:32:24Z
-closedAt: null
+updatedAt: 2026-11-21T06:11:56Z
+lastEditedAt: 2026-11-21T06:11:56Z
+closedAt: 2026-11-21T06:05:53Z
 ---
 
 # makefile: remove the makefile build command

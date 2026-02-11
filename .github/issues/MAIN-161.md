@@ -15,13 +15,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-21T05:16:38Z
-updatedAt: 2026-11-21T05:32:22Z
-lastEditedAt: 2026-11-21T05:32:22Z
-closedAt: null
+updatedAt: 2026-11-21T06:12:38Z
+lastEditedAt: 2026-11-21T06:12:20Z
+closedAt: 2026-11-21T06:12:38Z
 ---
 
 # go: vanity: remove the go vanity command
@@ -44,7 +44,7 @@ gh search code --repo octolab/vanity maintainer --json path --jq .[].path   # no
 
 ## Acceptance criteria
 
-- [ ] octolab/vanity#510 is closed: octolab/vanity installs no maintainer.
+- [x] octolab/vanity#510 is closed: octolab/vanity installs no maintainer.
 - [x] `maintainer go` and `maintainer go vanity` are gone with `internal/command/golang`
       and `internal/model/golang`; `go test ./...` passes.
 - [x] README, the site (`docs/content/vanity.md`, `_meta.js`, the «02 / GO» card on
@@ -66,4 +66,8 @@ Prepared in the working tree, to ship with the next release; octolab/vanity#510 
 - README shows `maintainer status` in place of `go vanity build`; the site has no `vanity` page, menu item, home card or quick start link, and `next build` passes; `docs/README.md` no longer lists the page.
 - The skill: the row in `SKILL.md` and the example in `references/workflows.md` are gone, `references/cli.md` is regenerated with `go generate ./skills`.
 - Left: the changelog of the next release (written when the release is prepared), and closing MAIN-4, MAIN-21 and MAIN-107 as not planned when this lands.
+-->
+
+<!-- 2026-11-21T06:10Z https://github.com/octomation/maintainer/issues/536#issuecomment-7058444104
+Done: octolab/vanity#510 is closed. go.octolab.org renders its pages with Python and installs no maintainer; maintainer v0.5.0 itself was published to the catalog by vanity-action, deployed green, and `bin/verify-live.sh --packages` passes.
 -->

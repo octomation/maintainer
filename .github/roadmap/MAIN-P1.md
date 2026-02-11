@@ -373,6 +373,8 @@ closedAt: null
 - [x] [[MAIN-154]] — skill: ship an agent skill for the maintainer CLI and publish it to octolab/skills
 - [x] [[MAIN-159]] — github: contribution: count the days as the profile does, wherever the account is
 - [x] octomation/pulse#85 — core: trend-watch without repeats
+- [x] [[MAIN-162]] — makefile: remove the makefile build command
+- [x] [[MAIN-163]] — cli: drop the proxy command, the unused mocks and the boilerplate feature
 
 ## Won't do
 
