@@ -42,15 +42,9 @@ is proven or moved into an issue; a release adds the checks it leaves open
   branch of a closed pull request. Before `gh workflow enable
   cleanup.stale.yml`, list such open items and give the ones to keep an
   assignee, a milestone or `status: pending`.
-- [ ] **Legacy make aliases** (`refresh`, `test-quick` and the other old
-  names kept by the port of [MAIN-116](issues/MAIN-116.md)): drop them, and move
-  every caller and issue text to the new names.
 - [ ] **Tool pins**: `make update` would move goreleaser in `tools/go.mod`
   ahead of the version the workflows pin. Hold `make update` until the pins
   move together; `make tool-pins-check` catches a drift.
-- [x] **`internal/command/proxy` and `internal/command/hub`** are not wired
-  into the root command. Decided on 2026-11-20 ([[MAIN-163]]): `proxy` was a
-  bare `diff` wrapper and goes; `hub` stays for the issue work to come.
 
 ## Follow-ups to file
 
@@ -65,16 +59,15 @@ is proven or moved into an issue; a release adds the checks it leaves open
   (`internal/service/git/sync.go`): go-git writes by path after the
   reservation, and `Move` checks with `Lstat` before `Rename` without a
   no-replace rename.
-- [ ] **Texts of older issues** MAIN-11, MAIN-19, MAIN-25, MAIN-48 and
-  MAIN-119 need refining to the current product. For MAIN-19: `UpdateRemote`
-  does not check the expected previous URL, and `--apply` rebuilds the plan
-  instead of applying the reviewed one.
+- [ ] **Texts of older issues** MAIN-19, MAIN-25, MAIN-48 and MAIN-119 need
+  refining to the current product. For MAIN-19: `UpdateRemote` does not check
+  the expected previous URL, and `--apply` rebuilds the plan instead of
+  applying the reviewed one.
 - [ ] **Root `README.md`** on the layout of the documentation site, keeping
   the badges and every install channel.
 - [ ] **Unused secrets** of the organization and the repository: review and
   remove the ones no workflow uses.
-- [ ] **Deferred**: move from golang/mock to go.uber.org/mock; an agent quick
-  start page.
+- [ ] **Deferred**: an agent quick start page.
 - [ ] **Hub tests that the criteria still miss**: a `/status` component test
   against a fixture recorded with a sort chain and a query
   ([MAIN-156](issues/MAIN-156.md)), and the 3000-task check of
