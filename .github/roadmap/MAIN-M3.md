@@ -4,23 +4,23 @@ id: MI_kwDOE2M9Zc4BFBVP
 databaseId: 18093391
 number: 3
 url: https://github.com/octomation/maintainer/milestone/3
-title: "Hub, v0.3"
+title: "Hub"
 state: OPEN
 openIssueCount: 3
 closedIssueCount: 7
 dueOn: null
 createdAt: 2026-09-26T09:14:44Z
-updatedAt: 2026-10-21T11:03:01Z
+updatedAt: 2026-11-21T09:10:51Z
 closedAt: null
 ---
 
-# Hub, v0.3
+# Hub
 
 ## Maintainer hub
 
 A web interface to manage repositories and tasks in one place: local, fast, and synchronized with the trackers where the tasks live. `maintainer` serves it on the loopback through `brew services`, so it opens instantly and keeps working offline.
 
-The v0.3 line supports one backend, GitHub. Linear, Jira and other trackers are the direction the hub grows in, behind the same model of tasks; they are not part of v0.3.
+GitHub is the first backend. Linear, Jira and other trackers are the direction the hub grows in, behind the same model of tasks.
 
 ### Value
 
@@ -28,10 +28,10 @@ The v0.3 line supports one backend, GitHub. Linear, Jira and other trackers are 
 2. Local and fast — the hub works on local state and synchronizes with the backend, instead of a browser round trip to each tracker.
 3. One model of tasks, ready for more trackers than GitHub.
 
-### Scope of v0.3.0
+### In place
 
 - The local service at `http://maintainer.localhost:17841/`, started with `brew services`.
-- One Homebrew Formula for the CLI and the service; the Cask is retired.
+- One Homebrew Formula for the CLI and the service.
 - Repositories and GitHub tasks in the hub, synchronized with GitHub.
 
 ## Issues

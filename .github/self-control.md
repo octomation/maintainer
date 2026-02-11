@@ -38,10 +38,6 @@ is proven or moved into an issue; a release adds the checks it leaves open
 - [ ] **Legacy make aliases** (`refresh`, `test-quick` and the other old
   names kept by the port of [MAIN-116](issues/MAIN-116.md)): drop them, and move
   every caller and issue text to the new names.
-- [ ] **Open issues of released milestones**: "Hub, v0.3" (MAIN-25, MAIN-31,
-  MAIN-105) and "Workspace, v0.2" (MAIN-19, MAIN-48, MAIN-116, MAIN-128) were
-  not part of their releases. Move them to a next milestone, or keep the
-  milestones open for patches.
 - [ ] **Tool pins**: `make update` would move goreleaser in `tools/go.mod`
   ahead of the version the workflows pin. Hold `make update` until the pins
   move together; `make tool-pins-check` catches a drift.

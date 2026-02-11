@@ -4,23 +4,23 @@ id: MI_kwDOE2M9Zc4Ae1gL
 databaseId: 8083467
 number: 1
 url: https://github.com/octomation/maintainer/milestone/1
-title: "GCC, v0.1"
+title: "GCC"
 state: OPEN
 openIssueCount: 17
 closedIssueCount: 99
 dueOn: null
 createdAt: 2022-06-15T10:12:33Z
-updatedAt: 2026-11-21T05:33:44Z
+updatedAt: 2026-11-21T09:10:48Z
 closedAt: null
 ---
 
-# GCC, v0.1
+# GCC
 
 ## GitHub Contributions Calendar
 
-Add commands to work with [GCC](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-graphs-on-your-profile/viewing-contributions-on-your-profile#contributions-calendar).
+Commands to work with the [GCC](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-graphs-on-your-profile/viewing-contributions-on-your-profile#contributions-calendar): look up its weeks, suggest the next contribution, keep snapshots of a year and compare them.
 
-The milestone carries the v0.1 line: v0.1.0, its patches, and everything the project did before it. The line is about the contribution calendar; the rest of its tasks — the Go and Makefile upkeep helpers that v0.1.0 also ships, the early imports and experiments, the dependency and CI upkeep of that time — belong here because that is the release they shipped in or were dropped from.
+The milestone also holds the early tasks of the project: the imports and experiments, the Go and Makefile upkeep helpers that are removed since, and the dependency and CI upkeep of that time.
 
 ## Issues
 

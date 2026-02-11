@@ -16,7 +16,7 @@ state: CLOSED
 stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2022-05-15T19:11:31Z
-updatedAt: 2026-10-21T10:22:07Z
+updatedAt: 2026-11-21T09:10:16Z
 lastEditedAt: 2026-10-19T07:22:40Z
 closedAt: 2026-10-20T07:40:47Z
 ---
@@ -45,4 +45,8 @@ Done: every task of the repository now belongs to one of three milestones, each 
 - **Hub, v0.3** (milestone 2, formerly "Linear Graph") — a local web interface for repositories and tasks, synchronized with GitHub in v0.3; Linear, Jira and other trackers are the direction after it. One Homebrew Formula with the local service (#456) ships with it.
 
 58 tasks changed milestone. Two tasks were closed as not planned because the milestone concepts superseded them: #52 (release slides, covered by the guides and release notes) and #53 (terminal dashboard, superseded by the Hub). Tasks whose relevance is disputed stay open in their milestones for a later decision: #11, #19, #48 and #197; #25 (comparing repository settings) moves to the Hub.
+-->
+
+<!-- 2026-11-21T07:00Z https://github.com/octomation/maintainer/issues/39#issuecomment-7060392279
+The milestones carry no versions since 2026-11-21: "GCC", "Workspace" and "Hub" name themes, and their descriptions no longer hold release plans; the releases are in the changelog of the site. The names and versions above are as they were when this issue was done.
 -->

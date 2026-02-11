@@ -4,23 +4,21 @@ id: MI_kwDOE2M9Zc4Ae1gM
 databaseId: 8083468
 number: 2
 url: https://github.com/octomation/maintainer/milestone/2
-title: "Workspace, v0.2"
+title: "Workspace"
 state: OPEN
 openIssueCount: 4
 closedIssueCount: 34
 dueOn: null
 createdAt: 2022-06-15T10:13:13Z
-updatedAt: 2026-10-21T10:24:10Z
+updatedAt: 2026-11-21T09:10:49Z
 closedAt: null
 ---
 
-# Workspace, v0.2
+# Workspace
 
 ## Workspace: fetch and status
 
-First release of `maintainer fetch` and `maintainer status`: discover and refresh a multi-owner collection of GitHub checkouts, reconcile repository moves, and inspect local work. Plan by default; preserve existing local branches and working files; inspect status without contacting GitHub.
-
-The milestone carries the v0.2 line: v0.2.0 and the patches after it. v0.2.0 ships what `main` already carries, directly as a stable release without a release candidate, made trustworthy on a real collection: the only code fix that the owner requires before the tag — an origin update must not rewrite the rest of the checkout's Git configuration — lands, continuous integration is green again, and the documentation, the help and the note describe both commands as released, on the owner's scenarios, claiming only what the release binary does. The other defects that the reviews of 2026-09-26 and the triage of 2026-10-19 found in `fetch`, `status`, the workspace and the release path stay in this milestone and follow in v0.2.x patches; [the issue review of 2026-10-19](../reviews/20261019T105848Z.md) says, in its column Release, which task goes into v0.2.0. The release path and its acceptance: `MAIN-138`.
+`maintainer fetch` and `maintainer status`: discover and refresh a multi-owner collection of GitHub checkouts, reconcile repository moves, and inspect local work. Plan by default; preserve existing local branches and working files; inspect status without contacting GitHub.
 
 ### Value
 
@@ -29,29 +27,6 @@ The milestone carries the v0.2 line: v0.2.0 and the patches after it. v0.2.0 shi
 3. Bring existing checkouts under management — adopt without recloning, keep active checkouts outside the tree as pins, see inactive duplicates.
 4. Reconcile names and locations with the vault and the shell helpers — stable ids, old and new paths, verified after apply.
 5. Extract focused lists with JSON — dirty, locked, orphan, conflict and error lists with dependable exit codes.
-
-### Scope of v0.2.0
-
-| Group | Task |
-| --- | --- |
-| CI and local gates reliable again | [[MAIN-127]] |
-| Status counts: renames detected consistently | [[MAIN-130]] |
-| An origin update changes only the origin fetch URL | `MAIN-135` |
-| The tap is written through the OctoLab Releaser App, in verified commits | `MAIN-140` |
-| Documentation, help and the release note true for the release binary | `MAIN-132` |
-| The release itself | `MAIN-138` |
-
-Every other task of the list below goes into a v0.2.x patch, `upstream` remotes for forks ([[MAIN-128]]) included.
-
-### Acceptance
-
-v0.2.0: every install channel — archives, `bin/install`, `go install …@latest` and `…@v0.2.0`, Homebrew — delivers a binary with both commands, checked by `maintainer version` and `--help`; on the owner's collection `fetch --apply` preserves the local branch tips, HEAD, index, working files and push URLs of existing checkouts while refs, state and the planned paths and origins are updated, and an origin update leaves the rest of the Git configuration as it was; reconciliation converges: after at most two successful applies against unchanged inputs, the following plan contains no executable reconciliation action, only routine `fetch` and report-only rows; every claim of the guides, the help and the note holds on the release binary, and the deferred defects an ordinary user meets are named among the note's limitations; CI is green and v0.2.0 is published as the stable release, *Latest* and the tap; a failed action on one checkout does not stop the others; existing config, state and pins load unchanged.
-
-A patch: its tasks meet their criteria, the guides and the help change with the code they describe, and the configuration, state and pins of v0.2.0 load unchanged — no key that v0.2.0 accepted is rejected. The v0.2 line publishes both the Formula and the Cask; a patch before 2026-11-05 lifts the Formula's deprecation, and one Formula with the local service comes with v0.3 ([[MAIN-M3]]).
-
-### Out of scope
-
-A release candidate; working-tree updates (fast-forward), multiple workspaces and linked worktrees, GraphQL discovery, keychain or GitHub App auth, mirror push, submodules and LFS, a fetch TUI, cron mode, a vault transaction journal, the contribution leftovers of milestone 1.
 
 ## Issues
 
