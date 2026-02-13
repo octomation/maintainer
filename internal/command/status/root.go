@@ -46,8 +46,14 @@ func New() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			path, _ := (config.FetchConfigLookup{Explicit: configPath, ExplicitSet: cmd.Flags().Changed("config"),
-				Getenv: os.Getenv, WorkDir: cwd, Home: home}).Resolve(fs)
+			path, notice, err := (config.FetchConfigLookup{Explicit: configPath, ExplicitSet: cmd.Flags().Changed("config"),
+				Getenv: os.Getenv, WorkDir: cwd, Home: home}).Find(fs)
+			if err != nil {
+				return exit.WithUser(err)
+			}
+			if notice != "" {
+				fmt.Fprintf(cmd.ErrOrStderr(), "notice: %s\n", notice)
+			}
 			cnf, err := config.LoadFetch(fs, path)
 			if err != nil {
 				return exit.WithUser(err)

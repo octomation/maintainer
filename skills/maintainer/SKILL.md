@@ -87,7 +87,7 @@ This skill describes maintainer `>=0.5.0 <0.6.0`. Before anything else:
 
 | The user wants | Command |
 | --- | --- |
-| A first config | `fetch config init` (writes `./fetch.toml`; `--force` overwrites) |
+| A first config | `fetch config init` (writes `~/.config/maintainer/fetch.toml`; `--force` overwrites) |
 | To check a config | `fetch config validate`, or `cue vet -c fetch.cue fetch.toml` against the schema |
 | To see what fetch would do | `fetch`, or `fetch --format=json` |
 | To clone missing and refresh existing checkouts | `fetch --apply`, after reviewing the plan |
@@ -107,10 +107,13 @@ this release: [references/cli.md](references/cli.md).
 ## 4. Configuration, state and tokens
 
 - **Lookup**, first match wins: `--config <path>` (`--config=""` disables
-  discovery), the file named by `$MAINTAINER_FETCH_CONFIG`, `./fetch.toml`,
-  `./fetch.yaml`, then `$XDG_CONFIG_HOME/maintainer/fetch.toml` or `.yaml`
-  (usually `~/.config/maintainer/`). Without a config, `fetch` needs an
-  `--owner` and works under the current directory.
+  discovery), the file named by `$MAINTAINER_FETCH_CONFIG`, then
+  `$XDG_CONFIG_HOME/maintainer/fetch.toml` or `.yaml` (usually
+  `~/.config/maintainer/`). A `fetch.toml` in the working directory is never
+  read: fetch and status print a notice, or exit `2` when there is no other
+  config; pass it with `--config` only if the user says it is theirs. Without
+  a config, `fetch --config=""` needs an `--owner` and works under the current
+  directory.
 - **The schema is the contract.** The keys are `[workspace]` (`root`, `path`,
   `pins`), `[defaults]` (`clone_url`, `concurrency`, `state_file`),
   `[filters]`, `[profiles.<name>]`, `[[owners]]` and `[[repos]]`; the schema

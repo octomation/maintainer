@@ -37,7 +37,8 @@ func TestTool_Load(t *testing.T) {
 		env.Must(envGithubToken, "secret"),
 	}
 
-	t.Run("load from file", func(t *testing.T) {
+	// The working directory is not a source of configuration.
+	t.Run("ignore a .env file", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		f, err := fs.Create(".env")
 		require.NoError(t, err)
@@ -46,10 +47,11 @@ func TestTool_Load(t *testing.T) {
 		}
 		require.NoError(t, f.Close())
 
+		t.Setenv(envGithubToken, "")
 		var cnf Tool
-		require.NoError(t, cnf.Load(fs))
-		assert.Equal(t, Get(vars, envGitRemote), cnf.Remote)
-		assert.Equal(t, config.Secret(Get(vars, envGithubToken)), cnf.Token)
+		require.NoError(t, cnf.Load(fs, func(v *viper.Viper) error { return v.BindEnv(envGithubToken) }))
+		assert.Empty(t, cnf.Remote)
+		assert.Empty(t, cnf.Token)
 	})
 
 	t.Run("load from env", func(t *testing.T) {

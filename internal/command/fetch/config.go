@@ -2,6 +2,8 @@ package fetch
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -21,16 +23,24 @@ func configCommand(opts *options) *cobra.Command {
 	var force bool
 	initCmd := &cobra.Command{
 		Use:   "init",
-		Short: "write a documented fetch.toml template",
+		Short: "write a documented fetch.toml template to the user folder or --config",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			path := opts.config
 			if path == "" {
-				path = "fetch.toml"
+				home, _ := os.UserHomeDir()
+				dir := config.FetchConfigLookup{Getenv: os.Getenv, Home: home}.UserDir()
+				if dir == "" {
+					return exit.WithUser(fmt.Errorf("no user folder for the config: set HOME or XDG_CONFIG_HOME, or pass --config"))
+				}
+				path = filepath.Join(dir, "fetch.toml")
 			}
 			fs := afero.NewOsFs()
 			if ok, _ := afero.Exists(fs, path); ok && !force {
 				return exit.WithUser(fmt.Errorf("%q already exists; pass --force to overwrite", path))
+			}
+			if err := fs.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+				return fmt.Errorf("create the config folder: %w", err)
 			}
 			if err := afero.WriteFile(fs, path, []byte(config.FetchConfigTemplate), 0o644); err != nil {
 				return fmt.Errorf("write template: %w", err)
@@ -47,7 +57,10 @@ func configCommand(opts *options) *cobra.Command {
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			fs := afero.NewOsFs()
-			path := configPath(cmd, fs, opts)
+			path, err := configPath(cmd, fs, opts)
+			if err != nil {
+				return err
+			}
 			if path == "" {
 				return exit.WithUser(fmt.Errorf("no fetch config found to validate"))
 			}

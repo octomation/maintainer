@@ -115,9 +115,14 @@ without such a resolver reaches the service at `http://127.0.0.1:17841/`.
 
 ![How it fits: GitHub mirrors issues into .github/issues of your checkouts, the hub at maintainer.localhost reads them, brew services runs it and service.toml configures it](/images/hub/how-it-works.webp)
 
-The service reads your fetch configuration and state the way
-`maintainer status` does, with your home directory as the working directory,
-and finds the checkouts of the [workspace](/workspace/), the pins included.
+The service reads the fetch configuration that `[fetch] config` in
+`service.toml` names; otherwise it looks, as `maintainer status` does, in
+`$MAINTAINER_FETCH_CONFIG`, then in `$XDG_CONFIG_HOME/maintainer`
+(`~/.config/maintainer` by default), and never in the working directory. A
+`fetch.toml` or `fetch.yaml` in your home folder is not read: the service logs
+a notice, and without another fetch configuration it does not start. With
+the state, it finds the checkouts of the [workspace](/workspace/), the pins
+included.
 Every checkout that has a `.github/issues` or `.github/roadmap` directory is an
 issue mirror: the service reads the issue files, the milestones and the
 boards into an index when it starts, and again when you press **Reindex** in

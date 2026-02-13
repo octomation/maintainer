@@ -50,7 +50,7 @@ maintainer fetch config [command]
 
 ## maintainer fetch config init
 
-write a documented fetch.toml template
+write a documented fetch.toml template to the user folder or --config
 
 ```text
 maintainer fetch config init [flags]

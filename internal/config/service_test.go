@@ -43,7 +43,8 @@ func TestLoadService(t *testing.T) {
 		assert.Equal(t, 0.0, cnf.RepoWeight(7, "octopot", "idle"), "an explicit zero stays zero")
 		assert.Equal(t, 1.0, cnf.RepoWeight(0, "octopot", "other"))
 		assert.Equal(t, ".config/maintainer/fetch.toml", cnf.Fetch.Config)
-		path, explicit := cnf.FetchConfigPath(afero.NewMemMapFs(), func(string) string { return "" }, "/home/me")
+		path, explicit, _, err := cnf.FetchConfigPath(afero.NewMemMapFs(), func(string) string { return "" }, "/home/me")
+		require.NoError(t, err)
 		assert.True(t, explicit)
 		assert.Equal(t, "/home/me/.config/maintainer/fetch.toml", path)
 	})
@@ -134,7 +135,8 @@ func TestServiceTemplate(t *testing.T) {
 	require.Len(t, uncommented.Repos, 1)
 	assert.Equal(t, DefaultRepoWeight, uncommented.RepoWeight(0, "octomation", "maintainer"))
 	for _, cnf := range []*Service{defaults, uncommented} {
-		path, explicit := cnf.FetchConfigPath(afero.NewMemMapFs(), func(string) string { return "" }, "/home/me")
+		path, explicit, _, err := cnf.FetchConfigPath(afero.NewMemMapFs(), func(string) string { return "" }, "/home/me")
+		require.NoError(t, err)
 		assert.False(t, explicit, "the template keeps the usual lookup of the fetch config")
 		assert.Empty(t, path)
 	}

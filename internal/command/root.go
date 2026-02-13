@@ -27,7 +27,6 @@ func New() *cobra.Command {
 		Long:  "An indispensable assistant for Open Source contribution.",
 
 		PersistentPreRunE: func(*cobra.Command, []string) error {
-			// TODO:feature home dir and specific config
 			return cnf.Load(afero.NewOsFs())
 		},
 

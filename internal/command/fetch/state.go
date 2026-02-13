@@ -93,7 +93,11 @@ func stateCommand(opts *options) *cobra.Command {
 // and --config="" means the default state location.
 func openState(cmd *cobra.Command, opts *options) (*state.Store, *state.State, func() error, error) {
 	fs := afero.NewOsFs()
-	fcfg, err := config.LoadFetch(fs, configPath(cmd, fs, opts))
+	path, err := configPath(cmd, fs, opts)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	fcfg, err := config.LoadFetch(fs, path)
 	if err != nil {
 		return nil, nil, nil, exit.WithUser(err)
 	}

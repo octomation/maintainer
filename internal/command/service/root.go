@@ -5,6 +5,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"os/signal"
@@ -75,7 +76,7 @@ func runCommand() *cobra.Command {
 				}
 			}
 			stderr := cmd.ErrOrStderr()
-			runtime, err := load(configPath, cmd.Flags().Changed("config"), func(path string, err error) {
+			runtime, err := load(configPath, cmd.Flags().Changed("config"), stderr, func(path string, err error) {
 				if err != nil {
 					fmt.Fprintf(stderr, "maintainer service: cannot write the default config %s: %v\n", path, err)
 					return
@@ -142,7 +143,7 @@ type runtime struct {
 // Without --config and without a file at the default path, it writes the
 // commented default there first and tells wrote; a failure leaves the
 // defaults in effect.
-func load(configPath string, explicit bool, wrote func(path string, err error)) (*runtime, error) {
+func load(configPath string, explicit bool, stderr io.Writer, wrote func(path string, err error)) (*runtime, error) {
 	fs := afero.NewOsFs()
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -172,7 +173,13 @@ func load(configPath string, explicit bool, wrote func(path string, err error)) 
 	if err != nil {
 		return nil, err
 	}
-	fetchPath, named := service.FetchConfigPath(fs, os.Getenv, home)
+	fetchPath, named, notice, err := service.FetchConfigPath(fs, os.Getenv, home)
+	if err != nil {
+		return nil, err
+	}
+	if notice != "" {
+		fmt.Fprintf(stderr, "maintainer service: notice: %s\n", notice)
+	}
 	if named {
 		if _, err := fs.Stat(fetchPath); err != nil {
 			return nil, fmt.Errorf("fetch config %q: %w", fetchPath, err)

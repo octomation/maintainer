@@ -251,14 +251,21 @@ func (s *Service) RepoWeight(id int64, owner, name string) float64 {
 }
 
 // FetchConfigPath resolves the fetch config the service reads: [fetch] config
-// against home when relative, else the usual lookup from home. The second
-// result reports whether the path was named explicitly and so must exist.
-func (s *Service) FetchConfigPath(fs afero.Fs, getenv func(string) string, home string) (path string, explicit bool) {
+// against home when relative, else the usual lookup with home as the working
+// directory, which is never read. The second result reports whether the path
+// was named explicitly and so must exist. A fetch.toml or fetch.yaml in home
+// that the service did not name gives the notice, or the error when no other
+// config is found (FetchConfigLookup.Find).
+func (s *Service) FetchConfigPath(fs afero.Fs, getenv func(string) string, home string) (path string, explicit bool, notice string, err error) {
 	if s.Fetch.Config != "" {
-		return ResolveAgainst(home, s.Fetch.Config), true
+		return ResolveAgainst(home, s.Fetch.Config), true, "", nil
 	}
-	path, _ = FetchConfigLookup{Getenv: getenv, WorkDir: home, Home: home}.Resolve(fs)
-	return path, false
+	path, notice, err = FetchConfigLookup{
+		Getenv: getenv, WorkDir: home, Home: home,
+		NameIt: "set config = %q under [fetch] in service.toml",
+		Where:  "the home folder",
+	}.Find(fs)
+	return path, false, notice, err
 }
 
 // ResolveAgainst makes a relative path absolute against base; "~/" means home,

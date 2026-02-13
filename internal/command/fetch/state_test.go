@@ -61,9 +61,14 @@ func TestStateCommandsHonorConfigSelection(t *testing.T) {
 
 	for name, discover := range map[string]func(t *testing.T){
 		"environment": func(t *testing.T) { t.Setenv("MAINTAINER_FETCH_CONFIG", cnf) },
-		"working directory": func(t *testing.T) {
+		"user folder": func(t *testing.T) {
 			t.Setenv("MAINTAINER_FETCH_CONFIG", "")
-			t.Chdir(dir)
+			raw, err := os.ReadFile(cnf)
+			require.NoError(t, err)
+			xdg := filepath.Join(dir, "xdg-config")
+			require.NoError(t, os.MkdirAll(filepath.Join(xdg, "maintainer"), 0o700))
+			require.NoError(t, os.WriteFile(filepath.Join(xdg, "maintainer", "fetch.toml"), raw, 0o600))
+			t.Setenv("XDG_CONFIG_HOME", xdg)
 		},
 	} {
 		t.Run(name, func(t *testing.T) {

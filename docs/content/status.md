@@ -205,9 +205,12 @@ Status uses the same configuration as [fetch](/fetch/#configuration), in order:
 
 1. `--config <path>`; `--config=""` disables discovery.
 2. An existing file named by `$MAINTAINER_FETCH_CONFIG`.
-3. `./fetch.toml`, then `./fetch.yaml`.
-4. `$XDG_CONFIG_HOME/maintainer/fetch.toml`, then `fetch.yaml`, falling back to
+3. `$XDG_CONFIG_HOME/maintainer/fetch.toml`, then `fetch.yaml`, falling back to
    `~/.config/maintainer/`.
+
+A `fetch.toml` or `fetch.yaml` in the working directory is not read: status
+prints a notice next to another config and stops with exit `2` without one,
+as [fetch](/fetch/#configuration) does.
 
 A key outside the [config schema](/fetch/#configuration) is invalid
 configuration, as it is for fetch.

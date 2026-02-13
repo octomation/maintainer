@@ -26,7 +26,7 @@ automatically deleted, fetched or moved.
 ## Quickstart
 
 ```bash
-maintainer fetch config init          # write ./fetch.toml (--force to overwrite)
+maintainer fetch config init          # write ~/.config/maintainer/fetch.toml (--force to overwrite)
 maintainer fetch config validate      # parse + structurally check
 
 maintainer fetch                      # plan only — no checkout or state changes
@@ -60,11 +60,25 @@ wins; no discovered file selects the single-run mode above):
 
 1. `--config <path>` (`--config=""` disables file discovery).
 2. An existing file named by `$MAINTAINER_FETCH_CONFIG`.
-3. `./fetch.toml`, then `./fetch.yaml`.
-4. `$XDG_CONFIG_HOME/maintainer/fetch.{toml,yaml}` (fallback `~/.config/maintainer/`).
+3. `$XDG_CONFIG_HOME/maintainer/fetch.{toml,yaml}` (fallback `~/.config/maintainer/`).
 
 An explicit missing `--config` file is an error. `--config=""` disables config
 discovery for fetch and its subcommands; they still use the default state file.
+
+The working directory is never a source of configuration, so a repository or
+an unpacked archive cannot choose what fetch does when you run it there. A
+`fetch.toml` or `fetch.yaml` in the working directory that the run does not
+name is not read. Next to another config, fetch prints a notice and goes on
+with that config; with no other config, it stops with exit `2` instead of the
+single-run mode:
+
+```text
+Error: no fetch config found: fetch.toml in the working directory is not read; to use it, pass --config /Users/me/Development/fetch.toml, set MAINTAINER_FETCH_CONFIG=/Users/me/Development/fetch.toml, or move it to /Users/me/.config/maintainer/fetch.toml
+```
+
+To use such a file, name it with `--config ./fetch.toml` or
+`$MAINTAINER_FETCH_CONFIG`, or move it to the user folder. `--config=""` gives
+no notice.
 
 The keys, their types and defaults are defined by the schema
 [`internal/config/fetch.cue`](https://github.com/octomation/maintainer/blob/main/internal/config/fetch.cue);
@@ -377,7 +391,7 @@ The fetch group also provides these subcommands:
 
 | Command | Behavior |
 | --- | --- |
-| `fetch config init` | Write a TOML template to `./fetch.toml`, or the explicit `--config` path; `--force` overwrites it |
+| `fetch config init` | Write a TOML template to `$XDG_CONFIG_HOME/maintainer/fetch.toml` (fallback `~/.config/maintainer/`), or the explicit `--config` path, and print the path; `--force` overwrites it |
 | `fetch config validate` | Parse and structurally validate an existing config without resolving tokens or calling GitHub |
 | `fetch state show` | Print state as JSON using the configured/default state location |
 | `fetch state prune` | Save state after forgetting missing paths; runs immediately, without `--apply` |
@@ -431,7 +445,8 @@ A usage error stops the command before any request, names its cause in
 stderr and exits `2`: an unknown subcommand, such as `fetch state shwo`, an
 unknown flag, a flag value that does not parse, such as `--timeout=soon`, a
 negative `--concurrency` or `--timeout`, an unknown `--format`, `--token`
-with any value, or an unexpected argument.
+with any value, a `fetch.toml` in the working directory with no other config,
+or an unexpected argument.
 
 A successfully rendered plan exits `0` even when it contains conflicts. For
 automation, inspect `summary.conflict` as well as the exit code.
@@ -442,7 +457,8 @@ automation, inspect `summary.conflict` as well as the exit code.
 a tree laid out as `<root>/{public,private,internal}/<owner>/<repo>`:
 
 ```bash
-cat > fetch.toml <<'EOF'
+mkdir -p ~/.config/maintainer
+cat > ~/.config/maintainer/fetch.toml <<'EOF'
 [workspace]
 root      = "/Users/me/Development"
 pins      = ["prototyping"] # omit if this directory does not exist

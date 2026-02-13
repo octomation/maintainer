@@ -10,15 +10,12 @@ maintainer fetch config init
 maintainer fetch config validate
 ```
 
-`init` writes a documented `./fetch.toml`, or the file `--config` names, and
-refuses to overwrite one without `--force`; don't pass `--force` over the
-user's config. Ask the user to set `workspace.root`, the owners and the token
-source, then validate. To keep the config for every directory, it belongs in
-`~/.config/maintainer/fetch.toml`:
-
-```sh
-maintainer fetch config validate --config ~/.config/maintainer/fetch.toml
-```
+`init` writes a documented `~/.config/maintainer/fetch.toml` (under
+`$XDG_CONFIG_HOME` when it is set), or the file `--config` names, prints the
+path, and refuses to overwrite one without `--force`; don't pass `--force`
+over the user's config. Ask the user to set `workspace.root`, the owners and
+the token source, then validate. A `fetch.toml` in the working directory is
+not read; use it only with `--config` and the user's go-ahead.
 
 ## Plan, review, apply
 

@@ -23,8 +23,11 @@ match = { id = 154873464 }
 path = "~/.dotfiles"
 ```
 
-The config remains `fetch.toml` or `fetch.yaml`, shared by both commands. One
-workspace is supported today; named/multiple workspaces are reserved for later.
+The config remains `fetch.toml` or `fetch.yaml`, shared by both commands. It
+lives in `~/.config/maintainer/`, or is named by `--config` or
+`$MAINTAINER_FETCH_CONFIG`; a config in the working directory is not read
+([lookup](/fetch/#configuration)). One workspace is supported today;
+named/multiple workspaces are reserved for later.
 
 ## Layout is scope
 

@@ -32,7 +32,7 @@ only non-destructive actions, so renames become moves and vanished repositories
 are kept as orphans.
 
 ```bash
-$ maintainer fetch config init && maintainer fetch   # write ./fetch.toml, then plan
+$ maintainer fetch config init && maintainer fetch   # write ~/.config/maintainer/fetch.toml, then plan
 ```
 
 See the [fetch guide][fetch.page] for configuration, profiles, state and exit codes.

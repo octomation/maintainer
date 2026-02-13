@@ -314,9 +314,11 @@ func TestFetchConfigLookup(t *testing.T) {
 		assert.Empty(t, path)
 		assert.True(t, disabled)
 	})
-	t.Run("cwd wins over xdg", func(t *testing.T) {
+	t.Run("cwd is never read", func(t *testing.T) {
 		path, _ := FetchConfigLookup{WorkDir: "/work", Home: "/home/op"}.Resolve(fs)
-		assert.Equal(t, "/work/fetch.toml", path)
+		assert.Equal(t, "/home/op/.config/maintainer/fetch.yaml", path)
+		path, _ = FetchConfigLookup{WorkDir: "/work", Home: "/nope"}.Resolve(fs)
+		assert.Empty(t, path)
 	})
 	t.Run("xdg fallback", func(t *testing.T) {
 		path, _ := FetchConfigLookup{WorkDir: "/nope", Home: "/home/op"}.Resolve(fs)
@@ -326,6 +328,75 @@ func TestFetchConfigLookup(t *testing.T) {
 		getenv := func(k string) string { return map[string]string{EnvFetchConfig: "/work/fetch.toml"}[k] }
 		path, _ := FetchConfigLookup{Getenv: getenv, WorkDir: "/nope", Home: "/nope"}.Resolve(fs)
 		assert.Equal(t, "/work/fetch.toml", path)
+	})
+}
+
+// Find reports a fetch config in the working directory that the run did not
+// name: a notice next to another config, an error without one, and nothing
+// for --config="" or a run that names that file.
+func TestFetchConfigLookupFind(t *testing.T) {
+	fs := afero.NewMemMapFs()
+	require.NoError(t, afero.WriteFile(fs, "/work/fetch.toml", []byte("x"), 0o600))
+	require.NoError(t, afero.WriteFile(fs, "/yaml/fetch.yaml", []byte("x"), 0o600))
+	require.NoError(t, afero.WriteFile(fs, "/home/op/.config/maintainer/fetch.toml", []byte("x"), 0o600))
+	env := func(vars map[string]string) func(string) string { return func(k string) string { return vars[k] } }
+
+	t.Run("notice next to the user config", func(t *testing.T) {
+		path, notice, err := FetchConfigLookup{WorkDir: "/work", Home: "/home/op"}.Find(fs)
+		require.NoError(t, err)
+		assert.Equal(t, "/home/op/.config/maintainer/fetch.toml", path)
+		for _, want := range []string{"/work/fetch.toml", "--config", EnvFetchConfig, "/home/op/.config/maintainer/fetch.toml"} {
+			assert.Contains(t, notice, want)
+		}
+	})
+	t.Run("error without another config", func(t *testing.T) {
+		for _, dir := range []string{"/work", "/yaml"} {
+			path, notice, err := FetchConfigLookup{WorkDir: dir, Home: "/nope"}.Find(fs)
+			require.Error(t, err, dir)
+			assert.Empty(t, path)
+			assert.Empty(t, notice)
+			assert.Contains(t, err.Error(), "no fetch config found")
+			assert.Contains(t, err.Error(), dir+"/fetch.")
+			assert.Contains(t, err.Error(), "/nope/.config/maintainer/fetch.")
+		}
+	})
+	t.Run("explicit empty gives nothing", func(t *testing.T) {
+		path, notice, err := FetchConfigLookup{ExplicitSet: true, WorkDir: "/work", Home: "/nope"}.Find(fs)
+		require.NoError(t, err)
+		assert.Empty(t, path)
+		assert.Empty(t, notice)
+	})
+	t.Run("named file gives nothing", func(t *testing.T) {
+		for name, l := range map[string]FetchConfigLookup{
+			"relative --config": {ExplicitSet: true, Explicit: "./fetch.toml", WorkDir: "/work", Home: "/home/op"},
+			"absolute --config": {ExplicitSet: true, Explicit: "/work/fetch.toml", WorkDir: "/work"},
+			"environment":       {Getenv: env(map[string]string{EnvFetchConfig: "/work/fetch.toml"}), WorkDir: "/work"},
+			"user folder":       {WorkDir: "/home/op/.config/maintainer", Home: "/home/op"},
+		} {
+			_, notice, err := l.Find(fs)
+			require.NoError(t, err, name)
+			assert.Empty(t, notice, name)
+		}
+	})
+	t.Run("another named config gives nothing", func(t *testing.T) {
+		other := "/home/op/.config/maintainer/fetch.toml"
+		for name, l := range map[string]FetchConfigLookup{
+			"--config":    {ExplicitSet: true, Explicit: other, WorkDir: "/work"},
+			"environment": {Getenv: env(map[string]string{EnvFetchConfig: other}), WorkDir: "/work"},
+		} {
+			path, notice, err := l.Find(fs)
+			require.NoError(t, err, name)
+			assert.Equal(t, other, path, name)
+			assert.Empty(t, notice, name)
+		}
+	})
+	t.Run("a missing file in the environment is not a choice", func(t *testing.T) {
+		_, _, err := FetchConfigLookup{Getenv: env(map[string]string{EnvFetchConfig: "/missing.toml"}), WorkDir: "/work"}.Find(fs)
+		require.Error(t, err)
+	})
+	t.Run("the caller names how to pass a config", func(t *testing.T) {
+		_, notice, _ := FetchConfigLookup{WorkDir: "/work", Home: "/home/op", NameIt: "set [fetch] config = %q"}.Find(fs)
+		assert.Contains(t, notice, `to use it, set [fetch] config = "/work/fetch.toml", set `+EnvFetchConfig)
 	})
 }
 

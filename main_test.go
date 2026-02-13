@@ -103,6 +103,18 @@ func TestExecution(t *testing.T) {
 
 	})
 
+	// The working directory is not a source of configuration: a .env there
+	// gives no token.
+	t.Run("no token from .env", func(t *testing.T) {
+		assert.NoError(t, os.WriteFile(".env", []byte("GITHUB_TOKEN=from-dotenv\n"), 0o600))
+		t.Cleanup(func() { _ = os.Remove(".env") })
+		code, out, errs := execute("github", "contribution", "lookup")
+		assert.Equal(t, 2, code)
+		assert.Contains(t, errs, "a GitHub token is required")
+		assert.Contains(t, errs, "please set GITHUB_TOKEN in the environment")
+		assert.Empty(t, out)
+	})
+
 	t.Run("shutdown with panic", func(t *testing.T) {
 		code := -1
 		exit = func(c int) { code = c }

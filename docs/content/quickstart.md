@@ -38,7 +38,7 @@ Contribution commands query GitHub's GraphQL API for **the account owning the to
 export GITHUB_TOKEN=your_token
 ```
 
-The variable applies to later commands in the same shell. Contribution commands read the token only from the environment, not from the command line, where other accounts of the machine can read it. Private contribution details depend on your GitHub permissions and settings.
+The variable applies to later commands in the same shell. Contribution commands read the token only from the environment: not from the command line, where other accounts of the machine can read it, and not from a `.env` file. Private contribution details depend on your GitHub permissions and settings.
 
 ## Plan your next contribution
 

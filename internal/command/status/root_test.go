@@ -132,3 +132,45 @@ func TestLocalProjectsWithOneDirectoryNameSucceed(t *testing.T) {
 		assert.Empty(t, row.Error)
 	}
 }
+
+// status reads no fetch config from the working directory: next to the user
+// config it gives a notice, alone it stops; --config="" gives neither.
+func TestWorkingDirectoryConfigIsNotRead(t *testing.T) {
+	base := t.TempDir()
+	work := filepath.Join(base, "work")
+	root := filepath.Join(base, "root")
+	require.NoError(t, os.MkdirAll(work, 0o700))
+	require.NoError(t, os.MkdirAll(root, 0o700))
+	require.NoError(t, os.WriteFile(filepath.Join(work, "fetch.toml"), []byte("invalid ["), 0o600))
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(base, "config"))
+	t.Setenv("XDG_STATE_HOME", filepath.Join(base, "state"))
+	t.Setenv("MAINTAINER_FETCH_CONFIG", "")
+	t.Chdir(work)
+	run := func(args ...string) (string, error) {
+		cmd := status.New()
+		var out, errs bytes.Buffer
+		cmd.SetOut(&out)
+		cmd.SetErr(&errs)
+		cmd.SetArgs(append(args, "--format=json"))
+		err := cmd.Execute()
+		return errs.String(), err
+	}
+
+	_, err := run()
+	require.Error(t, err)
+	var coded exit.Coder
+	require.ErrorAs(t, err, &coded)
+	assert.Equal(t, exit.User, coded.ExitCode())
+	assert.Contains(t, err.Error(), "no fetch config found: fetch.toml in the working directory is not read")
+
+	errs, err := run("--config=", "--root", root)
+	require.NoError(t, err)
+	assert.NotContains(t, errs, "notice:")
+
+	user := filepath.Join(base, "config", "maintainer", "fetch.toml")
+	require.NoError(t, os.MkdirAll(filepath.Dir(user), 0o700))
+	require.NoError(t, os.WriteFile(user, []byte("[defaults]\nroot = '"+root+"'\n"), 0o600))
+	errs, err = run()
+	require.NoError(t, err)
+	assert.Contains(t, errs, "notice: fetch.toml in the working directory is not read")
+}

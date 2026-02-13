@@ -20,6 +20,17 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
+// gitHub is what a run asks GitHub: the listings, a check by id and a lookup
+// by name.
+type gitHub interface {
+	githubsvc.Discoverer
+	githubsvc.Confirmer
+	githubsvc.NameResolver
+}
+
+// newDiscoverer builds the GitHub side of a run; tests replace it.
+var newDiscoverer = func() gitHub { return githubsvc.NewRESTDiscoverer(githubsvc.DefaultClientFactory) }
+
 // options holds the persistent flag values for the fetch group.
 type options struct {
 	config      string
@@ -117,7 +128,7 @@ func run(cmd *cobra.Command, opts *options) error {
 	home, _ := os.UserHomeDir()
 	cwd, _ := os.Getwd()
 
-	discoverer := githubsvc.NewRESTDiscoverer(githubsvc.DefaultClientFactory)
+	discoverer := newDiscoverer()
 	reporter := fetchsvc.NewReporter(cmd.OutOrStdout(), cmd.ErrOrStderr(), opts.format, opts.verbose, opts.quiet)
 
 	svc, err := fetchsvc.NewService(fcfg, profiles, home, cwd, concurrency, fetchsvc.Deps{
@@ -135,25 +146,37 @@ func run(cmd *cobra.Command, opts *options) error {
 	return svc.Run(ctx, opts.apply)
 }
 
-// configPath resolves the fetch config the same way for every fetch command
-// (§4.1): an explicit --config="" disables discovery, while an omitted flag
-// keeps it. An empty result means no config file.
-func configPath(cmd *cobra.Command, fs afero.Fs, opts *options) string {
+// configPath resolves the fetch config the same way for every fetch command:
+// an explicit --config="" disables discovery, while an omitted flag keeps it.
+// The working directory is never read: a fetch config there gives a notice,
+// or a usage error when no other config is found. An empty result means no
+// config file.
+func configPath(cmd *cobra.Command, fs afero.Fs, opts *options) (string, error) {
 	home, _ := os.UserHomeDir()
 	cwd, _ := os.Getwd()
-	path, _ := config.FetchConfigLookup{
+	path, notice, err := config.FetchConfigLookup{
 		Explicit:    opts.config,
 		ExplicitSet: cmd.Flags().Changed("config"),
 		Getenv:      os.Getenv,
 		WorkDir:     cwd,
 		Home:        home,
-	}.Resolve(fs)
-	return path
+	}.Find(fs)
+	if err != nil {
+		return "", exit.WithUser(err)
+	}
+	if notice != "" {
+		fmt.Fprintf(cmd.ErrOrStderr(), "notice: %s\n", notice)
+	}
+	return path, nil
 }
 
 // loadConfig resolves and loads the fetch config, then validates it (§4).
 func loadConfig(cmd *cobra.Command, fs afero.Fs, opts *options) (*config.Fetch, error) {
-	fcfg, err := config.LoadFetch(fs, configPath(cmd, fs, opts))
+	path, err := configPath(cmd, fs, opts)
+	if err != nil {
+		return nil, err
+	}
+	fcfg, err := config.LoadFetch(fs, path)
 	if err != nil {
 		return nil, exit.WithUser(err)
 	}

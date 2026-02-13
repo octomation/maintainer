@@ -6,7 +6,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"go.octolab.org/toolkit/config"
-	"go.octolab.org/unsafe"
 )
 
 type Git struct {
@@ -30,11 +29,9 @@ type Tool struct {
 }
 
 func (cnf *Tool) init() *Tool {
-	cnf.lazy.Do(func() {
-		v := viper.New()
-		v.SetConfigFile(".env")
-		cnf.config = v
-	})
+	// No file is read: the working directory is not a source of
+	// configuration, so the token comes from the environment only.
+	cnf.lazy.Do(func() { cnf.config = viper.New() })
 	return cnf
 }
 
@@ -44,7 +41,6 @@ func (cnf *Tool) Bind(bind func(*viper.Viper) error) error {
 
 func (cnf *Tool) Load(fs afero.Fs, bindings ...func(*viper.Viper) error) error {
 	v := cnf.init().config
-	v.SetFs(fs)
 	cnf.FS = fs
 
 	for _, bind := range bindings {
@@ -52,7 +48,5 @@ func (cnf *Tool) Load(fs afero.Fs, bindings ...func(*viper.Viper) error) error {
 			return err
 		}
 	}
-	unsafe.Ignore(v.ReadInConfig())
-
 	return v.Unmarshal(cnf)
 }
