@@ -124,7 +124,7 @@ func (rt forbidden) RoundTrip(req *http.Request) (*http.Response, error) {
 
 // TestCommands_NoToken runs the commands that need GitHub data without
 // a token: they fail with a user input error before any request and name
-// both ways to pass it.
+// GITHUB_TOKEN as the only way to pass it.
 func TestCommands_NoToken(t *testing.T) {
 	type command = func(*cobra.Command, *config.Tool) *cobra.Command
 
@@ -155,7 +155,7 @@ func TestCommands_NoToken(t *testing.T) {
 			err := cmd.ExecuteContext(offline(t))
 			require.ErrorIs(t, err, ErrNoToken)
 			assert.Contains(t, err.Error(), "GITHUB_TOKEN")
-			assert.Contains(t, err.Error(), "--token")
+			assert.NotContains(t, err.Error(), "--token")
 			assert.Empty(t, stdout.String())
 			var coder exit.Coder
 			require.ErrorAs(t, err, &coder)

@@ -37,7 +37,7 @@ var rfc3339 = regexp.MustCompile(
 const tokenNote = `
 The contribution calendar is read through the GitHub GraphQL API for
 the owner of the token, which is required even for a public profile:
-set GITHUB_TOKEN or pass --token. The days are counted as the profile
+set GITHUB_TOKEN in the environment. The days are counted as the profile
 counts them, by UTC dates, wherever the machine and the account are.
 The events of each month are kept in $XDG_CACHE_HOME/maintainer/contributions,
 or ~/.cache without it, and a month is fetched again when its total changes.`
@@ -45,7 +45,7 @@ or ~/.cache without it, and a month is fetched again when its total changes.`
 // ErrNoToken reports a command that needs GitHub data, but has no token.
 var ErrNoToken = errors.New(
 	"a GitHub token is required: the contribution calendar is read through the GitHub GraphQL API, " +
-		"which needs one even for a public profile; please set GITHUB_TOKEN or pass --token",
+		"which needs one even for a public profile; please set GITHUB_TOKEN in the environment",
 )
 
 // NewService returns the GitHub service of the commands: authorized by the

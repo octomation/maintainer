@@ -11,8 +11,8 @@ import (
 	fetchsvc "go.octolab.org/toolset/maintainer/internal/service/fetch"
 )
 
-// --token reaches the first selected profile, never the first configured one
-// or every profile; --owner matches configured owners regardless of case.
+// Each selected profile takes its own token; --owner matches configured
+// owners regardless of case.
 func TestResolveProfilesSelection(t *testing.T) {
 	t.Setenv("GITHUB_TOKEN", "")
 	t.Setenv("ALPHA_TOKEN", "alpha")
@@ -25,20 +25,13 @@ func TestResolveProfilesSelection(t *testing.T) {
 		opts options
 		want []fetchsvc.ResolvedProfile
 	}{
-		"--profile beta --token T": {
-			opts: options{profiles: []string{"beta"}, token: "T"},
-			want: []fetchsvc.ResolvedProfile{{Name: "beta", Token: "T", Owners: []string{"acme-bot", "ACME"}}},
+		"--profile beta": {
+			opts: options{profiles: []string{"beta"}},
+			want: []fetchsvc.ResolvedProfile{{Name: "beta", Token: "beta", Owners: []string{"acme-bot", "ACME"}}},
 		},
-		"--token T": {
-			opts: options{token: "T"},
-			want: []fetchsvc.ResolvedProfile{
-				{Name: "alpha", Token: "T", Owners: []string{"Acme"}},
-				{Name: "beta", Token: "beta", Owners: []string{"acme-bot", "ACME"}},
-			},
-		},
-		"--owner acme-bot --token T": {
-			opts: options{owners: []string{"Acme-Bot"}, token: "T"},
-			want: []fetchsvc.ResolvedProfile{{Name: "beta", Token: "T", Owners: []string{"acme-bot"}}},
+		"--owner acme-bot": {
+			opts: options{owners: []string{"Acme-Bot"}},
+			want: []fetchsvc.ResolvedProfile{{Name: "beta", Token: "beta", Owners: []string{"acme-bot"}}},
 		},
 		"--owner acme": {
 			opts: options{owners: []string{"acme"}},

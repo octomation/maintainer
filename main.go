@@ -44,7 +44,13 @@ func main() {
 	root.SetOut(stdout)
 	command.EnforceUsage(root)
 
-	safe.Do(func() error { return root.ExecuteContext(ctx) }, shutdown)
+	safe.Do(func() error {
+		if err := command.RejectToken(os.Args[1:]); err != nil {
+			root.PrintErrln("Error:", err.Error())
+			return err
+		}
+		return root.ExecuteContext(ctx)
+	}, shutdown)
 }
 
 func shutdown(err error) {

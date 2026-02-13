@@ -32,17 +32,13 @@ go install go.octolab.org/toolset/maintainer@latest
 
 ## Give it a GitHub token
 
-Contribution commands query GitHub's GraphQL API for **the account owning the token**. A token is required even when that profile is public. Use either form:
+Contribution commands query GitHub's GraphQL API for **the account owning the token**. A token is required even when that profile is public. Set it in the environment:
 
 ```sh
-# Option 1: reuse the token in this shell
 export GITHUB_TOKEN=your_token
-
-# Option 2: pass it for one command
-maintainer github --token=your_token contribution lookup now/-3
 ```
 
-The environment variable applies to later commands in the same shell. `--token` applies to one command and may remain in shell history. Private contribution details depend on your GitHub permissions and settings.
+The variable applies to later commands in the same shell. Contribution commands read the token only from the environment, not from the command line, where other accounts of the machine can read it. Private contribution details depend on your GitHub permissions and settings.
 
 ## Plan your next contribution
 

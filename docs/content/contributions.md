@@ -5,7 +5,7 @@ description: See your contribution pace and choose where to focus your next open
 
 # GitHub contributions
 
-Use your contribution calendar as a record of visible activity: read recent weeks, identify a lighter day, and choose a target for your next open source session. These commands read the account identified by `GITHUB_TOKEN` or `--token` through GitHub's GraphQL API. They make no changes to your profile or repositories.
+Use your contribution calendar as a record of visible activity: read recent weeks, identify a lighter day, and choose a target for your next open source session. These commands read the account identified by `GITHUB_TOKEN` in the environment through GitHub's GraphQL API. They make no changes to your profile or repositories.
 
 ```sh
 export GITHUB_TOKEN=your_token
@@ -28,7 +28,7 @@ maintainer github contribution lookup 2026-01-12/4
 
 Each day shows what the calendar of that year on your profile shows, wherever you and your computer are: a pull request review, an opened issue or pull request, and a created repository count on their UTC date, and commits on the date they carry. A pull request you reviewed more than once in a year counts once, on the day of the latest review, as on the profile.
 
-The table lets you compare days across weeks. Weeks start on Sunday, and the week that contains January 1 is `#01`. A `-` is a day with no contributions; a `?` marks a future day in the displayed window. The final Date column locates each row in the last week. The footer counts the shown past days by their number of contributions: here 19 days had 15. Counts show GitHub activity, not the value or difficulty of the work. Without a token, the command fails before any request and names `GITHUB_TOKEN` and `--token`.
+The table lets you compare days across weeks. Weeks start on Sunday, and the week that contains January 1 is `#01`. A `-` is a day with no contributions; a `?` marks a future day in the displayed window. The final Date column locates each row in the last week. The footer counts the shown past days by their number of contributions: here 19 days had 15. Counts show GitHub activity, not the value or difficulty of the work. Without a token, the command fails before any request and names `GITHUB_TOKEN`.
 
 ## See your recent pace
 
@@ -61,7 +61,7 @@ maintainer github contribution snapshot 2026 > before.json
 maintainer github contribution diff before.json 2026
 ```
 
-`snapshot` writes a JSON object of UTC dates and daily counts for one calendar year, cut at now. Without a year it uses the current year. `diff` takes **base then head**: each argument is either a snapshot file or a four-digit year fetched from GitHub. It prints a row for each day that differs, with a signed difference:
+`snapshot` writes a JSON object of UTC dates and daily counts for one calendar year, cut at now. Without a year it uses the current year. `diff` takes **base then head**: each argument is either a snapshot file or a four-digit year fetched from GitHub. An argument that is `--token` or starts with `--token=` is refused, because the flag is removed: write a snapshot file of that name as `./--token…`. It prints a row for each day that differs, with a signed difference:
 
 ```text
  Day          before   after   diff

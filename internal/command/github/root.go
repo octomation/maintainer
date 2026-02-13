@@ -17,18 +17,15 @@ func New(cnf *config.Tool) *cobra.Command {
 		Long:  "Allows to work with GitHub repositories and automate routine.",
 	}
 
+	// The retired --token stays known to the parser, so that the root
+	// command refuses it as a usage error; its value is never read.
 	set := command.PersistentFlags()
-	set.String("token", "", "personal access token")
-
+	set.String("token", "", "retired: set GITHUB_TOKEN")
 	fn.Must(
+		func() error { return set.MarkHidden("token") },
 		func() error {
 			return cnf.Bind(func(v *viper.Viper) error {
 				return v.BindEnv("GITHUB_TOKEN")
-			})
-		},
-		func() error {
-			return cnf.Bind(func(v *viper.Viper) error {
-				return v.BindPFlag("github_token", set.Lookup("token"))
 			})
 		},
 	)

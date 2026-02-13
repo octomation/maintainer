@@ -65,8 +65,8 @@ This skill describes maintainer `>=0.5.0 <0.6.0`. Before anything else:
   when they agree. Each `--apply` builds a fresh plan; it never replays a
   plan printed earlier.
 - **Tokens stay secret.** Never print `GITHUB_TOKEN`, a `token_file` or an
-  inline `token`, and don't put a token on the command line with `--token`:
-  it stays in shell history. Ask the user to export the variable or set
+  inline `token`, and never put a token on the command line: `--token` is
+  removed and exits `2`. Ask the user to export the variable or set
   `token_file` themselves.
 - **Leave the checkouts to Git and the user.** maintainer never pushes,
   merges, resets or deletes, and neither should you on its behalf: don't

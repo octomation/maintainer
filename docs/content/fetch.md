@@ -44,7 +44,7 @@ before running fetch. Fetch requires network access and a token, including
 public-only discovery; [status](/status/) works offline without credentials.
 The root command accepts flags and no positional arguments.
 
-Without a config file, provide an owner and set `GITHUB_TOKEN` (or `--token`):
+Without a config file, provide an owner and set `GITHUB_TOKEN`:
 
 ```bash
 maintainer fetch --config="" --owner acme       # plan under the current directory
@@ -229,8 +229,11 @@ Use [`maintainer status`](/status/) to inspect local branches and divergence.
 A profile is a `(token, owners)` pair. Token resolution order (per profile):
 `token_file` (must be ≤ `0600`) → `token_env` (default `GITHUB_TOKEN` for the
 first profile in alphabetical order) → inline `token` (warns).
-`--token` overrides token resolution for the first selected profile in that
-order, or supplies the token in single-run mode. When the same repo is visible from two
+Single-run mode takes the token from `GITHUB_TOKEN`. A token never goes on the
+command line, where other accounts of the machine can read it: `--token` is
+removed, and a run that passes it stops with exit `2`. So does any argument that
+is `--token` or starts with `--token=`; write a file of that name as
+`./--token…`. When the same repo is visible from two
 profiles, the broader-visibility snapshot wins (private > public); the winning
 profile's credentials/transport are used and recorded.
 
@@ -410,7 +413,6 @@ as `~/Development-old`, and collapses routine fetches into the summary.
 | `--config <path>`       | auto    | `--config=""` disables discovery                 |
 | `--profile <name>…`     | all     | limit this run to these profiles                 |
 | `--owner <name>…`       | all     | limit this run to these owners                   |
-| `--token <token>`      | resolved | token for the first selected profile            |
 | `--format human\|json`  | human   | plan output (logs always go to stderr)           |
 | `--concurrency <n>`     | `0`     | positive parallel discovery/clone/fetch cap; `0` uses config (default `4`) |
 | `--timeout <dur>`       | `0`     | wall-clock budget; `0` is unlimited              |
@@ -428,8 +430,8 @@ as `~/Development-old`, and collapses routine fetches into the summary.
 A usage error stops the command before any request, names its cause in
 stderr and exits `2`: an unknown subcommand, such as `fetch state shwo`, an
 unknown flag, a flag value that does not parse, such as `--timeout=soon`, a
-negative `--concurrency` or `--timeout`, an unknown `--format`, or an
-unexpected argument.
+negative `--concurrency` or `--timeout`, an unknown `--format`, `--token`
+with any value, or an unexpected argument.
 
 A successfully rendered plan exits `0` even when it contains conflicts. For
 automation, inspect `summary.conflict` as well as the exit code.

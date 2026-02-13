@@ -62,6 +62,47 @@ func TestExecution(t *testing.T) {
 		}
 	})
 
+	// --token is retired: hidden from the help, and any use of it, with any
+	// value, stops in the root hook, before a command runs or sends a request.
+	// The arguments are checked before cobra runs, so --help and a group
+	// without a subcommand refuse it too.
+	t.Run("retired token flag", func(t *testing.T) {
+		t.Setenv("GITHUB_TOKEN", "environment")
+		for _, args := range [][]string{{"fetch"}, {"github"}} {
+			_, out, _ := execute(append(args, "--help")...)
+			assert.NotContainsf(t, out, "--token", "%v --help hides --token", args)
+		}
+		for _, args := range [][]string{
+			{"fetch", "--token=x"},
+			{"fetch", "--token=x", "--help"},
+			{"fetch", "--help", "--token=x"},
+			{"-h", "fetch", "--token", "x"},
+			{"fetch", "-h", "--token="},
+			{"fetch", "--config=", "--format", "--token"},
+			{"fetch", "--config", "--", "--token=x", "--help"},
+			{"github", "contribution", "lookup", "--", "--token=x"},
+			{"fetch", "--token", "x"},
+			{"fetch", "--token="},
+			{"github", "--token=x"},
+			{"fetch", "--token", "x", "--owner", "acme"},
+			{"fetch", "--token=x", "config", "init"},
+			{"fetch", "--token=x", "state", "show"},
+			{"github", "--token=x", "contribution", "lookup"},
+			{"github", "--token=", "contribution", "lookup"},
+			{"github", "contribution", "--token=x", "histogram", "2021"},
+		} {
+			code, out, errs := execute(args...)
+			assert.Equalf(t, 2, code, "%v exits with a usage error", args)
+			assert.Containsf(t, errs, "--token is removed", "%v names the cause", args)
+			assert.Containsf(t, errs, "set GITHUB_TOKEN", "%v names the replacement", args)
+			assert.NotContainsf(t, errs+out, "=x", "%v never prints the value", args)
+			assert.Emptyf(t, out, "%v prints nothing to stdout", args)
+		}
+		_, err := os.Stat("fetch.toml")
+		assert.True(t, os.IsNotExist(err), "a refused config init writes nothing")
+
+	})
+
 	t.Run("shutdown with panic", func(t *testing.T) {
 		code := -1
 		exit = func(c int) { code = c }

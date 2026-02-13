@@ -30,7 +30,7 @@ type options struct {
 	timeout     time.Duration
 	verbose     int
 	quiet       bool
-	token       string
+	token       string // the retired --token; never read
 	apply       bool
 }
 
@@ -60,7 +60,8 @@ func New(_ *config.Tool) *cobra.Command {
 	set.DurationVar(&opts.timeout, "timeout", 0, "wall-clock budget for the whole command")
 	set.CountVarP(&opts.verbose, "verbose", "v", "increase verbosity (-v, -vv, -vvv)")
 	set.BoolVarP(&opts.quiet, "quiet", "q", false, "suppress everything below error on stderr")
-	set.StringVar(&opts.token, "token", "", "personal access token for the first selected profile")
+	set.StringVar(&opts.token, "token", "", "retired: set GITHUB_TOKEN or token_env of a profile")
+	_ = set.MarkHidden("token")
 
 	command.Flags().BoolVar(&opts.apply, "apply", false, "execute the plan (default: plan only)")
 

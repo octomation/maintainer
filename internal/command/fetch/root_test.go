@@ -33,7 +33,10 @@ func TestNew(t *testing.T) {
 		assert.Containsf(t, usage, "limit this run to", "--%s names what it narrows", name)
 		assert.Containsf(t, usage, "others are left alone", "--%s names what it skips", name)
 	}
-	assert.Contains(t, cmd.PersistentFlags().Lookup("token").Usage, "first selected profile")
+	// --token is retired: known to the parser, hidden from the help.
+	require.NotNil(t, cmd.PersistentFlags().Lookup("token"))
+	assert.True(t, cmd.PersistentFlags().Lookup("token").Hidden)
+	assert.NotContains(t, cmd.UsageString(), "--token")
 
 	// subcommands.
 	names := map[string]bool{}

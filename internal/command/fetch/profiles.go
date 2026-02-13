@@ -15,7 +15,6 @@ import (
 
 // resolveProfiles turns the config and CLI scope into profiles with resolved
 // tokens (§4.1 no-config behavior, §5 profile model and token sources).
-// --token applies to the first selected profile only.
 func resolveProfiles(fs afero.Fs, fcfg *config.Fetch, opts *options, warn io.Writer) ([]fetchsvc.ResolvedProfile, error) {
 	ownerFilter := toSet(opts.owners, strings.ToLower)
 	profileFilter := toSet(opts.profiles, nil)
@@ -25,12 +24,9 @@ func resolveProfiles(fs afero.Fs, fcfg *config.Fetch, opts *options, warn io.Wri
 		if len(opts.owners) == 0 {
 			return nil, exit.WithUser(fmt.Errorf("not configured: provide a fetch config (fetch config init) or --owner"))
 		}
-		token := opts.token
+		token := os.Getenv(config.DefaultTokenEnv)
 		if token == "" {
-			token = os.Getenv(config.DefaultTokenEnv)
-		}
-		if token == "" {
-			return nil, exit.WithUser(fmt.Errorf("a token is required (set --token or $%s), even for public-only discovery", config.DefaultTokenEnv))
+			return nil, exit.WithUser(fmt.Errorf("a token is required (set $%s), even for public-only discovery", config.DefaultTokenEnv))
 		}
 		return []fetchsvc.ResolvedProfile{{Name: "default", Token: token, Owners: opts.owners}}, nil
 	}
@@ -64,9 +60,6 @@ func resolveProfiles(fs afero.Fs, fcfg *config.Fetch, opts *options, warn io.Wri
 			fallbackEnv = config.DefaultTokenEnv // only the first profile defaults to GITHUB_TOKEN (§5.2)
 		}
 		token, warning, err := np.ResolveToken(fs, os.Getenv, fallbackEnv)
-		if len(out) == 0 && opts.token != "" {
-			token, warning, err = opts.token, "", nil
-		}
 		if err != nil {
 			return nil, exit.WithUser(fmt.Errorf("profile %q: %w", np.Name, err))
 		}
