@@ -49,7 +49,7 @@ jobs:
 
     steps:
       - name: Delete workflow runs
-        uses: Mattraks/delete-workflow-runs@v2.1.0
+        uses: Mattraks/delete-workflow-runs@b3018382ca039b53d238908238bd35d1fb14f8ee # v2.1.0
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
@@ -71,7 +71,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
 
       - name: Send notification

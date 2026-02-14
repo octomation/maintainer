@@ -53,10 +53,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
       - name: Set up Node.js environment
-        uses: actions/setup-node@v7.1.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -65,7 +65,7 @@ jobs:
       - name: Set up GitHub Pages
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         id: pages
-        uses: actions/configure-pages@v6.0.0
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       # the build bakes the base path and the origin in: refuse a domain
       # that .github/settings.json does not expect
       - name: Check the Pages domain
@@ -87,7 +87,7 @@ jobs:
           BASE_PATH: ${{ steps.pages.outputs.base_path || env.BASE_PATH }}
           SITE_URL: ${{ steps.pages.outputs.base_url || env.SITE_URL }}
       - name: Upload the documentation
-        uses: actions/upload-pages-artifact@v5.0.0
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with: { path: docs/dist }
 
   deploy:
@@ -106,9 +106,9 @@ jobs:
     steps:
       - name: Deploy it to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v5.0.1
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Pages may serve the previous deployment for a few minutes: retries 20×15s
       - name: Smoke-test the site
         env:
@@ -123,7 +123,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
 
       - name: Send notification

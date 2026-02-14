@@ -45,10 +45,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
       - name: Set up Go environment
-        uses: actions/setup-go@v7.1.0
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: ${{ matrix.go }}
           check-latest: true
@@ -63,10 +63,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
       - name: Set up Node.js environment
-        uses: actions/setup-node@v7.1.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -82,10 +82,10 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
       - name: Set up Go environment
-        uses: actions/setup-go@v7.1.0
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: 1.27.x
           cache-dependency-path: tools/go.sum
@@ -100,11 +100,11 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
       - name: Set up Go environment
         id: go
-        uses: actions/setup-go@v7.1.0
+        uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
         with:
           go-version: 1.27.x
           cache: false
@@ -112,7 +112,7 @@ jobs:
       # the same key as the release job in cd.yml
       - name: Restore the release build cache
         id: cache
-        uses: actions/cache/restore@v6.1.0
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cache/go-build
@@ -125,7 +125,7 @@ jobs:
       # GOBIN, not bin/, and a different version could build differently
       - name: Build all release targets
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: goreleaser/goreleaser-action@v7.3.0
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
         with:
           distribution: goreleaser
           version: v2.18.2
@@ -137,7 +137,7 @@ jobs:
         run: make tools source-check test
       - name: Save the release build cache
         if: steps.cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v6.1.0
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: |
             ~/.cache/go-build
@@ -154,7 +154,7 @@ jobs:
 
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with: { fetch-depth: 0 }
 
       - name: Send notification

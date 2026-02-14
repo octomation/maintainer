@@ -30,9 +30,13 @@ flowchart LR
 
 ## Common ground
 
-- All external actions use concrete release tags; Dependabot checks the
-  `github-actions` ecosystem daily. Review upstream changes and the action
-  contract before accepting an update.
+- Every action outside the owner's organization, `actions/*` included, is
+  pinned to the full commit SHA of its release tag, with the tag in a
+  trailing comment: `uses: owner/action@<sha> # v1.2.3`. A moved tag cannot
+  change the code that runs with a token. Actions of `octomation/*` are
+  pinned to a release tag. Dependabot checks the `github-actions` ecosystem
+  daily and proposes updates, the SHA and its comment together. Review
+  upstream changes and the action contract before accepting an update.
 - GitHub-hosted Ubuntu runners (`ubuntu-24.04`) supply the runtime the actions need.
 - Go follows the current stable release: `go.mod`, `tools/go.mod`, `GO_VERSIONS`
   in the `Makefile` and every `setup-go` move together; tests also run on `1.x`.
