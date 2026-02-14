@@ -42,7 +42,8 @@ func TestService_FetchContributions(t *testing.T) {
 // TestService_FetchContributions_ProfileDays covers MAIN-159: the calendar of
 // the API put the reviews of these days on the dates of the account's time
 // zone, 0, 30 and 15 in Tokyo, while the profile shows 15 a day. The year is
-// 2024, whose contributions no longer change, unlike the ones still filled in.
+// 2024. The owner still fills in its history, so the total grows: update it
+// to what the profile shows until the year is complete.
 func TestService_FetchContributions_ProfileDays(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
@@ -58,7 +59,7 @@ func TestService_FetchContributions_ProfileDays(t *testing.T) {
 	for _, count := range chm {
 		total += count
 	}
-	assert.Equal(t, uint(5910), total)
+	assert.Equal(t, uint(5990), total)
 }
 
 // TestService_FetchContributions_Consistency covers issue#457: the profile HTML
