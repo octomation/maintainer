@@ -25,19 +25,42 @@
       return 1
     fi
 
+    # the file holds tokens: only the owner reads it, and the value goes
+    # through shell builtins only, never into the arguments of a process
     if [ ! -f .env ]; then
-      echo "${key}=${value}" >.env
+      (umask 077 && printf '%s\n' "${key}=${value}" >.env) || return 1
       export "${key}"="${value}"
       return 0
     fi
+
+    chmod 600 .env || return 1
 
     if ! grep -q "^${key}=" .env; then
-      echo "${key}=${value}" >>.env
+      printf '%s\n' "${key}=${value}" >>.env || return 1
       export "${key}"="${value}"
       return 0
     fi
 
-    @sed -i "s|^${key}=.*|${key}=${value}|g" .env
+    local tmp=".env.${$}.${RANDOM}" code=0
+    (
+      umask 077
+      set -o noclobber # O_EXCL: never write into a file that already exists
+      exec 3>"${tmp}" || exit 2
+      line='' eol=''
+      while IFS= read -r line && eol=$'\n' || { [ -n "${line}" ] && eol=''; }; do
+        [[ "${line}" == "${key}="* ]] && line="${key}=${value}"
+        printf '%s%s' "${line}" "${eol}" >&3 || exit 1
+      done <.env
+    ) || code=$?
+    if [ "${code}" != 0 ]; then
+      [ "${code}" = 2 ] || rm -f "${tmp}"
+      @error cannot update .env
+      return 1
+    fi
+    mv -f "${tmp}" .env || {
+      rm -f "${tmp}"
+      return 1
+    }
     export "${key}"="${value}"
     ;;
 
