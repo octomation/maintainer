@@ -129,8 +129,9 @@ flowchart TB
 - **A release is a curated note plus a tag.** Write `docs/content/changelog/<tag>.md`:
   frontmatter `title` and `description`, the first line `# <title>`, Markdown
   and HTML, no MDX, site-relative links. Commit it, tag the commit with a
-  signed tag, run `make release-check TAG=<tag>`, then push the branch and the
-  tag in one go: `git push --atomic origin main <tag>`.
+  signed tag, run `make clean-check CHECKS=release-check TAG=<tag>`, which runs
+  `make release-check` on a clean worktree of the tag, then push the branch and
+  the tag in one go: `git push --atomic origin main <tag>`.
 - **Guardrails come first and fail in seconds.** `make release-check` checks the
   tag against the local branch, before it is pushed, together with tidy modules
   and the GoReleaser config. The `pre-push` hook (`.github/hooks`, wired by

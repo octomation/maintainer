@@ -145,11 +145,14 @@ make web-check
 On the candidate commit, with `GITHUB_TOKEN` set:
 
 ```sh
-make verify
-make go-integration-test
-make go-dist-check
-make release-config-check
+make clean-check
 ```
+
+It runs `make verify`, `make go-integration-test`, `make go-dist-check` and
+`make release-config-check` on a clean worktree of `HEAD`, with the pinned
+tools of this tree, so uncommitted work, such as another session's, neither
+blocks the checks nor slips into them. A failure stops the release until its
+cause is fixed or the owner accepts it as unrelated to the release.
 
 `make release-config-check` accepts exactly the GoReleaser `brews`
 deprecation and nothing else: `brews` ships the CLI and the macOS service as
@@ -336,12 +339,14 @@ Then the maintainer runs one line, which the agent hands over with the
 release commit:
 
 ```sh
-git tag -s vX.Y.Z -F .agents/release/vX.Y.Z/annotation.txt && git tag -v vX.Y.Z && make release-check TAG=vX.Y.Z && git push --atomic origin main vX.Y.Z
+git tag -s vX.Y.Z -F .agents/release/vX.Y.Z/annotation.txt && git tag -v vX.Y.Z && make clean-check CHECKS=release-check TAG=vX.Y.Z && git push --atomic origin main vX.Y.Z
 ```
 
 Run it on `main` with the release commit checked out: `make release-check`
 checks the tag against the branch you are about to push, as the `pre-push`
 hook does, together with tidy modules and the GoReleaser config.
+`clean-check` runs it on a clean worktree of the tag, so the tree may hold
+uncommitted work that is not part of the release.
 
 `git tag -v` must report a good signature from a key GitHub knows for your
 email: `cd` checks that GitHub verifies the tag before anything is published,

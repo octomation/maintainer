@@ -361,6 +361,17 @@ release-check: config-vet
 	$(AT) $(MAKE) release-config-check
 .PHONY: release-check
 
+# runs CHECKS on a clean worktree of TAG, or of HEAD without a tag, with the
+# pinned tools of this tree: work that is not committed here, such as another
+# session's, neither blocks the checks nor slips into them
+CHECKS ?= verify go-integration-test go-dist-check release-config-check
+clean-check:
+	$(AT) dir="$$(mktemp -d)/maintainer"; \
+		git worktree add -q --detach "$$dir" "$(or $(TAG),HEAD)" || exit 1; \
+		$(MAKE) -C "$$dir" $(CHECKS) TAG=$(TAG) GOBIN=$(GOBIN) PWD="$$dir"; status=$$?; \
+		git worktree remove --force "$$dir"; exit $$status
+.PHONY: clean-check
+
 go-dist-clean:
 	$(AT) rm -rf dist
 .PHONY: go-dist-clean
