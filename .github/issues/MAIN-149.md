@@ -61,4 +61,4 @@ A config migration; editor integration of the schema. Owner selection itself is 
 
 ## Sources
 
-- [[20261019T105848Z#F5. Unknown configuration keys are accepted silently]]
+- [F5. Unknown configuration keys are accepted silently](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20261019T105848Z.md#f5-unknown-configuration-keys-are-accepted-silently)

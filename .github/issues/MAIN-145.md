@@ -40,7 +40,7 @@ closedAt: 2026-10-20T12:33:07Z
 - Paths in human output are shortened only when `workspace.Within(root, path)` holds, by path component.
 - Tests: a templated pin applied twice exits `0` on the second run; changing an existing pin switches to the other checkout and keeps the previous path in diagnostics; a name-based rule without state resolves; an id-only templated rule without state is unresolved; a sibling path outside the root is printed in full.
 
-**Evidence:** findings 7 (`internal/service/fetch/service.go:141`, `pinned.go:15`), 16 (`internal/service/status/service.go:99`), 22 (`internal/service/fetch/planner.go:278`) and 24 (`internal/service/fetch/reporter.go:244`) of [the code review](../reviews/20260926T071417Z.md), reproduced on `932b9c8`.
+**Evidence:** findings 7 (`internal/service/fetch/service.go:141`, `pinned.go:15`), 16 (`internal/service/status/service.go:99`), 22 (`internal/service/fetch/planner.go:278`) and 24 (`internal/service/fetch/reporter.go:244`) of [the code review](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md), reproduced on `932b9c8`.
 
 **PoC**
 

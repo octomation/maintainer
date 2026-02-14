@@ -70,4 +70,4 @@ Linked worktrees as checkouts of their own: discovering, adopting or moving them
 
 ## Sources
 
-- [[20261019T105848Z#F2. Moving a checkout breaks its linked worktrees]]
+- [F2. Moving a checkout breaks its linked worktrees](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20261019T105848Z.md#f2-moving-a-checkout-breaks-its-linked-worktrees)

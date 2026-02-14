@@ -37,7 +37,7 @@ closedAt: 2026-10-21T04:49:30Z
 - When the filter hides the anchor, sorting keeps the highlighted row, and the original anchor is restored once the filter is cleared unless another row was selected. The selection fix and the summary are separate commits.
 - `status.md` documents the summary and its meaning.
 
-**Evidence:** the plain header at `internal/service/status/view.go:125` counts only checkouts; finding 28 of [the code review](../reviews/20260926T071417Z.md) (`internal/service/status/terminal.go:78`) reproduced the moving highlight with a model test.
+**Evidence:** the plain header at `internal/service/status/view.go:125` counts only checkouts; finding 28 of [the code review](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md) (`internal/service/status/terminal.go:78`) reproduced the moving highlight with a model test.
 
 **PoC**
 

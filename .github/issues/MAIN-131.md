@@ -37,7 +37,7 @@ closedAt: 2026-10-21T04:48:59Z
 - A flag parse error and an invalid argument exit `2`; a negative `--concurrency` is rejected by both commands instead of being replaced by the config value; an unknown `--format` is rejected by `fetch` as it is by `status`, before any request, instead of falling back to the human output.
 - The exit-code tables in `fetch.md` and `status.md` promise `2` for every usage error and stay true.
 
-**Evidence:** findings 17 (`internal/command/root.go:20`, `main_test.go:21`) and 18 (`main.go:59`, `internal/command/fetch/root.go:104`, `docs/content/fetch.md:299`, `docs/content/status.md:217`) of [the code review](../reviews/20260926T071417Z.md), reproduced on `932b9c8`; the `--format` case comes from [the issue review of 2026-10-19](../reviews/20261019T105848Z.md#main-131-exit-codes-of-usage-errors).
+**Evidence:** findings 17 (`internal/command/root.go:20`, `main_test.go:21`) and 18 (`main.go:59`, `internal/command/fetch/root.go:104`, `docs/content/fetch.md:299`, `docs/content/status.md:217`) of [the code review](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md), reproduced on `932b9c8`; the `--format` case comes from [the issue review of 2026-10-19](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20261019T105848Z.md#main-131-exit-codes-of-usage-errors).
 
 **PoC**
 

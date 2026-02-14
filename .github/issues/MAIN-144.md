@@ -38,7 +38,7 @@ closedAt: 2026-10-20T12:33:06Z
 - Recoverable scan errors preserve every reachable result and identify the unreadable path. The incompleteness is observable outside stderr: `status` emits an error row for the obstruction (its path, `status: error`, `error: scan: …`) and exits `1` under the existing rule for error rows; `fetch` emits a report-only `conflict` action with the path and the reason, counted in `summary.conflict`. Pins keep their recursive semantics from the workspace specification §2: the walk stops at discovered checkouts, and no depth bound is introduced.
 - A `.git` at a prefix level of the layout is reported as an obstruction row in the same form, and the walk continues past it, so checkouts below stay visible.
 
-**Evidence:** finding 1 of [the gpt-6 review](../reviews/20260926T071223Z.md) (`internal/service/fetch/occupancy.go:29`, `internal/service/git/sync.go:35`) and findings 10 (`internal/service/fetch/planner.go:472`), 15 (`internal/service/workspace/scope.go:89`) and 25 (`internal/service/workspace/scope.go:143`) of [the code review](../reviews/20260926T071417Z.md), all reproduced on `932b9c8`.
+**Evidence:** finding 1 of [the gpt-6 review](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071223Z.md) (`internal/service/fetch/occupancy.go:29`, `internal/service/git/sync.go:35`) and findings 10 (`internal/service/fetch/planner.go:472`), 15 (`internal/service/workspace/scope.go:89`) and 25 (`internal/service/workspace/scope.go:143`) of [the code review](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md), all reproduced on `932b9c8`.
 
 **PoC**
 

@@ -61,4 +61,4 @@ Resuming a partial transfer; retries within one run; deleting partial checkouts.
 
 ## Sources
 
-- [[20261019T105848Z#F3. An interrupted clone is adopted as a checkout]]
+- [F3. An interrupted clone is adopted as a checkout](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20261019T105848Z.md#f3-an-interrupted-clone-is-adopted-as-a-checkout)

@@ -35,7 +35,7 @@ closedAt: 2026-10-20T12:30:23Z
 - The right to write to the tap is proved by the credential that publishes, not by a read: `cd` mints a token from the OctoLab Releaser App, scoped to the tap with contents write, in its "Mint the tap token" step before anything is published ([[MAIN-140]]), and `doctor` mints it the same way. A refused mint stops the release with a message that names the App installation and the tap; `permissions.push` of a personal token is no longer checked.
 - `make release-config-check` still accepts exactly the `brews` deprecation and nothing else.
 
-**Evidence:** findings 5 (assessed by reading the configuration and the GoReleaser source, consistent with `gh release view v0.1.0-rc11` reporting `"isPrerelease": false`) and 33 (reproduced with an unauthenticated read; a valid read-only token was not tested) of [the code review of 2026-09-26](../reviews/20260926T071417Z.md) — `.goreleaser.yml:93`, `.github/scripts/release.mjs:365`.
+**Evidence:** findings 5 (assessed by reading the configuration and the GoReleaser source, consistent with `gh release view v0.1.0-rc11` reporting `"isPrerelease": false`) and 33 (reproduced with an unauthenticated read; a valid read-only token was not tested) of [the code review of 2026-09-26](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md) — `.goreleaser.yml:93`, `.github/scripts/release.mjs:365`.
 
 **PoC**
 

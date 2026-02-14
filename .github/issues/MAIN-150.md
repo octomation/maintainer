@@ -70,9 +70,9 @@ The origin update itself, which must keep the rest of the Git configuration ([[M
 
 ## Sources
 
-- [[20261019T105848Z#MAIN-135. Checkout identity]] — the name-reuse reproduction.
-- [[20260926T071417Z#9. A renamed repository whose old name is reused is re-cloned and its checkout adopted as the new one]] and [[20260926T071417Z#19. A rename that changes only letter case is a permanent conflict on macOS]].
-- [[20260710T095546Z#4. Successful fetches leave last-observed repository metadata stale]].
+- [MAIN-135. Checkout identity](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20261019T105848Z.md#main-135-checkout-identity) — the name-reuse reproduction.
+- [9. A renamed repository whose old name is reused is re-cloned and its checkout adopted as the new one](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md#9-a-renamed-repository-whose-old-name-is-reused-is-re-cloned-and-its-checkout-adopted-as-the-new-one) and [19. A rename that changes only letter case is a permanent conflict on macOS](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md#19-a-rename-that-changes-only-letter-case-is-a-permanent-conflict-on-macos).
+- [4. Successful fetches leave last-observed repository metadata stale](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260710T095546Z.md#4-successful-fetches-leave-last-observed-repository-metadata-stale).
 - Split off [[MAIN-135]], which keeps the origin update for v0.2.0.
 
 <!-- 2026-10-01T12:25Z https://github.com/octomation/maintainer/issues/506#issuecomment-6308340733

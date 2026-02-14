@@ -63,4 +63,4 @@ The location, the format and the locking of the state file; the permissions of a
 
 ## Sources
 
-- [[20261019T105848Z#F1. The state temporary file follows a symlink]]
+- [F1. The state temporary file follows a symlink](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20261019T105848Z.md#f1-the-state-temporary-file-follows-a-symlink)

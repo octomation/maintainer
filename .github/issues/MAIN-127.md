@@ -39,7 +39,7 @@ closedAt: 2026-10-19T06:30:38Z
 - One contract for the committed mocks: `go-generate` produces the canonical committed form (it applies the same `goimports -local` step that `generate` applies), so `make generate git-check`, `make go-generate git-check`, `make verify` and `make release-verify` all leave a clean tree; the mocks are regenerated once.
 - The local `TIMEOUT` default equals the CI value, so `make test` and the pre-push hook pass on a clean checkout.
 
-**Evidence:** findings 1–4 of [the code review of 2026-09-26](../../.github/reviews/20260926T071417Z.md) — `internal/service/status/git_test.go:218`, `go.mod:81` (GO-2026-6354, GO-2026-6355 reachable from `internal/service/git/sync.go:111`), `Makefile:372` and `Makefile:420`, `Makefile:83`. The timeout is a local-only defect: CI already passes `TIMEOUT=2m`.
+**Evidence:** findings 1–4 of [the code review of 2026-09-26](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md) — `internal/service/status/git_test.go:218`, `go.mod:81` (GO-2026-6354, GO-2026-6355 reachable from `internal/service/git/sync.go:111`), `Makefile:372` and `Makefile:420`, `Makefile:83`. The timeout is a local-only defect: CI already passes `TIMEOUT=2m`.
 
 **PoC**
 

@@ -37,7 +37,7 @@ closedAt: 2026-10-21T04:49:14Z
 - Checkouts without a GitHub identity — no `origin`, another remote name, a local or `file://` URL — are ordinary rows keyed by path, never duplicates of each other.
 - An error row carries the trimmed stderr of the failing Git command and names the step that failed. `git status` runs first; the lock probe runs independently afterwards, so the primary error is preserved and the lock marker still survives a later inspection error, as §9 of the status specification promises.
 
-**Evidence:** findings 13 (`internal/service/status/service.go:161`, `:73`), 14 (`internal/service/status/service.go:47`, `git.go:89`) and 27 (`internal/service/status/git.go:59`, `git.go:84`) of [the code review](../reviews/20260926T071417Z.md), reproduced on `932b9c8`.
+**Evidence:** findings 13 (`internal/service/status/service.go:161`, `:73`), 14 (`internal/service/status/service.go:47`, `git.go:89`) and 27 (`internal/service/status/git.go:59`, `git.go:84`) of [the code review](https://github.com/octomation/maintainer/blob/18485463774e6db6bc0ec2a78747e5364593ea3e/.github/reviews/20260926T071417Z.md), reproduced on `932b9c8`.
 
 **PoC**
 
