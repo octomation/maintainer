@@ -32,6 +32,21 @@ is proven or moved into an issue; a release adds the checks it leaves open
   `MAIN-P1` and the `MAIN-M3` filter adds up to the milestone's count. Tick the
   matching criteria of those issues, or file what differs.
 
+- [ ] **After the upgrade to v0.5.1 on a Mac with the service**
+  ([MAIN-184](issues/MAIN-184.md)): with `access = "open"` in
+  `service.toml`, an open tab of `http://maintainer.localhost:17841/` shows
+  the data after `brew services restart octolab/tap/maintainer` without any
+  command, and the theme stays. Once, `maintainer service open` opens the
+  label address with data in the browser in daily use (Safari, Chrome,
+  Firefox), and `ls ~/.local/state/maintainer/service/` shows `17841.label`
+  with mode `0600` while the service runs. The label flow was checked in
+  headless Chrome only: a browser that does not open the label address goes
+  into an issue with its name and version.
+- [ ] **The first release run after the action pins**
+  ([MAIN-185](issues/MAIN-185.md)): `cd`, `ci` and `cd.docs` are green with
+  every external action pinned to a commit, and the next Dependabot pull
+  request for an action changes the SHA and its version comment together.
+
 ## Waiting for a decision
 
 - [ ] **`cleanup.stale` is disabled** on purpose: `workflows` in
@@ -45,16 +60,36 @@ is proven or moved into an issue; a release adds the checks it leaves open
 - [ ] **Tool pins**: `make update` would move goreleaser in `tools/go.mod`
   ahead of the version the workflows pin. Hold `make update` until the pins
   move together; `make tool-pins-check` catches a drift.
+- [ ] **The `review` skill is on trial** (since 2026-11-25): code, issue and
+  security reviews of this repository are written with a local skill in
+  `.agents/skills/review`, which is not tracked. The order is fixed: first
+  prove it in use here; then make it part of the public agent skill in
+  `skills/maintainer/`; then remove the review genre from the private
+  `projects:maintainer` skill, which outside readers cannot see. Proven when
+  its reports have carried a release, with their findings filed, fixed and
+  shipped, and the owner confirms the benefit. If it does not prove itself,
+  keep the genre of `projects:maintainer` and delete the local skill.
+  The steps are filed in this order: octomation/skills-action#2 lets a
+  tool publish a second skill; [MAIN-188](issues/MAIN-188.md) ships this one
+  as `maintainer:review`; only after its release the private genre goes away,
+  in its own repository.
+
+- [ ] **Local issues [MAIN-164](issues/MAIN-164.md)–[MAIN-187](issues/MAIN-187.md)
+  are not on GitHub**: they came from the full review of 2026-11-25 and wait
+  for the owner to publish them. [MAIN-183](issues/MAIN-183.md)–[MAIN-187](issues/MAIN-187.md)
+  and [MAIN-177](issues/MAIN-177.md) are the fixes of v0.5.1: publish them
+  once the release is out, then tick their criteria and close them.
+  [MAIN-164](issues/MAIN-164.md)–[MAIN-182](issues/MAIN-182.md) are planned
+  for v0.5.2. The security review of 2026-11-25 is not published before
+  v0.5.1 ships.
+- [ ] **The hub speaks plain HTTP** (v0.5.1): a program of another account
+  that takes the port while the service is down sees the addresses that an
+  open tab still requests, and can show a false page. The service guide states
+  this limit. HTTPS with a local certificate would close it and is not
+  planned; decide again if the hub gets users on shared computers.
 
 ## Follow-ups to file
 
-- [ ] **`status` is slow on one checkout**: on 2026-10-19 and 2026-10-20 the
-  whole run over 164 checkouts took about 4 minutes, of which about 2.5 went
-  to `git diff --find-renames --numstat HEAD` in `octolaba/changelog` (about
-  2 s in September). File an issue with the timing per checkout.
-- [ ] **`fetch` and an unconfirmed explicit repository**: the run fails as a
-  whole with "cannot verify explicit checkout" when GitHub does not confirm the
-  repository of an explicit rule; it should be a conflict of that repository.
 - [ ] **A rename race in the Git adapter**
   (`internal/service/git/sync.go`): go-git writes by path after the
   reservation, and `Move` checks with `Lstat` before `Rename` without a
