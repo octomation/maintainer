@@ -9,8 +9,15 @@ import Link from 'next/link'
 
 A concise record of maintainer releases and the quickest way to try each one.
 
+<Link href="/changelog/v0.5.1/" className="release-entry">
+  <span className="release-label">v0.5.1 · LATEST</span>
+  <h2>Yours alone.</h2>
+  <p>The hub serves its data only to your account at the address that <code>maintainer service open</code> opens, and the commands take a token and a configuration only from places that you chose: <code>--token</code> is gone, and a <code>fetch.toml</code> or a <code>.env</code> in the working directory is no longer read.</p>
+  <span className="card-link">Explore the release and try the commands <span aria-hidden="true">→</span></span>
+</Link>
+
 <Link href="/changelog/v0.5.0/" className="release-entry">
-  <span className="release-label">v0.5.0 · LATEST</span>
+  <span className="release-label">v0.5.0 · STABLE</span>
   <h2>Less to carry.</h2>
   <p>Maintainer keeps to your checkouts, GitHub and the local hub: the <code>go vanity build</code> and <code>makefile build</code> commands are removed, and <code>maintainer version</code> no longer lists a feature that did nothing.</p>
   <span className="card-link">Explore the release and try the commands <span aria-hidden="true">→</span></span>
