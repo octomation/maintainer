@@ -45,8 +45,15 @@ curl -fsS http://maintainer.localhost:17841/status -o /dev/null -w '%{http_code}
 200
 ```
 
-Open `http://maintainer.localhost:17841/` in a browser: it opens the status
-page. The service runs as your user and logs to
+Then open the hub:
+
+```sh
+maintainer service open
+```
+
+It opens the status page in your browser at the private address of the
+running service ([access](#access)). Run it again after every start of the
+service. The service runs as your user and logs to
 `$(brew --prefix)/var/log/maintainer.log`. Installing the Formula does not
 start it. Do not run `sudo brew services`.
 
@@ -80,13 +87,18 @@ maintainer service run
 
 ```text
 maintainer service: 127.0.0.1:17841, [::1]:17841 (URL: http://maintainer.localhost:17841/)
+maintainer service: run `maintainer service open` to open it in the browser
 maintainer service: fetch config /Users/you/.config/maintainer/fetch.toml
 ```
+
+Then run `maintainer service open` in another terminal.
 
 `maintainer.localhost` resolves to both `127.0.0.1` and `::1`, so the service
 listens on both. If the system has no IPv6 loopback, the service says so,
 skips `[::1]:17841` and keeps running on `127.0.0.1:17841`. `--listen`
-replaces both addresses; repeat it for several:
+replaces both addresses; repeat it for several. For each port, the service
+also listens on the other of `127.0.0.1` and `::1`, so these two lines start
+the same service:
 
 ```sh
 maintainer service run --listen 127.0.0.1:8080
@@ -95,9 +107,10 @@ maintainer service run --listen 127.0.0.1:8080 --listen '[::1]:8080'
 
 Each value is a literal loopback IP address with a port, such as
 `127.0.0.1:17841` or `[::1]:17841`; `localhost`, `0.0.0.0` or another address
-is refused with exit code `2`. An address given with `--listen` that cannot be
-bound, as when its port is taken, stops the service with an error. `Ctrl-C` or
-`SIGTERM` stops it once the responses in flight are sent.
+is refused with exit code `2`. An address that cannot be bound, as when
+another program holds its port on either `127.0.0.1` or `::1`, stops the
+service with an error that names it. `Ctrl-C` or `SIGTERM` stops it once the
+responses in flight are sent.
 
 `brew services` runs the service without flags. To move it to another port
 there, set `listen` in [`service.toml`](#the-config-file) and restart it with
@@ -108,8 +121,93 @@ there, set `listen` in [`service.toml`](#the-config-file) and restart it with
 listen = ["127.0.0.1:8080", "[::1]:8080"]
 ```
 
-Browsers and `curl` resolve `.localhost` names themselves; on Linux, a system
-without such a resolver reaches the service at `http://127.0.0.1:17841/`.
+Browsers and `curl` resolve `.localhost` names themselves; a browser that
+does not cannot open the hub. On another port,
+pass the address to `maintainer service open --listen 127.0.0.1:8080`, or set
+`listen` in `service.toml`, which the command reads too.
+
+## Access
+
+The hub shows your issues and the paths of your checkouts, private ones
+included, and changes labels in your issue files, so only you get its data.
+Every start of the service makes a new random label and serves the data only
+at `http://<label>.maintainer.localhost:17841/`. The label is the key: the
+service writes it to `$XDG_STATE_HOME/maintainer/service/17841.label`
+(`~/.local/state/maintainer/service/` by default), readable only by you, and
+removes the file when it stops cleanly. The browser keeps nothing of the hub but the
+theme.
+
+`maintainer service open` reads the label, checks that the service on the
+port knows it, and opens the address in your browser:
+
+```sh
+maintainer service open
+maintainer service open --print
+```
+
+```text
+http://3f9c0e8a1b2d4c6e8f0a1b2c3d4e5f60.maintainer.localhost:17841/
+```
+
+`--print` prints the address instead of opening it. `--listen` names the
+address of a service on another port; without it, the command takes the first
+address of `listen` in `service.toml`, else `127.0.0.1:17841`. When the
+service is not running, the command says so; when another program answers on
+the port, it says that and opens nothing.
+
+The plain address `http://maintainer.localhost:17841/` still loads the pages,
+and `curl …/status` still prints `200`, but they show no data: the page says
+to run `maintainer service open`. The same page appears in a tab of an
+earlier run after the service restarts or stops. The plain address keeps
+nothing in the browser: its pages clear the browser storage of that address,
+and `maintainer service open` passes through it on the way to the address of
+the run, so the view state that earlier releases kept there is removed.
+
+Limits:
+
+- A process that runs as your user can read the label file. The hub does not
+  protect you from your own programs.
+- After each start of the service, such as an upgrade, a reboot or
+  `brew services restart`, run `maintainer service open`; a bookmark of the
+  plain address shows the page that says so.
+- A program that takes the port while the service is down can show a false
+  page on the plain address. It gets no data and no label.
+- The label is in the address bar and the history of your browser.
+- The connection is plain HTTP, so the browser cannot tell the hub from a
+  program that takes the port after the hub stops. Such a program sees the
+  addresses that an open tab still requests: the label of the ended run, the
+  page, filters and issue ids. On a computer with other accounts, close the
+  tabs of the hub before you stop it.
+- The theme resets at each start of the service, because the address is new.
+- `maintainer service open` clears what earlier releases stored under
+  `http://maintainer.localhost:17841/` only, and only with JavaScript on. If
+  JavaScript is off, or if you ever opened the hub through
+  `http://localhost:17841/` or an IP address, open each such address once
+  after the upgrade: the page clears what earlier releases stored there.
+
+### Open access
+
+The label protects the hub from the other accounts of your computer. If you
+are its only account, you can turn it off in [`service.toml`](#the-config-file)
+and use the plain address as before v0.5.1:
+
+```toml filename="service.toml"
+access = "open"
+```
+
+Then restart the service. `http://maintainer.localhost:17841/`,
+`http://localhost:17841/` and the loopback addresses of the port serve the
+data, a bookmark and an open tab keep working after a restart, and the
+browser keeps the theme. The service says so when it starts:
+
+```text
+maintainer service: access is open: the plain address serves the data too (access = "open" in service.toml)
+```
+
+Other web sites still get nothing: the service answers only its own host
+names and accepts changes only from its own pages. `maintainer service open`
+works as before. Any other account of the computer can read the data, so
+keep the default, `access = "label"`, on a shared computer.
 
 ## What the pages read
 
@@ -134,8 +232,8 @@ to light or to your system's setting.
 The sidebar also lists every repository whose issues the hub reads, as a tree
 by owner: an owner expands to its repositories, each with its count of open
 issues and a lock when it is private, and a link to its issues in the inbox.
-The owners you expand are remembered, and the repository the inbox shows is
-highlighted. Its search
+The owners you expand stay open while the page is open, and the repository
+the inbox shows is highlighted. Its search
 button, or `/` or Ctrl+K (Cmd+K on a Mac), opens a search over every issue of
 the collection; the issue you pick opens as a full page, as does an issue you
 open from the board or expand from the inbox. The page's address carries the
@@ -258,17 +356,19 @@ relative path in it is resolved against your home directory.
 | `GET` or `HEAD` of `/` | `302` to `/status` |
 | `GET` or `HEAD` of `/status`, `/inbox`, `/tablo` | `200`, the application as `text/html`, never cached (`Cache-Control: no-store`) |
 | `GET` of `/assets/…` | the application's script and styles, cached for a year |
-| `GET` of `/api/v0/…` | the JSON the pages read: `checkouts`, `tasks`, `tasks/{id}`, `catalog` |
+| `GET` of `/api/v0/…` | the JSON the pages read: `checkouts`, `tasks`, `tasks/{id}`, `catalog`; only at the address of the run |
+| `GET` of `/api/v0/hello?nonce=…` | the proof of the label that `maintainer service open` checks |
 | `PATCH` of `/api/v0/tasks/{id}/triage`, `POST` of `…/refresh` | a change or a refresh, only from the pages themselves |
 | any other path | `404 Not Found` |
 | any other method | `405 Method Not Allowed` with `Allow` |
 
 The service shows the contents of your issue files, so it answers only
-requests addressed to itself: a request whose `Host` is not
-`maintainer.localhost`, `localhost` or the address it listens on gets `421`,
-and a change or a refresh is accepted only from a page the service served,
-never from another site open in your browser. Every program running as your
-user on this computer can still read the pages.
+requests addressed to itself. The address of the run gets everything.
+`maintainer.localhost`, `localhost` and the address it listens on get the
+pages, the assets and `hello`; every other `/api/` request there gets `401`
+with the code `unauthorized`. Any other `Host`, the address of an earlier run
+included, gets `421`. A change or a refresh is accepted only from a page the
+service served, never from another site open in your browser.
 
 ## Limitations
 

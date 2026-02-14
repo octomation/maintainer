@@ -314,6 +314,27 @@ run the local maintainer service
 maintainer service [command]
 ```
 
+## maintainer service open
+
+Opens the running local maintainer service in the browser at the
+private address of its current run, the only address that serves the
+data. It reads the address from listen in service.toml, else uses
+127.0.0.1:17841 (--listen names another), and the label of the run from
+$XDG_STATE_HOME/maintainer/service/<port>.label, checks that the
+service on that address knows the label, and opens the address through a
+temporary page, so the label is in no command line. --print prints the
+address instead. Run it again after every start of the service.
+
+```text
+maintainer service open [flags]
+```
+
+Flags:
+
+- `--config string`: service config path (default: $XDG_CONFIG_HOME/maintainer/service.toml)
+- `--listen string`: address of the service (default: the first of listen in service.toml, else 127.0.0.1:17841)
+- `--print`: print the address to stdout and open nothing
+
 ## maintainer service run
 
 Serves the local maintainer service over HTTP on loopback, at
@@ -327,9 +348,13 @@ config and state as `maintainer status` does, with the home directory as
 the working directory. It runs as your user and listens on 127.0.0.1 and
 ::1; a default address the system lacks, as ::1 with IPv6 turned off, is
 skipped. listen in service.toml replaces the defaults, and --listen, which
-may repeat, replaces both. SIGINT or SIGTERM stops it once the responses
-in flight are sent. Do not run the mirror's export or push, or another
-editor of the issue files, while triaging in the browser.
+may repeat, replaces both; for each port it also holds the other of
+127.0.0.1 and ::1. Each start makes a new private address for the data,
+which `maintainer service open` opens in the browser; the plain address
+serves the pages without data, unless service.toml sets access =
+"open". SIGINT or SIGTERM stops it once the responses in flight are
+sent. Do not run the mirror's export or push, or another editor of the
+issue files, while triaging in the browser.
 
 ```text
 maintainer service run [flags]

@@ -3,6 +3,7 @@ package web_test
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"net"
@@ -25,7 +26,7 @@ import (
 )
 
 var assets = fstest.MapFS{
-	"index.html":                {Data: []byte("<!doctype html><title>maintainer</title><script type=\"module\" src=\"/assets/app-abc123.js\"></script>")},
+	"index.html":                {Data: []byte("<!doctype html><html lang=\"en\"><title>maintainer</title><script type=\"module\" src=\"/assets/app-abc123.js\"></script>")},
 	"assets/app-abc123.js":      {Data: []byte("console.log('hub')")},
 	"assets/app-abc123.css":     {Data: []byte("body{}")},
 	"assets/inter-abc123.woff2": {Data: []byte("wOF2")},
@@ -64,6 +65,9 @@ func fixtureRoots(t *testing.T) []hub.Root {
 	return roots
 }
 
+// testLabel is the label of the run in the handler tests.
+const testLabel = "0123456789abcdef0123456789abcdef"
+
 type fixture struct {
 	server    *httptest.Server
 	index     *hub.Index
@@ -76,7 +80,7 @@ func (f *fixture) url(path string) string { return f.server.URL + path }
 
 // newFixture serves the handler on a real loopback listener, so the Host
 // check sees the bound address, with the fixture index scanned.
-func newFixture(t *testing.T) *fixture {
+func newFixture(t *testing.T, opts ...func(*web.Options)) *fixture {
 	t.Helper()
 	f := &fixture{collect: make(chan []status.Row, 1)}
 	roots := fixtureRoots(t)
@@ -102,7 +106,11 @@ func newFixture(t *testing.T) *fixture {
 	f.checkouts.Start(ctx)
 	listener, err := (&net.ListenConfig{}).Listen(ctx, "tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	handler, err := web.NewHandler(web.Options{Addrs: []net.Addr{listener.Addr()}, Assets: assets, Index: f.index, Checkouts: f.checkouts})
+	options := web.Options{Addrs: []net.Addr{listener.Addr()}, Assets: assets, Index: f.index, Checkouts: f.checkouts, Label: testLabel}
+	for _, opt := range opts {
+		opt(&options)
+	}
+	handler, err := web.NewHandler(options)
 	require.NoError(t, err)
 	f.server = httptest.NewUnstartedServer(handler)
 	_ = f.server.Listener.Close()
@@ -152,8 +160,13 @@ func mutation(f *fixture) option {
 	}
 }
 
+// labelHost is the Host of this run's label on the fixture's port.
+func (f *fixture) labelHost() string { return web.LabelHost(testLabel) + ":" + f.port }
+
+// do sends a request to the label host of the run; host() changes it.
 func (f *fixture) do(t *testing.T, method, path string, body []byte, opts ...option) response {
 	t.Helper()
+	opts = append([]option{host(f.labelHost())}, opts...)
 	var reader io.Reader = http.NoBody
 	if body != nil {
 		reader = bytes.NewReader(body)
@@ -243,31 +256,107 @@ func TestPagesAndAssets(t *testing.T) {
 
 func TestHostAndOrigin(t *testing.T) {
 	f := newFixture(t)
+	plain := []string{"maintainer.localhost:" + f.port, "localhost:" + f.port, "127.0.0.1:" + f.port, "MAINTAINER.LOCALHOST:" + f.port}
 	t.Run("host", func(t *testing.T) {
-		for _, h := range []string{"maintainer.localhost:" + f.port, "localhost:" + f.port, "127.0.0.1:" + f.port, "MAINTAINER.LOCALHOST:" + f.port} {
+		for _, h := range []string{f.labelHost(), strings.ToUpper(f.labelHost())} {
 			resp := f.do(t, http.MethodGet, "/api/v0/catalog", nil, host(h))
 			assert.Equal(t, http.StatusOK, resp.StatusCode, h)
 		}
-		for _, h := range []string{"evil.example:" + f.port, "maintainer.localhost", "maintainer.localhost:1", "127.0.0.2:" + f.port, "[::1]:" + f.port, "10.0.0.1:" + f.port, "maintainer.localhost.evil.example:" + f.port} {
+		earlier := web.LabelHost("fedcba9876543210fedcba9876543210") + ":" + f.port
+		for _, h := range []string{"evil.example:" + f.port, "maintainer.localhost", "maintainer.localhost:1", "127.0.0.2:" + f.port, "[::1]:" + f.port, "10.0.0.1:" + f.port,
+			"maintainer.localhost.evil.example:" + f.port, earlier, "x." + f.labelHost(), testLabel + ".localhost:" + f.port, web.LabelHost(testLabel[:31]) + ":" + f.port, web.LabelHost(testLabel) + ":1"} {
 			resp := f.do(t, http.MethodGet, "/api/v0/catalog", nil, host(h))
 			assert.Equal(t, http.StatusMisdirectedRequest, resp.StatusCode, h)
 			assert.Equal(t, "misdirected", resp.errorCode(t), h)
 		}
 		forwarded := f.do(t, http.MethodGet, "/api/v0/catalog", nil, host("evil.example:"+f.port), header("X-Forwarded-Host", "maintainer.localhost:"+f.port))
 		assert.Equal(t, http.StatusMisdirectedRequest, forwarded.StatusCode, "forwarded headers are ignored")
+		forwarded = f.do(t, http.MethodGet, "/api/v0/catalog", nil, host("maintainer.localhost:"+f.port), header("X-Forwarded-Host", f.labelHost()))
+		assert.Equal(t, http.StatusUnauthorized, forwarded.StatusCode, "forwarded headers grant nothing")
+	})
+
+	t.Run("the plain names get the pages and no data", func(t *testing.T) {
+		id := hub.EncodeID("github:octomation/maintainer#1")
+		for _, h := range plain {
+			for _, path := range append([]string{"/assets/app-abc123.js"}, web.Pages...) {
+				resp := f.do(t, http.MethodGet, path, nil, host(h))
+				assert.Equal(t, http.StatusOK, resp.StatusCode, h+path)
+			}
+			for _, path := range []string{"/api/v0/catalog", "/api/v0/tasks", "/api/v0/tasks/" + id, "/api/v0/checkouts", "/api/v0/nothing", "/api/", "/api", "//api/v0/tasks", "/api/v0/../v0/tasks", "/%61pi/v0/tasks"} {
+				for _, method := range []string{http.MethodGet, http.MethodHead} {
+					resp := f.do(t, method, path, nil, host(h))
+					assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, method+" "+h+path)
+					assert.NotContains(t, string(resp.body), "octomation", method+" "+h+path)
+					if method == http.MethodGet {
+						assert.Equal(t, "unauthorized", resp.errorCode(t), h+path)
+					}
+				}
+			}
+			for _, r := range []struct{ method, path, body string }{
+				{http.MethodPatch, "/api/v0/tasks/" + id + "/triage", `{"impact":"high"}`},
+				{http.MethodPost, "/api/v0/refresh", ""},
+				{http.MethodPost, "/api/v0/checkouts/refresh", ""},
+			} {
+				var body []byte
+				if r.body != "" {
+					body = []byte(r.body)
+				}
+				resp := f.do(t, r.method, r.path, body, host(h), mutation(f), header("If-Match", `"x"`))
+				assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, r.method+" "+h+r.path)
+				assert.Equal(t, "unauthorized", resp.errorCode(t))
+			}
+		}
+	})
+
+	t.Run("the plain names clear the storage of their origin", func(t *testing.T) {
+		for _, h := range plain {
+			for _, path := range append([]string{"/"}, web.Pages...) {
+				resp := f.do(t, http.MethodGet, path, nil, host(h))
+				assert.Equal(t, `"storage"`, resp.Header.Get("Clear-Site-Data"), h+path)
+			}
+			for _, path := range []string{"/assets/app-abc123.js", "/api/v0/hello?nonce=" + strings.Repeat("ab", 16), "/api/v0/tasks"} {
+				resp := f.do(t, http.MethodGet, path, nil, host(h))
+				assert.Empty(t, resp.Header.Get("Clear-Site-Data"), h+path)
+			}
+		}
+		for _, path := range append([]string{"/", "/assets/app-abc123.js", "/api/v0/catalog"}, web.Pages...) {
+			resp := f.do(t, http.MethodGet, path, nil)
+			assert.Empty(t, resp.Header.Get("Clear-Site-Data"), "the label host keeps its storage: "+path)
+		}
+	})
+
+	t.Run("hello", func(t *testing.T) {
+		nonce := strings.Repeat("ab", 32)
+		raw, _ := hex.DecodeString(nonce)
+		for _, h := range append([]string{f.labelHost()}, plain...) {
+			resp := f.do(t, http.MethodGet, "/api/v0/hello?nonce="+nonce, nil, host(h))
+			require.Equal(t, http.StatusOK, resp.StatusCode, h)
+			var body struct {
+				Data web.Hello `json:"data"`
+			}
+			resp.json(t, &body)
+			assert.Equal(t, web.Proof(testLabel, raw), body.Data.Proof, h)
+			assert.NotContains(t, string(resp.body), testLabel, h)
+		}
+		for _, bad := range []string{"", "xyz", "abc", strings.Repeat("ab", 8), strings.Repeat("ab", 65)} {
+			resp := f.do(t, http.MethodGet, "/api/v0/hello?nonce="+bad, nil, host(plain[0]))
+			assert.Equal(t, http.StatusBadRequest, resp.StatusCode, bad)
+		}
+		resp := f.do(t, http.MethodPost, "/api/v0/hello?nonce="+nonce, nil, host(plain[0]), mutation(f))
+		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode, "only GET of hello is open")
 	})
 
 	t.Run("origin", func(t *testing.T) {
 		with := func(origin string) option { return header("Origin", origin) }
 		requested := header("X-Requested-With", "maintainer")
-		valid := "http://maintainer.localhost:" + f.port
-		h := host("maintainer.localhost:" + f.port)
+		valid := "http://" + f.labelHost()
+		h := host(f.labelHost())
 		for name, opts := range map[string][]option{
 			"missing origin":          {h, requested},
 			"null origin":             {h, requested, with("null")},
 			"foreign origin":          {h, requested, with("http://evil.example")},
-			"other host of this port": {h, requested, with("http://localhost:" + f.port)},
-			"https origin":            {h, requested, with("https://maintainer.localhost:" + f.port)},
+			"other host of this port": {h, requested, with("http://maintainer.localhost:" + f.port)},
+			"https origin":            {h, requested, with("https://" + f.labelHost())},
 			"missing requested-with":  {h, with(valid)},
 			"wrong requested-with":    {h, with(valid), header("X-Requested-With", "XMLHttpRequest")},
 		} {
@@ -284,6 +373,31 @@ func TestHostAndOrigin(t *testing.T) {
 		get := f.do(t, http.MethodGet, "/api/v0/catalog", nil, h, with("http://evil.example"))
 		assert.Equal(t, http.StatusOK, get.StatusCode, "reads need no Origin")
 	})
+}
+
+func TestOpenAccess(t *testing.T) {
+	f := newFixture(t, func(o *web.Options) { o.Open = true })
+	plain := []string{"maintainer.localhost:" + f.port, "localhost:" + f.port, "127.0.0.1:" + f.port, f.labelHost()}
+	for _, h := range plain {
+		resp := f.do(t, http.MethodGet, "/api/v0/catalog", nil, host(h))
+		assert.Equal(t, http.StatusOK, resp.StatusCode, h)
+		page := f.do(t, http.MethodGet, "/status", nil, host(h))
+		assert.Equal(t, http.StatusOK, page.StatusCode, h)
+		assert.Empty(t, page.Header.Get("Clear-Site-Data"), "open access keeps the storage: "+h)
+		assert.Contains(t, string(page.body), `<html data-access="open"`, h)
+		refresh := f.do(t, http.MethodPost, "/api/v0/refresh", nil, host(h), mutation(f))
+		assert.Less(t, refresh.StatusCode, 300, h)
+		forged := f.do(t, http.MethodPost, "/api/v0/refresh", nil, host(h), header("Origin", "http://evil.example"), header("X-Requested-With", "maintainer"))
+		assert.Equal(t, http.StatusForbidden, forged.StatusCode, "the Origin check stays: "+h)
+	}
+	for _, h := range []string{"evil.example:" + f.port, "maintainer.localhost.evil.example:" + f.port, web.LabelHost("fedcba9876543210fedcba9876543210") + ":" + f.port} {
+		resp := f.do(t, http.MethodGet, "/api/v0/catalog", nil, host(h))
+		assert.Equal(t, http.StatusMisdirectedRequest, resp.StatusCode, "the Host check stays: "+h)
+	}
+
+	labelled := newFixture(t)
+	page := labelled.do(t, http.MethodGet, "/status", nil)
+	assert.NotContains(t, string(page.body), "data-access", "the label access marks no page")
 }
 
 func TestCheckoutsAPI(t *testing.T) {
@@ -518,11 +632,11 @@ func TestBeforeTheFirstIndex(t *testing.T) {
 	defer cancel()
 	index.Start(ctx, nil)
 	<-started
-	handler, err := web.NewHandler(web.Options{Assets: assets, Index: index})
+	handler, err := web.NewHandler(web.Options{Assets: assets, Index: index, Label: testLabel})
 	require.NoError(t, err)
 	local := func(path string) *http.Request {
 		req := httptest.NewRequestWithContext(ctx, http.MethodGet, path, http.NoBody)
-		req.Host = "maintainer.localhost"
+		req.Host = web.LabelHost(testLabel)
 		return req
 	}
 	for _, path := range []string{"/api/v0/tasks", "/api/v0/catalog", "/api/v0/tasks/" + hub.EncodeID("github:a/b#1")} {
@@ -541,7 +655,7 @@ func TestBeforeTheFirstIndex(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	t.Run("without index or checkouts", func(t *testing.T) {
-		handler, err := web.NewHandler(web.Options{Assets: assets})
+		handler, err := web.NewHandler(web.Options{Assets: assets, Label: testLabel})
 		require.NoError(t, err)
 		for _, path := range []string{"/api/v0/tasks", "/api/v0/checkouts"} {
 			w := httptest.NewRecorder()

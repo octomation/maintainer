@@ -60,9 +60,9 @@ func TestFrontendFixtures(t *testing.T) {
 	require.Eventually(t, func() bool { _, _, ok, _, _ := checkouts.Snapshot(); return ok }, 5*time.Second, 10*time.Millisecond)
 	checkouts.SetCollectedAt(now)
 
-	handler, err := web.NewHandler(web.Options{Assets: assets, Index: index, Checkouts: checkouts})
+	handler, err := web.NewHandler(web.Options{Assets: assets, Index: index, Checkouts: checkouts, Label: testLabel})
 	require.NoError(t, err)
-	pending, err := web.NewHandler(web.Options{Assets: assets, Checkouts: web.NewCheckouts(func(context.Context) ([]status.Row, error) { select {} })})
+	pending, err := web.NewHandler(web.Options{Assets: assets, Label: testLabel, Checkouts: web.NewCheckouts(func(context.Context) ([]status.Row, error) { select {} })})
 	require.NoError(t, err)
 
 	taskID := hub.EncodeID("github:octomation/maintainer#1")
@@ -86,7 +86,7 @@ func TestFrontendFixtures(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 			req := httptest.NewRequestWithContext(ctx, r.method, r.path, strings.NewReader(r.body))
-			req.Host = "maintainer.localhost"
+			req.Host = web.LabelHost(testLabel)
 			req = req.WithContext(context.WithValue(req.Context(), http.LocalAddrContextKey, &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 80}))
 			r.handler.ServeHTTP(w, req)
 			require.Equal(t, r.want, w.Code, w.Body.String())

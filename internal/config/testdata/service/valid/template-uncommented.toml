@@ -10,6 +10,11 @@
 # brew services restart octolab/tap/maintainer
 listen = ["127.0.0.1:17841", "[::1]:17841"]
 
+# Who reaches the data. "label": only the private address of each start,
+# which `maintainer service open` opens. "open": the plain address too, as
+# before v0.5.1; only on a computer where you are the only account.
+access = "label"
+
 [fetch]
 # The fetch config to read the checkouts from, relative to the home
 # directory; empty means the usual lookup, as `maintainer status` from home.

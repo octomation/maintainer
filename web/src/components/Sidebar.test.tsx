@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/pre
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiClient } from '../api/client';
 import { fixtures, json, mockApi } from '../api/mock';
+import { forgetExpanded } from './RepositoryTree';
 import { Sidebar } from './Sidebar';
 
 describe('Sidebar', () => {
@@ -94,7 +95,7 @@ describe('Sidebar', () => {
   describe('Repositories tree', () => {
     const repo = (repository: string, open: number, isPrivate = false) => ({ repository, owner: repository.split('/')[0], name: repository.split('/')[1], weight: 1, path: `/w/${repository}`, tasks: open + 1, open, private: isPrivate });
     const repositories = [repo('octomation/tool', 3, true), repo('kamilsk/dotfiles', 2), repo('octomation/maintainer', 7), repo('kamilsk/dotfiles', 2), repo('Acme/zeta', 0)];
-    beforeEach(() => localStorage.removeItem('maintainer.sidebar.owners'));
+    beforeEach(() => forgetExpanded());
 
     it('lists every repository by owner, the current owner expanded, with open counts and a lock on private ones', () => {
       render(<Sidebar current="/inbox" theme="dark" onTheme={() => {}} repositories={repositories} currentRepository="octomation/tool" />);
@@ -124,7 +125,7 @@ describe('Sidebar', () => {
       expect(owner('kamilsk').getAttribute('aria-expanded')).toBe('true');
       // Duplicate mirrors of a repository are one row.
       expect(within(tree()).getAllByRole('treeitem').filter((i) => i.getAttribute('aria-level') === '2').map((r) => r.textContent)).toEqual(['dotfiles2']);
-      expect(JSON.parse(localStorage.getItem('maintainer.sidebar.owners') ?? '[]')).toEqual(['kamilsk']);
+      expect(localStorage.length).toBe(0);
       // Keyboard: Down to the repository, Left back to the owner, Left collapses, Down and Right expand the next owner.
       owner('kamilsk').focus();
       fireEvent.keyDown(owner('kamilsk'), { key: 'ArrowDown' });
@@ -139,11 +140,15 @@ describe('Sidebar', () => {
       expect(owner('octomation').getAttribute('aria-expanded')).toBe('true');
       fireEvent.keyDown(owner('octomation'), { key: 'Enter' });
       expect(owner('octomation').getAttribute('aria-expanded')).toBe('false');
+      fireEvent.click(owner('Acme'));
       unmount();
-      // The choice survives a reload.
-      localStorage.setItem('maintainer.sidebar.owners', JSON.stringify(['Acme']));
+      // The choice stays while the page is open, and nothing names an owner in the storage.
       render(<Sidebar current="/status" theme="dark" onTheme={() => {}} repositories={repositories} />);
       expect(owner('Acme').getAttribute('aria-expanded')).toBe('true');
+      expect(owner('kamilsk').getAttribute('aria-expanded')).toBe('false');
+      expect(localStorage.length).toBe(0);
+      expect(sessionStorage.length).toBe(0);
+      expect(document.cookie).toBe('');
     });
   });
 });

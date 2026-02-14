@@ -41,7 +41,8 @@ brews:
     caveats: |
       Start the local service as your normal user:
         brew services start octolab/tap/maintainer
-      Then open http://maintainer.localhost:17841/
+      Then open it in the browser, again after every start of the service:
+        maintainer service open
     test: |
       system "#{bin}/maintainer", "version"
       system "#{bin}/maintainer", "service", "run", "--help"

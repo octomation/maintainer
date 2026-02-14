@@ -97,7 +97,7 @@ This skill describes maintainer `>=0.5.0 <0.6.0`. Before anything else:
 | What fetch remembers | `fetch state show` |
 | To forget checkouts whose directory is gone | `fetch state prune` (writes the state at once) |
 | A time to contribute | `github contribution suggest`; also `contribution lookup`, `contribution histogram`, `contribution snapshot`, `contribution diff` |
-| maintainer in a browser on this computer | `service run`, or `brew services start octolab/tap/maintainer` |
+| maintainer in a browser on this computer | `service run`, or `brew services start octolab/tap/maintainer`, then `service open` |
 
 `fetch` flags such as `--config`, `--owner`, `--format` and `--timeout` work
 for its subcommands too. Recipes:
@@ -178,6 +178,16 @@ exist). It needs no token or network.
   files, while the user triages in the browser; after you changed issue files,
   **Reindex** in the navigation bar rebuilds the index.
 
+- **Open it with `maintainer service open`.** Each start serves the data
+  only at a new private address, `http://<label>.maintainer.localhost:<port>/`;
+  the command checks the running service and opens that address in the
+  browser, `--print` prints it instead. Run it after every start. The plain
+  `http://maintainer.localhost:17841/` loads the pages without data and every
+  `/api/` request there but `hello` gets `401`. The label is a key: don't
+  print it into shared text, logs or files. With `access = "open"` in
+  `service.toml` the plain address serves the data too: suggest it only to a
+  user who is the only account of the computer.
+
 - **Homebrew runs it.** On macOS the Formula carries the service:
   `brew services start octolab/tap/maintainer`, `restart` after an upgrade,
   `stop` to end it; it logs to `$(brew --prefix)/var/log/maintainer.log`.
@@ -188,10 +198,11 @@ exist). It needs no token or network.
 - **Loopback only.** By default it listens on `127.0.0.1:17841` and
   `[::1]:17841`, as `maintainer.localhost` resolves to both; without an IPv6
   loopback it skips `::1` and keeps running.
-- **`--listen` replaces both** and may repeat. Each value is a literal
+- **`--listen` replaces both** and may repeat; for each port the service also
+  holds the other of `127.0.0.1` and `::1`. Each value is a literal
   loopback IP address with a port; `localhost`, `0.0.0.0` or another address
   exits `2`, and an address it cannot bind, such as a taken port, stops it
-  with an error:
+  with an error that names it:
 
   ```sh
   maintainer service run --listen 127.0.0.1:8080 --listen '[::1]:8080'

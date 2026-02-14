@@ -107,11 +107,12 @@ octomation/maintainer   │ fetcher │ +12/-1 · 2f · ?1  │ ahead 1    │ �
     <div>
       <p className="eyebrow">GET MAINTAINER</p>
       <h2>Two commands. Then open the hub.</h2>
-      <p>Homebrew installs the CLI and the service as one Formula. On macOS, <code>brew services</code> runs the hub as your user at <a href="http://maintainer.localhost:17841/">maintainer.localhost:17841</a>; on Linux, start it with <code>maintainer service run</code>.</p>
+      <p>Homebrew installs the CLI and the service as one Formula. On macOS, <code>brew services</code> runs the hub as your user; on Linux, start it with <code>maintainer service run</code>. <code>maintainer service open</code> opens the hub in your browser, for your account only.</p>
     </div>
     <div className="install">
       <Command label="install maintainer with Homebrew">{'brew install --formula octolab/tap/maintainer'}</Command>
       <Command label="start the hub">{'brew services start octolab/tap/maintainer'}</Command>
+      <Command label="open the hub">{'maintainer service open'}</Command>
     </div>
     <p className="mnt-install-note">No Homebrew? The <Link href="/quickstart/">quick start</Link> has the install script, <code>go install</code> and the release archives.</p>
   </section>

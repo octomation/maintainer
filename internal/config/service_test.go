@@ -69,6 +69,8 @@ func TestLoadService(t *testing.T) {
 			"any listen":       "listen = [\"[::]:17841\"]\n",
 			"listen port":      "listen = [\"127.0.0.1:65536\"]\n",
 			"listen service":   "listen = [\"127.0.0.1:http\"]\n",
+			"unknown access":   "access = \"public\"\n",
+			"access case":      "access = \"Open\"\n",
 		} {
 			fs := afero.NewMemMapFs()
 			path := "service.toml"
@@ -100,6 +102,16 @@ func TestLoadServiceListen(t *testing.T) {
 	assert.Nil(t, cnf.Listen, "no listen keeps the defaults of the command")
 }
 
+func TestLoadServiceAccess(t *testing.T) {
+	for body, open := range map[string]bool{"": false, "access = \"label\"\n": false, "access = \"open\"\n": true} {
+		fs := afero.NewMemMapFs()
+		require.NoError(t, afero.WriteFile(fs, "service.toml", []byte(body), 0o600))
+		cnf, err := LoadService(fs, "service.toml")
+		require.NoError(t, err, body)
+		assert.Equal(t, open, cnf.OpenAccess(), body)
+	}
+}
+
 func TestCheckLoopback(t *testing.T) {
 	for _, address := range []string{"127.0.0.1:17841", "127.0.0.2:0", "[::1]:17841"} {
 		assert.NoError(t, CheckLoopback(address), address)
@@ -127,11 +139,13 @@ func TestServiceTemplate(t *testing.T) {
 	assert.Nil(t, commented.Listen)
 	assert.Empty(t, commented.Repos)
 	assert.Empty(t, commented.Fetch.Config)
+	assert.False(t, commented.OpenAccess())
 
 	uncommented, err := LoadService(fs, "live.toml")
 	require.NoError(t, err)
 	assert.Equal(t, defaults.Weights(), uncommented.Weights(), "the commented values are the defaults")
 	assert.Equal(t, []string{"127.0.0.1:17841", "[::1]:17841"}, uncommented.Listen)
+	assert.False(t, uncommented.OpenAccess(), "the template shows the default access")
 	require.Len(t, uncommented.Repos, 1)
 	assert.Equal(t, DefaultRepoWeight, uncommented.RepoWeight(0, "octomation", "maintainer"))
 	for _, cnf := range []*Service{defaults, uncommented} {

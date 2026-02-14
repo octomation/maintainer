@@ -15,6 +15,12 @@ package config
 	// that each is a loopback address and the port is at most 65535.
 	listen?: [#Loopback, ...#Loopback]
 
+	// Who reaches the data. "label": only the private address of each run,
+	// which `maintainer service open` opens. "open": the plain addresses
+	// too, as before v0.5.1; only for a machine where you are the only
+	// account.
+	access?: *"label" | "open"
+
 	// The fetch config the service reads its workspace, pins and state from.
 	fetch?: #FetchRef
 

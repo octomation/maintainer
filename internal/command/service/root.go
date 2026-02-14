@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -44,7 +45,7 @@ func New() *cobra.Command {
 		Use:   "service",
 		Short: "run the local maintainer service",
 	}
-	command.AddCommand(runCommand())
+	command.AddCommand(runCommand(), openCommand())
 	return command
 }
 
@@ -66,9 +67,13 @@ func runCommand() *cobra.Command {
 			"the working directory. It runs as your user and listens on 127.0.0.1 and\n" +
 			"::1; a default address the system lacks, as ::1 with IPv6 turned off, is\n" +
 			"skipped. listen in service.toml replaces the defaults, and --listen, which\n" +
-			"may repeat, replaces both. SIGINT or SIGTERM stops it once the responses\n" +
-			"in flight are sent. Do not run the mirror's export or push, or another\n" +
-			"editor of the issue files, while triaging in the browser.",
+			"may repeat, replaces both; for each port it also holds the other of\n" +
+			"127.0.0.1 and ::1. Each start makes a new private address for the data,\n" +
+			"which `maintainer service open` opens in the browser; the plain address\n" +
+			"serves the pages without data, unless service.toml sets access =\n" +
+			"\"open\". SIGINT or SIGTERM stops it once the responses in flight are\n" +
+			"sent. Do not run the mirror's export or push, or another editor of the\n" +
+			"issue files, while triaging in the browser.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			for _, address := range listen {
 				if err := config.CheckLoopback(address); err != nil {
@@ -92,12 +97,29 @@ func runCommand() *cobra.Command {
 			if optional && runtime.service.Listen != nil {
 				listen, optional = runtime.service.Listen, false
 			}
+			label, err := web.NewLabel()
+			if err != nil {
+				return err
+			}
 			ctx, stop := signal.NotifyContext(cmd.Context(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
 			listeners, err := web.Listen(ctx, listen, optional, func(address string, err error) {
 				fmt.Fprintf(stderr, "maintainer service: skipping %s: %v\n", address, err)
 			})
 			if err != nil {
+				return err
+			}
+			// The label is written only once every address is held, and
+			// removed only on a clean stop, before the addresses are released,
+			// if it is still this run's: no replacement can publish its own
+			// label while this run holds the addresses. An error exit leaves
+			// the file: the next start replaces it, and `service open` tells a
+			// dead run by hello.
+			release, err := writeLabels(listeners, label)
+			if err != nil {
+				for _, listener := range listeners {
+					_ = listener.Close()
+				}
 				return err
 			}
 			addresses := make([]string, 0, len(listeners))
@@ -107,6 +129,11 @@ func runCommand() *cobra.Command {
 				addrs = append(addrs, listener.Addr())
 			}
 			fmt.Fprintf(stderr, "maintainer service: %s (URL: %s)\n", strings.Join(addresses, ", "), web.URLFor(listeners[0].Addr()))
+			if runtime.service.OpenAccess() {
+				fmt.Fprintf(stderr, "maintainer service: access is open: the plain address serves the data too (access = \"open\" in service.toml)\n")
+			} else {
+				fmt.Fprintf(stderr, "maintainer service: run `maintainer service open` to open it in the browser\n")
+			}
 			if runtime.service.Source != "" {
 				fmt.Fprintf(stderr, "maintainer service: config %s\n", runtime.service.Source)
 			}
@@ -116,16 +143,53 @@ func runCommand() *cobra.Command {
 			report := func(err error) { fmt.Fprintf(stderr, "maintainer service: index: %v\n", err) }
 			runtime.index.Start(ctx, report)
 			runtime.checkouts.Start(ctx)
-			handler, err := web.NewHandler(web.Options{Addrs: addrs, Assets: assets.Dist(), Index: runtime.index, Checkouts: runtime.checkouts})
+			handler, err := web.NewHandler(web.Options{Addrs: addrs, Assets: assets.Dist(), Index: runtime.index, Checkouts: runtime.checkouts, Label: label, Open: runtime.service.OpenAccess()})
 			if err != nil {
 				return err
 			}
-			return web.Serve(ctx, listeners, handler, 5*time.Second)
+			return web.Serve(ctx, listeners, handler, 5*time.Second, release)
 		},
 	}
 	command.Flags().StringArrayVar(&listen, "listen", Listen, "loopback address to listen on, repeatable; replaces the defaults")
 	command.Flags().StringVar(&configPath, "config", "", "service config path (default: $XDG_CONFIG_HOME/maintainer/service.toml)")
 	return command
+}
+
+// writeLabels writes label as the label file of every port the listeners
+// hold and returns the function that removes, once, the files that still
+// hold it; call it before the listeners are closed. A failure removes what
+// was written.
+func writeLabels(listeners []net.Listener, label string) (func(), error) {
+	dir := stateDir()
+	var ports []int
+	var once sync.Once
+	release := func() {
+		once.Do(func() {
+			for _, port := range ports {
+				_ = web.RemoveLabel(dir, port, label)
+			}
+		})
+	}
+	seen := map[int]bool{}
+	for _, listener := range listeners {
+		tcp, ok := listener.Addr().(*net.TCPAddr)
+		if !ok || seen[tcp.Port] {
+			continue
+		}
+		seen[tcp.Port] = true
+		if err := web.WriteLabel(dir, tcp.Port, label); err != nil {
+			release()
+			return nil, err
+		}
+		ports = append(ports, tcp.Port)
+	}
+	return release, nil
+}
+
+// stateDir is the folder of the label files.
+func stateDir() string {
+	home, _ := os.UserHomeDir()
+	return web.StateDir(os.Getenv, home)
 }
 
 // runtime is what the service runs on: the configs, the index and the

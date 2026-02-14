@@ -713,6 +713,7 @@ View → Grouping: none (the default), status, priority, estimate, repository, o
 - **Indexing / collecting**: a 2 px `progress-line` under the top bar and the state in the sidebar footer; skeleton rows in the layout's shape.
 - **Empty** vs **no matches**: `empty-state`, one muted sentence, Clear filters for no matches.
 - **Recoverable failure**: a `notice` with a red icon and Try again at the top of the view.
+- **No access**: an answer of `401` or `421`, or no answer, replaces the whole shell with one `empty-state` centred in the viewport: a sentence in `{colors.text-primary}` at 500, then the command `maintainer service open` in a code chip. The address loses its parameters first.
 - **Focus**: a 2 px `{colors.focus-ring}` outline, offset 1 px outside or inset on rows inside a scroll container. Every icon-only control has an accessible name and a tooltip.
 
 ## Do's and Don'ts

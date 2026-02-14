@@ -34,24 +34,23 @@ export function repositoryTree(repositories: Repository[]): TreeOwner[] {
   return Array.from(owners, ([owner, list]) => ({ owner, repositories: list.sort((a, b) => byName(a.name, b.name)) })).sort((a, b) => byName(a.owner, b.owner));
 }
 
-const STORAGE = 'maintainer.sidebar.owners';
+/**
+ * The expanded owners the user chose, in memory only: owner names never go to
+ * the browser's storage. Null until the user toggles an owner.
+ */
+let remembered: string[] | null = null;
 
-/** The expanded owners the user chose, or null when none is stored. */
 function readExpanded(): string[] | null {
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE) ?? 'null') as unknown;
-    return Array.isArray(stored) ? stored.filter((v): v is string => typeof v === 'string') : null;
-  } catch {
-    return null;
-  }
+  return remembered;
 }
 
 function writeExpanded(owners: string[]): void {
-  try {
-    localStorage.setItem(STORAGE, JSON.stringify(owners));
-  } catch {
-    // storage is a convenience
-  }
+  remembered = owners;
+}
+
+/** Forgets the expanded owners, for tests. */
+export function forgetExpanded(): void {
+  remembered = null;
 }
 
 export interface RepositoryTreeProps {
@@ -66,7 +65,8 @@ type Item = { kind: 'owner'; key: string; owner: TreeOwner } | { kind: 'repo'; k
  * The Repositories tree of the sidebar: owner rows that expand to their
  * repositories, each repository a link to the inbox filtered by it, with its
  * open issues and a lock when it is private. The expanded owners are
- * remembered; by default only the owner of the current repository is open.
+ * remembered while the page is open; by default only the owner of the current
+ * repository is open.
  * Keyboard: Up and Down move, Right expands or enters, Left collapses or
  * goes to the owner, Enter opens or toggles, Home and End jump.
  */

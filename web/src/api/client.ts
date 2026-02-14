@@ -59,14 +59,46 @@ export function taskQueryParams(query: TaskQuery): URLSearchParams {
 
 export type Fetch = typeof fetch;
 
+/**
+ * Whether an answer means the page cannot use the service: 401 on an address
+ * without access, 421 for the address of an ended run.
+ */
+export function unusable(status: number): boolean {
+  return status === 401 || status === 421;
+}
+
 /** The client of /api/v0. Every mutation carries X-Requested-With: maintainer. */
 export class ApiClient {
   private readonly base: string;
   private readonly fetcher: Fetch;
+  private readonly listeners = new Set<() => void>();
 
   constructor(base = '', fetcher: Fetch = (input, init) => fetch(input, init)) {
     this.base = base.replace(/\/$/, '');
-    this.fetcher = fetcher;
+    const send = fetcher;
+    // Every request goes through here: no answer, a 401 or a 421 tells the
+    // listeners that the page has no service to use.
+    this.fetcher = async (input, init) => {
+      let response: Response;
+      try {
+        response = await send(input, init);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) this.lost();
+        throw error;
+      }
+      if (unusable(response.status)) this.lost();
+      return response;
+    };
+  }
+
+  /** Calls listener once the page cannot use the service; returns the unsubscribe. */
+  onUnusable(listener: () => void): () => void {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  }
+
+  private lost(): void {
+    for (const listener of this.listeners) listener();
   }
 
   async getCheckouts(params: { q?: string; sort?: string } = {}): Promise<CheckoutsAnswer> {
@@ -117,6 +149,15 @@ export class ApiClient {
   async getCatalog(): Promise<{ status: number; envelope: Envelope<Catalog | null> }> {
     const response = await this.fetcher(`${this.base}/api/v0/catalog`, { headers: { Accept: 'application/json' } });
     return { status: response.status, envelope: await parse<Envelope<Catalog | null>>(response) };
+  }
+
+  /**
+   * GET /api/v0/hello with a fresh nonce: the page asks whether its service
+   * still answers; no answer, a 401 or a 421 reaches the onUnusable listeners.
+   */
+  async hello(): Promise<void> {
+    const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
+    await this.fetcher(`${this.base}/api/v0/hello?nonce=${nonce}`, { headers: { Accept: 'application/json' } });
   }
 
   async refresh(): Promise<Envelope<null>> {

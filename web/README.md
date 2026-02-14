@@ -12,10 +12,10 @@ assets.go              package web: //go:embed dist, Dist() for the service
 index.html             the document; Vite rewrites the script tag at build time
 vite.config.ts         Vite, the dev proxy to the service, vitest
 src/main.tsx           applies the stored theme, mounts <App/> into #app, loads the styles
-src/app.tsx            the shell: Sidebar, theme, the page of location.pathname
+src/app.tsx            the shell: Sidebar, theme, the page of location.pathname; NoService without access
 src/theme.ts           dark (default) | light | system, remembered in localStorage
 src/api/types.ts       the TypeScript types of every /api/v0 answer
-src/api/client.ts      ApiClient: the requests, the headers, ApiError
+src/api/client.ts      ApiClient: the requests, the headers, ApiError, onUnusable (401, 421, no answer)
 src/api/mock.ts        mockApi(): a fetch over the fixtures for component tests
 src/api/fixtures/      JSON answers of the Go handler for its fixture mirror
 src/lib/query.ts       TaskQuery <-> URL search (queryFromSearch, pushQuery keeps task, group, layout; replaceSearch tells the shell)
@@ -47,11 +47,13 @@ npm run build       # rewrites dist/; commit the result
 make web-check      # from the repository root: all of the above and a diff with dist/
 ```
 
-`npm run dev` proxies `/api` to `http://maintainer.localhost:17841` and
-rewrites `Host` and `Origin` to that address, which the service requires;
-set `MAINTAINER_SERVICE` to proxy another address, such as a service started
-with `--listen 127.0.0.1:0`. Start the service first:
-`maintainer service run`.
+`npm run dev` proxies `/api` to `$MAINTAINER_SERVICE` and rewrites `Host`
+and `Origin` to that address, which the service requires. The service serves
+the data only at the address of its current run: start it with
+`maintainer service run`, then
+`MAINTAINER_SERVICE="$(maintainer service open --print)" npm run dev`.
+Without the variable the proxy goes to `http://maintainer.localhost:17841`,
+which answers the API with `401`.
 
 ## The contract with the service
 

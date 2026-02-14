@@ -52,10 +52,12 @@ See the [status guide][status.page] for columns, keys and JSON output.
 
 `maintainer service run` serves a local hub at `http://maintainer.localhost:17841/`:
 every checkout of the collection and every issue their repositories mirror
-from GitHub, in one place in the browser. On macOS, Homebrew keeps it running.
+from GitHub, in one place in the browser. On macOS, Homebrew keeps it running;
+`maintainer service open` opens the hub for your account.
 
 ```bash
 $ brew services start octolab/tap/maintainer
+$ maintainer service open
 ```
 
 See the [service guide][service.page] for the pages, triage and `service.toml`.

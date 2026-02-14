@@ -20,13 +20,24 @@ const (
 	DefaultRepoWeight     = 1.0
 )
 
+// Values of Service.Access.
+const (
+	// AccessLabel serves the data only on the label host of the run.
+	AccessLabel = "label"
+	// AccessOpen also serves the data on the plain addresses, for a machine
+	// where the user is the only account.
+	AccessOpen = "open"
+)
+
 // Service is the service.toml configuration of `maintainer service run`. The
 // loader is strict like Fetch: service.cue is the contract and every key
 // outside it is an error. Weights are pointers so that an omitted key takes
 // its default while an explicit 0 stays 0; Weights and RepoWeight resolve them.
 type Service struct {
 	// Listen replaces the default loopback addresses; --listen replaces it.
-	Listen []string      `toml:"listen" yaml:"listen"`
+	Listen []string `toml:"listen" yaml:"listen"`
+	// Access is AccessLabel (empty means the same) or AccessOpen.
+	Access string        `toml:"access" yaml:"access"`
 	Fetch  FetchRef      `toml:"fetch" yaml:"fetch"`
 	Score  Score         `toml:"score" yaml:"score"`
 	Repos  []ServiceRepo `toml:"repos" yaml:"repos"`
@@ -180,6 +191,11 @@ func (s *Service) Validate() error {
 			return fmt.Errorf("listen[%d] %w", i, err)
 		}
 	}
+	switch s.Access {
+	case "", AccessLabel, AccessOpen:
+	default:
+		return fmt.Errorf("access must be %q or %q, got %q", AccessLabel, AccessOpen, s.Access)
+	}
 	for _, w := range []struct {
 		name  string
 		value *float64
@@ -224,6 +240,9 @@ func CheckLoopback(address string) error {
 	}
 	return nil
 }
+
+// OpenAccess reports whether the plain addresses serve the data too.
+func (s *Service) OpenAccess() bool { return s.Access == AccessOpen }
 
 // Weights returns the resolved score weights and horizons.
 func (s *Service) Weights() Weights {

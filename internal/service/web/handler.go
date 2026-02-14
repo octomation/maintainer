@@ -1,6 +1,9 @@
 package web
 
 import (
+	"bytes"
+	"crypto/subtle"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -37,6 +40,12 @@ type Options struct {
 	Checkouts *Checkouts
 	// Renderer renders task bodies; nil creates one.
 	Renderer *hub.Renderer
+	// Label names this run: the data is served only for the host
+	// <Label>.maintainer.localhost. Empty serves no data on any host.
+	Label string
+	// Open serves the data on the plain names too, as before the label, for
+	// a machine where the user is the only account (access = "open").
+	Open bool
 }
 
 type handler struct {
@@ -65,6 +74,15 @@ func NewHandler(o Options) (http.Handler, error) {
 		if err != nil {
 			return nil, fmt.Errorf("the frontend build has no index.html: %w", err)
 		}
+		if o.Open {
+			// The application keeps its storage on a plain name only when
+			// the page says that access is open.
+			marked := bytes.Replace(raw, []byte("<html"), []byte(`<html data-access="open"`), 1)
+			if bytes.Equal(marked, raw) {
+				return nil, fmt.Errorf("the index.html of the frontend build has no <html> element")
+			}
+			raw = marked
+		}
 		h.index = raw
 	}
 	h.mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
@@ -74,6 +92,7 @@ func NewHandler(o Options) (http.Handler, error) {
 		h.mux.HandleFunc("GET "+page, h.page)
 	}
 	h.mux.HandleFunc("GET /assets/", h.asset)
+	h.mux.HandleFunc("GET /api/v0/hello", h.hello)
 	h.mux.HandleFunc("GET /api/v0/checkouts", h.checkouts)
 	h.mux.HandleFunc("POST /api/v0/checkouts/refresh", h.refreshCheckouts)
 	h.mux.HandleFunc("GET /api/v0/tasks", h.tasks)
@@ -107,7 +126,7 @@ func allowedMethods(p string) string {
 	switch {
 	case p == "/", strings.HasPrefix(p, "/assets/"):
 		return read
-	case p == "/api/v0/checkouts", p == "/api/v0/tasks", p == "/api/v0/catalog":
+	case p == "/api/v0/checkouts", p == "/api/v0/tasks", p == "/api/v0/catalog", p == "/api/v0/hello":
 		return read
 	case p == "/api/v0/refresh", p == "/api/v0/checkouts/refresh":
 		return "POST"
@@ -136,9 +155,25 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	header.Set("Content-Security-Policy", "default-src 'self'; img-src 'self' data:; frame-ancestors 'none'")
 	header.Set("X-Content-Type-Options", "nosniff")
 	header.Set("Referrer-Policy", "no-referrer")
-	if !h.hostAllowed(r) {
+	access := h.hostAccess(r)
+	if access == noAccess {
 		writeError(w, http.StatusMisdirectedRequest, "misdirected", "the Host of the request is not this service")
 		return
+	}
+	if h.Open {
+		access = labelAccess
+	}
+	// Only the host of this run's label reaches the data; the plain names
+	// get the pages, the assets and the hello of `maintainer service open`.
+	if access != labelAccess && isAPI(r.URL.Path) && (r.Method != http.MethodGet || r.URL.Path != "/api/v0/hello") {
+		writeError(w, http.StatusUnauthorized, "unauthorized", "this address has no access to the data: run `maintainer service open`")
+		return
+	}
+	// Nothing of the hub may live in the storage of a plain name: another
+	// account can serve that origin while the hub is down. Earlier releases
+	// kept view state there; every page of a plain name clears it.
+	if access == plainAccess && isPage(r.URL.Path) {
+		header.Set("Clear-Site-Data", `"storage"`)
 	}
 	switch r.Method {
 	case http.MethodGet, http.MethodHead, http.MethodOptions:
@@ -159,38 +194,98 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.mux.ServeHTTP(w, r)
 }
 
-// hostAllowed accepts maintainer.localhost, localhost and the bound loopback
-// literals, with the port of the listener that received the request.
-// Forwarded headers are ignored.
-func (h *handler) hostAllowed(r *http.Request) bool {
+// access is what the Host of a request may reach.
+type access int
+
+const (
+	// noAccess: not this service, 421.
+	noAccess access = iota
+	// plainAccess: maintainer.localhost, localhost or a bound loopback
+	// literal: the pages, the assets and hello.
+	plainAccess
+	// labelAccess: <label>.maintainer.localhost of this run: everything.
+	labelAccess
+)
+
+// hostAccess checks the Host of the request, with the port of the listener
+// that received it: the label host of this run gets everything, the plain
+// names the pages, any other host nothing. Forwarded headers are ignored.
+func (h *handler) hostAccess(r *http.Request) access {
 	host, port, err := net.SplitHostPort(r.Host)
 	if err != nil {
 		host, port = r.Host, "80"
 	}
 	if local, ok := r.Context().Value(http.LocalAddrContextKey).(*net.TCPAddr); ok {
 		if port != strconv.Itoa(local.Port) {
-			return false
+			return noAccess
 		}
 	} else if len(h.ports) > 0 {
 		n, err := strconv.Atoi(port)
 		if err != nil || !h.ports[n] {
-			return false
+			return noAccess
 		}
 	}
 	name := strings.ToLower(strings.TrimSuffix(host, "."))
 	if name == Host || name == "localhost" {
-		return true
+		return plainAccess
+	}
+	if label, ok := strings.CutSuffix(name, "."+Host); ok {
+		if h.Label != "" && subtle.ConstantTimeCompare([]byte(label), []byte(h.Label)) == 1 {
+			return labelAccess
+		}
+		return noAccess
 	}
 	ip := net.ParseIP(strings.Trim(host, "[]"))
 	if ip == nil || !ip.IsLoopback() {
-		return false
+		return noAccess
 	}
 	for _, bound := range h.ips {
 		if bound.Equal(ip) {
+			return plainAccess
+		}
+	}
+	return noAccess
+}
+
+// isPage reports whether a path serves or redirects to the application
+// document.
+func isPage(p string) bool {
+	if p == "/" {
+		return true
+	}
+	for _, page := range Pages {
+		if p == page {
 			return true
 		}
 	}
 	return false
+}
+
+// isAPI reports whether a path is under /api/, before or after cleaning.
+func isAPI(p string) bool {
+	clean := path.Clean("/" + p)
+	return p == "/api" || strings.HasPrefix(p, "/api/") || clean == "/api" || strings.HasPrefix(clean, "/api/")
+}
+
+// Hello is the data of GET /api/v0/hello.
+type Hello struct {
+	// Proof is Proof(label, nonce) as hex.
+	Proof string `json:"proof"`
+}
+
+// hello answers a nonce with the proof that this service knows the label of
+// the run, so `maintainer service open` can tell it from another listener.
+func (h *handler) hello(w http.ResponseWriter, r *http.Request) {
+	nonce, err := hex.DecodeString(r.URL.Query().Get("nonce"))
+	if err != nil || len(nonce) < 16 || len(nonce) > 64 {
+		writeError(w, http.StatusBadRequest, "bad_request", "nonce must be 32 to 128 hex characters")
+		return
+	}
+	if h.Label == "" {
+		writeError(w, http.StatusServiceUnavailable, "unavailable", "this service has no label")
+		return
+	}
+	writeEnvelope(w, http.StatusOK, Envelope{Data: Hello{Proof: Proof(h.Label, nonce)}})
 }
 
 func (h *handler) page(w http.ResponseWriter, r *http.Request) {

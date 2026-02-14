@@ -2724,6 +2724,35 @@ a.menu-item {
   color: var(--text-faint);
 }
 
+/* The page without a service to use: the empty state alone, centred. */
+.app--alone {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.app--alone .main {
+  justify-content: center;
+}
+
+.app--alone .empty-state p {
+  max-width: 420px;
+}
+
+.app--alone .empty-state strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.app--alone .empty-state code {
+  padding: 1px 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  white-space: nowrap;
+}
+
 /* ---------- Narrow screens ---------- */
 
 @media (max-width: 899px) {

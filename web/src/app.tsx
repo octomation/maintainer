@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { ApiClient } from './api/client';
 import { CommandBar, type IssueCommands, type Mode } from './components/CommandBar';
 import { ROUTES, Sidebar } from './components/Sidebar';
+import { Empty } from './components/States';
 import { useCatalog } from './lib/catalog';
 import { QUERY_EVENT } from './lib/query';
 import { openTask } from './lib/task';
@@ -28,6 +29,29 @@ export interface AppProps {
 export function App({ path, client }: AppProps) {
   const current = path ?? (typeof location !== 'undefined' ? location.pathname : '/status');
   const api = useMemo(() => client ?? new ApiClient(), [client]);
+  const [unusable, setUnusable] = useState(false);
+  useEffect(
+    () =>
+      api.onUnusable(() => {
+        // The address keeps no filters and no issue once the service is gone.
+        if (typeof location !== 'undefined' && (location.search || location.hash)) history.replaceState(null, '', location.pathname);
+        setUnusable(true);
+      }),
+    [api],
+  );
+  // An idle tab learns that its service is gone: a hello every half minute
+  // while the page is visible, and when it becomes visible again.
+  useEffect(() => {
+    const probe = () => {
+      if (document.visibilityState === 'visible') api.hello().catch(() => undefined);
+    };
+    const timer = setInterval(probe, 30_000);
+    document.addEventListener('visibilitychange', probe);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', probe);
+    };
+  }, [api]);
   const [theme, setTheme] = useState<Theme>(() => readTheme());
   useEffect(() => applyTheme(theme), [theme]);
   const route = ROUTES.find((r) => r.path === current) ?? ROUTES[ROUTES.length - 1];
@@ -138,6 +162,7 @@ export function App({ path, client }: AppProps) {
     opener.current.focus();
     opener.current = null;
   }, [open]);
+  if (unusable) return <NoService />;
   return (
     <ShellContext.Provider value={shell}>
       <div class="app">
@@ -161,5 +186,25 @@ export function App({ path, client }: AppProps) {
         <CommandBar client={api} open={searching} onClose={() => setSearching(false)} onOpenTask={openIssue} issue={issue} initialMode={mode} />
       </div>
     </ShellContext.Provider>
+  );
+}
+
+/**
+ * The page has no service to use: this address has no access, its run has
+ * ended, or nothing answers. Only `maintainer service open` gives the address
+ * of the current run.
+ */
+export function NoService() {
+  return (
+    <div class="app app--alone">
+      <main class="main" id="main">
+        <Empty>
+          <strong>This page has no access to maintainer.</strong>
+          <span>
+            Run <code>maintainer service open</code> in a terminal: it opens the hub at the address of its current run. Run it again after every start of the service.
+          </span>
+        </Empty>
+      </main>
+    </div>
   );
 }

@@ -157,7 +157,6 @@ describe('App issue commands', () => {
 
 describe('App sidebar tree', () => {
   it('marks the repository the inbox is filtered by, with its lock, and follows the filters', async () => {
-    localStorage.removeItem('maintainer.sidebar.owners');
     history.replaceState(null, '', '/inbox?repo=octomation%2Ftool');
     render(<App path="/inbox" client={new ApiClient('', mockApi().fetch)} />);
     const tree = await screen.findByRole('tree', { name: 'Repositories' });
@@ -192,5 +191,60 @@ describe('query', () => {
     expect(queryFromSearch(search)).toEqual({ repo: ['a/b', 'c/d'], state: 'all', label: ['impact: high'], sort: 'updated', q: 'x y', column: ['todo'] });
     expect(queryFromSearch('?state=bogus&sort=title&column=nope&repo=')).toEqual({});
     expect(searchFromQuery({})).toBe('');
+  });
+});
+
+describe('App without a service to use', () => {
+  const answers: [string, () => Promise<Response>][] = [
+    ['401 on an address without access', async () => json({ error: { code: 'unauthorized', message: 'no access' } }, 401)],
+    ['421 for the address of an ended run', async () => json({ error: { code: 'misdirected', message: 'not this service' } }, 421)],
+    ['no answer', async () => Promise.reject(new TypeError('Failed to fetch'))],
+  ];
+  for (const [name, answer] of answers) {
+    it(`shows one full-page state and drops the address parameters on ${name}`, async () => {
+      history.replaceState(null, '', '/inbox?repo=acme%2Fsecret&task=github%3Aacme%2Fsecret%231#x');
+      render(<App path="/inbox" client={new ApiClient('', () => answer())} />);
+      await screen.findByText('This page has no access to maintainer.');
+      expect(screen.getByText('maintainer service open')).toBeTruthy();
+      expect(screen.queryByRole('navigation', { name: 'Pages' })).toBeNull();
+      expect(location.pathname + location.search + location.hash).toBe('/inbox');
+      history.replaceState(null, '', '/');
+    });
+  }
+
+  it('notices an idle tab whose service stopped when it becomes visible', async () => {
+    let up = true;
+    const api = mockApi();
+    const client = new ApiClient('', (input, init) => (up ? api.fetch(input, init) : Promise.reject(new TypeError('Failed to fetch'))));
+    history.replaceState(null, '', '/tablo?repo=acme%2Fsecret');
+    render(<App path="/tablo" client={client} />);
+    await screen.findByRole('navigation', { name: 'Pages' });
+    up = false;
+    act(() => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await screen.findByText('This page has no access to maintainer.');
+    expect(location.search).toBe('');
+    history.replaceState(null, '', '/');
+  });
+
+  it('keeps working on other errors', async () => {
+    const api = mockApi({ route: (call) => (call.url.pathname === '/api/v0/catalog' ? json({ error: { code: 'error', message: 'boom' } }, 500) : undefined) });
+    render(<App path="/status" client={new ApiClient('', api.fetch)} />);
+    await screen.findByRole('navigation', { name: 'Pages' });
+    await waitFor(() => expect(api.calls.some((c) => c.url.pathname === '/api/v0/catalog')).toBe(true));
+    expect(screen.queryByText('This page has no access to maintainer.')).toBeNull();
+  });
+
+  it('registers no service worker and stores nothing that names a repository', async () => {
+    history.replaceState(null, '', '/inbox?repo=octomation%2Ftool');
+    render(<App path="/inbox" client={new ApiClient('', mockApi().fetch)} />);
+    await screen.findByRole('tree', { name: 'Repositories' });
+    const stored = [...Array(localStorage.length).keys()].map((i) => `${localStorage.key(i)}=${localStorage.getItem(localStorage.key(i) ?? '')}`).join(' ');
+    expect(stored).not.toMatch(/octomation|kamilsk|tool|maintainer\.sidebar/);
+    expect(sessionStorage.length).toBe(0);
+    expect(document.cookie).toBe('');
+    expect('serviceWorker' in navigator ? await navigator.serviceWorker.getRegistrations() : []).toEqual([]);
+    history.replaceState(null, '', '/');
   });
 });
