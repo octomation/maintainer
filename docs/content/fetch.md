@@ -226,6 +226,25 @@ matches the repository's current name, the next apply updates it as a separate
 `update_remote`. Missing or foreign pinned paths are conflicts; fetch never
 clones into a pin or falls back to a duplicate.
 
+A new pin, one whose repository is neither listed by a profile nor in the
+state yet, is checked once with GitHub. When GitHub does not confirm its
+repository, because it was deleted (`404`), is forbidden to the token
+(`403`) or is withheld (`451`), the pin is a conflict of that repository with
+GitHub's answer as its reason; the rest of the plan goes on, and `--apply`
+exits `3` as with any other conflict. A pin matched by `id` alone is named by
+its id. A rejected token, a network error or a rate limit during that check
+stops the run instead. A pin already in the state is checked as any tracked
+repository missing from the listings, described in
+[Profiles & tokens](#profiles--tokens): a `404` for its own profile's token
+makes it a `remote-gone` orphan, and a `403` or `451` a flagged `noop`.
+
+```text
+  ✗ conflict   acme/gone                    → GitHub does not confirm the pinned repository: 404 Not Found
+               at /home/me/ext/gone
+  ✗ conflict   id=154873464                 → GitHub does not confirm the pinned repository: 404 Not Found
+               at /home/me/.dotfiles
+```
+
 Use numeric IDs so rules survive renames. Applied pins are also retained as
 `pinned_path` in state, protecting name-based rules on later runs. Removing a
 rule alone does not unpin: deliberately remove its state `pinned_path` too to

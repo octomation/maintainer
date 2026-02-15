@@ -192,6 +192,9 @@ func (r *Reporter) renderHuman(p Plan, applied bool) error {
 func (r *Reporter) writeAction(b *strings.Builder, p Plan, a Action) {
 	sym := symbols[a.Kind]
 	name := a.Owner + "/" + a.Name
+	if a.Owner == "" && a.Name == "" && a.ID != 0 {
+		name = fmt.Sprintf("id=%d", a.ID) // an id-only pin GitHub does not confirm
+	}
 	switch a.Kind {
 	case KindMove:
 		fmt.Fprintf(b, "  %s move       %-28s → renamed on GitHub: %s/%s\n", sym, a.FromName, a.Owner, a.Name)

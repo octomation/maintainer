@@ -32,7 +32,7 @@ repository can have several actions, such as a `move` followed by its `fetch`.
 | `adopt` | a checkout on disk matches a repository with no state record |
 | `orphan` | a report: inactive duplicate, out of scope, or `remote-gone` |
 | `noop` | nothing to do; `reason` says why, such as `outside the selection` or a filter |
-| `conflict` | blocked: ambiguous identity, occupied or foreign target, missing pin, `incomplete clone`, a scan obstruction |
+| `conflict` | blocked: ambiguous identity, occupied or foreign target, missing pin, a pin whose repository GitHub does not confirm, `incomplete clone`, a scan obstruction |
 
 Apply prints the same plan with the resulting summary; it is not a log of each
 action. Per-repository errors go to stderr.

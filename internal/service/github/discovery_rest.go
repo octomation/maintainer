@@ -317,4 +317,33 @@ func HTTPStatus(err error) int {
 	return 0
 }
 
+// IsRateLimit reports whether err is a rate limit of GitHub rather than its
+// answer about a resource: a limit go-github or the RateGuard names, or a 403
+// or 429 that the RateGuard would classify as a primary or secondary limit.
+func IsRateLimit(err error) bool {
+	var (
+		primary   *github.RateLimitError
+		secondary *github.AbuseRateLimitError
+		wait      *RateLimitWaitError
+	)
+	if errors.As(err, &primary) || errors.As(err, &secondary) || errors.As(err, &wait) {
+		return true
+	}
+	var apiErr *github.ErrorResponse
+	if !errors.As(err, &apiErr) || apiErr.Response == nil {
+		return false
+	}
+	resp := apiErr.Response
+	if resp.StatusCode != http.StatusForbidden && resp.StatusCode != http.StatusTooManyRequests {
+		return false
+	}
+	if remaining(resp) == 0 || resp.Header.Get("Retry-After") != "" {
+		return true
+	}
+	text := strings.ToLower(apiErr.Message + " " + apiErr.DocumentationURL)
+	return strings.Contains(text, "secondary rate limit") ||
+		strings.Contains(text, "secondary-rate-limits") ||
+		strings.Contains(text, "abuse-rate-limits")
+}
+
 func isNotFound(err error) bool { return HTTPStatus(err) == http.StatusNotFound }

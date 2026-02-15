@@ -220,7 +220,8 @@ exist). It needs no token or network.
 - `a token is required`: the profile has no token; ask the user to export
   `GITHUB_TOKEN` or set `token_file`, never to paste the token to you.
 - A `conflict` names its path and reason: an occupied or foreign target, an
-  `incomplete clone`, a missing pin, two checkouts of one repository. Report
+  `incomplete clone`, a missing pin, a pin whose repository GitHub does not
+  confirm, two checkouts of one repository. Report
   it; the user decides, the rest of the plan still runs.
 - Exit `3` after apply: read the per-repository errors on stderr and the
   plan's summary; whatever succeeded stays applied, and the next apply retries

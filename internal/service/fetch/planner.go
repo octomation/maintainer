@@ -92,6 +92,7 @@ type PlanInput struct {
 	Snapshots      []github.RepoSnapshot
 	State          *state.State
 	Clones         []DiskClone
+	Unconfirmed    []Action // conflicts of pins whose repository GitHub does not confirm
 	Confirmations  map[int64]Confirmation
 	Occupancy      map[string]Occupancy // keyed by cleaned target path; optional
 	Deselected     map[int64]string     // outside --owner/--profile: id → reason; report-only
@@ -246,6 +247,7 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 	}
 	resolveTargetCollisions(actions, p.paths.scope.Root, existing)
 	actions = withRefreshes(actions)
+	actions = append(actions, in.Unconfirmed...)
 	sort.SliceStable(actions, func(i, j int) bool {
 		if actions[i].order() != actions[j].order() {
 			return actions[i].order() < actions[j].order()

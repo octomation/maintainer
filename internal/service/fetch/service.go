@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
@@ -131,7 +132,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	deselected := s.deselect(st, snapshots)
 	confirmations := s.confirm(ctx, st, snapshots, deselected)
 	snapshots = append(snapshots, confirmedRenames(st, confirmations)...)
-	snapshots, outsidePins, err := s.explicitSnapshots(ctx, st, snapshots, deselected)
+	snapshots, outsidePins, unconfirmed, err := s.explicitSnapshots(ctx, st, snapshots, deselected)
 	if err != nil {
 		return err
 	}
@@ -261,6 +262,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		Occupancy:      occupancy,
 		Deselected:     deselected,
 		Aliases:        s.caseAliases(snapshots, st),
+		Unconfirmed:    unconfirmed,
 	})
 	if err != nil {
 		return exit.WithUser(err)
@@ -409,13 +411,19 @@ func (s *Service) cacheRemoteObservations(st *state.State, snapshots []github.Re
 // local selection is meaningful without adding an entire remote owner. A pin
 // is explicit intent: an id-only one is confirmed once even in a narrowed run,
 // and one of an owner outside the selection is returned apart, report-only.
+// A pin whose repository GitHub does not confirm is a conflict of that
+// repository only; a failure that is not about the repository, such as a
+// network error or a rate limit, stops the run.
 func (s *Service) explicitSnapshots(
 	ctx context.Context,
 	st *state.State,
 	snapshots []github.RepoSnapshot,
 	deselected map[int64]string,
-) ([]github.RepoSnapshot, []github.RepoSnapshot, error) {
-	var outside []github.RepoSnapshot
+) ([]github.RepoSnapshot, []github.RepoSnapshot, []Action, error) {
+	var (
+		outside     []github.RepoSnapshot
+		unconfirmed []Action
+	)
 	for _, rule := range s.cnf.Repos {
 		if rule.Ignore || rule.Path == "" {
 			continue
@@ -458,15 +466,26 @@ func (s *Service) explicitSnapshots(
 		case rule.Match.ID != 0 && s.deps.Confirmer != nil:
 			snap, err = s.deps.Confirmer.ConfirmByID(ctx, profile, rule.Match.ID)
 			if err == nil && snap.ID != rule.Match.ID {
-				err = fmt.Errorf("ID mismatch")
+				unconfirmed = append(unconfirmed, s.unconfirmedPin(rule,
+					fmt.Sprintf("GitHub answered with another repository, id %d", snap.ID)))
+				continue
 			}
 		case rule.Match.ID == 0 && s.deps.Resolver != nil:
 			snap, err = s.deps.Resolver.ResolveByName(ctx, profile, rule.Match.Owner, rule.Match.Name)
 		default:
 			err = fmt.Errorf("identity resolver is unavailable")
 		}
+		// GitHub's answer about this repository: gone, forbidden to the
+		// token or withheld. A rejected token, a rate limit or a transport
+		// failure is not.
+		if code := github.HTTPStatus(err); !github.IsRateLimit(err) &&
+			(code == http.StatusNotFound || code == http.StatusForbidden || code == http.StatusUnavailableForLegalReasons) {
+			unconfirmed = append(unconfirmed, s.unconfirmedPin(rule,
+				fmt.Sprintf("GitHub does not confirm the pinned repository: %d %s", code, http.StatusText(code))))
+			continue
+		}
 		if err != nil || snap.ID == 0 {
-			return nil, nil, fmt.Errorf("cannot verify explicit checkout %q: %v", rule.Path, err)
+			return nil, nil, nil, fmt.Errorf("cannot verify explicit checkout %q: %v", rule.Path, err)
 		}
 		snap.SourceProfile = p.Name
 		if !s.deps.Selection.owner(snap.Owner) {
@@ -476,7 +495,18 @@ func (s *Service) explicitSnapshots(
 		}
 		snapshots = append(snapshots, snap)
 	}
-	return snapshots, outside, nil
+	return snapshots, outside, unconfirmed, nil
+}
+
+// unconfirmedPin is the conflict row of a pin whose repository GitHub does not
+// confirm, at the pinned path when it can be rendered.
+func (s *Service) unconfirmedPin(rule config.Repo, reason string) Action {
+	a := Action{Kind: KindConflict, ID: rule.Match.ID, Owner: rule.Match.Owner, Name: rule.Match.Name, Reason: reason}
+	snap := github.RepoSnapshot{ID: rule.Match.ID, Owner: rule.Match.Owner, Name: rule.Match.Name}
+	if path, err := s.planner.paths.PinnedPath(snap, nil); err == nil {
+		a.Path = path
+	}
+	return a
 }
 
 // discover runs each profile's Discoverer concurrently (bounded) and merges the
