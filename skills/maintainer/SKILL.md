@@ -87,7 +87,7 @@ This skill describes maintainer `>=0.5.1 <0.6.0`. Before anything else:
 
 | The user wants | Command |
 | --- | --- |
-| A first config | `fetch config init` (writes `~/.config/maintainer/fetch.toml`; `--force` overwrites) |
+| A first config | `fetch config init` (writes `~/.config/maintainer/fetch.toml`, or a `.toml` `--config` path only; `--force` overwrites) |
 | To check a config | `fetch config validate`, or `cue vet -c fetch.cue fetch.toml` against the schema |
 | To see what fetch would do | `fetch`, or `fetch --format=json` |
 | To clone missing and refresh existing checkouts | `fetch --apply`, after reviewing the plan |

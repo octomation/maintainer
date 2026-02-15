@@ -391,7 +391,7 @@ The fetch group also provides these subcommands:
 
 | Command | Behavior |
 | --- | --- |
-| `fetch config init` | Write a TOML template to `$XDG_CONFIG_HOME/maintainer/fetch.toml` (fallback `~/.config/maintainer/`), or the explicit `--config` path, and print the path; `--force` overwrites it |
+| `fetch config init` | Write a TOML template to `$XDG_CONFIG_HOME/maintainer/fetch.toml` (fallback `~/.config/maintainer/`), or the explicit `--config` path, and print the path; `--force` overwrites it. It writes TOML only: a `--config` path without the `.toml` extension, `fetch.yaml` included, is a usage error (exit `2`) and no file is written |
 | `fetch config validate` | Parse and structurally validate an existing config without resolving tokens or calling GitHub |
 | `fetch state show` | Print state as JSON using the configured/default state location |
 | `fetch state prune` | Save state after forgetting missing paths; runs immediately, without `--apply` |

@@ -72,3 +72,47 @@ func TestValidateRejectsBrokenRepoPath(t *testing.T) {
 	assert.EqualError(t, err, "repos[0].path of acme/broken is not a valid template: template: path:1: unclosed action")
 	assert.NotContains(t, out.String(), "ok:")
 }
+
+// config init writes only a config that validate accepts at the same path:
+// a TOML path gets the template, any other extension is a usage error that
+// leaves no file.
+func TestConfigInitWritesLoadableFormat(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", filepath.Join(t.TempDir(), "xdg"))
+	for _, tc := range []struct {
+		file string
+		ok   bool
+	}{
+		{"fetch.toml", true},
+		{"fetch.TOML", true},
+		{"fetch.yaml", false},
+		{"fetch.yml", false},
+		{"fetch.json", false},
+		{"fetch", false},
+	} {
+		t.Run(tc.file, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), tc.file)
+			run := func(args ...string) error {
+				cmd := New(nil)
+				var out bytes.Buffer
+				cmd.SetOut(&out)
+				cmd.SetErr(&out)
+				cmd.SetArgs(append([]string{"--config", path}, args...))
+				return cmd.Execute()
+			}
+			err := run("config", "init")
+			if tc.ok {
+				require.NoError(t, err)
+				require.NoError(t, run("config", "validate"))
+				return
+			}
+			require.Error(t, err)
+			var coded exit.Coder
+			require.ErrorAs(t, err, &coded)
+			assert.Equal(t, exit.User, coded.ExitCode())
+			assert.Contains(t, err.Error(), "want .toml")
+			assert.Contains(t, err.Error(), `"`+filepath.Ext(tc.file)+`"`)
+			_, statErr := os.Stat(path)
+			assert.True(t, os.IsNotExist(statErr), "a refused init must leave no file")
+		})
+	}
+}

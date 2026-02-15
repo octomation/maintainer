@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -23,7 +24,7 @@ func configCommand(opts *options) *cobra.Command {
 	var force bool
 	initCmd := &cobra.Command{
 		Use:   "init",
-		Short: "write a documented fetch.toml template to the user folder or --config",
+		Short: "write a documented fetch.toml template to the user folder or a .toml --config",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			path := opts.config
@@ -34,6 +35,11 @@ func configCommand(opts *options) *cobra.Command {
 					return exit.WithUser(fmt.Errorf("no user folder for the config: set HOME or XDG_CONFIG_HOME, or pass --config"))
 				}
 				path = filepath.Join(dir, "fetch.toml")
+			}
+			// The template is TOML: a path of another format would hold a
+			// config that every later command refuses.
+			if ext := filepath.Ext(path); !strings.EqualFold(ext, ".toml") {
+				return exit.WithUser(fmt.Errorf("config init writes a TOML template; %q has the extension %q, want .toml", path, ext))
 			}
 			fs := afero.NewOsFs()
 			if ok, _ := afero.Exists(fs, path); ok && !force {
