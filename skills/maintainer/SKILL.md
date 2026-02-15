@@ -128,7 +128,7 @@ this release: [references/cli.md](references/cli.md).
   `[[repos]]` by `id` so a rule survives a rename.
 - **Profiles and tokens.** A profile is a token with the owners it discovers
   (`include_owners`, `["*"]` for the user and every organization they belong
-  to). Its token comes from `token_file` (mode `0600` at most), then
+  to, `["*", "other"]` adds an owner outside them). Its token comes from `token_file` (mode `0600` at most), then
   `token_env` (`GITHUB_TOKEN` for the first profile in alphabetical order),
   then an inline `token`. fetch needs a token even for public repositories;
   status needs none.

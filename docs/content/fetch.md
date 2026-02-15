@@ -140,11 +140,13 @@ anyone else → public only) **and** acts as an allowlist applied after discover
 | ----------------------------- | -------------------------------------------------------------- |
 | `["acme", "acme-bot"]`        | exactly these owners                                           |
 | `["*"]` or omitted            | **you + every org you are a member of** (from `/user/orgs`)    |
+| `["*", "stranger"]`           | you + every org you are a member of + `stranger`               |
 
 The wildcard expands from your org memberships, so you never enumerate orgs and
 ones you join later are picked up automatically. It does **not** include repos
-you only collaborate on in orgs you are *not* a member of — list those
-explicitly.
+you only collaborate on in orgs you are *not* a member of — list those owners
+next to the wildcard, as in `["*", "stranger"]`, and discovery requests their
+repositories too.
 
 Owners are compared case-insensitively, as GitHub compares them: `["Acme"]`
 and `["acme"]` select the same repositories, and so do the owners of

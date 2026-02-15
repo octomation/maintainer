@@ -93,12 +93,19 @@ func (d *RESTDiscoverer) List(ctx context.Context, profile Profile) (Discovery, 
 	}
 
 	// An empty list or "*" means "the authenticated user + every org they are a
-	// member of" (§5.3 extension), driven by the /user/orgs membership set.
-	// Logins are case-insensitive: a configured owner takes the spelling GitHub
-	// reports for you and your organizations, and the allowlist ignores case.
+	// member of" (§5.3 extension), driven by the /user/orgs membership set; an
+	// owner listed next to "*" is discovered as well. Logins are
+	// case-insensitive: a configured owner takes the spelling GitHub reports
+	// for you and your organizations, and the allowlist ignores case.
 	owners := profile.Owners
 	if isAllOwners(owners) {
-		owners = expandAllOwners(login, members)
+		expanded := expandAllOwners(login, members)
+		for _, o := range owners {
+			if o != OwnerWildcard {
+				expanded = append(expanded, o)
+			}
+		}
+		owners = expanded
 	}
 	canonical := make(map[string]string, len(members)+1)
 	for org := range members {

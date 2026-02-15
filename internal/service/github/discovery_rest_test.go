@@ -137,6 +137,39 @@ func TestRESTDiscoverer_WildcardExpandsToMemberOrgs(t *testing.T) {
 	assert.Len(t, got.Snapshots, 3)
 }
 
+// An owner listed next to the wildcard is discovered with the user and the
+// member organizations, not dropped by the allowlist.
+func TestRESTDiscoverer_WildcardKeepsNamedOwners(t *testing.T) {
+	fake := &fakeTransport{seen: map[string]int{}, routes: map[string]fakeResponse{
+		"GET /user?page=1":      {status: 200, body: `{"login":"me"}`},
+		"GET /user/orgs?page=1": {status: 200, body: `[{"login":"acme"}]`},
+		"GET /user/repos?page=1": {status: 200, body: "[" +
+			repoJSON(1, "me", "dotfiles", "private", true) + "]"},
+		"GET /orgs/acme/repos?page=1": {status: 200, body: "[" +
+			repoJSON(2, "acme", "svc", "private", true) + "]"},
+		"GET /users/stranger/repos?page=1": {status: 200, body: "[" +
+			repoJSON(3, "stranger", "x", "public", false) + "]"},
+	}}
+	factory := func(_ context.Context, _ string) *gh.Client {
+		c, _ := gh.NewClient(gh.WithHTTPClient(&http.Client{Transport: fake}))
+		return c
+	}
+	d := github.NewRESTDiscoverer(factory)
+
+	for _, owners := range [][]string{{"*", "stranger"}, {"Stranger", "*", "me"}} {
+		got, err := d.List(context.Background(), github.Profile{Name: "p", Token: "t", Owners: owners})
+		require.NoError(t, err, owners)
+		var names []string
+		for _, s := range got.Snapshots {
+			names = append(names, s.FullName())
+		}
+		sort.Strings(names)
+		assert.Equal(t, []string{"acme/svc", "me/dotfiles", "stranger/x"}, names, owners)
+	}
+	assert.Equal(t, 2, fake.seen["GET /users/stranger/repos?page=1"])
+	assert.Equal(t, 2, fake.seen["GET /user/repos?page=1"], "the user is listed once per run")
+}
+
 func TestRESTDiscoverer_UserFallbackOn404(t *testing.T) {
 	fake := &fakeTransport{seen: map[string]int{}, routes: map[string]fakeResponse{
 		"GET /user?page=1":             {status: 200, body: `{"login":"me"}`},
