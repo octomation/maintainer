@@ -30,7 +30,9 @@ maintainer status --config="" --root ./repos
 
 The command accepts no positional arguments. With no configuration, it uses
 the default workspace layout under the current directory; `--root` selects
-another root. This still reads the default fetch state file.
+another root. This still reads the default fetch state file. A current
+directory reached through a symlink is scanned as the folder the symlink
+names; a `--root` or configured root that is itself a symlink is refused.
 
 ## Table columns
 

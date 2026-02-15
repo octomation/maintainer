@@ -174,3 +174,39 @@ func TestWorkingDirectoryConfigIsNotRead(t *testing.T) {
 	require.NoError(t, err)
 	assert.Contains(t, errs, "notice: fetch.toml in the working directory is not read")
 }
+
+// A bare status in a working directory reached through a symlink scans the
+// folder the symlink names; a root the user names is still refused when it
+// is a symlink.
+func TestImplicitRootThroughSymlink(t *testing.T) {
+	base := t.TempDir()
+	real := filepath.Join(base, "real")
+	link := filepath.Join(base, "link")
+	_, err := git.PlainInit(filepath.Join(real, "public", "acme", "tool"), false)
+	require.NoError(t, err)
+	require.NoError(t, os.Symlink("real", link))
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(base, "config"))
+	t.Setenv("XDG_STATE_HOME", filepath.Join(base, "state"))
+	t.Setenv("MAINTAINER_FETCH_CONFIG", "")
+	run := func(dir string, args ...string) (string, error) {
+		t.Chdir(dir)
+		cmd := status.New()
+		var out bytes.Buffer
+		cmd.SetOut(&out)
+		cmd.SetErr(new(bytes.Buffer))
+		cmd.SetArgs(append(args, "--format=plain"))
+		err := cmd.Execute()
+		return out.String(), err
+	}
+
+	want, err := run(real)
+	require.NoError(t, err)
+	assert.Contains(t, want, "tool")
+	got, err := run(link)
+	require.NoError(t, err)
+	assert.Equal(t, want, got)
+
+	_, err = run(base, "--config=", "--root", link)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "symlink roots are not followed")
+}
