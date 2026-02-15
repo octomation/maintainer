@@ -275,6 +275,20 @@ func getHost(t *testing.T, address, host, path string) int {
 	return resp.StatusCode
 }
 
+// servesData waits until the label host answers the catalog with 200: until
+// the first scan of the index ends it answers 202, which also proves access.
+func servesData(t *testing.T, address, host string) {
+	t.Helper()
+	var last int
+	ok := assert.Eventually(t, func() bool {
+		last = getHost(t, address, host, "/api/v0/catalog")
+		return last == http.StatusOK
+	}, 10*time.Second, 20*time.Millisecond)
+	if !ok {
+		t.Logf("the last answer of %s was %d", host, last)
+	}
+}
+
 func TestRunLabelFile(t *testing.T) {
 	isolate(t)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -289,7 +303,7 @@ func TestRunLabelFile(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, os.FileMode(0o700), info.Mode().Perm())
 	assert.NotContains(t, strings.Join(before, ""), first, "the label is in no log line")
-	assert.Equal(t, http.StatusOK, getHost(t, addresses[0], web.LabelHost(first)+":"+port, "/api/v0/catalog"))
+	servesData(t, addresses[0], web.LabelHost(first)+":"+port)
 
 	// A second instance on the same port fails and leaves the file be.
 	second := service.New()
@@ -316,7 +330,7 @@ func TestRunLabelFile(t *testing.T) {
 	again := label(t, port)
 	assert.NotEqual(t, first, again)
 	assert.Equal(t, http.StatusMisdirectedRequest, getHost(t, addresses[0], web.LabelHost(first)+":"+port, "/api/v0/catalog"))
-	assert.Equal(t, http.StatusOK, getHost(t, addresses[0], web.LabelHost(again)+":"+port, "/api/v0/catalog"))
+	servesData(t, addresses[0], web.LabelHost(again)+":"+port)
 	assert.Equal(t, http.StatusUnauthorized, getHost(t, addresses[0], "maintainer.localhost:"+port, "/api/v0/catalog"))
 	assert.Equal(t, http.StatusOK, getHost(t, addresses[0], "maintainer.localhost:"+port, "/status"))
 	cancel()
