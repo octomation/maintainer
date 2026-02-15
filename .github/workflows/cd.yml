@@ -52,7 +52,7 @@ jobs:
       - name: Mint the tap token
         if: startsWith(github.ref, 'refs/tags/v')
         id: tap
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
           private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
@@ -140,7 +140,7 @@ jobs:
       # the tap token is scoped to the tap, so the catalog gets its own
       - name: Mint the catalog token
         id: catalog
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
           private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
@@ -194,7 +194,7 @@ jobs:
       - name: Mint the catalog token
         if: steps.preflight.outputs.ready == 'true'
         id: catalog
-        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
         with:
           client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
           private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
