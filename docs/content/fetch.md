@@ -383,7 +383,8 @@ A single JSON document at `$XDG_STATE_HOME/maintainer/fetch/state.json`
 for the run. Plan mode may create the state directory and `.lock` file, but
 does not save repository state or modify checkouts. `id` is the
 primary key; everything else is a last-observed value. `state prune` forgets
-only records whose path does not exist. A path it cannot check, such as one
+only records whose path does not exist, and it honours `--owner` and
+`--profile` as `fetch` does: the records of other owners and profiles stay. A path it cannot check, such as one
 under a directory it cannot read, keeps its record and is reported with the
 reason, and the command exits `1`. The checkouts themselves are retained.
 
@@ -394,7 +395,7 @@ The fetch group also provides these subcommands:
 | `fetch config init` | Write a TOML template to `$XDG_CONFIG_HOME/maintainer/fetch.toml` (fallback `~/.config/maintainer/`), or the explicit `--config` path, and print the path; `--force` overwrites it. It writes TOML only: a `--config` path without the `.toml` extension, `fetch.yaml` included, is a usage error (exit `2`) and no file is written |
 | `fetch config validate` | Parse and structurally validate an existing config without resolving tokens or calling GitHub |
 | `fetch state show` | Print state as JSON using the configured/default state location |
-| `fetch state prune` | Save state after forgetting missing paths; runs immediately, without `--apply` |
+| `fetch state prune` | Save state after forgetting missing paths; runs immediately, without `--apply`. With `--owner` or `--profile`, it forgets only the records of the selected owners and profiles |
 
 State subcommands acquire the same state lock and select the config as fetch
 does: `--config=""` disables config discovery and uses the default state

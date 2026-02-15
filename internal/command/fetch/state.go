@@ -11,6 +11,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
+	fetchsvc "go.octolab.org/toolset/maintainer/internal/service/fetch"
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
@@ -40,7 +41,7 @@ func stateCommand(opts *options) *cobra.Command {
 
 	pruneCmd := &cobra.Command{
 		Use:   "prune",
-		Short: "drop records whose disk path is missing",
+		Short: "drop records whose disk path is missing; --owner and --profile narrow it",
 		Args:  cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			store, st, release, err := openState(cmd, opts)
@@ -49,9 +50,15 @@ func stateCommand(opts *options) *cobra.Command {
 			}
 			defer func() { _ = release() }()
 			fs := afero.NewOsFs()
+			sel := fetchsvc.Selection{Owners: opts.owners, Profiles: opts.profiles}
 			var dropped, unchecked int
 			kept := st.Repos[:0]
 			for _, rec := range st.Repos {
+				// --owner and --profile leave the records of others alone.
+				if !sel.Selects(rec) {
+					kept = append(kept, rec)
+					continue
+				}
 				// Only a path known to be absent is gone; any other failure,
 				// such as an unreadable parent, leaves the record as it is.
 				_, err := fs.Stat(rec.Path)

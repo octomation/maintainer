@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -126,4 +127,58 @@ func TestStatePruneKeepsUncheckedRecords(t *testing.T) {
 	assert.Contains(t, errs, "permission denied")
 	require.NoError(t, os.Chmod(locked, 0o755))
 	assert.Equal(t, 2, stateRecords(t, path))
+}
+
+// state prune honours --owner and --profile as fetch does: it forgets only the
+// missing records of the selected owners and profiles.
+func TestStatePruneHonorsSelection(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_STATE_HOME", filepath.Join(dir, "xdg"))
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(dir, "none"))
+	t.Setenv("MAINTAINER_FETCH_CONFIG", "")
+	stateFile := filepath.Join(dir, "state.json")
+	cnf := filepath.Join(dir, "fetch.toml")
+	require.NoError(t, os.WriteFile(cnf, []byte("[defaults]\nstate_file = '"+stateFile+"'\n"+
+		"[profiles.primary]\ntoken_env = 'GITHUB_TOKEN'\n[profiles.bot]\ntoken_env = 'BOT_TOKEN'\n"), 0o600))
+	gone := func(id int64, owner, profile string) state.Record {
+		return state.Record{ID: id, OwnerLogin: owner, Name: "r", SourceProfile: profile,
+			Path: filepath.Join(dir, "gone", owner, profile)}
+	}
+	records := []state.Record{
+		gone(1, "a", "primary"),
+		gone(2, "b", "primary"),
+		gone(3, "a", "bot"),
+		gone(4, "b", "bot"),
+	}
+
+	for name, tc := range map[string]struct {
+		args []string
+		kept []int64
+	}{
+		"no selection":   {nil, nil},
+		"owner":          {[]string{"--owner", "A"}, []int64{2, 4}},
+		"profile":        {[]string{"--profile", "bot"}, []int64{1, 2}},
+		"owner+profile":  {[]string{"--owner", "a", "--profile", "bot"}, []int64{1, 2, 4}},
+		"two owners":     {[]string{"--owner", "a,b"}, nil},
+		"unknown owner":  {[]string{"--owner", "c"}, []int64{1, 2, 3, 4}},
+		"wildcard owner": {[]string{"--owner", "*"}, nil},
+	} {
+		t.Run(name, func(t *testing.T) {
+			writeState(t, stateFile, records...)
+			args := append([]string{"--config", cnf}, tc.args...)
+			out, _, err := execute(t, append(args, "state", "prune")...)
+			require.NoError(t, err)
+			assert.Equal(t, fmt.Sprintf("pruned %d record(s)\n", len(records)-len(tc.kept)), out)
+
+			raw, err := os.ReadFile(stateFile)
+			require.NoError(t, err)
+			var st state.State
+			require.NoError(t, json.Unmarshal(raw, &st))
+			var kept []int64
+			for _, rec := range st.Repos {
+				kept = append(kept, rec.ID)
+			}
+			assert.Equal(t, tc.kept, kept)
+		})
+	}
 }

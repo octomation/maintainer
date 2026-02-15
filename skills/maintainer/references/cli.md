@@ -78,7 +78,7 @@ maintainer fetch state [command]
 
 ## maintainer fetch state prune
 
-drop records whose disk path is missing
+drop records whose disk path is missing; --owner and --profile narrow it
 
 ```text
 maintainer fetch state prune

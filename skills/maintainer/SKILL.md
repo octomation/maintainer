@@ -95,7 +95,7 @@ This skill describes maintainer `>=0.5.1 <0.6.0`. Before anything else:
 | Work in progress across checkouts | `status --format=plain` or `status --format=json` |
 | Checkouts of some owners | `status --owner acme --format=json` |
 | What fetch remembers | `fetch state show` |
-| To forget checkouts whose directory is gone | `fetch state prune` (writes the state at once) |
+| To forget checkouts whose directory is gone | `fetch state prune` (writes the state at once; `--owner` and `--profile` narrow it) |
 | A time to contribute | `github contribution suggest`; also `contribution lookup`, `contribution histogram`, `contribution snapshot`, `contribution diff` |
 | maintainer in a browser on this computer | `service run`, or `brew services start octolab/tap/maintainer`, then `service open` |
 

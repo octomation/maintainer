@@ -55,6 +55,13 @@ func (sel Selection) profile(name string) bool {
 	return false
 }
 
+// Selects reports whether a tracked record is of a selected owner and profile.
+// Commands that work on the state alone, such as state prune, use it without a
+// listing.
+func (sel Selection) Selects(rec state.Record) bool {
+	return sel.owner(rec.OwnerLogin) && sel.profile(rec.SourceProfile)
+}
+
 // deselect returns the tracked repositories outside the selection: neither
 // listed by a selected profile nor of a selected owner and profile.
 func (s *Service) deselect(st *state.State, listed []github.RepoSnapshot) map[int64]string {
@@ -67,7 +74,7 @@ func (s *Service) deselect(st *state.State, listed []github.RepoSnapshot) map[in
 		if present[rec.ID] {
 			continue // the listing of a selected profile selected it
 		}
-		if !s.deps.Selection.owner(rec.OwnerLogin) || !s.deps.Selection.profile(rec.SourceProfile) {
+		if !s.deps.Selection.Selects(rec) {
 			out[rec.ID] = reasonOutside
 		}
 	}
