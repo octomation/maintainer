@@ -89,6 +89,9 @@ func NewService(
 	auth := func(profile, transport string) gitsvc.Auth {
 		return gitsvc.Auth{Transport: transport, Token: tokenFor(profiles, profile)}
 	}
+	if deps.GitSync != nil && deps.Reporter != nil && deps.Reporter.tracing() {
+		deps.GitSync = tracedSync{GitSync: deps.GitSync, reporter: deps.Reporter}
+	}
 	mutator := deps.GitSync
 	if mutator != nil {
 		mutator = boundedSync{GitSync: mutator, root: renderer.Root()}
@@ -485,10 +488,13 @@ func (s *Service) discover(ctx context.Context) ([]github.RepoSnapshot, []Discov
 	for i, p := range s.profiles {
 		group.Go(func() error {
 			s.deps.Reporter.Logf("discovering (profile=%s)…", p.Name)
+			start := time.Now()
 			d, err := s.deps.Discoverer.List(gctx, github.Profile{Name: p.Name, Token: p.Token, Owners: p.Owners})
 			if err != nil {
 				return err
 			}
+			s.deps.Reporter.Debugf("discovered", "profile", p.Name, "repos", d.Count(),
+				"endpoints", len(d.Endpoints), "took", time.Since(start).Round(time.Millisecond))
 			results[i] = d
 			return nil
 		})
@@ -555,6 +561,8 @@ func (s *Service) confirm(ctx context.Context, st *state.State, snapshots []gith
 			c.Status = ConfirmUnverified
 			c.Reason = fmt.Sprintf("not verified: checked with profile %q, not with its own profile %q", used.Name, rec.SourceProfile)
 		}
+		s.deps.Reporter.Debugf("confirmed", "repo", rec.OwnerLogin+"/"+rec.Name, "id", rec.ID,
+			"profile", used.Name, "status", c.Status)
 		if status == ConfirmTransient {
 			s.deps.Reporter.Logf("confirm %s/%s (id=%d): transient error, leaving unchanged: %v", rec.OwnerLogin, rec.Name, rec.ID, err)
 		}
@@ -597,6 +605,7 @@ func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) (int, 
 		}
 	}
 	done := func(act Action) {
+		s.deps.Reporter.Debugf("applied", "action", act.Kind, "repo", act.Owner+"/"+act.Name, "path", act.Path)
 		mu.Lock()
 		// A refresh follows its reconciliation: name the repository once.
 		if name := act.Owner + "/" + act.Name; !slices.Contains(unsaved, name) {
@@ -614,6 +623,7 @@ func (s *Service) apply(ctx context.Context, plan *Plan, st *state.State) (int, 
 			s.saveFailed(err, unsaved)
 			return
 		}
+		s.deps.Reporter.Debugf("state saved", "path", s.deps.Store.Path(), "repos", len(st.Repos))
 		unsaved = nil
 	}
 

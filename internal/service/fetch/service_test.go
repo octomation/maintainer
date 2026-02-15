@@ -6,6 +6,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -268,4 +270,53 @@ func TestService_PlanReportsOccupiedCloneTargetAsConflict(t *testing.T) {
 	content, readErr = os.ReadFile(filepath.Join(target, "local-only.txt"))
 	require.NoError(t, readErr)
 	assert.Equal(t, "keep", string(content))
+}
+
+// Each offered verbosity level adds lines to the level below it: -v names
+// each action, -vv adds the discovery, applied actions and state saves, -vvv
+// adds every Git operation.
+func TestService_EachVerbosityLevelAddsOutput(t *testing.T) {
+	origin := originWithCommit(t)
+	// The time and the durations differ from run to run; the lines do not.
+	volatile := regexp.MustCompile(`^time=\S+ | took=\S+`)
+	lines := func(verbosity int) map[string]bool {
+		root, stateDir := t.TempDir(), t.TempDir()
+		cnf := &config.Fetch{Defaults: config.Defaults{
+			Root: root, Path: "{{.Owner}}/{{.Repo}}", CloneURL: "https", Concurrency: 1,
+		}, Profiles: map[string]config.Profile{}}
+		require.NoError(t, cnf.Validate())
+		snap := github.RepoSnapshot{ID: 1, Owner: "acme", Name: "svc", Visibility: github.Public, HTTPSCloneURL: origin, SourceProfile: "p"}
+		var out, errw bytes.Buffer
+		svc, err := NewService(cnf, []ResolvedProfile{{Name: "p", Owners: []string{"acme"}}}, "/home/op", root, 1, Deps{
+			Store:      state.NewStore(afero.NewOsFs(), filepath.Join(stateDir, "state.json"), nil),
+			Discoverer: fakeDiscoverer{snaps: []github.RepoSnapshot{snap}},
+			GitSync:    gitsvc.NewSync(),
+			Reporter:   NewReporter(&out, &errw, FormatHuman, verbosity, false),
+			IDGen:      func() string { return "PLAN1" },
+		})
+		require.NoError(t, err)
+		require.NoError(t, svc.Run(context.Background(), true))
+		set := make(map[string]bool)
+		for _, line := range strings.Split(strings.TrimSpace(errw.String()), "\n") {
+			line = strings.ReplaceAll(volatile.ReplaceAllString(line, ""), root, "<root>")
+			set[strings.ReplaceAll(line, stateDir, "<state>")] = true
+		}
+		return set
+	}
+	levels := []map[string]bool{lines(0), lines(1), lines(2), lines(3)}
+	for v := 1; v < len(levels); v++ {
+		var added []string
+		for line := range levels[v-1] {
+			assert.True(t, levels[v][line], "-%s drops %q of the level below", strings.Repeat("v", v), line)
+		}
+		for line := range levels[v] {
+			if !levels[v-1][line] {
+				added = append(added, line)
+			}
+		}
+		assert.NotEmpty(t, added, "-%s adds nothing to the level below", strings.Repeat("v", v))
+	}
+	assert.True(t, levels[1]["clone acme/svc → <root>/acme/svc"], "%v", levels[1])
+	assert.True(t, levels[2][`level=DEBUG msg=applied action=clone repo=acme/svc path=<root>/acme/svc`], "%v", levels[2])
+	assert.True(t, levels[3][`level=TRACE msg="git clone" url=`+origin+` path=<root>/acme/svc`], "%v", levels[3])
 }

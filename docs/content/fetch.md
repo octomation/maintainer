@@ -431,7 +431,7 @@ as `~/Development-old`, and collapses routine fetches into the summary.
 | `--format human\|json`  | human   | plan output (logs always go to stderr)           |
 | `--concurrency <n>`     | `0`     | positive parallel discovery/clone/fetch cap; `0` uses config (default `4`) |
 | `--timeout <dur>`       | `0`     | wall-clock budget; `0` is unlimited              |
-| `-v`, `--verbose`       | `0`     | repeat to increase verbosity (`-vv`, `-vvv`)     |
+| `-v`, `--verbose`       | `0`     | repeat to increase verbosity (`-vv`, `-vvv`); see below |
 | `-q`, `--quiet`         | off     | suppress routine progress; mutually exclusive with verbose |
 | `-h`, `--help`          |         | show command help                               |
 
@@ -441,6 +441,25 @@ as `~/Development-old`, and collapses routine fetches into the summary.
 | `1` | Transport, Git, state or output error |
 | `2` | Usage error, bad config, missing token or owner, or lock contention |
 | `3` | Apply finished with at least one per-repo failure, failed state save or unresolved conflict |
+
+Each verbosity level adds lines on stderr to the level below it:
+
+| Level | Adds |
+| --- | --- |
+| `-v` | a line for each action as it starts during `--apply` |
+| `-vv` | each profile's discovery with its repository count, each confirmation of a repository missing from discovery, each applied action and each state save |
+| `-vvv` | each Git operation, such as the inspection of a checkout, a clone or a fetch, with its duration and error |
+
+```text
+$ maintainer fetch --apply -vvv
+discovering (profile=primary)…
+time=2026-11-25T10:00:00.412+00:00 level=DEBUG msg=discovered profile=primary repos=1 endpoints=1 took=412ms
+applying 1 actions (concurrency=4)
+clone acme/svc → /home/me/Development/acme/svc
+time=2026-11-25T10:00:01.620+00:00 level=TRACE msg="git clone" url=https://github.com/acme/svc.git path=/home/me/Development/acme/svc took=1.204s
+time=2026-11-25T10:00:01.620+00:00 level=DEBUG msg=applied action=clone repo=acme/svc path=/home/me/Development/acme/svc
+time=2026-11-25T10:00:01.621+00:00 level=DEBUG msg="state saved" path=/home/me/.local/state/maintainer/fetch/state.json repos=1
+```
 
 A usage error stops the command before any request, names its cause in
 stderr and exits `2`: an unknown subcommand, such as `fetch state shwo`, an

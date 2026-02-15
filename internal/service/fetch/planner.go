@@ -58,6 +58,25 @@ const (
 	ConfirmUnverified                        // 404/401/403 from another profile's token → leave unchanged
 )
 
+// String names the outcome in the -vv breadcrumbs.
+func (c ConfirmStatus) String() string {
+	switch c {
+	case ConfirmGone:
+		return "gone"
+	case ConfirmFound:
+		return "found"
+	case ConfirmInaccessible:
+		return "inaccessible"
+	case ConfirmLegalHold:
+		return "legal-hold"
+	case ConfirmTransient:
+		return "transient"
+	case ConfirmUnverified:
+		return "unverified"
+	}
+	return fmt.Sprintf("ConfirmStatus(%d)", int(c))
+}
+
 // Confirmation re-verifies a state id that vanished from discovery.
 type Confirmation struct {
 	Status   ConfirmStatus

@@ -69,7 +69,7 @@ func New(_ *config.Tool) *cobra.Command {
 	set.StringVar(&opts.format, "format", fetchsvc.FormatHuman, "output format: human|json")
 	set.IntVar(&opts.concurrency, "concurrency", 0, "parallel discovery/clone cap (0 = from config)")
 	set.DurationVar(&opts.timeout, "timeout", 0, "wall-clock budget for the whole command")
-	set.CountVarP(&opts.verbose, "verbose", "v", "increase verbosity (-v, -vv, -vvv)")
+	set.CountVarP(&opts.verbose, "verbose", "v", "increase verbosity: -v each action, -vv discovery, confirmations and saves, -vvv each Git operation")
 	set.BoolVarP(&opts.quiet, "quiet", "q", false, "suppress everything below error on stderr")
 	set.StringVar(&opts.token, "token", "", "retired: set GITHUB_TOKEN or token_env of a profile")
 	_ = set.MarkHidden("token")

@@ -1,6 +1,7 @@
 package fetch
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -46,12 +47,14 @@ func NewReporter(out, err io.Writer, format string, verbosity int, quiet bool) *
 	switch {
 	case quiet:
 		level = slog.LevelError
-	case verbosity >= 2:
+	case verbosity >= 3:
+		level = levelTrace
+	case verbosity == 2:
 		level = slog.LevelDebug
 	case verbosity == 1:
 		level = slog.LevelInfo
 	}
-	debug := slog.New(slog.NewTextHandler(err, &slog.HandlerOptions{Level: level}))
+	debug := slog.New(slog.NewTextHandler(err, &slog.HandlerOptions{Level: level, ReplaceAttr: traceLevelName}))
 	return &Reporter{
 		out: out, err: err, format: format, verbosity: verbosity, quiet: quiet,
 		color: wantColor(err), colorOut: wantColor(out), debug: debug,
@@ -256,6 +259,30 @@ func (r *Reporter) Infof(format string, args ...any) {
 // Debugf writes a structured breadcrumb shown at -vv and above (§11.1).
 func (r *Reporter) Debugf(msg string, args ...any) {
 	r.debug.Debug(msg, args...)
+}
+
+// levelTrace is the §11.1 trace level of -vvv, below debug.
+const levelTrace = slog.LevelDebug - 4
+
+// traceLevelName prints the trace level as TRACE instead of DEBUG-4.
+func traceLevelName(_ []string, a slog.Attr) slog.Attr {
+	if a.Key == slog.LevelKey {
+		if level, ok := a.Value.Any().(slog.Level); ok && level == levelTrace {
+			a.Value = slog.StringValue("TRACE")
+		}
+	}
+	return a
+}
+
+// Tracef writes a structured breadcrumb shown at -vvv only: one per Git
+// operation of the run.
+func (r *Reporter) Tracef(msg string, args ...any) {
+	r.debug.Log(context.Background(), levelTrace, msg, args...)
+}
+
+// tracing reports whether trace breadcrumbs are shown.
+func (r *Reporter) tracing() bool {
+	return r.debug.Enabled(context.Background(), levelTrace)
 }
 
 // Errorf writes an error line; always shown, even under --quiet (§3.1). On an

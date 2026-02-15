@@ -34,7 +34,7 @@ Flags of every `maintainer fetch` command:
 - `--profile strings`: limit this run to these profiles: repositories they list or track; others are left alone (repeatable)
 - `-q, --quiet`: suppress everything below error on stderr
 - `--timeout duration`: wall-clock budget for the whole command
-- `-v, --verbose count`: increase verbosity (-v, -vv, -vvv)
+- `-v, --verbose count`: increase verbosity: -v each action, -vv discovery, confirmations and saves, -vvv each Git operation
 
 Flags of `maintainer fetch` itself:
 
