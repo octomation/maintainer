@@ -3,6 +3,7 @@ package contribution
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"regexp"
 	"strconv"
@@ -235,8 +236,10 @@ func parseRFC3339(raw string) (time.Time, error) {
 	return time.Parse(time.RFC3339, raw)
 }
 
+// TableView writes the calendar table of heats over scope to w: lookup prints
+// it on stdout as its result, suggest on stderr next to its suggestion.
 func TableView(
-	cmd *cobra.Command,
+	w io.Writer,
 	heats contribution.HeatMap,
 	scope xtime.Range,
 	opts ...func(time.Time, string) string,
@@ -305,7 +308,7 @@ func TableView(
 		},
 	}
 	table.SetStyle(simpletable.StyleCompactLite)
-	cmd.PrintErrln("\n" + table.String() + "\n")
+	_, _ = fmt.Fprintln(w, "\n"+table.String()+"\n")
 }
 
 // distribution tells how many days have each contribution count,

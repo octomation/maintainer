@@ -105,7 +105,7 @@ or if there is no suitable moment up to now.
 			}
 
 			accent := xtime.TruncateToDay(suggestion.Time)
-			TableView(cmd, chm, area, func(day time.Time, txt string) string {
+			TableView(cmd.ErrOrStderr(), chm, area, func(day time.Time, txt string) string {
 				if !day.Equal(accent) {
 					return txt
 				}
@@ -203,7 +203,7 @@ func Missed(
 			return err
 		}
 		if err == nil {
-			TableView(cmd, chm, area)
+			TableView(cmd.ErrOrStderr(), chm, area)
 		}
 	}
 	reason := Explanation(cmd, miss, anchor, now)

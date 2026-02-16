@@ -59,7 +59,7 @@ Weeks start on Sunday, and the week that contains January 1 is #01.
 		}
 
 		// data presentation
-		TableView(cmd, chm, scope)
+		TableView(cmd.OutOrStdout(), chm, scope)
 		return nil
 	}
 

@@ -509,9 +509,7 @@ func TestTableView(t *testing.T) {
 	heats.SetCount(sunday.Day(14).Time(), 3) // after the scope, shown as "?"
 
 	var buf bytes.Buffer
-	cmd := new(cobra.Command)
-	cmd.SetErr(&buf)
-	TableView(cmd, heats, xtime.NewRange(sunday.Time(), sunday.Day(12).Hour(23).Time()))
+	TableView(&buf, heats, xtime.NewRange(sunday.Time(), sunday.Day(12).Hour(23).Time()))
 
 	// ten days up to the end of the scope: three with contributions, seven without
 	assert.Contains(t, buf.String(), "distribution{0: 7, 5: 2, 10: 1}")
@@ -529,9 +527,7 @@ func TestTableView_Weeks(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			var buf bytes.Buffer
-			cmd := new(cobra.Command)
-			cmd.SetErr(&buf)
-			TableView(cmd, make(contribution.HeatMap), xtime.NewRange(test.from, test.from.Add(2*xtime.Week-time.Nanosecond)))
+			TableView(&buf, make(contribution.HeatMap), xtime.NewRange(test.from, test.from.Add(2*xtime.Week-time.Nanosecond)))
 
 			header := strings.Fields(strings.SplitN(strings.TrimSpace(buf.String()), "\n", 2)[0])
 			assert.Equal(t, append([]string{"Day", "/", "Week"}, append(test.expected, "Date")...), header)

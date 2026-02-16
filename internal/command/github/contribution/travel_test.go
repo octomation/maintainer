@@ -139,10 +139,38 @@ func TestCommandsKeepTheDayWhenTravelling(t *testing.T) {
 					continue
 				}
 				if previous != "" {
-					require.Equal(t, previous, diagnostic.String())
+					require.Equal(t, previous, out.String())
 				}
-				previous = diagnostic.String()
+				previous = out.String()
 			}
 		})
 	}
+}
+
+// lookup prints its table on stdout, its only result; suggest prints the
+// suggestion on stdout and its table on stderr, next to the diagnostics.
+func TestCommandsPrintTablesWhereTheirResultGoes(t *testing.T) {
+	t.Setenv("XDG_CACHE_HOME", t.TempDir())
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, &http.Client{Transport: calendarTransport{}})
+	run := func(build func(*cobra.Command, *config.Tool) *cobra.Command, args ...string) (string, string) {
+		var out, diagnostic bytes.Buffer
+		cmd := build(&cobra.Command{Use: "test"}, &config.Tool{Token: "test-token"})
+		cmd.SetArgs(args)
+		cmd.SetOut(&out)
+		cmd.SetErr(&diagnostic)
+		require.NoError(t, cmd.ExecuteContext(ctx))
+		return out.String(), diagnostic.String()
+	}
+
+	out, diagnostic := run(Lookup, "2025-01-03/+0")
+	require.Contains(t, out, "Day / Week")
+	require.Contains(t, out, "distribution{")
+	require.NotContains(t, diagnostic, "Day / Week")
+	require.NotContains(t, diagnostic, "distribution{")
+
+	out, diagnostic = run(Suggest, "--target=15", "2025-01-03T18:00:00Z/+0")
+	require.True(t, strings.HasPrefix(out, "2025-01-03T18:"), out)
+	require.NotContains(t, out, "Day / Week")
+	require.Contains(t, diagnostic, "Day / Week")
+	require.Contains(t, diagnostic, "Suggestion is ")
 }

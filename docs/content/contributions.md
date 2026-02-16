@@ -37,9 +37,10 @@ maintainer github contribution lookup                 # the latest commit's week
 maintainer github contribution lookup now/-3          # recent weeks through today
 maintainer github contribution lookup 2026-09-05/4    # centered on a date
 maintainer github contribution lookup 2026-09-05/+2   # look forward from a date
+maintainer github contribution lookup now/-3 > pace.txt  # keep the table in a file
 ```
 
-The argument is `date[/weeks]`. The date is empty, `git`, `now`, a year (`2026`), a month (`2026-09`), a day (`2026-09-05`), or an RFC 3339 timestamp; a year or month is anchored at its first day, not shown whole. An empty date and `git` mean the author date of HEAD in the current repository, or in the one `GIT_DIR` points to; outside a repository, or in one without commits, they mean now. The weeks add to the date's week: `+N` after it, `-N` before it, or `N` split as ⌊N/2⌋ on each side. Without them, `lookup` uses `-1`. `N` is at most 53, so the table shows up to 54 weeks, the year is not before 1970, and a period entirely in the future is an error.
+The argument is `date[/weeks]`. The date is empty, `git`, `now`, a year (`2026`), a month (`2026-09`), a day (`2026-09-05`), or an RFC 3339 timestamp; a year or month is anchored at its first day, not shown whole. An empty date and `git` mean the author date of HEAD in the current repository, or in the one `GIT_DIR` points to; outside a repository, or in one without commits, they mean now. The weeks add to the date's week: `+N` after it, `-N` before it, or `N` split as ⌊N/2⌋ on each side. Without them, `lookup` uses `-1`. `N` is at most 53, so the table shows up to 54 weeks, the year is not before 1970, and a period entirely in the future is an error. The table goes to stdout, so it can be saved to a file or piped to `grep`; notes about the data, such as a month with reviews below, go to stderr.
 
 ## Choose a contribution target
 
