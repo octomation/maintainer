@@ -140,6 +140,30 @@ describe('App issue commands', () => {
     history.replaceState(null, '', '/');
   });
 
+  it('keeps F out of the full issue page, so P, E and Escape still work', async () => {
+    history.replaceState(null, '', `/inbox?task=${encodeURIComponent(task.id)}`);
+    render(<App path="/inbox" client={new ApiClient('', mockApi().fetch)} />);
+    const page = await screen.findByRole('region', { name: 'Issue' });
+    await within(page).findByRole('heading', { level: 2 });
+    fireEvent.keyDown(document.body, { key: 'f' });
+    expect(document.querySelector('.popover')).toBeNull();
+    fireEvent.keyDown(document.body, { key: 'p' });
+    const dialog = screen.getByRole('dialog', { name: 'Search' });
+    expect(within(dialog).getByRole('combobox').getAttribute('placeholder')).toBe('Change priority to…');
+    fireEvent.keyDown(within(dialog).getByRole('combobox'), { key: 'Escape' });
+    fireEvent.keyDown(within(dialog).getByRole('combobox'), { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Search' })).toBeNull();
+    fireEvent.keyDown(document.body, { key: 'F' });
+    expect(document.querySelector('.popover')).toBeNull();
+    fireEvent.keyDown(document.activeElement ?? page, { key: 'Escape' });
+    await waitFor(() => expect(location.search).toBe(''));
+    // Back on the list, F opens the Filter menu again.
+    await screen.findByRole('search', { name: 'Task filters' });
+    fireEvent.keyDown(document.body, { key: 'f' });
+    await waitFor(() => expect(document.querySelector('.popover')).not.toBeNull());
+    history.replaceState(null, '', '/');
+  });
+
   it('ignores P and E without an open issue', async () => {
     render(<App path="/status" client={new ApiClient('', mockApi().fetch)} />);
     fireEvent.keyDown(document.body, { key: 'p' });

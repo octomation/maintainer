@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'preact/hooks';
 import type { Catalog, Column, Effort, Facet, Facets, Impact, StateFilter, TaskQuery } from '../api/types';
 import { COLUMN_TITLES, COLUMNS, EFFORTS, IMPACTS } from '../api/types';
 import { TOUCH, useMediaQuery } from '../lib/media';
+import { useOpenTask } from '../lib/task';
 import { EFFORT_TITLE, IMPACT_TITLE, LabelChip } from './Chip';
 import { ESTIMATE_SIZE, EstimateGlyph, PriorityGlyph, StatusGlyph } from './Glyphs';
 import { Icon, type IconName } from './Icon';
@@ -258,7 +259,10 @@ export function TaskFilters({ value, facets, catalog, onChange, showState = true
   const count = active.length;
 
   // F opens the menu, as the shortcut badge in its search row says, unless a text field has the focus.
+  // The full issue page covers the top bar and the filters in it: F waits until the list is back.
+  const covered = useOpenTask() !== null;
   useEffect(() => {
+    if (covered) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'f' && event.key !== 'F') return;
       if (event.metaKey || event.ctrlKey || event.altKey || event.defaultPrevented) return;
@@ -269,7 +273,7 @@ export function TaskFilters({ value, facets, catalog, onChange, showState = true
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, []);
+  }, [covered]);
 
   return (
     <form class="filters" role="search" aria-label="Task filters" onSubmit={(event) => event.preventDefault()}>
