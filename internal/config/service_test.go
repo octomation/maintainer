@@ -83,6 +83,17 @@ func TestLoadService(t *testing.T) {
 		}
 	})
 
+	t.Run("match id not positive", func(t *testing.T) {
+		for _, match := range []string{`{ id = -5 }`, `{ id = 0, owner = "a", name = "b" }`} {
+			fs := afero.NewMemMapFs()
+			body := "[[repos]]\nmatch = { id = 1 }\n\n[[repos]]\nmatch = " + match + "\n"
+			require.NoError(t, afero.WriteFile(fs, "service.toml", []byte(body), 0o600))
+			_, err := LoadService(fs, "service.toml")
+			require.Error(t, err, match)
+			assert.Contains(t, err.Error(), `service config "service.toml": repos[1].match.id must be positive`, match)
+		}
+	})
+
 	t.Run("unknown key suggestion", func(t *testing.T) {
 		fs := afero.NewMemMapFs()
 		require.NoError(t, afero.WriteFile(fs, "service.toml", []byte("[score]\nimpakt = 1\n"), 0o600))

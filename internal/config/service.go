@@ -139,6 +139,9 @@ func LoadService(fs afero.Fs, path string) (*Service, error) {
 		if unknown := unknownServiceKeys(tables); len(unknown) > 0 {
 			return nil, unknownKeysErrorOf("service config", path, unknown)
 		}
+		if err := checkMatchIDs(raw); err != nil {
+			return nil, fmt.Errorf("service config %q: %w", path, err)
+		}
 		cnf.Source = path
 	}
 	cnf.applyDefaults()
@@ -180,8 +183,8 @@ func (s *Service) applyDefaults() {
 }
 
 // Validate checks the values: loopback addresses, finite non-negative
-// weights, positive horizons, and a match that names an id or both owner and
-// name.
+// weights, positive horizons, and a match that names a positive id or both
+// owner and name.
 func (s *Service) Validate() error {
 	if s.Listen != nil && len(s.Listen) == 0 {
 		return fmt.Errorf("listen needs at least one address; omit it for the defaults")
@@ -214,11 +217,36 @@ func (s *Service) Validate() error {
 		return fmt.Errorf("score.due_horizon_days must be positive, got %d", *s.Score.DueHorizonDays)
 	}
 	for i, r := range s.Repos {
+		if r.Match.ID < 0 {
+			return fmt.Errorf("repos[%d].match.id must be positive, got %d", i, r.Match.ID)
+		}
 		if r.Match.ID == 0 && (r.Match.Owner == "" || r.Match.Name == "") {
 			return fmt.Errorf("repos[%d].match requires id or owner+name", i)
 		}
 		if r.Weight != nil && (math.IsNaN(*r.Weight) || math.IsInf(*r.Weight, 0) || *r.Weight < 0) {
 			return fmt.Errorf("repos[%d].weight must be a finite non-negative number, got %v", i, *r.Weight)
+		}
+	}
+	return nil
+}
+
+// checkMatchIDs refuses a repos match whose id key is written but not
+// positive, as service.cue does: RepoMatch reads an omitted id as 0, so only
+// the document tells an explicit 0 from no id.
+func checkMatchIDs(raw []byte) error {
+	var doc struct {
+		Repos []struct {
+			Match struct {
+				ID *int64 `toml:"id"`
+			} `toml:"match"`
+		} `toml:"repos"`
+	}
+	if err := toml.Unmarshal(raw, &doc); err != nil {
+		return err
+	}
+	for i, r := range doc.Repos {
+		if r.Match.ID != nil && *r.Match.ID <= 0 {
+			return fmt.Errorf("repos[%d].match.id must be positive, got %d", i, *r.Match.ID)
 		}
 	}
 	return nil

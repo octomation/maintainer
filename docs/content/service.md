@@ -330,8 +330,8 @@ match = { id = 672356038 }  # a repository id survives renames and transfers
 weight = 0.5
 ```
 
-A repository rule matches by `id`, or by `owner` and `name` together, without
-regard to case; the first matching rule wins.
+A repository rule matches by `id`, a positive number, or by `owner` and `name`
+together, without regard to case; the first matching rule wins.
 
 ## The config file
 
