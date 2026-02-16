@@ -281,7 +281,9 @@ The inbox and the board let you set two labels on an issue, `impact: high`,
 label, or removes it with No priority or No estimate. The service changes
 only those label lines in the issue file, keeps everything else byte for
 byte, and refuses the change when the file changed since the page read it:
-reload the issue and set the label again. Pushing the labels to GitHub stays
+reload the issue and set the label again. An issue whose file no longer
+reads keeps its last good version, and the service refuses changes to it
+until you repair the file. Pushing the labels to GitHub stays
 with the tooling that maintains the mirror. Do not run that tooling's export
 or push, or another editor of the issue files, while you triage in the
 browser.

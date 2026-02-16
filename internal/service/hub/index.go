@@ -159,23 +159,11 @@ func (ix *Index) Scan(ctx context.Context) error {
 			}
 		}
 		for path, e := range entries {
-			if e.kind == kindBroken {
-				if prev, ok := cur.entries[path]; ok && prev.kind != kindBroken {
-					kept := *prev
-					kept.stale = true
-					entries[path] = &kept
-					// The warning of the malformed file is reported below.
-					kept.err = e.err
-				}
-			}
+			entries[path] = keepStale(cur.entries[path], e)
 		}
 	}
 	snap := build(entries, roots, ix.now(), ix.weights, ix.repoWeight)
-	for _, path := range sortedPaths(entries) {
-		if e := entries[path]; e.stale && e.err != "" {
-			snap.Warnings = append(snap.Warnings, fmt.Sprintf("%s: %s (the previous entry is kept)", path, e.err))
-		}
-	}
+	staleWarnings(snap)
 	for _, u := range unresolved {
 		snap.Warnings = append(snap.Warnings, u+" (the root is left out)")
 	}
@@ -237,8 +225,9 @@ func (ix *Index) publishFile(cur *Snapshot, task *Task) *Snapshot {
 	for path, e := range cur.entries {
 		entries[path] = e
 	}
-	entries[task.path] = readEntry(task.root, task.path)
+	entries[task.path] = keepStale(cur.entries[task.path], readEntry(task.root, task.path))
 	snap := build(entries, cur.Roots, ix.now(), ix.weights, ix.repoWeight)
+	staleWarnings(snap)
 	snap.Generation = cur.Generation + 1
 	ix.writes = append(ix.writes, write{generation: snap.Generation, path: task.path})
 	if len(ix.writes) > 4096 {
@@ -246,6 +235,28 @@ func (ix *Index) publishFile(cur *Snapshot, task *Task) *Snapshot {
 	}
 	ix.current.Store(snap)
 	return snap
+}
+
+// keepStale returns the entry to publish for a file read as next: a file
+// that no longer parses keeps its previous good entry, flagged stale, with
+// the reason of the failure for the warning.
+func keepStale(prev, next *entry) *entry {
+	if next.kind != kindBroken || prev == nil || prev.kind == kindBroken {
+		return next
+	}
+	kept := *prev
+	kept.stale = true
+	kept.err = next.err
+	return &kept
+}
+
+// staleWarnings reports the files whose previous entry is kept.
+func staleWarnings(snap *Snapshot) {
+	for _, path := range sortedPaths(snap.entries) {
+		if e := snap.entries[path]; e.stale && e.err != "" {
+			snap.Warnings = append(snap.Warnings, fmt.Sprintf("%s: %s (the previous entry is kept)", path, e.err))
+		}
+	}
 }
 
 func sortedPaths(entries map[string]*entry) []string {

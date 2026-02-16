@@ -513,6 +513,40 @@ func TestIndexWrites(t *testing.T) {
 		assert.False(t, ix.Snapshot().Task(key).Flags.Stale)
 	})
 
+	t.Run("a refused write on a malformed file keeps the entry, flagged stale", func(t *testing.T) {
+		task := ix.Snapshot().Task(key)
+		raw, err := os.ReadFile(task.Path())
+		require.NoError(t, err)
+		broken := []byte("---\nbroken: [\n")
+		require.NoError(t, os.WriteFile(task.Path(), broken, 0o644))
+		_, _, err = ix.Patch(key, task.Version, mirror.Triage{Impact: mirror.Change{Set: true, Value: "low"}})
+		assert.ErrorIs(t, err, mirror.ErrVersionMismatch)
+		check := func(when string) {
+			stale := ix.Snapshot().Task(key)
+			require.NotNil(t, stale, when)
+			assert.True(t, stale.Flags.Stale, when)
+			assert.Equal(t, task.Title, stale.Title, when)
+			assert.Equal(t, task.Labels, stale.Labels, when)
+			assert.Equal(t, task.Version, stale.Version, when)
+			var found bool
+			for _, w := range ix.Snapshot().Warnings {
+				found = found || strings.Contains(w, "MAIN-1.md") && strings.Contains(w, "previous entry is kept")
+			}
+			assert.True(t, found, "%s: %v", when, ix.Snapshot().Warnings)
+			after, err := os.ReadFile(task.Path())
+			require.NoError(t, err)
+			assert.Equal(t, broken, after, "%s: the file is as the user left it", when)
+		}
+		check("after the refusal")
+		require.NoError(t, ix.Scan(context.Background()))
+		check("after a scan")
+		require.NoError(t, os.WriteFile(task.Path(), raw, 0o644))
+		require.NoError(t, ix.Scan(context.Background()))
+		repaired := ix.Snapshot().Task(key)
+		assert.False(t, repaired.Flags.Stale)
+		assert.Equal(t, mirror.Hash(raw), repaired.Version)
+	})
+
 	t.Run("refresh coalesces", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
