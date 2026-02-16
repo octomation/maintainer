@@ -236,6 +236,19 @@ describe('App without a service to use', () => {
     expect(screen.queryByText('This page has no access to maintainer.')).toBeNull();
   });
 
+  it('shows the repository tree once the catalog loads after Try again', async () => {
+    let down = true;
+    const api = mockApi({ route: (call) => (call.url.pathname === '/api/v0/catalog' && down ? json({ error: { code: 'error', message: 'restarting' } }, 503) : undefined) });
+    render(<App path="/tablo" client={new ApiClient('', api.fetch)} />);
+    const retry = await screen.findByRole('button', { name: 'Try again' });
+    await waitFor(() => expect(api.calls.filter((c) => c.url.pathname === '/api/v0/catalog').length).toBe(2));
+    expect(screen.queryByRole('tree', { name: 'Repositories' })).toBeNull();
+    down = false;
+    fireEvent.click(retry);
+    await screen.findByRole('tree', { name: 'Repositories' });
+    expect(screen.queryByText(/The catalog could not be loaded/)).toBeNull();
+  });
+
   it('registers no service worker and stores nothing that names a repository', async () => {
     history.replaceState(null, '', '/inbox?repo=octomation%2Ftool');
     render(<App path="/inbox" client={new ApiClient('', mockApi().fetch)} />);

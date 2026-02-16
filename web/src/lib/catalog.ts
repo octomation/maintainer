@@ -13,11 +13,25 @@ export interface CatalogState {
   retry: () => void;
 }
 
+/** A catalog that one hook loaded reaches the other hooks of the same client, such as the sidebar's. */
+const loaded = new EventTarget();
+
+class CatalogLoaded extends Event {
+  constructor(
+    readonly client: ApiClient,
+    readonly catalog: Catalog,
+  ) {
+    super('loaded');
+  }
+}
+
 /**
  * The catalog of a page: milestone titles and more. A 202 before the first
  * index is polled like the pages poll their lists; a failure is kept until
  * `retry`, which the pages call on Try again and after their next successful
- * list request, so milestones never stay as keys for long.
+ * list request, so milestones never stay as keys for long. A catalog that
+ * another hook of the same client loads ends a failure too: the sidebar has
+ * no Try again of its own.
  */
 export function useCatalog(client: ApiClient): CatalogState {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
@@ -43,11 +57,13 @@ export function useCatalog(client: ApiClient): CatalogState {
           done.current = true;
           setCatalog(envelope.data);
           setFailed(false);
+          loaded.dispatchEvent(new CatalogLoaded(client, envelope.data));
         })
         .catch(() => {
           if (cancelled) return;
           busy.current = false;
-          setFailed(true);
+          // Another hook may have loaded the catalog meanwhile.
+          if (!done.current) setFailed(true);
         });
     };
     load();
@@ -57,6 +73,17 @@ export function useCatalog(client: ApiClient): CatalogState {
       if (timer) clearTimeout(timer);
     };
   }, [client, attempt]);
+
+  useEffect(() => {
+    const take = (event: Event) => {
+      if (!(event instanceof CatalogLoaded) || event.client !== client) return;
+      done.current = true;
+      setCatalog(event.catalog);
+      setFailed(false);
+    };
+    loaded.addEventListener('loaded', take);
+    return () => loaded.removeEventListener('loaded', take);
+  }, [client]);
 
   const retry = useCallback(() => {
     if (busy.current || done.current) return;
