@@ -39,6 +39,8 @@ maintainer skill status
 
 It checks user and project copies for Claude Code and Codex, the plugins of both agents, and the legacy Codex skill directory. It reports for each copy whether it is compatible with your binary and whether its content matches the binary’s skill; for copies installed by maintainer, it also detects edits, and it warns when one agent loads more than one copy.
 
+A binary built from an untagged commit, whose version is `dev` or a pseudo-version such as `v0.5.1-0.20261125120000-1848546abcde`, names no release: `skill status` reports `compatibility unknown` for each copy and does not fail on it.
+
 It exits with `1` when a copy is incompatible or was edited after maintainer installed it; `--exact` also fails on content that differs from the bundled skill. Use `maintainer skill status --agent claude-code,codex --exact` to require a matching copy for both agents: without `--agent`, finding no copies is not an error.
 
 ```text

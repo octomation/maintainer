@@ -42,6 +42,17 @@ func ParseVersion(s string) (Version, bool) {
 	return v, true
 }
 
+// pseudo matches the last prerelease identifier of a Go pseudo-version: the
+// commit time and the commit hash, such as 20261125120000-1848546abcde.
+var pseudo = regexp.MustCompile(`^\d{14}-[0-9a-f]{12}$`)
+
+// Pseudo reports whether v is a Go pseudo-version, the version of a binary
+// built from an untagged commit, such as 0.5.1-0.20261125120000-1848546abcde.
+// It names no release, so it says nothing about compatibility.
+func (v Version) Pseudo() bool {
+	return len(v.Pre) > 0 && pseudo.MatchString(v.Pre[len(v.Pre)-1])
+}
+
 func (v Version) String() string {
 	s := fmt.Sprintf("%d.%d.%d", v.Major, v.Minor, v.Patch)
 	if len(v.Pre) > 0 {

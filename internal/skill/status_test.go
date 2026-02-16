@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -154,6 +155,25 @@ func TestInspect(t *testing.T) {
 
 	assert.Equal(t, "incompatible", Inspect(loc, m1.Digest, "0.3.0").Compatibility)
 	assert.Equal(t, "unknown", Inspect(loc, m1.Digest, "dev").Compatibility)
+	// A binary built from an untagged commit has a pseudo-version: its
+	// compatibility is unknown, inside the range or outside it.
+	for _, pseudo := range []string{
+		"v0.2.1-0.20261125120000-1848546abcde",
+		"v0.3.1-0.20261125120000-1848546abcde",
+		"v0.0.0-20261125120000-1848546abcde",
+		"v0.3.0-rc1.0.20261125120000-1848546abcde",
+	} {
+		assert.Equal(t, "unknown", Inspect(loc, m1.Digest, pseudo).Compatibility, pseudo)
+	}
+	// A prerelease tag keeps the range check.
+	assert.Equal(t, "incompatible", Inspect(loc, m1.Digest, "v0.3.0-rc1").Compatibility)
+	rc, mrc := release(t, "0.3.0-rc1", strings.NewReplacer(`"0.2.0"`, `"0.3.0-rc1"`, `">=0.2.0 <0.3.0"`, `"=0.3.0-rc1"`).Replace(skillMD))
+	rcDir := filepath.Join(t.TempDir(), "maintainer")
+	_, err = Export(rc, rcDir, mrc, false)
+	require.NoError(t, err)
+	rcLoc := Location{Agent: ClaudeCode, Scope: "user", Path: rcDir}
+	assert.Equal(t, "compatible", Inspect(rcLoc, mrc.Digest, "v0.3.0-rc1").Compatibility)
+	assert.Equal(t, "incompatible", Inspect(rcLoc, mrc.Digest, "v0.3.0-rc2").Compatibility)
 	assert.Equal(t, "different", Inspect(loc, "sha256:other", "0.2.0").ReleaseMatch)
 
 	require.NoError(t, os.WriteFile(filepath.Join(dir, "references", "a.md"), []byte("b"), 0o644))

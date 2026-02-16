@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	. "go.octolab.org/toolset/maintainer/internal/command"
+	"go.octolab.org/toolset/maintainer/internal/pkg/buildinfo"
 	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
 	"go.octolab.org/toolset/maintainer/internal/skill"
 	"go.octolab.org/toolset/maintainer/skills"
@@ -128,6 +129,26 @@ func TestSkill_installAndStatus(t *testing.T) {
 
 	_, err = run(t, "skill", "install", "--agent", "cursor")
 	assert.Equal(t, exit.User, code(err))
+}
+
+// A binary built from an untagged commit reports a pseudo-version: the
+// compatibility of its copies is unknown, and status does not fail on it.
+func TestSkill_statusPseudoVersion(t *testing.T) {
+	sandbox(t)
+	original := buildinfo.Version
+	t.Cleanup(func() { buildinfo.Version = original })
+	buildinfo.Version = "v0.5.1-0.20261125120000-1848546abcde"
+
+	_, err := run(t, "skill", "install", "--agent", "claude-code")
+	require.NoError(t, err)
+	out, err := run(t, "skill", "status")
+	require.NoError(t, err)
+	assert.Contains(t, out, "compatibility unknown, same as this release")
+	assert.NotContains(t, out, "incompatible")
+	assert.NotContains(t, out, "--replace")
+
+	_, err = run(t, "skill", "status", "--exact", "--agent", "claude-code,codex")
+	assert.Equal(t, exit.Transport, code(err), "a missing copy for --agent still fails")
 }
 
 func TestSkill_statusCodexPlugin(t *testing.T) {

@@ -240,7 +240,8 @@ func skillStatusCommand(load func() (bundle, error)) *cobra.Command {
 			"Looks in the user's and the project's skills of Claude Code and Codex, and\n" +
 			"in their plugins. Fails when a copy is incompatible with this binary, was\n" +
 			"changed after maintainer installed it, or no copy exists for a requested\n" +
-			"--agent; with --exact, also when a copy differs from this release.",
+			"--agent; with --exact, also when a copy differs from this release.\n" +
+			"A dev or pseudo-version binary leaves compatibility unknown.",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			for _, agent := range agents {

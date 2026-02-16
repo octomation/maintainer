@@ -451,6 +451,7 @@ Looks in the user's and the project's skills of Claude Code and Codex, and
 in their plugins. Fails when a copy is incompatible with this binary, was
 changed after maintainer installed it, or no copy exists for a requested
 --agent; with --exact, also when a copy differs from this release.
+A dev or pseudo-version binary leaves compatibility unknown.
 
 ```text
 maintainer skill status [flags]

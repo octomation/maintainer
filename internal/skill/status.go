@@ -231,9 +231,11 @@ func Inspect(loc Location, digest, binary string) Copy {
 	}
 	meta, _ := fm.Map("metadata")
 	c.Version, c.Range = meta["version"], meta["tool-version-range"]
+	// dev, a pseudo-version or an unparsable version names no release:
+	// compatibility stays unknown.
 	v, okV := ParseVersion(binary)
 	r, okR := ParseRange(c.Range)
-	if okV && okR {
+	if okV && okR && !v.Pseudo() {
 		c.Compatibility = "incompatible"
 		if r.Contains(v) {
 			c.Compatibility = "compatible"
