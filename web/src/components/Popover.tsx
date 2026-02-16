@@ -18,7 +18,7 @@ export interface PopoverProps {
   role?: 'menu' | 'group' | 'dialog';
   /** The accessible name of the panel. */
   label: string;
-  /** Align the panel's right edge with the trigger's; it also flips when it would leave the viewport. */
+  /** Align the panel's right edge with the trigger's; it also flips when it would leave the viewport, and moves inside it when neither side has room. */
   align?: 'start' | 'end';
   class?: string;
   /** Opens the panel from outside, such as a chip that opens its dimension. */
@@ -28,6 +28,9 @@ export interface PopoverProps {
   /** Focus the panel itself on open rather than its first control, as a panel of settings does. */
   focusPanel?: boolean;
 }
+
+/** The least distance between a panel and the edges of the window. */
+const EDGE = 8;
 
 /** Arrow keys move between the items of a menu; Home and End jump. */
 function moveFocus(panel: HTMLElement, event: KeyboardEvent) {
@@ -70,8 +73,12 @@ export function Popover({ trigger, children, role = 'menu', label, align = 'star
     const width = panel.current?.offsetWidth ?? 0;
     if (rect && typeof innerHeight === 'number') {
       panel.current?.style.setProperty('--popover-room', `${Math.max(160, innerHeight - rect.bottom - 12)}px`);
-      if (align === 'start') setEnd(width > 0 && rect.left + width > innerWidth - 8);
-      else setEnd(!(width > 0 && rect.right - width < 8));
+      const flip = align === 'start' ? width > 0 && rect.left + width > innerWidth - EDGE : !(width > 0 && rect.right - width < EDGE);
+      setEnd(flip);
+      // Neither edge of the trigger leaves room, as in a narrow window: the panel moves inside the window.
+      const left = flip ? rect.right - width : rect.left;
+      const shift = width > 0 ? Math.max(EDGE - left, Math.min(0, innerWidth - EDGE - width - left)) : 0;
+      panel.current?.style.setProperty('--popover-shift', `${Math.round(shift)}px`);
     }
     if (focusPanel) {
       panel.current?.focus();

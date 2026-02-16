@@ -764,6 +764,8 @@ button.view-switch__item {
   border-radius: var(--radius-lg);
   color: var(--text-secondary);
   font-size: 13px;
+  /* Set on open: the distance that keeps the panel 8 px inside the window. */
+  translate: var(--popover-shift, 0) 0;
 }
 
 .popover:focus {
