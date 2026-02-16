@@ -39,16 +39,16 @@ maintainer skill status
 
 It checks user and project copies for Claude Code and Codex, the plugins of both agents, and the legacy Codex skill directory. It reports for each copy whether it is compatible with your binary and whether its content matches the binary’s skill; for copies installed by maintainer, it also detects edits, and it warns when one agent loads more than one copy.
 
-A binary built from an untagged commit, whose version is `dev` or a pseudo-version such as `v0.5.1-0.20261125120000-1848546abcde`, names no release: `skill status` reports `compatibility unknown` for each copy and does not fail on it.
+A binary built from an untagged commit, whose version is `dev` or a pseudo-version such as `v0.5.2-0.20261125120000-1848546abcde`, names no release: `skill status` reports `compatibility unknown` for each copy and does not fail on it.
 
 It exits with `1` when a copy is incompatible or was edited after maintainer installed it; `--exact` also fails on content that differs from the bundled skill. Use `maintainer skill status --agent claude-code,codex --exact` to require a matching copy for both agents: without `--agent`, finding no copies is not an error.
 
 ```text
 $ maintainer skill status --agent claude-code
-maintainer 0.5.1 ships the maintainer skill 0.5.1, sha256:…
+maintainer 0.5.2 ships the maintainer skill 0.5.2, sha256:…
 
 Claude Code user: ~/.claude/skills/maintainer
-  skill 0.5.1, compatible with this binary, same as this release, installed by maintainer, intact
+  skill 0.5.2, compatible with this binary, same as this release, installed by maintainer, intact
 ```
 
 `maintainer skill show` prints the skill, `maintainer skill info` its version and digest, and `maintainer skill export -o <dir>` writes it to any other directory.
@@ -63,7 +63,7 @@ The [octolab/skills](https://github.com/octolab/skills) catalog holds the skill 
 | Codex | `codex plugin marketplace add octolab/skills`, then `codex plugin add maintainer@octolab` | `codex plugin marketplace upgrade octolab` |
 | Any, with the [skills CLI](https://skills.sh/) | `npx skills add octolab/skills --skill maintainer -a claude-code -a codex -g` | `npx skills update` |
 
-The catalog follows the latest release, so an update can bring a skill newer than your binary. Each release is also tagged `maintainer--v0.5.1` in the catalog: `npx skills add 'octolab/skills#maintainer--v0.5.1' --skill maintainer` stays on that release. A `#maintainer--v0.5.1` suffix on `claude plugin marketplace add` pins the whole catalog.
+The catalog follows the latest release, so an update can bring a skill newer than your binary. Each release is also tagged `maintainer--v0.5.2` in the catalog: `npx skills add 'octolab/skills#maintainer--v0.5.2' --skill maintainer` stays on that release. A `#maintainer--v0.5.2` suffix on `claude plugin marketplace add` pins the whole catalog.
 
 ## When versions differ
 
