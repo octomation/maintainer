@@ -44,7 +44,8 @@ type Facet struct {
 	Count int    `json:"count"`
 }
 
-// Facets count the selection, ignoring Columns, Limit and Offset.
+// Facets count the selection, ignoring Limit and Offset; Columns counts it
+// without the Columns filter, so the other columns keep their counts.
 type Facets struct {
 	Owners       []Facet `json:"owners"`
 	Repositories []Facet `json:"repositories"`
@@ -133,7 +134,6 @@ func (s *Snapshot) Query(q Query) Page {
 		}
 		selection = append(selection, task)
 	}
-	page.Facets = facets(selection)
 	filtered := selection
 	if len(q.Columns) > 0 {
 		filtered = make([]*Task, 0, len(selection))
@@ -143,6 +143,7 @@ func (s *Snapshot) Query(q Query) Page {
 			}
 		}
 	}
+	page.Facets = facets(filtered, selection)
 	sortTasks(filtered, q.Sort)
 	page.Total = len(filtered)
 	if q.Offset < len(filtered) {
@@ -239,26 +240,10 @@ func impactRank(task *Task) float64 {
 	return 0
 }
 
-func facets(selection []*Task) Facets {
-	count := func(get func(*Task) []string) []Facet {
-		counts := map[string]int{}
-		for _, task := range selection {
-			for _, v := range get(task) {
-				counts[v]++
-			}
-		}
-		out := make([]Facet, 0, len(counts))
-		for v, n := range counts {
-			out = append(out, Facet{Value: v, Count: n})
-		}
-		sort.Slice(out, func(i, j int) bool {
-			if out[i].Count != out[j].Count {
-				return out[i].Count > out[j].Count
-			}
-			return out[i].Value < out[j].Value
-		})
-		return out
-	}
+// facets counts every dimension over the filtered tasks and the columns over
+// the selection before the Columns filter.
+func facets(filtered, selection []*Task) Facets {
+	count := func(get func(*Task) []string) []Facet { return countFacet(filtered, get) }
 	return Facets{
 		Owners:       count(func(t *Task) []string { return []string{t.Owner} }),
 		Repositories: count(func(t *Task) []string { return []string{t.Repository} }),
@@ -276,9 +261,30 @@ func facets(selection []*Task) Facets {
 			return []string{*t.Type}
 		}),
 		Assignees: count(func(t *Task) []string { return t.Assignees }),
-		Columns:   count(func(t *Task) []string { return []string{t.Column} }),
+		Columns:   countFacet(selection, func(t *Task) []string { return []string{t.Column} }),
 		States:    count(func(t *Task) []string { return []string{t.State} }),
 	}
+}
+
+// countFacet counts the values of tasks, the most frequent first.
+func countFacet(tasks []*Task, get func(*Task) []string) []Facet {
+	counts := map[string]int{}
+	for _, task := range tasks {
+		for _, v := range get(task) {
+			counts[v]++
+		}
+	}
+	out := make([]Facet, 0, len(counts))
+	for v, n := range counts {
+		out = append(out, Facet{Value: v, Count: n})
+	}
+	sort.Slice(out, func(i, j int) bool {
+		if out[i].Count != out[j].Count {
+			return out[i].Count > out[j].Count
+		}
+		return out[i].Value < out[j].Value
+	})
+	return out
 }
 
 func containsFold(list []string, s string) bool {

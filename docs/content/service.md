@@ -241,8 +241,8 @@ issue, so a link or a reload opens it again; **Back** or Escape returns to
 the list. **Filter** (or the F key) narrows the inbox and the board by state,
 text, priority, estimate, labels, type, milestone, repository, owner or
 assignee; the inbox also filters by status. **View** groups the inbox by status, priority, estimate,
-repository, owner, milestone or type; a group's count covers every issue of
-the selection, and **Load more** fills the groups. On the board, **View**
+repository, owner, milestone or type; a group's count covers every issue
+that matches the filters, and **Load more** fills the groups. On the board, **View**
 orders the cards of every column
 by score, priority, or the updated or created date (by default the open
 columns by score and Done and Won't do by the last update), hides the empty

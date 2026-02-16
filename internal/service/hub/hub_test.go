@@ -321,15 +321,59 @@ func TestQuery(t *testing.T) {
 		assert.Equal(t, 4, query(Query{State: "all", Columns: []string{ColumnDone, ColumnWontDo}}).Total)
 	})
 
-	t.Run("facets ignore column, limit and offset", func(t *testing.T) {
+	t.Run("facets ignore limit and offset, columns ignore their filter", func(t *testing.T) {
 		p := query(Query{State: "all", Columns: []string{ColumnDone}, Limit: 1, Offset: 1})
 		assert.Equal(t, 2, p.Total)
 		assert.Len(t, p.Tasks, 1)
 		assert.Equal(t, 1, p.Offset)
 		assert.Equal(t, 1, p.Limit)
 		assert.Equal(t, []Facet{{Value: ColumnBacklog, Count: 5}, {Value: ColumnDone, Count: 2}, {Value: ColumnTodo, Count: 2}, {Value: ColumnWontDo, Count: 2}, {Value: ColumnInProgress, Count: 1}}, p.Facets.Columns)
-		assert.Equal(t, []Facet{{Value: "octomation/maintainer", Count: 8}, {Value: "kamilsk/dotfiles", Count: 2}, {Value: "octomation/tool", Count: 2}}, p.Facets.Repositories)
-		assert.Equal(t, []Facet{{Value: "kamilsk", Count: 3}, {Value: "octocat", Count: 1}}, p.Facets.Assignees)
+		all := query(Query{State: "all", Columns: []string{ColumnDone}, Limit: MaxLimit})
+		assert.Equal(t, all.Facets, p.Facets, "the page does not change the counts")
+	})
+
+	t.Run("facets count every filter, the columns included", func(t *testing.T) {
+		count := func(tasks []*Task, get func(*Task) []string) map[string]int {
+			out := map[string]int{}
+			for _, task := range tasks {
+				for _, v := range get(task) {
+					out[v]++
+				}
+			}
+			return out
+		}
+		of := func(list []Facet) map[string]int {
+			out := map[string]int{}
+			for _, f := range list {
+				out[f.Value] = f.Count
+			}
+			return out
+		}
+		for _, columns := range [][]string{{ColumnTodo}, {ColumnBacklog}, {ColumnDone, ColumnWontDo}} {
+			all := query(Query{State: "all", Columns: columns, Limit: MaxLimit})
+			require.Equal(t, all.Total, len(all.Tasks))
+			page := query(Query{State: "all", Columns: columns, Limit: 1})
+			for _, p := range []Page{all, page} {
+				assert.Equal(t, count(all.Tasks, func(t *Task) []string { return t.Labels }), of(p.Facets.Labels), columns)
+				assert.Equal(t, count(all.Tasks, func(t *Task) []string { return []string{t.Repository} }), of(p.Facets.Repositories), columns)
+				assert.Equal(t, count(all.Tasks, func(t *Task) []string { return t.Assignees }), of(p.Facets.Assignees), columns)
+				assert.Equal(t, count(all.Tasks, func(t *Task) []string { return []string{t.State} }), of(p.Facets.States), columns)
+			}
+		}
+		// The open selection has two issues of each impact; To do one high
+		// and one low, and a priority group counts only those.
+		impacts := func(p Page) map[string]int {
+			out := map[string]int{}
+			for _, f := range p.Facets.Labels {
+				if strings.HasPrefix(f.Value, "impact: ") {
+					out[f.Value] = f.Count
+				}
+			}
+			return out
+		}
+		assert.Equal(t, map[string]int{"impact: high": 2, "impact: medium": 2, "impact: low": 2}, impacts(query(Query{})))
+		assert.Equal(t, map[string]int{"impact: high": 1, "impact: low": 1}, impacts(query(Query{Columns: []string{ColumnTodo}})))
+		assert.Equal(t, map[string]int{"impact: high": 1, "impact: low": 1}, impacts(query(Query{Columns: []string{ColumnTodo}, Limit: 1})))
 	})
 
 	t.Run("q", func(t *testing.T) {
