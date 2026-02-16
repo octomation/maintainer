@@ -19,13 +19,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T18:09:42Z
-updatedAt: 2026-11-25T18:12:24Z
-lastEditedAt: 2026-11-25T18:10:32Z
-closedAt: null
+updatedAt: 2026-11-25T19:39:34Z
+lastEditedAt: 2026-11-25T19:39:34Z
+closedAt: 2026-11-25T18:40:33Z
 ---
 
 # github: token: take the token only from the environment
@@ -68,4 +68,4 @@ states the break and the replacement.
 - Published notes of earlier releases stay as they are.
 - Reading a `.env` file of the working directory: [[MAIN-177]].
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md).
+Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F3.

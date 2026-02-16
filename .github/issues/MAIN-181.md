@@ -1,18 +1,18 @@
 ---
 code: MAIN-181
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABih0Zfw
+databaseId: 6612130175
+number: 563
+url: https://github.com/octomation/maintainer/issues/563
 title: "service: hub: keep the Filter menu inside a 390 px window"
 issueType: Bug
 labels:
+  - "effort: easy"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: medium"
-  - "effort: easy"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:38Z
+updatedAt: 2026-11-25T19:31:38Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -49,9 +49,9 @@ hub. At desktop width it opens where it opens today.
 
 ## Acceptance criteria
 
-- [ ] In headless Chrome at 390 px, after a click on **Filter** on `/tablo`,
+- [x] In headless Chrome at 390 px, after a click on **Filter** on `/tablo`,
       `/status` and `/inbox`, the box of the menu has left ≥ 0 and right ≤ 390.
-- [ ] `make web-check` passes, and the layout follows `web/DESIGN.md` in both
+- [x] `make web-check` passes, and the layout follows `web/DESIGN.md` in both
       themes.
 
 ## Out of scope

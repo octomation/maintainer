@@ -1,18 +1,18 @@
 ---
 code: MAIN-176
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABih0ErA
+databaseId: 6612124844
+number: 559
+url: https://github.com/octomation/maintainer/issues/559
 title: "github: contribution: print the lookup table on stdout"
 issueType: Bug
 labels:
+  - "effort: easy"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: medium"
-  - "effort: easy"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:19Z
+updatedAt: 2026-11-25T19:31:20Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -51,8 +51,8 @@ keeps its table on stderr.
 
 ## Acceptance criteria
 
-- [ ] The PoC writes the table to the file, and stderr holds only diagnostics.
-- [ ] A command test captures stdout and stderr of `lookup` and `suggest`
+- [x] The PoC writes the table to the file, and stderr holds only diagnostics.
+- [x] A command test captures stdout and stderr of `lookup` and `suggest`
       separately and checks where each table goes.
 
 ## Out of scope

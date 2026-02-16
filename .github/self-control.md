@@ -42,10 +42,6 @@ is proven or moved into an issue; a release adds the checks it leaves open
   with mode `0600` while the service runs. The label flow was checked in
   headless Chrome only: a browser that does not open the label address goes
   into an issue with its name and version.
-- [ ] **The first release run after the action pins**
-  ([MAIN-185](issues/MAIN-185.md)): `cd`, `ci` and `cd.docs` are green with
-  every external action pinned to a commit, and the next Dependabot pull
-  request for an action changes the SHA and its version comment together.
 
 ## Waiting for a decision
 

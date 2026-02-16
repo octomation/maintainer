@@ -1,19 +1,19 @@
 ---
 code: MAIN-175
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihz_YQ
+databaseId: 6612123489
+number: 558
+url: https://github.com/octomation/maintainer/issues/558
 title: "fetch: state: prune only the records of the selected owners and profiles"
 issueType: Bug
 labels:
-  - "scope: docs"
-  - "scope: code"
-  - "scope: test"
-  - "type: bug"
-  - "severity: major"
-  - "impact: medium"
   - "effort: easy"
+  - "impact: medium"
+  - "scope: code"
+  - "scope: docs"
+  - "scope: test"
+  - "severity: major"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -22,8 +22,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:15Z
+updatedAt: 2026-11-25T19:31:15Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -52,9 +52,9 @@ prunes every missing record, as today.
 
 ## Acceptance criteria
 
-- [ ] The PoC prunes the record of `a` and keeps the record of `b`.
-- [ ] A test covers `--owner`, `--profile` and both together.
-- [ ] `docs/content/fetch.md` says that `state prune` honours the selection.
+- [x] The PoC prunes the record of `a` and keeps the record of `b`.
+- [x] A test covers `--owner`, `--profile` and both together.
+- [x] `docs/content/fetch.md` says that `state prune` honours the selection.
 
 ## Out of scope
 

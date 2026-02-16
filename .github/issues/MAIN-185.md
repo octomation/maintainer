@@ -17,13 +17,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T18:09:52Z
-updatedAt: 2026-11-25T18:12:38Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T19:39:38Z
+lastEditedAt: 2026-11-25T19:39:38Z
+closedAt: 2026-11-25T18:44:44Z
 ---
 
 # ci: actions: pin external actions to a commit
@@ -60,4 +60,4 @@ fixed to a reviewed commit.
 - Pinning `octomation/*` actions by SHA.
 - No changelog entry: this changes the release pipeline, not the product.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md).
+Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F5.

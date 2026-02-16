@@ -1,18 +1,18 @@
 ---
 code: MAIN-173
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihz0-w
+databaseId: 6612120827
+number: 556
+url: https://github.com/octomation/maintainer/issues/556
 title: "service: hub: keep F, P, E and Escape working on the full issue page"
 issueType: Bug
 labels:
+  - "effort: easy"
+  - "impact: low"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: low"
-  - "effort: easy"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:06Z
+updatedAt: 2026-11-25T19:31:06Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -49,9 +49,9 @@ and Escape act as they do when F was not pressed.
 
 ## Acceptance criteria
 
-- [ ] A component test on `/inbox?task=<id>`: after `f` no popover exists, `p`
+- [x] A component test on `/inbox?task=<id>`: after `f` no popover exists, `p`
       opens its menu, and `Escape` removes `?task=` from the URL.
-- [ ] On a list page F still opens the Filter menu.
-- [ ] `make web-check` passes.
+- [x] On a list page F still opens the Filter menu.
+- [x] `make web-check` passes.
 
 Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "F on the full issue page opens a hidden filter menu".

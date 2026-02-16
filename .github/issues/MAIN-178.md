@@ -1,18 +1,18 @@
 ---
 code: MAIN-178
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABih0JqA
+databaseId: 6612126120
+number: 560
+url: https://github.com/octomation/maintainer/issues/560
 title: "service: config: accept the same repository matches as service.cue"
 issueType: Bug
 labels:
+  - "effort: easy"
+  - "impact: low"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: low"
-  - "effort: easy"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:24Z
+updatedAt: 2026-11-25T19:31:24Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -54,9 +54,9 @@ service with an error that names the file, the rule and the key.
 
 ## Acceptance criteria
 
-- [ ] `service run` with `match = { id = -5 }` or `match = { id = 0, owner =
+- [x] `service run` with `match = { id = -5 }` or `match = { id = 0, owner =
       "a", name = "b" }` stops with that error.
-- [ ] A test feeds the same valid and invalid matches to the loader and to the
+- [x] A test feeds the same valid and invalid matches to the loader and to the
       schema, and both give the same verdict for each.
 
 Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "The service loader accepts repos match ids that service.cue rejects".

@@ -1,18 +1,18 @@
 ---
 code: MAIN-169
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihzk1g
+databaseId: 6612116694
+number: 553
+url: https://github.com/octomation/maintainer/issues/553
 title: "service: hub: keep the last good version of an issue after a refused triage"
 issueType: Bug
 labels:
+  - "effort: medium"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: major"
-  - "impact: medium"
-  - "effort: medium"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:30:52Z
+updatedAt: 2026-11-25T19:30:52Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -55,11 +55,11 @@ version.
 
 ## Acceptance criteria
 
-- [ ] A test breaks the frontmatter of an indexed issue and patches a label with
+- [x] A test breaks the frontmatter of an indexed issue and patches a label with
       the old version: the answer is `412`, and the index keeps the issue,
       flagged stale, with its last good fields.
-- [ ] A scan after that refusal still holds the stale entry.
-- [ ] The file is unchanged byte for byte after the refused write.
+- [x] A scan after that refusal still holds the stale entry.
+- [x] The file is unchanged byte for byte after the refused write.
 
 ## Out of scope
 

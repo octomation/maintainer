@@ -1,18 +1,18 @@
 ---
 code: MAIN-174
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihz6mQ
+databaseId: 6612122265
+number: 557
+url: https://github.com/octomation/maintainer/issues/557
 title: "service: inbox: count only the selected issues in a group header"
 issueType: Bug
 labels:
+  - "effort: medium"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: medium"
-  - "effort: medium"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:11Z
+updatedAt: 2026-11-25T19:31:11Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -49,11 +49,11 @@ issues the page has loaded.
 
 ## Acceptance criteria
 
-- [ ] A test with issues in several statuses and a Status filter of To do gives
+- [x] A test with issues in several statuses and a Status filter of To do gives
       each group the count of its To do issues.
-- [ ] The counts stay the same when a group holds more issues than the first
+- [x] The counts stay the same when a group holds more issues than the first
       page.
-- [ ] `go test ./internal/service/hub/...` and `make web-check` pass.
+- [x] `go test ./internal/service/hub/...` and `make web-check` pass.
 
 ## Out of scope
 

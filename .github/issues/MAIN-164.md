@@ -1,19 +1,19 @@
 ---
 code: MAIN-164
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihzV3A
+databaseId: 6612112860
+number: 550
+url: https://github.com/octomation/maintainer/issues/550
 title: "fetch: config: write a template that loads in the format of the config path"
 issueType: Bug
 labels:
-  - "scope: docs"
-  - "scope: code"
-  - "scope: test"
-  - "type: bug"
-  - "severity: minor"
-  - "impact: medium"
   - "effort: easy"
+  - "impact: medium"
+  - "scope: code"
+  - "scope: docs"
+  - "scope: test"
+  - "severity: minor"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -22,8 +22,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:30:39Z
+updatedAt: 2026-11-25T19:30:39Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -55,11 +55,11 @@ writes the template in that format, or it refuses the path as a usage error
 
 ## Acceptance criteria
 
-- [ ] In the PoC, `config validate` accepts the file that `init` wrote, or `init`
+- [x] In the PoC, `config validate` accepts the file that `init` wrote, or `init`
       exits `2`, names the extension and leaves no file.
-- [ ] A test runs `config init` for `.toml`, `.yaml` and `.yml` paths and loads
+- [x] A test runs `config init` for `.toml`, `.yaml` and `.yml` paths and loads
       each result, or expects the refusal.
-- [ ] `docs/content/fetch.md` names the formats that `config init` writes.
+- [x] `docs/content/fetch.md` names the formats that `config init` writes.
 
 ## Out of scope
 

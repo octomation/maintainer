@@ -19,13 +19,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T18:10:01Z
-updatedAt: 2026-11-25T18:12:51Z
-lastEditedAt: 2026-11-25T18:10:38Z
-closedAt: null
+updatedAt: 2026-11-25T19:39:43Z
+lastEditedAt: 2026-11-25T19:39:43Z
+closedAt: 2026-11-25T18:42:42Z
 ---
 
 # fetch: config: do not read configuration from the working directory
@@ -93,4 +93,4 @@ directory must not be a source of configuration.
 Related: [[MAIN-177]] holds the same rule for the token: the contribution
 commands no longer read a `.env` file of the working directory.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md).
+Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F1.

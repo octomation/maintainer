@@ -1,18 +1,18 @@
 ---
 code: MAIN-167
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihzfnQ
+databaseId: 6612115357
+number: 552
+url: https://github.com/octomation/maintainer/issues/552
 title: "fetch: pins: make an unconfirmed pin a conflict of its repository"
 issueType: Bug
 labels:
+  - "effort: easy"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: major"
-  - "impact: medium"
-  - "effort: easy"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:30:47Z
+updatedAt: 2026-11-25T19:30:48Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -55,11 +55,11 @@ and the exit code treats this conflict as any other conflict.
 
 ## Acceptance criteria
 
-- [ ] A service test with a pin answered `404 Not Found` and one discovered
+- [x] A service test with a pin answered `404 Not Found` and one discovered
       repository plans the discovered repository and reports the pin as a
       conflict.
-- [ ] The human and the JSON plans show the conflict with its reason.
-- [ ] The output matches the pin failure that `docs/content/fetch.md` describes.
+- [x] The human and the JSON plans show the conflict with its reason.
+- [x] The output matches the pin failure that `docs/content/fetch.md` describes.
 
 ## Out of scope
 

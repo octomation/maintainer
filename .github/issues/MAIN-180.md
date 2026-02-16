@@ -1,19 +1,19 @@
 ---
 code: MAIN-180
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABih0UvQ
+databaseId: 6612128957
+number: 562
+url: https://github.com/octomation/maintainer/issues/562
 title: "fetch: discovery: discover the owners listed next to the wildcard"
 issueType: Bug
 labels:
-  - "scope: docs"
-  - "scope: code"
-  - "scope: test"
-  - "type: bug"
-  - "severity: minor"
-  - "impact: medium"
   - "effort: easy"
+  - "impact: medium"
+  - "scope: code"
+  - "scope: docs"
+  - "scope: test"
+  - "severity: minor"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -22,8 +22,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:33Z
+updatedAt: 2026-11-25T19:31:34Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -53,9 +53,9 @@ organizations and each named owner.
 
 ## Acceptance criteria
 
-- [ ] A discovery test with `["*", "stranger"]` requests the repositories of
+- [x] A discovery test with `["*", "stranger"]` requests the repositories of
       `stranger` and plans them next to those of the user.
-- [ ] `docs/content/fetch.md` says what such a list discovers.
+- [x] `docs/content/fetch.md` says what such a list discovers.
 
 ## Out of scope
 

@@ -1,18 +1,18 @@
 ---
 code: MAIN-171
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihzqlw
+databaseId: 6612118167
+number: 554
+url: https://github.com/octomation/maintainer/issues/554
 title: "skill: status: report unknown compatibility for a pseudo-version binary"
 issueType: Bug
 labels:
+  - "effort: easy"
+  - "impact: low"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: low"
-  - "effort: easy"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:30:57Z
+updatedAt: 2026-11-25T19:30:57Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -56,11 +56,11 @@ other checks keep their result: a changed copy, a missing copy for `--agent`, an
 
 ## Acceptance criteria
 
-- [ ] With a copy installed from the PoC binary, the PoC reports unknown
+- [x] With a copy installed from the PoC binary, the PoC reports unknown
       compatibility and exits `0`.
-- [ ] A test covers a pseudo-version, `dev` and a prerelease tag; the prerelease
+- [x] A test covers a pseudo-version, `dev` and a prerelease tag; the prerelease
       tag keeps the range check.
-- [ ] `skill status` and `skills/maintainer/SKILL.md` give a pseudo-version the
+- [x] `skill status` and `skills/maintainer/SKILL.md` give a pseudo-version the
       same meaning.
 
 Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "skill status calls the skill of a pseudo-version binary incompatible".

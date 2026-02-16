@@ -1,18 +1,18 @@
 ---
 code: MAIN-165
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihzadA
+databaseId: 6612114036
+number: 551
+url: https://github.com/octomation/maintainer/issues/551
 title: "status: root: scan the folder of a symlinked working directory"
 issueType: Bug
 labels:
+  - "effort: easy"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: major"
-  - "impact: medium"
-  - "effort: easy"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:30:43Z
+updatedAt: 2026-11-25T19:30:43Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -52,10 +52,10 @@ folder that the symlink names and prints the same rows as in that folder.
 
 ## Acceptance criteria
 
-- [ ] In the PoC, `status` in `link` exits `0` and prints the same rows as in
+- [x] In the PoC, `status` in `link` exits `0` and prints the same rows as in
       `real`.
-- [ ] A test covers the implicit root through a symlink.
-- [ ] A root that the user names explicitly is still refused when it is a
+- [x] A test covers the implicit root through a symlink.
+- [x] A root that the user names explicitly is still refused when it is a
       symlink, and its test passes.
 
 ## Out of scope

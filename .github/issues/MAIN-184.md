@@ -19,13 +19,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T18:09:47Z
-updatedAt: 2026-11-25T18:35:34Z
-lastEditedAt: 2026-11-25T18:35:34Z
-closedAt: null
+updatedAt: 2026-11-25T19:39:36Z
+lastEditedAt: 2026-11-25T19:39:36Z
+closedAt: 2026-11-25T18:44:04Z
 ---
 
 # service: hub: serve data only to the account that runs it
@@ -138,4 +138,4 @@ name is the credential; nothing is stored in the browser.
   `maintainer.localhost`, and only with JavaScript on: the user opens any
   other plain address once; the theme resets at each start.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md).
+Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F4.

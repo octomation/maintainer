@@ -1,18 +1,18 @@
 ---
 code: MAIN-172
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABihzveg
+databaseId: 6612119418
+number: 555
+url: https://github.com/octomation/maintainer/issues/555
 title: "service: hub: show the repository tree once the catalog loads again"
 issueType: Bug
 labels:
+  - "effort: easy"
+  - "impact: low"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: low"
-  - "effort: easy"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:01Z
+updatedAt: 2026-11-25T19:31:01Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -50,8 +50,8 @@ without a page reload.
 
 ## Acceptance criteria
 
-- [ ] A component test renders the app at `/tablo` with a catalog request that
+- [x] A component test renders the app at `/tablo` with a catalog request that
       fails until **Try again**: afterwards the Repositories tree is present.
-- [ ] `make web-check` passes.
+- [x] `make web-check` passes.
 
 Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "The sidebar repository tree never retries a failed catalog request".

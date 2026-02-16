@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T18:09:57Z
-updatedAt: 2026-11-25T18:12:44Z
-lastEditedAt: 2026-11-25T18:10:35Z
-closedAt: null
+updatedAt: 2026-11-25T19:39:41Z
+lastEditedAt: 2026-11-25T19:39:41Z
+closedAt: 2026-11-25T18:45:26Z
 ---
 
 # tools: env: keep a stored token for one account
@@ -57,4 +57,4 @@ only, and the value must not appear in any process argument.
 - No changelog entry: this is a tool of the maintainer, not a part of the
   product.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md).
+Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F2.

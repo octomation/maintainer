@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T18:09:38Z
-updatedAt: 2026-11-25T18:12:57Z
-lastEditedAt: 2026-11-25T18:10:30Z
-closedAt: null
+updatedAt: 2026-11-25T19:39:31Z
+lastEditedAt: 2026-11-25T19:39:31Z
+closedAt: 2026-11-25T18:42:42Z
 ---
 
 # github: contribution: take the token only from GITHUB_TOKEN in the environment
@@ -50,7 +50,7 @@ and send no request.
       the error of a missing token and sends no request.
 - [x] A test runs a contribution command in a folder with a `.env` and without
       `GITHUB_TOKEN`, and expects that error.
-- [ ] With `GITHUB_TOKEN` in the environment, the commands work as the guides
+- [x] With `GITHUB_TOKEN` in the environment, the commands work as the guides
       describe, and the guides name no other source of the token.
 
 ## Out of scope
@@ -60,4 +60,4 @@ and send no request.
 
 Related: [[MAIN-187]], the same rule for the fetch configuration.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md).
+Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "Contribution commands take a token from a `.env` file in the working directory".

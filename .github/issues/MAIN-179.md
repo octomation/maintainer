@@ -1,19 +1,19 @@
 ---
 code: MAIN-179
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABih0Pew
+databaseId: 6612127611
+number: 561
+url: https://github.com/octomation/maintainer/issues/561
 title: "fetch: verbosity: make each offered level add output"
 issueType: Bug
 labels:
-  - "scope: docs"
-  - "scope: code"
-  - "scope: test"
-  - "type: bug"
-  - "severity: minor"
-  - "impact: low"
   - "effort: easy"
+  - "impact: low"
+  - "scope: code"
+  - "scope: docs"
+  - "scope: test"
+  - "severity: minor"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -22,8 +22,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-25T19:31:29Z
+updatedAt: 2026-11-25T19:31:29Z
 lastEditedAt: null
 closedAt: null
 ---
@@ -51,9 +51,9 @@ not offered.
 
 ## Acceptance criteria
 
-- [ ] A test runs one apply at `-v`, `-vv` and `-vvv`: each offered level prints
+- [x] A test runs one apply at `-v`, `-vv` and `-vvv`: each offered level prints
       lines that the level below does not.
-- [ ] `fetch --help` and `docs/content/fetch.md` list the same levels and say
+- [x] `fetch --help` and `docs/content/fetch.md` list the same levels and say
       what each adds.
 
 ## Out of scope
