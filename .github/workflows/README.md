@@ -177,15 +177,20 @@ flowchart TB
   [#491](https://github.com/octomation/maintainer/issues/491),
   and the `skill` and
   `vanity` jobs skip it, so the catalogs keep stable releases only.
-- **The agent skill ships with the release.** `skills/maintainer/` is embedded
+- **The agent skills ship with the release.** Every directory of `skills/`
+  with a `SKILL.md`, `skills/maintainer/` and `skills/review/`, is embedded
   in the binary and packed into every archive; `release.mjs skill` checks that
-  the source, the archives and `maintainer skill info` agree on its digest,
-  and `release.mjs check` that its `metadata.version` is the tag. For a
-  stable tag, the `skill` job then runs
+  the source, the archives and `maintainer skill info` hold the same skills
+  with the same digests, and `release.mjs check` that the `metadata.version`
+  of each is the tag. For a stable tag, the `skill` job then runs
   [octomation/skills-action](https://github.com/octomation/skills-action),
-  pinned to a release tag: it copies the skill from the tag into the
-  catalog, with a commit signed as the App and a tag `maintainer--vX.Y.Z`,
-  and the digest it published is compared with the source. The catalog token
+  pinned to a release tag: it copies the skills from the tag into the
+  catalog's plugin `plugins/maintainer/`, with a commit signed as the App and
+  a tag `maintainer--vX.Y.Z`. The job downloads the Linux archive of the
+  release and `release.mjs skill --catalog maintainer--vX.Y.Z --binary …`
+  reads the plugin at that tag back through the GitHub API: a skill missing,
+  extra or with another digest than `skill info --json` of the release binary
+  fails the job. The catalog token
   is minted separately, from the same App installed on `octolab/skills`: the
   tap token is scoped to the tap. The job is separate so that a failed
   publication can be rerun alone (`gh run rerun <run-id> --failed`) while the

@@ -153,8 +153,8 @@ jobs:
         run: |
           make install
           [ "$(find bin/linux -mindepth 2 -type f | wc -l)" = 1 ]
-      # the maintainer installs the skill through the catalog; this keeps the
-      # CLI path covered: install into an empty home, then require both copies
+      # the maintainer installs the skills through the catalog; this keeps the
+      # CLI path covered: install into an empty home, then require every copy
       - name: Check skill installation
         run: |
           binary="$(find "$PWD/bin/linux" -mindepth 2 -type f)"
@@ -165,10 +165,24 @@ jobs:
           "$binary" skill install --agent claude-code,codex
           "$binary" skill status --agent claude-code,codex --exact
           "$binary" skill status --agent claude-code,codex --exact --json | jq -se '
-            length == 2
-            and ([.[].agent] | sort) == ["claude-code", "codex"]
+            length == 4
+            and ([.[] | [.agent, .skill]] | sort) == [["claude-code", "maintainer"], ["claude-code", "review"], ["codex", "maintainer"], ["codex", "review"]]
             and all(.[]; .scope == "user" and .release_match == "exact"
               and .integrity == "intact" and .ownership == "maintainer")'
+
+  skills:
+    name: Testing the review skill
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # the checker of the review skill ships in skills/review/scripts; its
+      # tests stay outside the payload and use a fake gh
+      - name: Run the review skill tests
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+        run: python3 skills/testdata/review/test_review.py
 
   web:
     name: Checking the frontend
@@ -217,7 +231,7 @@ jobs:
 
   notify:
     name: Notifying
-    needs: [ lint, test, report, vulns, web ]
+    needs: [ lint, test, report, vulns, web, skills ]
     runs-on: ubuntu-24.04
     if: github.event_name != 'pull_request'
       && (failure() || success())

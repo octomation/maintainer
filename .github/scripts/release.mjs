@@ -11,17 +11,21 @@
 //   release.mjs smoke  <site-url> [--retries <n>]            (CI: the deployed site serves pages and assets)
 //   release.mjs vanity                                       (vanity imports in go.mod resolve over verified HTTPS)
 //   release.mjs signature <tag>                              (CI: GitHub verifies the tag's signature)
-//   release.mjs skill [--published <digest>]                 (CI: one agent skill in the source, archives and binary, or in the catalog)
+//   release.mjs skill [--catalog <tag> [--binary <path>]]    (CI: the agent skills in the source, archives and binary, or in the catalog)
 
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { appendFileSync, existsSync, lstatSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { appendFileSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { checkGoreleaser } from './goreleaser-check.mjs'
 
 const SETTINGS = '.github/settings.json'
-const SKILL = 'skills/maintainer/SKILL.md'
+// Every directory of skills/ with a SKILL.md is a skill; the catalog holds
+// them in the plugin named like the tool, as plugins/<tool>/skills/<name>.
+const SKILLS = 'skills'
+const TOOL = 'maintainer'
+const CATALOG = 'octolab/skills'
 const DEFAULTS = {
   tag_pattern: '^v\\d+\\.\\d+\\.\\d+(-[0-9A-Za-z.-]+)?$',
   notes: 'docs/content/changelog/{tag}.md',
@@ -150,11 +154,18 @@ function check(tag, opts) {
     errors.push(...lint(note, committed))
   }
 
-  const skill = tryGit('show', `${sha}:${SKILL}`)
   const version = tag.replace(/^v/, '')
-  if (skill !== null && skillVersion(skill) !== version) {
-    errors.push(`${SKILL}: metadata.version is ${skillVersion(skill)}, not ${version}; update the version and the ranges in the release commit and move the tag`)
+  let skills = 0
+  for (const name of (tryGit('ls-tree', '--name-only', `${sha}:${SKILLS}`) || '').split('\n').filter(Boolean)) {
+    const file = `${SKILLS}/${name}/SKILL.md`
+    const skill = tryGit('show', `${sha}:${file}`)
+    if (skill === null) continue
+    skills++
+    if (skillVersion(skill) !== version) {
+      errors.push(`${file}: metadata.version is ${skillVersion(skill)}, not ${version}; update the version and the ranges in the release commit and move the tag`)
+    }
   }
+  errors.push(...skillsAction(sha, skills))
 
   const base = defaultBranch()
   const branch = releaseBranch(tag, release, base)
@@ -172,6 +183,23 @@ function check(tag, opts) {
     }
   }
   return errors
+}
+
+// skills-action publishes one skill before v0.2.0: a stable tag would freeze
+// a catalog tag without the others, which the read-back reports only after
+// publication.
+const CD = '.github/workflows/cd.yml'
+const SKILLS_ACTION = { name: 'octomation/skills-action', multi: [0, 2, 0] }
+
+function skillsAction(sha, skills) {
+  if (skills < 2) return []
+  const pin = tryGit('show', `${sha}:${CD}`)?.match(/uses:\s*octomation\/skills-action@(\S+)/)?.[1]
+  const m = pin?.match(/^v(\d+)\.(\d+)\.(\d+)$/)
+  if (!m) return []
+  const order = m.slice(1).map((n, j) => Number(n) - SKILLS_ACTION.multi[j]).find((d) => d !== 0) ?? 0
+  if (order >= 0) return []
+  return [`${CD}: ${SKILLS_ACTION.name}@${pin} publishes one skill, ${SKILLS} holds ${skills}; ` +
+    `pin ${SKILLS_ACTION.name} v${SKILLS_ACTION.multi.join('.')} or later in the release commit and move the tag`]
 }
 
 // A release, and the catalog's copy of the skill, come only from a tag GitHub
@@ -406,17 +434,85 @@ function skillDigest(dir) {
   return `sha256:${hash.digest('hex')}`
 }
 
-// Compares the skill in the source with every release archive and with the
-// copy embedded in the binary for this machine or, given --published, with
-// the catalog's payload digest.
-function skill(opts) {
-  const dir = SKILL.slice(0, SKILL.lastIndexOf('/'))
-  const want = skillDigest(dir)
-  if (opts.published !== undefined) {
-    if (opts.published !== want) return [`octolab/skills: published ${opts.published || 'nothing'}, the source is ${want}`]
-    console.log(`skill ${want} in the source and the catalog`)
-    return []
+// The skills under root as { name: digest }. In the source, the directories
+// that hold a SKILL.md; in an archive or the catalog, every entry, so that
+// anything else there fails.
+function skillSet(root, source = false) {
+  const set = {}
+  if (!existsSync(root)) return set
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const path = join(root, entry.name)
+    if (source && !existsSync(join(path, 'SKILL.md'))) continue
+    if (!entry.isDirectory()) throw new Error(`${path}: not a skill directory`)
+    set[entry.name] = skillDigest(path)
   }
+  return set
+}
+
+// The skills that `maintainer skill info --json` reports, one object per line.
+function binarySkills(binary) {
+  const set = {}
+  for (const line of execFileSync(binary, ['skill', 'info', '--json'], { encoding: 'utf8' }).split('\n').filter(Boolean)) {
+    const { name, digest } = JSON.parse(line)
+    set[name] = digest
+  }
+  return set
+}
+
+// Reads the plugin of the tool at the catalog tag through the GitHub API and
+// returns its skills as { name: digest }.
+function catalogSkills(tag) {
+  const where = `${CATALOG}@${tag}`
+  let tree
+  try {
+    tree = JSON.parse(gh('api', `repos/${CATALOG}/git/trees/${encodeURIComponent(tag)}?recursive=1`))
+  } catch (e) {
+    throw new Error(`${where}: not readable: ${e.message}`)
+  }
+  if (tree.truncated) throw new Error(`${where}: the tree is too large to read in one request`)
+  const prefix = `plugins/${TOOL}/skills/`
+  const dir = mkdtempSync(join(tmpdir(), 'catalog-'))
+  for (const entry of tree.tree.filter((e) => e.path.startsWith(prefix) && e.type !== 'tree')) {
+    if (entry.type !== 'blob' || entry.mode === '120000') {
+      throw new Error(`${where}: ${entry.path}: symbolic links and submodules are not allowed in a skill`)
+    }
+    const { content, encoding } = JSON.parse(gh('api', `repos/${CATALOG}/git/blobs/${entry.sha}`))
+    const file = join(dir, entry.path.slice(prefix.length))
+    mkdirSync(dirname(file), { recursive: true })
+    writeFileSync(file, Buffer.from(content, encoding === 'base64' ? 'base64' : 'utf8'))
+  }
+  return skillSet(dir)
+}
+
+// Compares two skill sets: a missing, an extra or a different skill fails.
+function compareSkills(where, got, want, of) {
+  const errors = []
+  for (const [name, digest] of Object.entries(want)) {
+    if (!(name in got)) errors.push(`${where}: no ${name} skill, ${of} has ${digest}`)
+    else if (got[name] !== digest) errors.push(`${where}: the ${name} skill is ${got[name]}, ${of} has ${digest}`)
+  }
+  for (const name of Object.keys(got).filter((n) => !(n in want))) {
+    errors.push(`${where}: the ${name} skill is not in ${of}`)
+  }
+  return errors
+}
+
+const listSkills = (set) => Object.entries(set).sort().map(([name, digest]) => `${name} ${digest}`).join(', ')
+
+// Compares the skills in the source with every release archive and with the
+// skills embedded in the binary for this machine or, given --catalog, the
+// skills the catalog holds at that tag with the source or, given --binary,
+// with the skills of that binary.
+function skill(opts) {
+  if (opts.catalog !== undefined) {
+    if (!opts.catalog) return ['--catalog needs the catalog tag, such as maintainer--v1.2.3']
+    const [want, of] = opts.binary ? [binarySkills(opts.binary), 'the binary'] : [skillSet(SKILLS, true), 'the source']
+    const errors = compareSkills(`${CATALOG}@${opts.catalog}`, catalogSkills(opts.catalog), want, of)
+    if (!errors.length) console.log(`skills in ${of} and the catalog at ${opts.catalog}: ${listSkills(want)}`)
+    return errors
+  }
+  const want = skillSet(SKILLS, true)
+  if (!Object.keys(want).length) return [`${SKILLS}: no skill`]
   const errors = []
   const archives = existsSync('dist') ? readdirSync('dist').filter((f) => f.endsWith('.tar.gz')) : []
   if (!archives.length) return [`dist: no release archives; run goreleaser first`]
@@ -425,17 +521,15 @@ function skill(opts) {
   for (const archive of archives) {
     const out = mkdtempSync(join(tmpdir(), 'skill-'))
     execFileSync('tar', ['-xzf', join('dist', archive), '-C', out])
-    const got = existsSync(join(out, dir)) ? skillDigest(join(out, dir)) : 'missing'
-    if (got !== want) errors.push(`${archive}: the skill is ${got}, the source ${want}`)
+    errors.push(...compareSkills(archive, skillSet(join(out, SKILLS)), want, 'the source'))
     if (archive.endsWith(`_${process.platform}-${arch}.tar.gz`)) binary = join(out, 'maintainer')
   }
   if (binary) {
-    const { digest } = JSON.parse(execFileSync(binary, ['skill', 'info', '--json'], { encoding: 'utf8' }))
-    if (digest !== want) errors.push(`maintainer skill info: the embedded skill is ${digest}, the source ${want}`)
+    errors.push(...compareSkills('maintainer skill info', binarySkills(binary), want, 'the source'))
   } else {
-    errors.push(`dist: no archive for ${process.platform}-${arch} to check the embedded skill`)
+    errors.push(`dist: no archive for ${process.platform}-${arch} to check the embedded skills`)
   }
-  if (!errors.length) console.log(`skill ${want} in the source, ${archives.length} archives and the binary`)
+  if (!errors.length) console.log(`skills in the source, ${archives.length} archives and the binary: ${listSkills(want)}`)
   return errors
 }
 

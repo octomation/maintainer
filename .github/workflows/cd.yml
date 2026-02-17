@@ -153,10 +153,18 @@ jobs:
         with:
           tool: maintainer
           token: ${{ steps.catalog.outputs.token }}
-      - name: Compare the published skill
+      # the catalog holds exactly the skills of the release binary: read the
+      # plugin back at the catalog tag and compare it with skill info
+      - name: Download the release binary
         env:
-          PUBLISHED: ${{ steps.skill.outputs.payload-digest }}
-        run: node .github/scripts/release.mjs skill --published "${PUBLISHED}"
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "${GITHUB_REF_NAME}" -R "${GITHUB_REPOSITORY}" \
+            -p "maintainer_${GITHUB_REF_NAME#v}_linux-amd64.tar.gz" -O - | tar -xzf - -C "${RUNNER_TEMP}" maintainer
+      - name: Compare the catalog with the release binary
+        env:
+          GH_TOKEN: ${{ steps.catalog.outputs.token }}
+        run: node .github/scripts/release.mjs skill --catalog "maintainer--${GITHUB_REF_NAME}" --binary "${RUNNER_TEMP}/maintainer"
 
   # a job of its own: if publishing fails after the release is out, rerun
   # only this job; the catalog keeps stable releases only

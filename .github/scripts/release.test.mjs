@@ -156,31 +156,107 @@ test('local release preparation precedes the branch push; CI still requires the 
   assert.match(run('check', 'v9.9.9', '--local').stderr, /has changes not in v9.9.9/)
 }))
 
-test('a release tag requires the skill version of its commit', () => releaseFixture(({ cwd, git, run }) => {
-  const skill = (version) => {
-    mkdirSync(join(cwd, 'skills/maintainer'), { recursive: true })
-    writeFileSync(join(cwd, 'skills/maintainer/SKILL.md'), `---\nname: maintainer\nmetadata:\n  author: octomation\n  version: "${version}"\n---\n\n# maintainer\n`)
+test('a release tag requires the version of every skill of its commit', () => releaseFixture(({ cwd, git, run }) => {
+  const skill = (name, version) => {
+    mkdirSync(join(cwd, 'skills', name), { recursive: true })
+    writeFileSync(join(cwd, 'skills', name, 'SKILL.md'), `---\nname: ${name}\nmetadata:\n  author: octomation\n  version: "${version}"\n---\n\n# ${name}\n`)
+  }
+  const tag = () => {
     git('add', 'skills')
-    git('commit', '-m', `Skill ${version}`)
+    git('commit', '-m', 'Skills')
     git('tag', '-f', '-a', 'v9.9.9', '-m', 'Annotated release fixture')
   }
-  skill('9.9.8')
-  assert.match(run('check', 'v9.9.9', '--local').stderr, /metadata\.version is 9\.9\.8, not 9\.9\.9/)
-  skill('9.9.9')
+  skill('maintainer', '9.9.8')
+  skill('review', '9.9.9')
+  writeFileSync(join(cwd, 'skills/skills.go'), 'package skills\n')
+  tag()
+  const stderr = run('check', 'v9.9.9', '--local').stderr
+  assert.match(stderr, /skills\/maintainer\/SKILL\.md: metadata\.version is 9\.9\.8, not 9\.9\.9/)
+  assert.doesNotMatch(stderr, /review|skills\.go/)
+  skill('maintainer', '9.9.9')
+  skill('review', '9.9.8')
+  tag()
+  assert.match(run('check', 'v9.9.9', '--local').stderr, /skills\/review\/SKILL\.md: metadata\.version is 9\.9\.8/)
+  skill('review', '9.9.9')
+  tag()
   assert.equal(run('check', 'v9.9.9', '--local').status, 0)
+
+  // Two skills need a skills-action that publishes more than one.
+  const pin = (version) => {
+    mkdirSync(join(cwd, '.github/workflows'), { recursive: true })
+    writeFileSync(join(cwd, '.github/workflows/cd.yml'), `jobs:\n  skill:\n    steps:\n      - uses: octomation/skills-action@${version}\n`)
+    git('add', '.github/workflows')
+    tag()
+  }
+  for (const old of ['v0.1.1', 'v0.0.9']) {
+    pin(old)
+    assert.match(run('check', 'v9.9.9', '--local').stderr,
+      new RegExp(`cd\\.yml: octomation/skills-action@${old.replace(/\./g, '\\.')} publishes one skill, skills holds 2; pin octomation/skills-action v0\\.2\\.0 or later`))
+  }
+  for (const ok of ['v0.2.0', 'v0.10.0', 'v1.0.0']) {
+    pin(ok)
+    assert.equal(run('check', 'v9.9.9', '--local').status, 0, ok)
+  }
+  pin('v0.1.1')
+  rmSync(join(cwd, 'skills/review'), { recursive: true })
+  git('add', '-A', 'skills')
+  tag()
+  assert.equal(run('check', 'v9.9.9', '--local').status, 0, 'one skill is what v0.1.1 publishes')
 }))
 
-test('skill compares the source with the catalog digest and needs release archives', () => fixture(({ cwd, run }) => {
+test('skill compares the catalog with the source or the binary and needs release archives', () => fixture(({ cwd, run, withEnv }) => {
   // The test vector shared with internal/skill and the octolab/skills catalog.
+  const vector = 'sha256:64ce802d5cef2c789ce95d306c9fcce6779c6e8166339ae47634e7f8b265a34b'
   mkdirSync(join(cwd, 'skills/maintainer/references'), { recursive: true })
   writeFileSync(join(cwd, 'skills/maintainer/SKILL.md'), 'hello\n')
   writeFileSync(join(cwd, 'skills/maintainer/references/a.md'), 'a')
-  const digest = 'sha256:64ce802d5cef2c789ce95d306c9fcce6779c6e8166339ae47634e7f8b265a34b'
-  assert.equal(run('skill', '--published', digest).status, 0)
-  assert.match(run('skill', '--published', '').stderr, /published nothing, the source is sha256:64ce/)
+  mkdirSync(join(cwd, 'skills/testdata'))
+  writeFileSync(join(cwd, 'skills/skills.go'), 'package skills\n')
+
+  // A fake gh serves the catalog tree from catalog.json and blobs by their sha.
+  const bin = join(cwd, 'bin')
+  mkdirSync(bin)
+  const catalog = (files, extra = []) => writeFileSync(join(cwd, 'catalog.json'), JSON.stringify({
+    truncated: false,
+    tree: [
+      { path: 'plugins/maintainer/.claude-plugin/plugin.json', type: 'blob', mode: '100644', sha: 'p' },
+      ...Object.keys(files).map((path) => ({ path: `plugins/maintainer/skills/${path}`, type: 'blob', mode: '100644', sha: Buffer.from(files[path]).toString('hex') || 'empty' })),
+      ...extra,
+    ],
+  }))
+  writeFileSync(join(bin, 'gh'), `#!/usr/bin/env node
+const [, , api, path] = process.argv
+if (api !== 'api') process.exit(2)
+if (path.startsWith('repos/octolab/skills/git/trees/maintainer--v9.9.9?')) { process.stdout.write(require('fs').readFileSync(${JSON.stringify(join(cwd, 'catalog.json'))})); process.exit(0) }
+const blob = path.match(/^repos\\/octolab\\/skills\\/git\\/blobs\\/(.+)$/)
+if (blob) { const hex = blob[1] === 'empty' ? '' : blob[1]; process.stdout.write(JSON.stringify({ encoding: 'base64', content: Buffer.from(hex, 'hex').toString('base64') })); process.exit(0) }
+process.stderr.write('HTTP 404: Not Found'); process.exit(1)
+`)
+  chmodSync(join(bin, 'gh'), 0o755)
+  writeFileSync(join(bin, 'maintainer'), `#!/bin/sh\nprintf '%s\\n' '{"name":"maintainer","digest":"${vector}"}' '{"name":"review","digest":"sha256:r"}'\n`)
+  chmodSync(join(bin, 'maintainer'), 0o755)
+  withEnv({ PATH: `${bin}:${process.env.PATH}` })
+
+  catalog({ 'maintainer/SKILL.md': 'hello\n', 'maintainer/references/a.md': 'a' })
+  const ok = run('skill', '--catalog', 'maintainer--v9.9.9')
+  assert.equal(ok.status, 0, ok.stderr)
+  assert.match(ok.stdout, new RegExp(`the source and the catalog at maintainer--v9.9.9: maintainer ${vector}`))
+  assert.match(run('skill', '--catalog', 'maintainer--v9.9.9', '--binary', join(bin, 'maintainer')).stderr,
+    /octolab\/skills@maintainer--v9\.9\.9: no review skill, the binary has sha256:r/)
+  assert.match(run('skill', '--catalog', 'maintainer--v0.0.0').stderr, /not readable: HTTP 404/)
+  assert.match(run('skill', '--catalog', '').stderr, /--catalog needs the catalog tag/)
+
+  catalog({ 'maintainer/SKILL.md': 'hello\n', 'maintainer/references/a.md': 'b', 'review/SKILL.md': 'r' })
+  const stderr = run('skill', '--catalog', 'maintainer--v9.9.9').stderr
+  assert.match(stderr, /the maintainer skill is sha256:\w+, the source has sha256:64ce/)
+  assert.match(stderr, /the review skill is not in the source/)
+
+  catalog({ 'maintainer/SKILL.md': 'hello\n' }, [{ path: 'plugins/maintainer/skills/maintainer/link', type: 'blob', mode: '120000', sha: 'l' }])
+  assert.match(run('skill', '--catalog', 'maintainer--v9.9.9').stderr, /symbolic links and submodules are not allowed/)
+  catalog({ 'maintainer/SKILL.md': 'hello\n', 'maintainer/.hidden': '' })
+  assert.match(run('skill', '--catalog', 'maintainer--v9.9.9').stderr, /dotfiles and symbolic links are not allowed/)
+
   assert.match(run('skill').stderr, /dist: no release archives/)
-  writeFileSync(join(cwd, 'skills/maintainer/.hidden'), '')
-  assert.notEqual(run('skill', '--published', digest).status, 0)
 }))
 
 test('pre-push checks annotated tags and destination branches, deletions and tag-only pushes', () => releaseFixture(({ cwd, git, sha, base }) => {

@@ -7,6 +7,7 @@ archives:
     files:
       - LICENSE
       - skills/maintainer/**
+      - skills/review/**
     formats: [tar.gz]
     name_template: "{{.ProjectName}}_{{.Version}}_{{.Os}}-{{.Arch}}"
 
