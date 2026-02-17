@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:31:11Z
-updatedAt: 2026-11-25T19:31:11Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:23:50Z
+lastEditedAt: 2026-11-25T20:23:50Z
+closedAt: 2026-11-25T20:07:36Z
 ---
 
 # service: inbox: count only the selected issues in a group header

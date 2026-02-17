@@ -19,13 +19,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:30:39Z
-updatedAt: 2026-11-25T19:30:39Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:23:33Z
+lastEditedAt: 2026-11-25T20:23:33Z
+closedAt: 2026-11-25T20:00:02Z
 ---
 
 # fetch: config: write a template that loads in the format of the config path

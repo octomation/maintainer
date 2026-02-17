@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:30:47Z
-updatedAt: 2026-11-25T19:30:48Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:23:38Z
+lastEditedAt: 2026-11-25T20:23:38Z
+closedAt: 2026-11-25T20:03:49Z
 ---
 
 # fetch: pins: make an unconfirmed pin a conflict of its repository

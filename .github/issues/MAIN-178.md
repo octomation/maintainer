@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:31:24Z
-updatedAt: 2026-11-25T19:31:24Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:24:00Z
+lastEditedAt: 2026-11-25T20:24:00Z
+closedAt: 2026-11-25T20:06:33Z
 ---
 
 # service: config: accept the same repository matches as service.cue

@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:31:01Z
-updatedAt: 2026-11-25T19:31:01Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:23:45Z
+lastEditedAt: 2026-11-25T20:23:45Z
+closedAt: 2026-11-25T20:08:08Z
 ---
 
 # service: hub: show the repository tree once the catalog loads again

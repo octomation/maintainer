@@ -19,13 +19,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:31:33Z
-updatedAt: 2026-11-25T19:31:34Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:24:05Z
+lastEditedAt: 2026-11-25T20:24:05Z
+closedAt: 2026-11-25T20:03:03Z
 ---
 
 # fetch: discovery: discover the owners listed next to the wildcard

@@ -19,13 +19,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:31:29Z
-updatedAt: 2026-11-25T19:31:29Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:24:03Z
+lastEditedAt: 2026-11-25T20:24:03Z
+closedAt: 2026-11-25T20:02:14Z
 ---
 
 # fetch: verbosity: make each offered level add output

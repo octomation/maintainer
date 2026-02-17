@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:31:06Z
-updatedAt: 2026-11-25T19:31:06Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:23:48Z
+lastEditedAt: 2026-11-25T20:23:48Z
+closedAt: 2026-11-25T20:08:47Z
 ---
 
 # service: hub: keep F, P, E and Escape working on the full issue page

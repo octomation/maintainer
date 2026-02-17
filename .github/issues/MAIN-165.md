@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:30:43Z
-updatedAt: 2026-11-25T19:30:43Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:23:35Z
+lastEditedAt: 2026-11-25T20:23:35Z
+closedAt: 2026-11-25T20:04:36Z
 ---
 
 # status: root: scan the folder of a symlinked working directory

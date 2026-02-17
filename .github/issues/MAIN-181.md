@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:31:38Z
-updatedAt: 2026-11-25T19:31:38Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:24:08Z
+lastEditedAt: 2026-11-25T20:24:08Z
+closedAt: 2026-11-25T20:09:37Z
 ---
 
 # service: hub: keep the Filter menu inside a 390 px window

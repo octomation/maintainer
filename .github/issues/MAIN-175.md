@@ -19,13 +19,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:31:15Z
-updatedAt: 2026-11-25T19:31:15Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:23:53Z
+lastEditedAt: 2026-11-25T20:23:53Z
+closedAt: 2026-11-25T20:00:46Z
 ---
 
 # fetch: state: prune only the records of the selected owners and profiles

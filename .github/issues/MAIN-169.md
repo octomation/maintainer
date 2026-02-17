@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T19:30:52Z
-updatedAt: 2026-11-25T19:30:52Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-25T20:23:40Z
+lastEditedAt: 2026-11-25T20:23:40Z
+closedAt: 2026-11-25T20:07:04Z
 ---
 
 # service: hub: keep the last good version of an issue after a refused triage
