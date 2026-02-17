@@ -47,6 +47,25 @@ func ReadMarker(dir string) (Marker, error) {
 	return m, nil
 }
 
+// OfTool reports whether dir holds a copy of a skill of the tool: one with
+// the ownership marker or whose SKILL.md names the tool in metadata.tool. A
+// skill of the same name from another installer is not.
+func OfTool(dir, tool string) bool {
+	if _, err := os.Stat(filepath.Join(dir, MarkerFile)); err == nil {
+		return true
+	}
+	text, err := os.ReadFile(filepath.Join(dir, "SKILL.md"))
+	if err != nil {
+		return false
+	}
+	fm, _, err := ParseFrontmatter(string(text))
+	if err != nil {
+		return false
+	}
+	meta, _ := fm.Map("metadata")
+	return meta["tool"] == tool
+}
+
 // Export writes the skill from src into dir together with the marker. It
 // writes a new or empty directory, and replaces only a copy it owns: one
 // with a marker whose digest still matches the files, and only when replace

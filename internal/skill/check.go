@@ -17,9 +17,10 @@ var (
 	scheme = regexp.MustCompile(`(?i)^[a-z][a-z0-9+.-]*:`)
 )
 
-// Check validates the skill against the Agent Skills spec and the OctoLab
-// metadata contract and returns every problem it finds.
-func Check(tool string, fsys fs.FS) []error {
+// Check validates the skill name of the tool against the Agent Skills spec
+// and the OctoLab metadata contract and returns every problem it finds. The
+// tool's main skill is named like the tool.
+func Check(tool, name string, fsys fs.FS) []error {
 	files, err := Files(fsys)
 	if err != nil {
 		return []error{err}
@@ -36,8 +37,8 @@ func Check(tool string, fsys fs.FS) []error {
 	var errs []error
 	report := func(format string, args ...any) { errs = append(errs, fmt.Errorf(format, args...)) }
 
-	if name, _ := fm.String("name"); name != tool {
-		report("SKILL.md name: must be %s", tool)
+	if got, _ := fm.String("name"); got != name {
+		report("SKILL.md name: must be %s", name)
 	}
 	if d, ok := fm.String("description"); !ok || strings.TrimSpace(d) == "" || len([]rune(d)) > 1024 {
 		report("SKILL.md description: required, at most 1024 characters")

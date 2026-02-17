@@ -55,7 +55,7 @@ func TestLocations(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(env.ClaudeDir, "plugins", "installed_plugins.json"), data, 0o644))
 
 	var got [][3]string
-	for _, loc := range Locations(env, "maintainer") {
+	for _, loc := range Locations(env, "maintainer", "maintainer") {
 		rel, err := filepath.Rel(root, loc.Path)
 		require.NoError(t, err)
 		got = append(got, [3]string{loc.Agent, loc.Scope, rel})
@@ -116,24 +116,85 @@ enabled = true
 	require.NoError(t, os.WriteFile(filepath.Join(env.CodexHome, "config.toml"), []byte(config), 0o644))
 	writeSkill(t, filepath.Join(env.CodexHome, "plugins", "maintainer", "0.9.0", "skills", "maintainer"), "x")
 
-	locations := Locations(env, "maintainer")
+	locations := Locations(env, "maintainer", "maintainer")
 	require.Len(t, locations, 1, "only the enabled plugin named like the skill, in the version Codex loads")
 	assert.Equal(t, Location{
-		Agent:  Codex,
-		Scope:  "plugin",
-		Path:   filepath.Join(cache, "octolab", "maintainer", "0.2.10", "skills", "maintainer"),
-		Plugin: "maintainer@octolab",
+		Agent:        Codex,
+		Skill:        "maintainer",
+		Scope:        "plugin",
+		Path:         filepath.Join(cache, "octolab", "maintainer", "0.2.10", "skills", "maintainer"),
+		Plugin:       "maintainer@octolab",
+		PluginSkills: []string{"maintainer"},
 	}, locations[0], "a table without enabled is enabled; a non-table value and a dot marketplace are skipped")
 
 	require.NoError(t, os.WriteFile(filepath.Join(env.CodexHome, "config.toml"), []byte("not = [toml"), 0o644))
-	assert.Empty(t, Locations(env, "maintainer"), "an unreadable config lists no plugin")
+	assert.Empty(t, Locations(env, "maintainer", "maintainer"), "an unreadable config lists no plugin")
+}
+
+// The plugin of the tool holds every skill of the tool: an extra skill is
+// found in it by the tool's name, not by its own.
+func TestLocations_extraSkill(t *testing.T) {
+	root := t.TempDir()
+	env := Env{
+		Home:      filepath.Join(root, "home"),
+		ClaudeDir: filepath.Join(root, "claude"),
+		CodexHome: filepath.Join(root, "codex"),
+		Cwd:       filepath.Join(root, "home"),
+	}
+	claude := filepath.Join(root, "cache", "claude")
+	codex := filepath.Join(env.CodexHome, "plugins", "cache", "octolab", "maintainer", "0.6.0")
+	for _, dir := range []string{
+		filepath.Join(claude, "skills", "maintainer"),
+		filepath.Join(claude, "skills", "review"),
+		filepath.Join(codex, "skills", "maintainer"),
+		filepath.Join(root, "cache", "review", "skills", "review"),
+		filepath.Join(env.Home, ".agents", "skills", "review"),
+	} {
+		writeSkill(t, dir, "x")
+	}
+	data, err := json.Marshal(map[string]any{"plugins": map[string]any{
+		"maintainer@octolab": []map[string]string{{"scope": "user", "installPath": claude}},
+		"review@octolab":     []map[string]string{{"scope": "user", "installPath": filepath.Join(root, "cache", "review")}},
+	}})
+	require.NoError(t, err)
+	require.NoError(t, os.MkdirAll(filepath.Join(env.ClaudeDir, "plugins"), 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(env.ClaudeDir, "plugins", "installed_plugins.json"), data, 0o644))
+	require.NoError(t, os.MkdirAll(env.CodexHome, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(env.CodexHome, "config.toml"), []byte("[plugins.\"maintainer@octolab\"]\n"), 0o644))
+
+	assert.Equal(t, []Plugin{
+		{Agent: ClaudeCode, ID: "maintainer@octolab", Path: claude, Skills: []string{"maintainer", "review"}},
+		{Agent: Codex, ID: "maintainer@octolab", Path: codex, Skills: []string{"maintainer"}},
+	}, Plugins(env, "maintainer"))
+
+	var got [][3]string
+	for _, loc := range Locations(env, "maintainer", "review") {
+		got = append(got, [3]string{loc.Agent, loc.Scope, loc.Plugin})
+	}
+	assert.Equal(t, [][3]string{
+		{ClaudeCode, "plugin", "maintainer@octolab"},
+		{Codex, "user", ""},
+	}, got, "a plugin named like the skill is another tool's; the Codex plugin has no review")
+}
+
+func TestOfTool(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "review")
+	assert.False(t, OfTool(dir, "maintainer"), "a missing directory")
+	writeSkill(t, dir, "---\nname: review\nmetadata:\n  tool: other\n---\n")
+	assert.False(t, OfTool(dir, "maintainer"), "another tool's skill")
+	writeSkill(t, dir, "---\nname: review\nmetadata:\n  tool: maintainer\n---\n")
+	assert.True(t, OfTool(dir, "maintainer"), "the tool's skill from any installer")
+	writeSkill(t, dir, "no frontmatter")
+	assert.False(t, OfTool(dir, "maintainer"))
+	require.NoError(t, os.WriteFile(filepath.Join(dir, MarkerFile), []byte("{}"), 0o644))
+	assert.True(t, OfTool(dir, "maintainer"), "a copy maintainer installed")
 }
 
 func TestLocations_home(t *testing.T) {
 	home := t.TempDir()
 	env := Env{Home: home, ClaudeDir: filepath.Join(home, ".claude"), CodexHome: filepath.Join(home, ".codex"), Cwd: home}
 	writeSkill(t, filepath.Join(home, ".claude", "skills", "maintainer"), "x")
-	locations := Locations(env, "maintainer")
+	locations := Locations(env, "maintainer", "maintainer")
 	require.Len(t, locations, 1)
 	assert.Equal(t, "user", locations[0].Scope)
 }

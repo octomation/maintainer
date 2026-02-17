@@ -62,56 +62,112 @@ func (env Env) Dir(agent, name string, project bool) string {
 	return filepath.Join(env.Home, ".agents", "skills", name)
 }
 
-// Location is a place where an agent may load a copy of the skill.
+// Location is a place where an agent may load a copy of a skill.
 type Location struct {
 	Agent  string `json:"agent"`
+	Skill  string `json:"skill"`
 	Scope  string `json:"scope"` // user, project, plugin or legacy
 	Path   string `json:"path"`
 	Plugin string `json:"plugin,omitempty"` // a Claude Code or Codex plugin id
+	// PluginSkills lists the skills the plugin holds.
+	PluginSkills []string `json:"plugin_skills,omitempty"`
 	// AmbiguousVersions lists the version directories of a Codex plugin when
 	// which of them Codex loads depends on the order on disk.
 	AmbiguousVersions []string `json:"ambiguous_versions,omitempty"`
 }
 
-// Locations lists the existing copies of the skill that the agents load:
-// the user's skills, project skills from the current directory up to the
-// repository root, Claude Code and Codex plugins and the legacy Codex
+// Plugin is an installed Claude Code or Codex plugin of the tool, in the
+// version the agent loads.
+type Plugin struct {
+	Agent  string
+	ID     string
+	Path   string   // the plugin's directory, which holds skills/<name>
+	Skills []string // the skills under Path, sorted
+	// Ambiguous lists the version directories of a Codex plugin when which
+	// of them Codex loads depends on the order on disk.
+	Ambiguous []string
+}
+
+// Plugins lists the plugins of the tool that the agents load: Claude Code's
+// user plugins and project plugins from the current directory up to the
+// repository root, then Codex's enabled plugins. A plugin is found by the
+// tool's name, whatever skills it holds.
+func Plugins(env Env, tool string) []Plugin {
+	var list []Plugin
+	projects := projectDirs(env.Cwd)
+	for _, p := range claudePlugins(env.ClaudeDir, tool) {
+		if p.Scope == "user" || contains(projects, p.ProjectPath) {
+			list = append(list, Plugin{Agent: ClaudeCode, ID: p.ID, Path: p.InstallPath, Skills: pluginSkills(p.InstallPath)})
+		}
+	}
+	for _, p := range codexPlugins(env.CodexHome, tool) {
+		list = append(list, Plugin{Agent: Codex, ID: p.ID, Path: p.InstallPath, Skills: pluginSkills(p.InstallPath), Ambiguous: p.Ambiguous})
+	}
+	return list
+}
+
+// pluginSkills lists the directories under the plugin's skills that hold a
+// SKILL.md.
+func pluginSkills(dir string) []string {
+	entries, err := os.ReadDir(filepath.Join(dir, "skills"))
+	if err != nil {
+		return nil
+	}
+	var names []string
+	for _, e := range entries {
+		if _, err := os.Stat(filepath.Join(dir, "skills", e.Name(), "SKILL.md")); err == nil {
+			names = append(names, e.Name())
+		}
+	}
+	sort.Strings(names)
+	return names
+}
+
+// Locations lists the existing copies of the tool's skill name that the
+// agents load: the user's skills, project skills from the current directory
+// up to the repository root, the plugins of the tool and the legacy Codex
 // directory.
-func Locations(env Env, name string) []Location {
+func Locations(env Env, tool, name string) []Location {
 	var list []Location
 	seen := make(map[string]bool)
-	add := func(agent, scope, path, plugin string, ambiguous ...string) {
+	add := func(agent, scope, path string, plugin *Plugin) {
 		// In the home directory, project skills are the user's.
 		if seen[path] {
 			return
 		}
+		loc := Location{Agent: agent, Skill: name, Scope: scope, Path: path}
+		if plugin != nil {
+			loc.Plugin, loc.PluginSkills, loc.AmbiguousVersions = plugin.ID, plugin.Skills, plugin.Ambiguous
+		}
 		// An ambiguous Codex plugin is kept without a readable copy too:
 		// another of its versions may be the one Codex loads.
-		if _, err := os.Stat(filepath.Join(path, "SKILL.md")); err == nil || len(ambiguous) > 0 {
+		if _, err := os.Stat(filepath.Join(path, "SKILL.md")); err == nil || len(loc.AmbiguousVersions) > 0 {
 			seen[path] = true
-			list = append(list, Location{Agent: agent, Scope: scope, Path: path, Plugin: plugin, AmbiguousVersions: ambiguous})
+			list = append(list, loc)
 		}
 	}
 	projects := projectDirs(env.Cwd)
-
-	add(ClaudeCode, "user", filepath.Join(env.ClaudeDir, "skills", name), "")
-	for _, dir := range projects {
-		add(ClaudeCode, "project", filepath.Join(dir, ".claude", "skills", name), "")
-	}
-	for _, p := range claudePlugins(env.ClaudeDir, name) {
-		if p.Scope == "user" || contains(projects, p.ProjectPath) {
-			add(ClaudeCode, "plugin", filepath.Join(p.InstallPath, "skills", name), p.ID)
+	plugins := Plugins(env, tool)
+	addPlugins := func(agent string) {
+		for i := range plugins {
+			if p := &plugins[i]; p.Agent == agent {
+				add(agent, "plugin", filepath.Join(p.Path, "skills", name), p)
+			}
 		}
 	}
 
-	add(Codex, "user", filepath.Join(env.Home, ".agents", "skills", name), "")
+	add(ClaudeCode, "user", filepath.Join(env.ClaudeDir, "skills", name), nil)
 	for _, dir := range projects {
-		add(Codex, "project", filepath.Join(dir, ".agents", "skills", name), "")
+		add(ClaudeCode, "project", filepath.Join(dir, ".claude", "skills", name), nil)
 	}
-	add(Codex, "legacy", filepath.Join(env.CodexHome, "skills", name), "")
-	for _, p := range codexPlugins(env.CodexHome, name) {
-		add(Codex, "plugin", filepath.Join(p.InstallPath, "skills", name), p.ID, p.Ambiguous...)
+	addPlugins(ClaudeCode)
+
+	add(Codex, "user", filepath.Join(env.Home, ".agents", "skills", name), nil)
+	for _, dir := range projects {
+		add(Codex, "project", filepath.Join(dir, ".agents", "skills", name), nil)
 	}
+	add(Codex, "legacy", filepath.Join(env.CodexHome, "skills", name), nil)
+	addPlugins(Codex)
 	return list
 }
 
@@ -137,9 +193,9 @@ type claudePlugin struct {
 	InstallPath string `json:"installPath"`
 }
 
-// claudePlugins reads the plugins named like the skill from Claude Code's
+// claudePlugins reads the plugins named like the tool from Claude Code's
 // installed_plugins.json, read-only.
-func claudePlugins(claudeDir, name string) []claudePlugin {
+func claudePlugins(claudeDir, tool string) []claudePlugin {
 	data, err := os.ReadFile(filepath.Join(claudeDir, "plugins", "installed_plugins.json"))
 	if err != nil {
 		return nil
@@ -152,7 +208,7 @@ func claudePlugins(claudeDir, name string) []claudePlugin {
 	}
 	var list []claudePlugin
 	for id, installs := range registry.Plugins {
-		if plugin, _, _ := strings.Cut(id, "@"); plugin != name {
+		if plugin, _, _ := strings.Cut(id, "@"); plugin != tool {
 			continue
 		}
 		for _, p := range installs {

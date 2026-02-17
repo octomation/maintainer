@@ -22,14 +22,14 @@ type codexPlugin struct {
 	Ambiguous   []string // the version directories Codex picks among by chance
 }
 
-// codexPlugins reads the enabled plugins named like the skill from Codex's
+// codexPlugins reads the enabled plugins named like the tool from Codex's
 // config.toml, read-only. Codex lists an installed plugin there as
 // [plugins."<name>@<marketplace>"] and unpacks it into
 // plugins/cache/<marketplace>/<name>/<version>; the copy listed is the
 // version Codex loads, see codexActiveVersion. A plugin table without
 // enabled counts as enabled; values under [plugins] that are not tables are
 // skipped.
-func codexPlugins(codexHome, name string) []codexPlugin {
+func codexPlugins(codexHome, tool string) []codexPlugin {
 	data, err := os.ReadFile(filepath.Join(codexHome, "config.toml"))
 	if err != nil {
 		return nil
@@ -50,7 +50,7 @@ func codexPlugins(codexHome, name string) []codexPlugin {
 			continue
 		}
 		plugin, marketplace, ok := parseCodexPluginID(id)
-		if !ok || plugin != name {
+		if !ok || plugin != tool {
 			continue
 		}
 		base := filepath.Join(codexHome, "plugins", "cache", marketplace, plugin)

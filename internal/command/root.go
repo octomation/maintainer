@@ -39,7 +39,7 @@ func New() *cobra.Command {
 		status.New(),
 		github.New(&cnf),
 		service.New(),
-		skillCommand(skills.Maintainer()),
+		skillCommand(skills.All()...),
 		cli.NewVersionCommand(buildinfo.Version, buildinfo.Date, buildinfo.Commit, config.Features...),
 	)
 

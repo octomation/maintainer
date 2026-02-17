@@ -24,18 +24,50 @@ const reference = "references/cli.md"
 var maintainer = os.DirFS("maintainer")
 
 func TestSkill(t *testing.T) {
-	for _, err := range skill.Check("maintainer", maintainer) {
-		t.Error(err)
+	for _, name := range skills.Names {
+		for _, err := range skill.Check("maintainer", name, os.DirFS(name)) {
+			t.Errorf("%s: %v", name, err)
+		}
 	}
 }
 
-// TestEmbedded makes sure the binary carries every file of the skill.
+// TestEmbedded makes sure the binary carries every skill of this directory,
+// the main one first, and every file of each.
 func TestEmbedded(t *testing.T) {
-	want, err := skill.Digest(maintainer)
+	entries, err := os.ReadDir(".")
 	require.NoError(t, err)
-	got, err := skill.Digest(skills.Maintainer())
-	require.NoError(t, err)
-	assert.Equal(t, want, got)
+	var found []string
+	for _, e := range entries {
+		if _, err := os.Stat(e.Name() + "/SKILL.md"); err == nil {
+			found = append(found, e.Name())
+		}
+	}
+	assert.ElementsMatch(t, found, skills.Names)
+	assert.Equal(t, "maintainer", skills.Names[0])
+	for i, name := range skills.Names {
+		want, err := skill.Digest(os.DirFS(name))
+		require.NoError(t, err, name)
+		got, err := skill.Digest(skills.All()[i])
+		require.NoError(t, err, name)
+		assert.Equal(t, want, got, name)
+	}
+}
+
+// TestPayload keeps build products out of the skills: skill.Files already
+// refuses dotfiles and symbolic links, and the binary would leave out what
+// starts with an underscore.
+func TestPayload(t *testing.T) {
+	for _, name := range skills.Names {
+		files, err := skill.Files(os.DirFS(name))
+		require.NoError(t, err, name)
+		for _, file := range files {
+			for _, part := range strings.Split(file, "/") {
+				if strings.HasPrefix(part, "_") || strings.HasSuffix(part, ".pyc") {
+					t.Errorf("%s/%s: build products such as __pycache__ are not part of a skill", name, file)
+				}
+			}
+		}
+	}
 }
 
 func TestReference(t *testing.T) {
@@ -85,27 +117,38 @@ func TestCoverage(t *testing.T) {
 	}
 }
 
-// TestRanges keeps every compatibility range in the text equal to
+// TestRanges keeps the version and the range of every skill equal to the
+// main skill's, and every compatibility range in their text equal to
 // metadata.tool-version-range.
 func TestRanges(t *testing.T) {
-	text, err := fs.ReadFile(maintainer, "SKILL.md")
-	require.NoError(t, err)
-	fm, _, err := skill.ParseFrontmatter(string(text))
-	require.NoError(t, err)
-	meta, _ := fm.Map("metadata")
+	metadata := func(fsys fs.FS) (map[string]string, string) {
+		text, err := fs.ReadFile(fsys, "SKILL.md")
+		require.NoError(t, err)
+		fm, _, err := skill.ParseFrontmatter(string(text))
+		require.NoError(t, err)
+		meta, _ := fm.Map("metadata")
+		compatibility, _ := fm.String("compatibility")
+		return meta, compatibility
+	}
+	meta, compatibility := metadata(maintainer)
 	declared := meta["tool-version-range"]
-	compatibility, _ := fm.String("compatibility")
 	assert.Contains(t, compatibility, declared)
 
 	const version = `\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?`
 	ranges := regexp.MustCompile(`>=` + version + ` <` + version)
-	files, err := skill.Files(maintainer)
-	require.NoError(t, err)
-	for _, name := range files {
-		data, err := fs.ReadFile(maintainer, name)
+	for _, skillName := range skills.Names {
+		fsys := os.DirFS(skillName)
+		other, _ := metadata(fsys)
+		assert.Equal(t, meta["version"], other["version"], "%s: metadata.version", skillName)
+		assert.Equal(t, declared, other["tool-version-range"], "%s: metadata.tool-version-range", skillName)
+		files, err := skill.Files(fsys)
 		require.NoError(t, err)
-		for _, found := range ranges.FindAllString(string(data), -1) {
-			assert.Equal(t, declared, found, "%s mentions another range", name)
+		for _, name := range files {
+			data, err := fs.ReadFile(fsys, name)
+			require.NoError(t, err)
+			for _, found := range ranges.FindAllString(string(data), -1) {
+				assert.Equal(t, declared, found, "%s/%s mentions another range", skillName, name)
+			}
 		}
 	}
 }

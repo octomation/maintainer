@@ -367,11 +367,12 @@ Flags:
 
 ## maintainer skill
 
-Shows or installs the agent skill for this release.
+Shows or installs the agent skills for this release.
 
-The skill teaches coding agents such as Claude Code and Codex to use
-maintainer. It ships inside the binary and matches its version. These
-commands work offline, need no token and never read .env.
+The maintainer skill teaches coding agents such as Claude Code and Codex to
+use maintainer; the review skill writes review reports in a fixed form. Both
+ship inside the binary and match its version. These commands work offline,
+need no token and never read .env.
 
 ```text
 maintainer skill [command]
@@ -379,10 +380,14 @@ maintainer skill [command]
 
 ## maintainer skill export
 
-Write the skill into a directory, with an ownership marker next to SKILL.md.
+Write the skills into a directory, each into a folder named after it, with an
+ownership marker next to its SKILL.md: -o skills writes skills/maintainer and
+skills/review.
 
-A new or empty directory is written. --replace replaces a copy that maintainer
-installed and nobody changed since; any other directory is left alone.
+A new or empty folder is written. --replace replaces a copy that maintainer
+installed and nobody changed since; any other folder is left alone. A review
+folder of another tool is skipped unless --skill names review. A directory
+that holds a skill itself is refused: pass the directory that holds it.
 
 ```text
 maintainer skill export [flags]
@@ -390,12 +395,13 @@ maintainer skill export [flags]
 
 Flags:
 
-- `-o, --output string` (required): directory to write the skill into
+- `-o, --output string` (required): directory to write the skills into
 - `--replace`: replace a copy that maintainer installed earlier
+- `--skill strings`: skills to write: maintainer, review (default all)
 
 ## maintainer skill info
 
-print the skill's version, compatible range and digest
+print the version, compatible range and digest of each skill
 
 ```text
 maintainer skill info [flags]
@@ -403,16 +409,19 @@ maintainer skill info [flags]
 
 Flags:
 
-- `--json`: print one JSON object
+- `--json`: print one JSON object per skill
+- `--skill strings`: skills to print: maintainer, review (default all)
 
 ## maintainer skill install
 
-Install the skill for Claude Code or Codex.
+Install the skills for Claude Code or Codex: all of them, or the ones --skill
+names.
 
-Writes ~/.claude/skills/maintainer (or $CLAUDE_CONFIG_DIR/skills/maintainer) for
-Claude Code and ~/.agents/skills/maintainer for Codex; with --project, the same
+Writes ~/.claude/skills/<skill> (or $CLAUDE_CONFIG_DIR/skills/<skill>) for
+Claude Code and ~/.agents/skills/<skill> for Codex; with --project, the same
 under the current directory. After upgrading maintainer, run it again with
---replace. A directory from another installer is left alone.
+--replace. A directory from another installer is left alone; a review
+directory of another tool is skipped unless --skill names review.
 
 ```text
 maintainer skill install [flags]
@@ -423,17 +432,19 @@ Flags:
 - `--agent strings` (required): agents to install for: claude-code, codex
 - `--project`: install into the current directory instead of the user's skills
 - `--replace`: replace a copy that maintainer installed earlier
+- `--skill strings`: skills to install: maintainer, review (default all)
 
 Examples:
 
 ```sh
 maintainer skill install --agent claude-code
 maintainer skill install --agent claude-code,codex --replace
+maintainer skill install --agent codex --skill review
 ```
 
 ## maintainer skill show
 
-print the skill's SKILL.md or one of its files
+print a skill's SKILL.md or one of its files
 
 ```text
 maintainer skill show [flags]
@@ -442,15 +453,19 @@ maintainer skill show [flags]
 Flags:
 
 - `--file string`: file to print, e.g. references/cli.md (default "SKILL.md")
+- `--skill string`: skill to print: maintainer, review (default "maintainer")
 
 ## maintainer skill status
 
-Check the installed copies of the skill against this binary.
+Check the installed copies of the skills against this binary.
 
 Looks in the user's and the project's skills of Claude Code and Codex, and
-in their plugins. Fails when a copy is incompatible with this binary, was
-changed after maintainer installed it, or no copy exists for a requested
---agent; with --exact, also when a copy differs from this release.
+in their maintainer plugins. Fails when a copy is incompatible with this
+binary, was changed after maintainer installed it, or no copy exists for a
+requested --agent: of the maintainer skill, or of a skill --skill names.
+With --exact, also when a copy differs from this release or a plugin does
+not hold exactly the skills of this binary. Duplicate copies, a review
+folder of another tool and a missing review skill are only reported.
 A dev or pseudo-version binary leaves compatibility unknown.
 
 ```text
@@ -460,8 +475,9 @@ maintainer skill status [flags]
 Flags:
 
 - `--agent strings`: agents to check: claude-code, codex (default all)
-- `--exact`: also fail when a copy differs from this release
+- `--exact`: also fail when a copy differs from this release or a plugin lacks a skill
 - `--json`: print one JSON record per copy
+- `--skill strings`: skills to check: maintainer, review (default all)
 
 ## maintainer status
 
