@@ -3,6 +3,7 @@ package hub
 import (
 	"context"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"strings"
@@ -674,9 +675,15 @@ func TestGeneratedMirrorAnswersFast(t *testing.T) {
 	q := Query{Labels: []string{"scope: code"}, Q: "fetch", State: "all", Sort: SortImportance}
 	require.NoError(t, q.Validate())
 	snap.Query(q) // warm
-	start := time.Now()
-	page := snap.Query(q)
-	elapsed := time.Since(start)
+	// The best of five runs: a pause of a shared CI runner slows one run, a
+	// slow query slows them all.
+	best := time.Duration(math.MaxInt64)
+	var page Page
+	for range 5 {
+		start := time.Now()
+		page = snap.Query(q)
+		best = min(best, time.Since(start))
+	}
 	assert.Greater(t, page.Total, 0)
-	assert.Less(t, elapsed, 100*time.Millisecond, "a filtered query over 3000 tasks")
+	assert.Less(t, best, 100*time.Millisecond, "a filtered query over 3000 tasks")
 }
