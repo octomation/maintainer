@@ -83,7 +83,7 @@ maintainer status --format=json | jq -c '.[] | select(.error) | {path, error}'
 | --- | --- | --- |
 | `0` | done; `status` found no problem | `run` stopped by `Ctrl-C` or `SIGTERM`; `open` opened or printed the address |
 | `1` | `status` found a problem; `install` or `export` left a directory alone or could not write | `run` could not bind an address; `open` found no service there, or another program answers |
-| `2` | usage error, an unknown `--agent`, `show --file` of no file | usage error, bad `service.toml` or fetch config, `--listen` not a loopback address |
+| `2` | usage error, an unknown `--agent` or `--skill`, `show --file` of no file | usage error, bad `service.toml` or fetch config, `--listen` not a loopback address |
 
 `maintainer github contribution suggest` exits `2` without `GITHUB_TOKEN` or
 for an anchor in the future, and `4` when no moment fits up to now. A usage

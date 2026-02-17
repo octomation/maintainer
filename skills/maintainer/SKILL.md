@@ -44,17 +44,30 @@ This skill describes maintainer `>=0.5.2 <0.6.0`. Before anything else:
      command's flags.
    - Older or newer: don't rely on the recipes here. Read the skill that ships
      with the binary, `maintainer skill show`, and tell the user the versions
-     differ; suggest upgrading maintainer
-     (`brew upgrade --formula octolab/tap/maintainer`) or reinstalling the
-     skill from the binary
-     (`maintainer skill install --agent claude-code --replace`, or `codex`).
-   - `dev`, a pseudo-version such as `v0.5.2-0.20261107…`, or unknown: treat
-     compatibility as unknown and rely on `--help`.
+     differ. Run `maintainer skill status` to see where this skill comes from
+     and suggest updating the side that is behind:
+     - the binary: `brew upgrade --formula octolab/tap/maintainer`;
+     - a `plugin: maintainer@octolab` copy, from the OctoLab catalog: the
+       agent's plugin manager, `claude plugin update maintainer@octolab` in
+       Claude Code, or `codex plugin marketplace upgrade octolab`, then
+       `codex plugin add maintainer@octolab` in Codex;
+     - a copy `installed by maintainer`: replace it from the binary,
+       `maintainer skill install --agent claude-code --replace`, or `codex`.
+
+     Never install a copy from the binary next to a plugin: the agent loads
+     both.
+   - `dev`, a pseudo-version such as `v0.5.3-0.20261126121749-fbe59efd127f`,
+     sometimes ending in `+dirty`, or unknown: treat compatibility as unknown
+     and rely on `--help`.
    - `maintainer skill` missing: the binary predates it; rely on `--help` only.
    - `maintainer` not found: explain how to install it
      (https://maintainer.octolab.org/quickstart/); don't install it without
      the user's go-ahead.
-3. Never guess a flag or a config key that `--help` or the schema doesn't show.
+3. Never guess a flag or a config key that `--help` or the configuration
+   guide, https://maintainer.octolab.org/fetch/#configuration, doesn't show.
+
+For a review report of a repository, use the review skill that comes with
+this one: `maintainer:review` in the plugin, or `review` from the binary.
 
 ## 2. Ground rules
 
