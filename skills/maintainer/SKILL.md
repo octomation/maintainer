@@ -66,8 +66,9 @@ This skill describes maintainer `>=0.5.2 <0.6.0`. Before anything else:
   plan printed earlier.
 - **Tokens stay secret.** Never print `GITHUB_TOKEN`, a `token_file` or an
   inline `token`, and never put a token on the command line: `--token` is
-  removed and exits `2`. Ask the user to export the variable or set
-  `token_file` themselves.
+  removed and exits `2`. Ask the user to set the token themselves: for
+  `fetch`, in its profile (see §4); for `github contribution`, which reads
+  nothing else, as `GITHUB_TOKEN` in the environment.
 - **Leave the checkouts to Git and the user.** maintainer never pushes,
   merges, resets or deletes, and neither should you on its behalf: don't
   delete an `orphan`, don't remove a push lock (`no_push`), don't edit the
@@ -99,8 +100,10 @@ This skill describes maintainer `>=0.5.2 <0.6.0`. Before anything else:
 | A time to contribute | `github contribution suggest`; also `contribution lookup`, `contribution histogram`, `contribution snapshot`, `contribution diff` |
 | maintainer in a browser on this computer | `service run`, or `brew services start octolab/tap/maintainer`, then `service open` |
 
-`fetch` flags such as `--config`, `--owner`, `--format` and `--timeout` work
-for its subcommands too. Recipes:
+The subcommands of `fetch` list its flags under Global Flags but use only
+`--config`, and `state prune` also `--owner` and `--profile`; `--format` is
+ignored: `config validate` prints `ok: <path> (…)`, `state show` always prints
+JSON. Recipes:
 [references/workflows.md](references/workflows.md). Every command and flag of
 this release: [references/cli.md](references/cli.md).
 
@@ -131,7 +134,8 @@ this release: [references/cli.md](references/cli.md).
   to, `["*", "other"]` adds an owner outside them). Its token comes from `token_file` (mode `0600` at most), then
   `token_env` (`GITHUB_TOKEN` for the first profile in alphabetical order),
   then an inline `token`. fetch needs a token even for public repositories;
-  status needs none.
+  status needs none. The `github contribution` commands ignore the profiles
+  and take the token only from `GITHUB_TOKEN`.
 - **State.** `$XDG_STATE_HOME/maintainer/fetch/state.json` (usually
   `~/.local/state/maintainer/fetch/`), or `defaults.state_file`. It is keyed
   by the repository id, which is how a rename becomes a move instead of a
@@ -217,8 +221,11 @@ exist). It needs no token or network.
 
 - `unknown key …; did you mean …?`: fix the key in the named file, then run
   `maintainer fetch config validate`.
-- `a token is required`: the profile has no token; ask the user to export
-  `GITHUB_TOKEN` or set `token_file`, never to paste the token to you.
+- `a token is required` or `no token resolved` from `fetch`: the profile has
+  no token; ask the user to set its `token_file` or export its `token_env`
+  (`GITHUB_TOKEN` for the first profile). `a GitHub token is required` from
+  `github contribution` (exit `2`): only `GITHUB_TOKEN` in the environment
+  helps, a `token_file` does not. Never ask for the token itself.
 - A `conflict` names its path and reason: an occupied or foreign target, an
   `incomplete clone`, a missing pin, a pin whose repository GitHub does not
   confirm, two checkouts of one repository. Report

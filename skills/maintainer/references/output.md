@@ -72,6 +72,7 @@ maintainer status --format=json | jq -c '.[] | select(.error) | {path, error}'
 | `2` | usage error, bad config, missing token or owner, the state locked by another run | usage error, bad config, `--format=tui` without a terminal |
 | `3` | apply left a failed repository, an unsaved state or a conflict | — |
 
-`maintainer github contribution suggest` exits `4` when no moment fits up to
-now. A usage error, such as an unknown flag or subcommand, always exits `2`
-before any request.
+`maintainer github contribution suggest` exits `2` without `GITHUB_TOKEN` or
+for an anchor in the future, and `4` when no moment fits up to now. A usage
+error, such as an unknown flag or subcommand, always exits `2` before any
+request.

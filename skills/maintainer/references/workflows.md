@@ -123,15 +123,21 @@ maintainer github contribution suggest --short
 maintainer github contribution histogram 2026-10
 maintainer github contribution snapshot 2026 > snap.json
 maintainer github contribution diff snap.json 2026
+git commit --date="$(maintainer github contribution suggest --short)"
 ```
 
 These read the calendar of the token's owner and need a token even for a
-public profile. The days match the profile's calendar of the year in any time
-zone, and a repeated run reads only the months that changed, from the cache in
-`$XDG_CACHE_HOME/maintainer/contributions` (or `~/.cache`). `suggest` prints a
-UTC timestamp to stdout and exits `4` when no moment fits up to now; it never
-creates a commit. A `warn:` line names the months whose reviews may be a day
-off because GitHub gives no date for some of their contributions.
+public profile. They take it only from `GITHUB_TOKEN` in the environment,
+never from a `fetch.toml` profile. The days match the profile's calendar of
+the year in any time zone, and a repeated run reads only the months that
+changed, from the cache in `$XDG_CACHE_HOME/maintainer/contributions` (or
+`~/.cache`). Without a date, `suggest` anchors at the author date of `HEAD` in
+the current repository (now outside one or before its first commit), prints a
+UTC timestamp to stdout for `git commit --date`, and never creates a commit
+itself; run that commit only with the user's go-ahead. It exits `2` before
+any request without a token or for an anchor in the future, and `4` when no
+moment fits up to now. A `warn:` line names the months whose reviews may be a
+day off because GitHub gives no date for some of their contributions.
 
 ## Install and update this skill
 
