@@ -100,9 +100,10 @@ conventions are in [docs/README.md](docs/README.md#keep-the-release-accurate).
   about, a criterion to change.
 - Product changes first, release commit last: `chore(release): prepare vX.Y.Z`.
   A guide that explains new behavior changes with the product commit, and so
-  does the agent skill in `skills/maintainer/`; `go test ./skills` keeps its
-  examples and command reference in step with the CLI, and
-  `go generate ./skills` rewrites the reference.
+  do the agent skills in `skills/maintainer/` and `skills/review/`;
+  `go test ./skills` keeps their examples and command reference in step with
+  the CLI, `go generate ./skills` rewrites the reference, and
+  `python3 skills/testdata/review/test_review.py` tests the review script.
 - The CLI is the source of truth for what the docs, the notes and the skill
   claim.
 - A published release is frozen: its tag, annotation, image and catalog entry
@@ -220,8 +221,8 @@ Lead paragraph: what the release does, in terms of commands and results.
 A prerelease note, `vX.Y.Z-rcN.md`, is short and self-contained: what to try,
 what to report, and links only to pages that are already on the site, not to
 the final note. Add it to `changelog/_meta.js` with `display: 'hidden'` and
-give it no card. Of the list below, a prerelease changes only
-`skills/maintainer/SKILL.md`: the current version elsewhere stays the stable
+give it no card. Of the list below, a prerelease changes only the
+`SKILL.md` of each skill: the current version elsewhere stays the stable
 one.
 
 Then, in the same release commit:
@@ -234,9 +235,9 @@ Then, in the same release commit:
   `docs/README.md`, `docs/content/quickstart.md` and the guides, catalog tags
   such as `maintainer--vX.Y.Z` included. In the content table of
   `docs/README.md`, the new note gets its own row.
-- `skills/maintainer/SKILL.md`: `metadata.version` is the tag without `v`;
-  `tool-version-range`, the `compatibility` line and the ranges in the skill's
-  text become `>=0.Y.Z <0.(Y+1).0` before 1.0, `>=X.Y.Z <(X+1).0.0` after,
+- `skills/maintainer/SKILL.md` and `skills/review/SKILL.md`: `metadata.version`
+  is the tag without `v`; `tool-version-range`, the `compatibility` line and
+  the ranges in the skill's text become `>=0.Y.Z <0.(Y+1).0` before 1.0, `>=X.Y.Z <(X+1).0.0` after,
   and the exact tag without `v` for a prerelease, such as `=0.3.0-rc1`.
   `make release-check` rejects another version, `go test ./skills` mismatched
   ranges.
@@ -394,7 +395,11 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
   `curl -fsS http://maintainer.localhost:17841/status -o /dev/null -w '%{http_code}'`
   prints `200` on the release commit.
 - A stable release only: the catalog tag `maintainer--vX.Y.Z` points at a
-  verified commit, and `ci (install)` there is green for that tag.
+  verified commit, and `ci (install)` there is green for that tag. The
+  skill job's step "Compare the catalog with the release binary" passed: it
+  read `plugins/maintainer/skills/` at that tag back and proved that the
+  catalog holds exactly the skills of the release binary, with the digests
+  `maintainer skill info --json` gives.
 - A stable release only: the catalog plugins are updated, then
   `maintainer skill status --agent claude-code,codex --exact` passes:
 
@@ -430,6 +435,12 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
   Fix the cause, for example the App's installation on `octolab/skills` or
   the tool's entry in its `catalog.json`, and run the failed job again:
   `gh run rerun <run-id> --failed`.
+- **The catalog compare failed after `maintainer--vX.Y.Z` exists**: the
+  catalog tag is frozen like the release. Read the step's errors first. If
+  the compare itself could not run (the token, the network, the GitHub API),
+  run the failed job again: `gh run rerun <run-id> --failed`. If the catalog
+  holds a missing, an extra or a different skill, the publication was wrong:
+  leave the tag, file an issue and ship the fix in the next patch.
 - **Anything else after the release exists**: it is frozen; ship the fix in
   the next patch.
 
