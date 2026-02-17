@@ -89,7 +89,7 @@ This skill describes maintainer `>=0.5.2 <0.6.0`. Before anything else:
 | The user wants | Command |
 | --- | --- |
 | A first config | `fetch config init` (writes `~/.config/maintainer/fetch.toml`, or a `.toml` `--config` path only; `--force` overwrites) |
-| To check a config | `fetch config validate`, or `cue vet -c fetch.cue fetch.toml` against the schema |
+| To check a config | `fetch config validate` |
 | To see what fetch would do | `fetch`, or `fetch --format=json` |
 | To clone missing and refresh existing checkouts | `fetch --apply`, after reviewing the plan |
 | One owner or one account only | `fetch --owner acme` or `fetch --profile bot` |
@@ -119,16 +119,27 @@ this release: [references/cli.md](references/cli.md).
   directory.
 - **The schema is the contract.** The keys are `[workspace]` (`root`, `path`,
   `pins`), `[defaults]` (`clone_url`, `concurrency`, `state_file`),
-  `[filters]`, `[profiles.<name>]`, `[[owners]]` and `[[repos]]`; the schema
-  `fetch.cue` lives in the maintainer repository under `internal/config/`. An
-  unknown key or table is bad config: fetch, its subcommands and status exit
-  `2` and suggest the key it was probably meant to be. Fix the key; don't
-  remove what you don't understand.
+  `[filters]`, `[profiles.<name>]`, `[[owners]]` and `[[repos]]`; every key
+  with its default is in the guide,
+  https://maintainer.octolab.org/fetch/#configuration. An unknown key or
+  table is bad config: fetch, its subcommands and status exit `2` and suggest
+  the key it was probably meant to be. Fix the key; don't remove what you
+  don't understand.
 - **Layout is scope.** `workspace.path`, by default
   `{{.Visibility}}/{{.Owner}}/{{.Repo}}`, is both where new clones go and
   the only place both commands look. Checkouts elsewhere are managed only
   through `workspace.pins` or a per-repository `path` in `[[repos]]`; match
   `[[repos]]` by `id` so a rule survives a rename.
+- **Rules the user may need**, in their config:
+  - `[[repos]]` with `ignore = true` drops a repository from fetch and status:
+    the fix for a confirmed `orphan`, or, matched by `owner` and `name`, for a
+    checkout behind SSO that the token cannot read.
+  - `clone_url = "https"` (default `"ssh"`) in `[defaults]`, a profile,
+    `[[owners]]` or `[[repos]]`, the most specific winning: HTTPS with the
+    profile's token is the supported way to clone a private repository, SSH
+    needs the user's `ssh-agent`.
+  - `[[owners]]` with `name` and `path` gives one owner its own layout
+    template, relative to `workspace.root`.
 - **Profiles and tokens.** A profile is a token with the owners it discovers
   (`include_owners`, `["*"]` for the user and every organization they belong
   to, `["*", "other"]` adds an owner outside them). Its token comes from `token_file` (mode `0600` at most), then
@@ -175,6 +186,15 @@ directory, and `service.toml` in `$XDG_CONFIG_HOME/maintainer` or
 the first start it writes that file with every key commented out, so read it
 to learn where the service listens (`--config` names another file, which must
 exist). It needs no token or network.
+
+- **Which checkouts.** `[fetch] config` in `service.toml` names the fetch
+  config, relative to the home directory: set it when the config is not in
+  `~/.config/maintainer`, since `brew services` starts the service without
+  the shell's `$MAINTAINER_FETCH_CONFIG`. Without any fetch config it starts
+  and reads the default layout under the home directory; a `fetch.toml` in
+  the home directory is never read, and alone it stops the start with exit
+  `2`. `[[repos]]` with `match` and `weight` (default `1`) multiplies the
+  score of one repository's issues.
 
 - **It writes issue files.** Setting `impact: *` or `effort: *` on a page
   changes those label lines in the issue file of the checkout and nothing
@@ -233,6 +253,13 @@ exist). It needs no token or network.
 - Exit `3` after apply: read the per-repository errors on stderr and the
   plan's summary; whatever succeeded stays applied, and the next apply retries
   the rest.
+- To see more of a `fetch` run, add `-vv` (discovery, confirmations and
+  state saves) or `-vvv` (each Git operation with its duration and error);
+  the lines go to stderr.
+- `service open` says the service is not running when it was started on
+  another port, such as with `service run --listen`: name that address,
+  `maintainer service open --listen 127.0.0.1:8080`. The log of a service
+  under `brew services` is in `$(brew --prefix)/var/log/maintainer.log`.
 - A rate limit makes fetch wait once; a wait longer than an hour or than
   `--timeout` stops it with the wait named.
 

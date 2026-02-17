@@ -13,14 +13,20 @@ One object per run:
 | `plan_id`, `generated_at` | the plan's identity and time |
 | `discoveries` | per profile: the listings it read and how many repositories they returned |
 | `actions` | every action of the plan, routine fetches included |
-| `summary` | counts by kind: `clone`, `fetch`, `move`, `relocate`, `update_remote`, `adopt`, `orphan`, `noop`, `conflict`, plus `errors` after an apply |
+| `summary` | counts of the actions, keyed by the kinds below |
+| `errors` | in `summary`: the failures of an apply, a failed state save included; `0` in a plan |
 
-An action has `kind`, `id` (the GitHub repository id) and, as they apply,
-`owner`, `name`, `path`, `from_path` and `to_path` for moves and relocations,
-`from` and `to` for the old and new `owner/name` of a move, `worktrees` that a
-move reconnects, `reason`, `flag` (such as `unverified` or `inaccessible`),
-and for an orphan `orphan_reason` and `active_path`. One
-repository can have several actions, such as a `move` followed by its `fetch`.
+An action has these fields, the empty ones left out. One repository can have
+several actions, such as a `move` followed by its `fetch`.
+
+| Field | Meaning |
+| --- | --- |
+| `kind`, `id` | the kind below and the GitHub repository id |
+| `owner`, `name`, `path` | the repository and its checkout |
+| `from_path`, `to_path` | the old and new directory of a move or a relocation |
+| `from`, `to`, `worktrees` | the old and new `owner/name` of a move, and the worktrees it reconnects |
+| `reason`, `flag` | why, and a flag such as `unverified` or `inaccessible` |
+| `orphan_reason`, `active_path` | for an orphan |
 
 | Kind | Meaning |
 | --- | --- |
@@ -47,6 +53,7 @@ An array of rows, `[]` when there are none:
 
 | Field | Meaning |
 | --- | --- |
+| `id` | the GitHub repository id, from the fetch state or a `[[repos]]` rule |
 | `repository`, `path` | `owner/name` from the origin or the state, and the checkout's directory |
 | `branch`, `default_branch`, `commit`, `upstream` | the current branch and what it tracks |
 | `added`, `deleted`, `changed_files`, `untracked`, `binary`, `conflicts` | uncommitted work against HEAD |
@@ -71,6 +78,12 @@ maintainer status --format=json | jq -c '.[] | select(.error) | {path, error}'
 | `1` | transport, Git, state or output error; `state prune` with a path it cannot check | a checkout failed to inspect, or discovery, state or output failed |
 | `2` | usage error, bad config, missing token or owner, the state locked by another run | usage error, bad config, `--format=tui` without a terminal |
 | `3` | apply left a failed repository, an unsaved state or a conflict | — |
+
+| Code | skill | service |
+| --- | --- | --- |
+| `0` | done; `status` found no problem | `run` stopped by `Ctrl-C` or `SIGTERM`; `open` opened or printed the address |
+| `1` | `status` found a problem; `install` or `export` left a directory alone or could not write | `run` could not bind an address; `open` found no service there, or another program answers |
+| `2` | usage error, an unknown `--agent`, `show --file` of no file | usage error, bad `service.toml` or fetch config, `--listen` not a loopback address |
 
 `maintainer github contribution suggest` exits `2` without `GITHUB_TOKEN` or
 for an anchor in the future, and `4` when no moment fits up to now. A usage
