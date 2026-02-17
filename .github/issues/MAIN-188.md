@@ -22,8 +22,8 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2026-11-25T18:15:34Z
-updatedAt: 2026-11-25T18:16:54Z
-lastEditedAt: null
+updatedAt: 2026-11-26T15:14:36Z
+lastEditedAt: 2026-11-26T15:14:36Z
 closedAt: null
 ---
 
@@ -56,20 +56,52 @@ Coverage: full.
 
 ## Acceptance criteria
 
-- [ ] `skills/review/` in this repository holds the skill; it is not tied to
+The skill:
+
+- [x] `skills/review/` in this repository holds the skill; it is not tied to
       this repository: the checks to run, the threat model and the issue codes
       come from the reviewed project, and a project without them gets a
       stated default.
-- [ ] Security reports stay out of the tracked tree by default.
-- [ ] The release publishes it to the catalog with the main skill
-      (octomation/skills-action#2); a user who updates the plugin gets
-      `maintainer:review`.
-- [ ] `maintainer skill install|status|info` and `go test ./skills` handle
-      both skills; the guide on agents describes the second one.
-- [ ] The tests of `review.py` run in `ci`.
-- [ ] A review of this repository made with the published skill passes
-      `review.py check`, and the local copy in `.agents/skills/review` is
-      removed.
+- [x] Issue codes come from the project's issue mirror with any prefix;
+      without a mirror, `Tracked` takes a GitHub issue (`#N` or
+      `owner/repo#N`). Plain `review.py check` stays offline. Without a
+      mirror, `status` and `check --published` read the issue state with
+      `gh` and fail closed: without `gh`, a login or a readable issue, the
+      report stays private. The tests use a fake `gh`.
+- [x] Security reports go to `.agents/reviews/` by default, and `review.py`
+      refuses to write there when Git does not ignore the folder.
+- [x] The description triggers on a review report or on `maintainer:review`,
+      not on a bare "code review" or "security review", and says that the
+      skill writes a report in a fixed form to `.github/reviews/`.
+- [x] The payload holds `SKILL.md`, `references/`, `templates/` and
+      `scripts/review.py`; the HTML pages and `test_review.py` live outside
+      `skills/review/`, and `ci` runs the tests.
+
+Shipping:
+
+- [x] Every release archive and the binary carry both skills;
+      `.goreleaser.yml`, `release.mjs skill` and `make release-check` check
+      both.
+- [x] `maintainer skill install|status|info|show|export` handle both skills;
+      `--skill` selects them, both by default. A `review` folder of another
+      installer is not a copy of this skill: `install` skips it with a note
+      and exit `0`, and fails only for an explicit `--skill review`.
+- [x] `skill status` finds the plugin by the tool name, not by the skill
+      name. A plugin copy must hold exactly the binary's skills, so `--exact`
+      fails without `review` in the plugin; a user or project folder is
+      judged by the skills found there. Tests cover a plugin-only setup for
+      Claude Code and Codex.
+- [x] `ci` installs both skills from the binary and checks them with
+      `skill status --exact`.
+- [ ] `cd` publishes with the action of octomation/skills-action#2, then
+      reads the catalog at `maintainer--vX.Y.Z` and compares the exact set
+      of skills and their digests with `skill info --json` of the release
+      binary: a missing or extra skill fails.
+- [x] The guide on agents describes the second skill.
+- [ ] After the release a user who updates the plugin gets
+      `maintainer:review`; a review of this repository made with the
+      published skill passes `review.py check`, and the local copy in
+      `.agents/skills/review` is removed.
 
 ## Out of scope
 

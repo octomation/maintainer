@@ -56,28 +56,23 @@ is proven or moved into an issue; a release adds the checks it leaves open
 - [ ] **Tool pins**: `make update` would move goreleaser in `tools/go.mod`
   ahead of the version the workflows pin. Hold `make update` until the pins
   move together; `make tool-pins-check` catches a drift.
-- [ ] **The `review` skill is on trial** (since 2026-11-25): code, issue and
-  security reviews of this repository are written with a local skill in
-  `.agents/skills/review`, which is not tracked. The order is fixed: first
-  prove it in use here; then make it part of the public agent skill in
-  `skills/maintainer/`; then remove the review genre from the private
-  `projects:maintainer` skill, which outside readers cannot see. Proven when
-  its reports have carried a release, with their findings filed, fixed and
-  shipped, and the owner confirms the benefit. If it does not prove itself,
-  keep the genre of `projects:maintainer` and delete the local skill.
-  The steps are filed in this order: octomation/skills-action#2 lets a
-  tool publish a second skill; [MAIN-188](issues/MAIN-188.md) ships this one
-  as `maintainer:review`; only after its release the private genre goes away,
-  in its own repository.
+- [ ] **The `review` skill moves into the package** (since 2026-11-26): its
+  reports carried v0.5.1 and v0.5.2, and the owner confirmed the benefit.
+  It ships as `maintainer:review` in v0.6.0: octomation/skills-action#2
+  lets a tool publish a second skill, octolab/skills#4 lets the catalog
+  accept it, [MAIN-188](issues/MAIN-188.md) ships it. Until that release,
+  reviews of this repository use the local copy in `.agents/skills/review`,
+  which is not tracked. After the release, a review made with the published
+  skill passes its `check`, the local copy is removed, and only then the
+  review genre goes away from the private `projects:maintainer` skill, in
+  its own repository.
 
-- [ ] **Local issues [MAIN-164](issues/MAIN-164.md)–[MAIN-187](issues/MAIN-187.md)
-  are not on GitHub**: they came from the full review of 2026-11-25 and wait
-  for the owner to publish them. [MAIN-183](issues/MAIN-183.md)–[MAIN-187](issues/MAIN-187.md)
-  and [MAIN-177](issues/MAIN-177.md) are the fixes of v0.5.1: publish them
-  once the release is out, then tick their criteria and close them.
-  [MAIN-164](issues/MAIN-164.md)–[MAIN-182](issues/MAIN-182.md) are planned
-  for v0.5.2. The security review of 2026-11-25 is not published before
-  v0.5.1 ships.
+- [ ] **Local issues [MAIN-166](issues/MAIN-166.md),
+  [MAIN-168](issues/MAIN-168.md), [MAIN-170](issues/MAIN-170.md),
+  [MAIN-182](issues/MAIN-182.md), [MAIN-189](issues/MAIN-189.md) and
+  [MAIN-190](issues/MAIN-190.md) are not on GitHub**: the rest of the full
+  review of 2026-11-25, planned for v0.6.1. Publish them before their code
+  changes.
 - [ ] **The hub speaks plain HTTP** (v0.5.1): a program of another account
   that takes the port while the service is down sees the addresses that an
   open tab still requests, and can show a false page. The service guide states
