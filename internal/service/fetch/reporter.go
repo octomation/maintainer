@@ -192,8 +192,14 @@ func (r *Reporter) renderHuman(p Plan, applied bool) error {
 func (r *Reporter) writeAction(b *strings.Builder, p Plan, a Action) {
 	sym := symbols[a.Kind]
 	name := a.Owner + "/" + a.Name
-	if a.Owner == "" && a.Name == "" && a.ID != 0 {
+	at := a.Path // the "at" line of a conflict
+	switch {
+	case a.Owner != "" || a.Name != "":
+	case a.ID != 0:
 		name = fmt.Sprintf("id=%d", a.ID) // an id-only pin GitHub does not confirm
+	case a.Path != "":
+		// A scan conflict without a repository: its path is its name.
+		name, at = r.short(p, a.Path), ""
 	}
 	switch a.Kind {
 	case KindMove:
@@ -217,8 +223,8 @@ func (r *Reporter) writeAction(b *strings.Builder, p Plan, a Action) {
 		fmt.Fprintf(b, "               at %s\n", r.short(p, a.Path))
 	case KindConflict:
 		fmt.Fprintf(b, "  %s conflict   %-28s → %s\n", sym, name, a.Reason)
-		if a.Path != "" {
-			fmt.Fprintf(b, "               at %s\n", r.short(p, a.Path))
+		if at != "" {
+			fmt.Fprintf(b, "               at %s\n", r.short(p, at))
 		}
 	case KindNoop:
 		fmt.Fprintf(b, "  %s %-10s %-28s → %s\n", sym, string(a.Kind), name, a.Reason)

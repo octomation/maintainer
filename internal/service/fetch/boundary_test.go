@@ -315,6 +315,53 @@ func TestBoundary_UnreadableTargetParentIsOneConflict(t *testing.T) {
 	assert.Equal(t, "the target path cannot be inspected; refusing to write into it", plan.Actions[2].Reason)
 }
 
+// A scan conflict without a repository is named by its path, never by an
+// empty owner/name, and the JSON output of the same plan names that path.
+func TestBoundary_UnreadableDirectoryConflictNamesItsPath(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("permissions do not restrict root")
+	}
+	root := t.TempDir()
+	locked := filepath.Join(root, "public/acme")
+	require.NoError(t, os.MkdirAll(locked, 0o755))
+	require.NoError(t, os.Chmod(locked, 0o000))
+	t.Cleanup(func() { _ = os.Chmod(locked, 0o700) })
+	cnf := &config.Fetch{Workspace: &config.Workspace{Root: root}, Defaults: config.Defaults{CloneURL: "https", Concurrency: 1}}
+	require.NoError(t, cnf.Validate())
+	snap := github.RepoSnapshot{ID: 2, Owner: "bob", Name: "lib", Visibility: github.Public, SourceProfile: "p"}
+	run := func(format string) string {
+		var out, errw bytes.Buffer
+		svc, err := NewService(cnf, []ResolvedProfile{{Name: "p", Owners: []string{"bob"}}}, root, root, 1, Deps{
+			Store:      state.NewStore(afero.NewOsFs(), filepath.Join(t.TempDir(), "state.json"), nil),
+			Discoverer: fakeDiscoverer{snaps: []github.RepoSnapshot{snap}}, Resolver: fakeGitHubNameResolver{},
+			GitSync: gitsvc.NewSync(), Reporter: NewReporter(&out, &errw, format, 0, false),
+		})
+		require.NoError(t, err)
+		require.NoError(t, svc.Run(context.Background(), false))
+		return out.String()
+	}
+
+	human := run(FormatHuman)
+	var row string
+	for _, line := range strings.Split(human, "\n") {
+		if strings.Contains(line, "conflict ") {
+			row = line
+		}
+	}
+	require.NotEmpty(t, row, human)
+	assert.Regexp(t, `conflict +<root>/public/acme +→ scan: `, row)
+	assert.NotRegexp(t, `conflict +/ `, human, "a bare / is no name")
+	assert.NotContains(t, human, "at <root>/public/acme", "the path is not repeated")
+
+	out := bytes.NewBufferString(run(FormatJSON))
+	plan := decodePlan(t, out)
+	require.Len(t, plan.Actions, 2, out.String())
+	assert.Equal(t, "conflict", plan.Actions[1].Kind)
+	assert.Equal(t, int64(0), plan.Actions[1].ID)
+	assert.Equal(t, locked, plan.Actions[1].Path)
+	assert.Contains(t, plan.Actions[1].Reason, "scan: ")
+}
+
 func TestPlanner_RefusedTargetStillConflictsWithNestedCheckout(t *testing.T) {
 	const pin = "/work/acme/foo/bar"
 	cnf := &config.Fetch{

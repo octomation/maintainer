@@ -71,7 +71,14 @@ old        │ —      │ ?           │ error: scan: a Git repository at an 
 ```
 
 Fetch plans a report-only `conflict` with the path and the reason, counted in
-`summary.conflict`. Pins are scanned recursively until a checkout is found, with
+`summary.conflict`. An obstruction that belongs to no repository is named by
+its path, in the human output as in the `path` field of JSON:
+
+```text
+  ✗ conflict   <root>/public/acme           → scan: lstat /Users/me/Development/public/acme/.git: permission denied
+```
+
+Pins are scanned recursively until a checkout is found, with
 no depth limit, so an unreadable directory deep inside a pinned project, such as
 a database volume, is reported the same way.
 
