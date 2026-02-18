@@ -97,7 +97,8 @@ func stateCommand(opts *options) *cobra.Command {
 // openState resolves the state store, acquires the advisory lock, and loads
 // the state. The caller must defer the returned release func. It selects the
 // config as fetch does, so a discovered fetch.toml's state_file is respected
-// and --config="" means the default state location.
+// and --config="" means the default state location. A --profile the config
+// does not declare is refused as fetch refuses it, before the state is read.
 func openState(cmd *cobra.Command, opts *options) (*state.Store, *state.State, func() error, error) {
 	fs := afero.NewOsFs()
 	path, err := configPath(cmd, fs, opts)
@@ -107,6 +108,9 @@ func openState(cmd *cobra.Command, opts *options) (*state.Store, *state.State, f
 	fcfg, err := config.LoadFetch(fs, path)
 	if err != nil {
 		return nil, nil, nil, exit.WithUser(err)
+	}
+	if err := checkProfiles(fcfg, opts.profiles); err != nil {
+		return nil, nil, nil, err
 	}
 	store, err := newStore(fs, fcfg)
 	if err != nil {

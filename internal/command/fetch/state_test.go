@@ -182,3 +182,41 @@ func TestStatePruneHonorsSelection(t *testing.T) {
 		})
 	}
 }
+
+// state prune refuses a --profile the config does not declare, as fetch does:
+// the same usage error names the profile, and the state file stays as it is.
+func TestStatePruneRefusesUnknownProfile(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("XDG_STATE_HOME", filepath.Join(dir, "xdg"))
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(dir, "none"))
+	t.Setenv("MAINTAINER_FETCH_CONFIG", "")
+	t.Setenv("GITHUB_TOKEN", "")
+	stateFile := filepath.Join(dir, "state.json")
+	writeState(t, stateFile, state.Record{ID: 1, OwnerLogin: "a", Name: "r", SourceProfile: "work",
+		Path: filepath.Join(dir, "gone")})
+	before, err := os.ReadFile(stateFile)
+	require.NoError(t, err)
+	cnf := filepath.Join(dir, "fetch.toml")
+	require.NoError(t, os.WriteFile(cnf, []byte("[defaults]\nstate_file = '"+stateFile+"'\n"+
+		"[profiles.work]\ntoken_env = 'GITHUB_TOKEN'\n[profiles.bot]\ntoken_env = 'BOT_TOKEN'\n"), 0o600))
+
+	var messages []string
+	for _, args := range [][]string{
+		{"--config", cnf, "--profile", "wrok", "state", "prune"},
+		{"--config", cnf, "--profile", "wrok"},
+	} {
+		out, _, err := execute(t, args...)
+		require.Errorf(t, err, "%v", args)
+		var coded exit.Coder
+		require.ErrorAsf(t, err, &coded, "%v", args)
+		assert.Equalf(t, exit.User, coded.ExitCode(), "%v", args)
+		assert.Containsf(t, err.Error(), `"wrok"`, "%v", args)
+		assert.Emptyf(t, out, "%v", args)
+		messages = append(messages, err.Error())
+	}
+	assert.Equal(t, `unknown profile "wrok" (want bot|work)`, messages[0])
+	assert.Equal(t, messages[0], messages[1], "fetch and state prune give the same error")
+	after, err := os.ReadFile(stateFile)
+	require.NoError(t, err)
+	assert.Equal(t, before, after, "the state file is unchanged")
+}

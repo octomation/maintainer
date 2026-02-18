@@ -30,6 +30,9 @@ func resolveProfiles(fs afero.Fs, fcfg *config.Fetch, opts *options, warn io.Wri
 		}
 		return []fetchsvc.ResolvedProfile{{Name: "default", Token: token, Owners: opts.owners}}, nil
 	}
+	if err := checkProfiles(fcfg, opts.profiles); err != nil {
+		return nil, err
+	}
 
 	sorted := fcfg.SortedProfiles()
 	if len(sorted) == 0 {
@@ -72,6 +75,29 @@ func resolveProfiles(fs afero.Fs, fcfg *config.Fetch, opts *options, warn io.Wri
 		return nil, exit.WithUser(fmt.Errorf("no profiles selected after --profile/--owner filters"))
 	}
 	return out, nil
+}
+
+// checkProfiles refuses a --profile that the config does not declare, so a
+// typo is a usage error rather than an empty selection. Without a config file
+// there are no profile names to check against.
+func checkProfiles(fcfg *config.Fetch, names []string) error {
+	if fcfg.Source == "" {
+		return nil
+	}
+	for _, name := range names {
+		if _, ok := fcfg.Profiles[name]; ok {
+			continue
+		}
+		known := make([]string, 0, len(fcfg.Profiles))
+		for _, np := range fcfg.SortedProfiles() {
+			known = append(known, np.Name)
+		}
+		if len(known) == 0 {
+			return exit.WithUser(fmt.Errorf("unknown profile %q: config %q declares no [profiles]", name, fcfg.Source))
+		}
+		return exit.WithUser(fmt.Errorf("unknown profile %q (want %s)", name, strings.Join(known, "|")))
+	}
+	return nil
 }
 
 // toSet builds a lookup set, normalising each key when norm is set.

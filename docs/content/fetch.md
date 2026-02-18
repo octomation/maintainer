@@ -164,6 +164,10 @@ lists a tracked one as a `noop` with the reason `outside the selection`; the
 human output collapses those rows and shows the selection in the summary,
 for example `selected=12/40`.
 
+A `--profile` that the config does not declare is a usage error (exit `2`)
+that names it, for `fetch` and its `state` commands alike: a typo never passes
+for a selection that found nothing.
+
 | Tracked repository | In a narrowed run |
 | --- | --- |
 | Of a selected owner, transferred to another owner | Confirmed by id, then left alone: a `noop`, `transferred outside the selection to <owner>/<name>` |
