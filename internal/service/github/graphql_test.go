@@ -243,6 +243,159 @@ func TestService_FetchContributionsLaggingMonth(t *testing.T) {
 	}
 }
 
+func TestService_FetchContributionsClosedLaggingMonth(t *testing.T) {
+	// MAIN-168: the last run of October caches it with the calendar, as its
+	// lists lag behind the total. Once October closes, the contribution is
+	// a review, and the total stays the same.
+	fake := &calendar{
+		zone:    9 * time.Hour, // the account is in Tokyo
+		commits: map[string]uint{"2026-10-10": 2},
+		undated: map[string]uint{"2026-10": 1},
+	}
+	var warnings bytes.Buffer
+	service := serve(t, fake.handle(t)).WithCache(t.TempDir()).WithWarnings(&warnings)
+	now := xtime.UTC().Year(2026).Month(time.October).Day(31).Hour(23).Time()
+	service.WithClock(func() time.Time { return now })
+	fetch := func() map[string]uint {
+		t.Helper()
+		fake.reset()
+		chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
+		require.NoError(t, err)
+		return nonzero(chm)
+	}
+
+	assert.Equal(t, map[string]uint{"2026-10-01": 1, "2026-10-10": 2}, fetch())
+	assert.Equal(t, []string{"2026-10"}, fake.months())
+
+	// October 21 in Tokyo, but October 20 on the profile.
+	fake.undated, fake.reviews = nil, []event{{"2026-10-20T20:00:00Z", "PR_A"}}
+	now = xtime.UTC().Year(2026).Month(time.November).Day(1).Hour(8).Time()
+	expected := map[string]uint{"2026-10-10": 2, "2026-10-20": 1}
+	assert.Equal(t, expected, fetch())
+	assert.Equal(t, []string{"2026-10"}, fake.months(), "October is fetched again")
+	assert.Empty(t, fake.requests("days"))
+	assert.Empty(t, warnings.String())
+
+	// Later runs reuse it as any closed month.
+	now = xtime.UTC().Year(2026).Month(time.November).Day(2).Hour(8).Time()
+	assert.Equal(t, expected, fetch())
+	assert.Empty(t, fake.months())
+}
+
+func TestService_FetchContributionsJustClosedMonth(t *testing.T) {
+	// The lists may still lag behind the total for a while after the month
+	// ends, longer in a zone behind UTC, so a calendar taken then is not
+	// final either.
+	tests := map[string]struct {
+		zone time.Duration
+		now  time.Time
+	}{
+		"the last second": {
+			zone: 9 * time.Hour,
+			now:  xtime.UTC().Year(2026).Month(time.October).Day(31).Hour(23).Minute(59).Second(59).Time(),
+		},
+		"just after the close, ahead of UTC": {
+			zone: 9 * time.Hour,
+			now:  xtime.UTC().Year(2026).Month(time.November).Day(1).Minute(5).Time(),
+		},
+		"just after the close, behind UTC": {
+			zone: -8 * time.Hour,
+			now:  xtime.UTC().Year(2026).Month(time.November).Day(1).Minute(5).Time(),
+		},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			fake := &calendar{zone: test.zone, commits: map[string]uint{"2026-10-10": 2}, undated: map[string]uint{"2026-10": 1}}
+			service := serve(t, fake.handle(t)).WithCache(t.TempDir())
+			now := test.now
+			service.WithClock(func() time.Time { return now })
+			fetch := func() map[string]uint {
+				t.Helper()
+				fake.reset()
+				chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
+				require.NoError(t, err)
+				return nonzero(chm)
+			}
+
+			assert.Equal(t, map[string]uint{"2026-10-01": 1, "2026-10-10": 2}, fetch())
+			fake.undated, fake.reviews = nil, []event{{"2026-10-20T20:00:00Z", "PR_A"}}
+			now = xtime.UTC().Year(2026).Month(time.November).Day(2).Hour(8).Time()
+			assert.Equal(t, map[string]uint{"2026-10-10": 2, "2026-10-20": 1}, fetch())
+			assert.Equal(t, []string{"2026-10"}, fake.months(), "October is fetched again")
+		})
+	}
+
+	t.Run("a month that settles undated", func(t *testing.T) {
+		fake := &calendar{commits: map[string]uint{"2026-10-10": 2}, undated: map[string]uint{"2026-10": 1}}
+		service := serve(t, fake.handle(t)).WithCache(t.TempDir())
+		var now time.Time
+		service.WithClock(func() time.Time { return now })
+		expected := map[string]uint{"2026-10-01": 1, "2026-10-10": 2}
+		for _, run := range []struct {
+			now     time.Time
+			fetched []string
+		}{
+			{xtime.UTC().Year(2026).Month(time.November).Day(1).Hour(8).Time(), []string{"2026-10"}},
+			{xtime.UTC().Year(2026).Month(time.November).Day(2).Hour(23).Minute(59).Second(59).Time(), []string{"2026-10"}},
+			// Two days after the end of October, its calendar is final.
+			{xtime.UTC().Year(2026).Month(time.November).Day(3).Time(), []string{"2026-10"}},
+			{xtime.UTC().Year(2026).Month(time.November).Day(3).Hour(8).Time(), nil},
+		} {
+			now = run.now
+			fake.reset()
+			chm, err := service.FetchContributions(context.Background(), "kamilsk", 2026)
+			require.NoError(t, err)
+			assert.Equal(t, expected, nonzero(chm), run.now)
+			assert.Equal(t, run.fetched, fake.months(), run.now)
+		}
+	})
+}
+
+func TestService_FetchContributionsClosedUndatedCache(t *testing.T) {
+	// The calendar of a month taken after it closed is final, as the events
+	// of any closed month are.
+	fake := &calendar{
+		commits: map[string]uint{"2023-06-10": 5, "2023-07-04": 2},
+		reviews: []event{{"2023-06-15T12:00:00Z", "PR_A"}},
+		undated: map[string]uint{"2023-06": 36, "2023-09": 1},
+	}
+	dir := t.TempDir()
+	service := serve(t, fake.handle(t)).WithCache(dir)
+	service.WithClock(func() time.Time { return day(2026, time.October, 31) })
+	fetch := func() map[string]uint {
+		t.Helper()
+		fake.reset()
+		chm, err := service.FetchContributions(context.Background(), "kamilsk", 2023)
+		require.NoError(t, err)
+		return nonzero(chm)
+	}
+
+	expected := map[string]uint{"2023-06-01": 36, "2023-06-10": 5, "2023-06-15": 1, "2023-07-04": 2, "2023-09-01": 1}
+	assert.Equal(t, expected, fetch())
+	assert.ElementsMatch(t, []string{"2023-06", "2023-07", "2023-09"}, fake.months())
+
+	t.Run("warm run", func(t *testing.T) {
+		assert.Equal(t, expected, fetch())
+		assert.Empty(t, fake.months(), "no month is fetched again")
+		assert.Empty(t, fake.requests("days"))
+	})
+
+	t.Run("a cache of an earlier version", func(t *testing.T) {
+		// Its calendars do not tell when they were taken, so their months
+		// are fetched once, as taken while open.
+		path := filepath.Join(dir, "kamilsk", "2023.json")
+		raw, err := os.ReadFile(path)
+		require.NoError(t, err)
+		require.Equal(t, 2, strings.Count(string(raw), `"closed":true`))
+		require.NoError(t, os.WriteFile(path, []byte(strings.ReplaceAll(string(raw), `,"closed":true`, "")), 0o600))
+
+		assert.Equal(t, expected, fetch())
+		assert.ElementsMatch(t, []string{"2023-06", "2023-09"}, fake.months())
+		assert.Equal(t, expected, fetch())
+		assert.Empty(t, fake.months())
+	})
+}
+
 func TestService_FetchContributionsIncomplete(t *testing.T) {
 	tests := map[string]struct {
 		fake     *calendar

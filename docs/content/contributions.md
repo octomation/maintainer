@@ -87,11 +87,11 @@ maintainer github contribution histogram --with-zero 2026-09-25
 
 ## Fast repeat runs
 
-The commands keep the contributions they read in `$XDG_CACHE_HOME/maintainer/contributions`, or in `~/.cache/maintainer/contributions` without it. Each run asks GitHub for the totals of the months it shows and reads again only the months whose totals have changed, so a repeated `lookup` takes about a second; the first run of a year takes several seconds. Deleting the folder is safe: the next run reads everything again.
+The commands keep the contributions they read in `$XDG_CACHE_HOME/maintainer/contributions`, or in `~/.cache/maintainer/contributions` without it. Each run asks GitHub for the totals of the months it shows and reads again only the months whose totals have changed, and a recent month that shows GitHub's calendar ([below](#contributions-without-a-date)), so a repeated `lookup` takes about a second; the first run of a year takes several seconds. Deleting the folder is safe: the next run reads everything again.
 
 ## Contributions without a date
 
-GitHub counts some contributions without saying when they happened, such as ones in private repositories your token cannot read. A month with them shows the days of GitHub's own calendar instead, which puts reviews on the dates of your GitHub account's time zone, so a review there can be a day off. If such a month has reviews, the command names it on stderr:
+GitHub counts some contributions without saying when they happened, such as ones in private repositories your token cannot read. A month with them shows the days of GitHub's own calendar instead, which puts reviews on the dates of your GitHub account's time zone, so a review there can be a day off. GitHub also dates its latest contributions with a delay, so the current month may take the calendar for a while: the commands read it again on every run until two days after the month ends, so a contribution GitHub has dated by then counts on its own day. If such a month has reviews, the command names it on stderr:
 
 ```text
 warn: the GitHub API gives no date for some contributions of 2023-06, such as ones in private repositories the token cannot read, so the days there are those of its calendar, where a review may be a day off

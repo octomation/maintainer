@@ -119,6 +119,11 @@ type monthEvents struct {
 	// Calendar are the days of the calendar of the API, for a month whose
 	// events do not add up to its total; they replace the events.
 	Calendar map[string]uint `json:"calendar,omitempty"`
+	// Closed tells that the calendar was taken once its month had settled.
+	// One taken earlier, or cached before the field was added, may hold
+	// contributions the lists did not date yet, so the month is fetched
+	// again (MAIN-168).
+	Closed bool `json:"closed,omitempty"`
 }
 
 type review struct {
@@ -140,21 +145,29 @@ func (events monthEvents) dated() uint {
 }
 
 // complete tells if the events account for the total of the month, with
-// the calendar if they do not add up to it. The lists of the current month
-// may lag behind its total for a while, so its calendar is not kept.
+// the calendar if they do not add up to it. The lists of a month may lag
+// behind its total for a while, so its calendar is kept only once the month
+// has settled: the first run after that fetches it again.
 func (events monthEvents) complete(month span) bool {
 	if events.Calendar != nil {
-		return !month.open
+		return events.Closed && month.settled
 	}
 	return month.edge || events.dated() >= events.Total
 }
+
+// calendarSettle is how long after the end of a month in UTC its lists may
+// still miss some of its contributions: the collection of the month ends up
+// to 12 hours later in the account's zone, and the lists may lag behind the
+// total for hours after a contribution. Until then, a month that takes the
+// calendar is fetched again on every run.
+const calendarSettle = 48 * time.Hour
 
 // span is a month of a year, cut at now in the current one, or a day next to
 // the days of the year at their edge.
 type span struct {
 	from, to time.Time
 	edge     bool // a day next to the days of the year
-	open     bool // the current month, cut at now
+	settled  bool // the month ended calendarSettle ago or earlier
 }
 
 func (s span) label() string {
@@ -238,7 +251,8 @@ func (srv *Service) fetchYear(
 	// (issue#457), so the current year is bounded by this very second: a range
 	// no cache has seen yet is always resolved from the source. Past years
 	// are immutable, and a cached answer is as good as a fresh one.
-	if now := srv.now().UTC(); now.After(from) && now.Before(to) {
+	now := srv.now().UTC()
+	if now.After(from) && now.Before(to) {
 		to = now.Truncate(time.Second)
 	}
 	var months []span
@@ -247,7 +261,7 @@ func (srv *Service) fetchYear(
 		if end.After(to) {
 			end = to
 		}
-		months = append(months, span{from: start, to: end, open: end.Equal(to) && to.Before(start.AddDate(0, 1, 0).Add(-time.Second))})
+		months = append(months, span{from: start, to: end, settled: !now.Before(start.AddDate(0, 1, 0).Add(calendarSettle))})
 	}
 	// The days next to the days of the year hold the events of the year that
 	// are on them in the account's zone: the day before the year, and the day
@@ -448,6 +462,7 @@ func (srv *Service) fetchMonth(ctx context.Context, user string, month span, tot
 	if err != nil {
 		return monthEvents{}, err
 	}
+	events.Closed = month.settled
 	return events, nil
 }
 
