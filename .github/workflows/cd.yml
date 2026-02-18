@@ -149,7 +149,7 @@ jobs:
           permission-contents: write
       - name: Publish the agent skill
         id: skill
-        uses: octomation/skills-action@v0.1.1
+        uses: octomation/skills-action@v0.2.0
         with:
           tool: maintainer
           token: ${{ steps.catalog.outputs.token }}
