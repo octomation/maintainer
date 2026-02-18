@@ -32,6 +32,9 @@ type DiskClone struct {
 	// rebound is set when the recorded id was kept although the origin's name
 	// belongs to another repository now: fetching through it is unsafe.
 	rebound bool
+	// unreadable is set on the conflict of a path the scan could not read: a
+	// checkout may be there, unseen.
+	unreadable bool
 }
 
 // Occupancy classifies what occupies a would-be target path (§7.5).
@@ -147,9 +150,21 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 
 	actions := make([]Action, 0, len(ids))
 	blocked := map[int64]bool{}
+	// ignored matches the ignore rules by the identity the planning below
+	// uses: the current name on GitHub before the recorded one.
+	ignored := func(id int64) bool {
+		snap, hasSnap := snapByID[id]
+		rec, hasRec := in.State.ByID(id)
+		owner, name := bestName(snap, hasSnap, rec, hasRec)
+		return p.cnf.Ignored(id, owner, name)
+	}
 	for _, c := range in.Clones {
 		if c.Error != "" {
-			if p.cnf.Ignored(c.ID, c.Owner, c.Name) {
+			if c.unreadable && c.ID != 0 {
+				if ignored(c.ID) {
+					continue
+				}
+			} else if p.cnf.Ignored(c.ID, c.Owner, c.Name) {
 				continue
 			}
 			// A checkout bound to an id outside the selection is left alone,
@@ -162,6 +177,25 @@ func (p *Planner) Plan(in PlanInput) ([]Action, error) {
 			}
 			disputed[c.Path] = true
 			actions = append(actions, Action{Kind: KindConflict, ID: c.ID, Owner: c.Owner, Name: c.Name, Path: c.Path, Reason: c.Error})
+		}
+	}
+	// A record inside a directory the scan cannot read has a checkout the scan
+	// did not see: it is a conflict too, so it is neither cloned again nor
+	// moved.
+	for _, c := range in.Clones {
+		if !c.unreadable || in.State == nil {
+			continue
+		}
+		for _, rec := range in.State.Repos {
+			if blocked[rec.ID] || rec.Path == c.Path || !workspace.Within(c.Path, rec.Path) {
+				continue
+			}
+			if _, outside := in.Deselected[rec.ID]; outside || ignored(rec.ID) {
+				continue
+			}
+			blocked[rec.ID] = true
+			actions = append(actions, Action{Kind: KindConflict, ID: rec.ID, Owner: rec.OwnerLogin, Name: rec.Name, Path: rec.Path,
+				Reason: fmt.Sprintf("the checkout is inside %s, which the scan cannot read", c.Path)})
 		}
 	}
 	for _, id := range ids {
@@ -280,6 +314,14 @@ func (p *Planner) deselected(id int64, owner, name string, snap github.RepoSnaps
 func attribute(st *state.State, clones []DiskClone) []DiskClone {
 	out := make([]DiskClone, 0, len(clones))
 	for _, c := range clones {
+		// A recorded checkout the scan cannot read keeps its id: the conflict
+		// blocks that repository, so a rename neither clones it again nor
+		// moves its record.
+		if c.ID == 0 && c.unreadable {
+			if rec, former := recordedAt(st, c.Path); rec != nil {
+				c.ID, c.Owner, c.Name, c.former = rec.ID, rec.OwnerLogin, rec.Name, former
+			}
+		}
 		if c.ID != 0 && c.Error == "" {
 			if rec, former := recordedAt(st, c.Path); rec != nil && rec.ID != c.ID {
 				if sameRepository(rec.RemoteURL, c.RemoteURL) {

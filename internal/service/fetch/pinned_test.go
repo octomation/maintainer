@@ -273,3 +273,28 @@ func TestServicePinnedAdoptionKeepsTheConfig(t *testing.T) {
 
 	assert.Equal(t, []string{"fetch acme/new"}, run(false))
 }
+
+// A missing pin is no unreadable checkout: the pinned repository is still
+// planned, and its copy in the layout stays an inactive orphan.
+func TestServiceMissingPinIsNotAnUnreadableCheckout(t *testing.T) {
+	root := t.TempDir()
+	pin := filepath.Join(t.TempDir(), "special")
+	makeClone(t, filepath.Join(root, "public/acme/svc"), "git@github.com:acme/svc.git")
+	store := state.NewStore(afero.NewOsFs(), filepath.Join(t.TempDir(), "state.json"), nil)
+	st := state.New()
+	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "svc", Path: pin, PinnedPath: pin,
+		RemoteURL: "git@github.com:acme/svc.git", CloneURL: "ssh", SourceProfile: "p"})
+	require.NoError(t, store.Save(st))
+	cnf := &config.Fetch{Defaults: config.Defaults{Root: root, Path: config.DefaultPath, CloneURL: "ssh", Concurrency: 1},
+		Repos: []config.Repo{{Match: config.RepoMatch{ID: 1}, Path: pin}}}
+	require.NoError(t, cnf.Validate())
+	snap := github.RepoSnapshot{ID: 1, Owner: "acme", Name: "svc", Visibility: github.Public, SourceProfile: "p"}
+	var out bytes.Buffer
+	svc, err := NewService(cnf, []ResolvedProfile{{Name: "p", Owners: []string{"acme"}}}, root, root, 1, Deps{
+		Store: store, Discoverer: fakeDiscoverer{snaps: []github.RepoSnapshot{snap}}, Resolver: fakeGitHubNameResolver{},
+		GitSync: gitsvc.NewSync(), Reporter: NewReporter(&out, new(bytes.Buffer), FormatJSON, 0, false),
+	})
+	require.NoError(t, err)
+	require.NoError(t, svc.Run(context.Background(), false))
+	assert.ElementsMatch(t, []string{"orphan acme/svc", "conflict acme/svc", "conflict /"}, planKinds(t, out.Bytes()))
+}

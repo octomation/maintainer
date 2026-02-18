@@ -176,6 +176,9 @@ func (s *Sync) initEmpty(opt CloneOptions) error {
 // Fetch updates remote-tracking refs with prune; the working tree is untouched.
 func (s *Sync) Fetch(ctx context.Context, path string, auth Auth) error {
 	repo, err := git.PlainOpen(path)
+	if unsupportedExtension(err) {
+		return fmt.Errorf("open %s: %w; the fetcher does not refresh such a checkout, run git fetch in it", path, err)
+	}
 	if err != nil {
 		return fmt.Errorf("open %s: %w", path, err)
 	}
@@ -491,6 +494,10 @@ func (s *Sync) Inspect(path string) (CloneInfo, error) {
 
 func (s *Sync) inspect(path string) (CloneInfo, error) {
 	repo, err := git.PlainOpenWithOptions(path, &git.PlainOpenOptions{EnableDotGitCommonDir: true})
+	if unsupportedExtension(err) {
+		// Git reads the origin of a checkout that go-git refuses to open.
+		return inspectWithGit(path)
+	}
 	if err != nil {
 		return CloneInfo{}, fmt.Errorf("open %s: %w", path, err)
 	}
@@ -520,6 +527,28 @@ func (s *Sync) inspect(path string) (CloneInfo, error) {
 			sha = sha[:7]
 		}
 		info.HeadShort = sha
+	}
+	return info, nil
+}
+
+// unsupportedExtension reports that go-git refused to open a repository for a
+// repository extension it does not implement, such as extensions.worktreeConfig
+// of a sparse checkout or extensions.partialClone of a partial clone.
+func unsupportedExtension(err error) bool {
+	return errors.Is(err, git.ErrUnknownExtension) || errors.Is(err, git.ErrUnsupportedExtensionRepositoryFormatVersion)
+}
+
+// inspectWithGit reads the origin of a checkout that go-git does not open the
+// way Inspect reads it: the raw values of its own config file.
+func inspectWithGit(path string) (CloneInfo, error) {
+	var info CloneInfo
+	info.Worktrees, _ = linkedWorktrees(path)
+	var err error
+	if info.Origins, err = localValues(path, "remote."+git.DefaultRemoteName+".url"); err != nil {
+		return CloneInfo{}, fmt.Errorf("read config %s: %w", path, err)
+	}
+	if info.PushURLs, err = localValues(path, "remote."+git.DefaultRemoteName+".pushurl"); err != nil {
+		return CloneInfo{}, fmt.Errorf("read config %s: %w", path, err)
 	}
 	return info, nil
 }

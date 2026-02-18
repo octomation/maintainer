@@ -2,6 +2,7 @@ package fetch
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -102,7 +103,8 @@ func (a *Adopter) ScanScoped(ctx context.Context, scope *workspace.Scope, snapsh
 	// there, and the plan must say so rather than pass for a complete one.
 	obstruct := func(dir string, reason error) error {
 		seen[dir] = true
-		clones = append(clones, DiskClone{Path: dir, Error: "scan: " + reason.Error()})
+		clones = append(clones, DiskClone{Path: dir, Error: "scan: " + reason.Error(),
+			unreadable: !errors.Is(reason, workspace.ErrUnmanagedCheckout)})
 		return nil
 	}
 	if err := scope.Walk(ctx, add, obstruct); err != nil {
@@ -119,7 +121,12 @@ func (a *Adopter) ScanScoped(ctx context.Context, scope *workspace.Scope, snapsh
 func (a *Adopter) inspect(ctx context.Context, dir string, byName map[string]int64) (DiskClone, bool, error) {
 	info, err := a.git.Inspect(dir)
 	if err != nil {
-		return DiskClone{}, false, nil // not a usable git repo; skip silently
+		// A checkout the scan cannot read is a conflict at its path: passing
+		// over it would let a rename clone its repository a second time.
+		if _, statErr := os.Lstat(filepath.Join(dir, ".git")); statErr == nil {
+			return DiskClone{Path: dir, Error: "scan: " + err.Error(), unreadable: true}, true, nil
+		}
+		return DiskClone{}, false, nil // not a git repo; skip silently
 	}
 	if info.Incomplete {
 		// An interrupted clone is neither adopted nor fetched: it is reported,

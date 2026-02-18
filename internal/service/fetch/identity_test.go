@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"testing"
 	"time"
@@ -587,4 +588,171 @@ func TestService_KeptRecordNeverFetchesTheRepositoryThatTookItsName(t *testing.T
 	info, err := gitsvc.NewSync().Inspect(pin)
 	require.NoError(t, err)
 	assert.Equal(t, []string{"https://github.com/acme/new.git"}, info.Origins)
+}
+
+// gitRun runs Git in dir for a test fixture.
+func gitRun(t *testing.T, dir string, args ...string) {
+	t.Helper()
+	out, err := exec.CommandContext(t.Context(), "git", append([]string{"-C", dir}, args...)...).CombinedOutput()
+	require.NoError(t, err, "%s", out)
+}
+
+// renameService plans the tracked checkout of acme/old after GitHub renamed
+// the repository to acme/new.
+func renameService(t *testing.T, root, old string, store *state.Store, git gitsvc.GitSync, out *bytes.Buffer) *Service {
+	t.Helper()
+	return transferService(t, root, old, "acme", "new", store, git, out)
+}
+
+// transferService plans the tracked checkout of acme/old after GitHub moved
+// the repository to owner/name.
+func transferService(t *testing.T, root, old, owner, name string, store *state.Store, git gitsvc.GitSync, out *bytes.Buffer, repos ...config.Repo) *Service {
+	t.Helper()
+	st := state.New()
+	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "old", Path: old,
+		RemoteURL: "https://github.com/acme/old.git", CloneURL: "https", SourceProfile: "p"})
+	require.NoError(t, store.Save(st))
+	cnf := &config.Fetch{Workspace: &config.Workspace{Root: root}, Defaults: config.Defaults{CloneURL: "https", Concurrency: 1}, Repos: repos}
+	snap := github.RepoSnapshot{ID: 1, Owner: owner, Name: name, Visibility: github.Public, SourceProfile: "p"}
+	api := renamedRepository{snapshot: snap}
+	svc, err := NewService(cnf, []ResolvedProfile{{Name: "p", Owners: []string{"acme", owner}}}, root, root, 1, Deps{
+		Store: store, Discoverer: fakeDiscoverer{snaps: []github.RepoSnapshot{snap}}, Confirmer: api, Resolver: api,
+		GitSync: git, Reporter: NewReporter(out, new(bytes.Buffer), FormatJSON, 0, false),
+	})
+	require.NoError(t, err)
+	return svc
+}
+
+// go-git opens neither a sparse checkout nor a partial clone; the scan still
+// recognises them, so a rename moves the checkout instead of cloning it again.
+func TestService_RenameMovesSparseAndPartialCheckouts(t *testing.T) {
+	for name, args := range map[string][][]string{
+		"sparse checkout": {{"sparse-checkout", "set", "--cone", "docs"}},
+		"partial clone":   {{"config", "core.repositoryFormatVersion", "1"}, {"config", "extensions.partialClone", "origin"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			old, renamed := filepath.Join(root, "public/acme/old"), filepath.Join(root, "public/acme/new")
+			checkoutWithWork(t, old, "https://github.com/acme/old.git")
+			for _, argv := range args {
+				gitRun(t, old, argv...)
+			}
+			_, err := gogit.PlainOpen(old)
+			require.Error(t, err, "go-git opens the checkout: the case is not exercised")
+			store := state.NewStore(afero.NewOsFs(), filepath.Join(t.TempDir(), "state.json"), nil)
+
+			var out bytes.Buffer
+			svc := renameService(t, root, old, store, offlineSync{localOriginSync{Sync: gitsvc.NewSync()}}, &out)
+			require.NoError(t, svc.Run(context.Background(), false))
+			assert.Equal(t, []string{"move acme/new", "fetch acme/new"}, planKinds(t, out.Bytes()))
+
+			out.Reset()
+			require.NoError(t, svc.Run(context.Background(), true))
+			_, err = os.Stat(old)
+			assert.True(t, os.IsNotExist(err))
+			info, err := gitsvc.NewSync().Inspect(renamed)
+			require.NoError(t, err)
+			assert.Equal(t, []string{"https://github.com/acme/new.git"}, info.Origins)
+			loaded, err := store.Load()
+			require.NoError(t, err)
+			rec, ok := loaded.ByID(1)
+			require.True(t, ok)
+			assert.Equal(t, renamed, rec.Path)
+		})
+	}
+}
+
+// A recorded checkout the scan cannot read is a conflict at its path: a
+// rename neither clones the repository again nor moves its record.
+func TestService_UnreadableCheckoutKeepsItsRecord(t *testing.T) {
+	for name, spoil := range map[string]func(t *testing.T, dir string){
+		"an extension Git does not know": func(t *testing.T, dir string) {
+			gitRun(t, dir, "config", "core.repositoryFormatVersion", "1")
+			gitRun(t, dir, "config", "extensions.unheardOf", "true")
+		},
+		"a directory the scan cannot enter": func(t *testing.T, dir string) {
+			if os.Geteuid() == 0 {
+				t.Skip("permissions do not restrict root")
+			}
+			require.NoError(t, os.Chmod(dir, 0o000))
+			t.Cleanup(func() { _ = os.Chmod(dir, 0o755) })
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			old := filepath.Join(root, "public/acme/old")
+			checkoutWithWork(t, old, "https://github.com/acme/old.git")
+			spoil(t, old)
+			store := state.NewStore(afero.NewOsFs(), filepath.Join(t.TempDir(), "state.json"), nil)
+
+			var out bytes.Buffer
+			svc := renameService(t, root, old, store, gitsvc.NewSync(), &out)
+			requirePartial(t, svc.Run(context.Background(), true))
+			var plan planDocument
+			require.NoError(t, json.Unmarshal(out.Bytes(), &plan), out.String())
+			require.Len(t, plan.Actions, 1, out.String())
+			a := plan.Actions[0]
+			assert.Equal(t, "conflict", a.Kind)
+			assert.Equal(t, int64(1), a.ID)
+			assert.Equal(t, "acme/old", a.Owner+"/"+a.Name)
+			assert.Equal(t, old, a.Path)
+			assert.Contains(t, a.Reason, "scan: ")
+			_, err := os.Lstat(filepath.Join(root, "public/acme/new"))
+			assert.True(t, os.IsNotExist(err), "the renamed repository is cloned again")
+			loaded, err := store.Load()
+			require.NoError(t, err)
+			rec, ok := loaded.ByID(1)
+			require.True(t, ok)
+			assert.Equal(t, old, rec.Path, "the record keeps the old path")
+		})
+	}
+}
+
+// A recorded checkout inside a directory the scan cannot read is a conflict
+// too: a transfer to another owner neither clones the repository again nor
+// moves its record.
+// An ignore rule on the old name does not cover the repository under its new
+// name, so it does not lift the conflict either.
+func TestService_CheckoutUnderAnUnreadableDirectoryKeepsItsRecord(t *testing.T) {
+	if os.Geteuid() == 0 {
+		t.Skip("permissions do not restrict root")
+	}
+	for name, repos := range map[string][]config.Repo{
+		"no rule":                        nil,
+		"an ignore rule on the old name": {{Match: config.RepoMatch{Owner: "acme", Name: "old"}, Ignore: true}},
+	} {
+		t.Run(name, func(t *testing.T) { checkoutUnderAnUnreadableDirectory(t, repos) })
+	}
+}
+
+func checkoutUnderAnUnreadableDirectory(t *testing.T, repos []config.Repo) {
+	t.Helper()
+	root := t.TempDir()
+	locked, old := filepath.Join(root, "public/acme"), filepath.Join(root, "public/acme/old")
+	checkoutWithWork(t, old, "https://github.com/acme/old.git")
+	require.NoError(t, os.Chmod(locked, 0o000))
+	t.Cleanup(func() { _ = os.Chmod(locked, 0o755) })
+	store := state.NewStore(afero.NewOsFs(), filepath.Join(t.TempDir(), "state.json"), nil)
+
+	var out bytes.Buffer
+	svc := transferService(t, root, old, "beta", "old", store, gitsvc.NewSync(), &out, repos...)
+	requirePartial(t, svc.Run(context.Background(), true))
+	var plan planDocument
+	require.NoError(t, json.Unmarshal(out.Bytes(), &plan), out.String())
+	require.Len(t, plan.Actions, 2, out.String())
+	for _, a := range plan.Actions {
+		assert.Equal(t, "conflict", a.Kind, out.String())
+	}
+	assert.Equal(t, locked, plan.Actions[0].Path)
+	assert.Equal(t, int64(1), plan.Actions[1].ID)
+	assert.Equal(t, "acme/old", plan.Actions[1].Owner+"/"+plan.Actions[1].Name)
+	assert.Equal(t, old, plan.Actions[1].Path)
+	assert.Contains(t, plan.Actions[1].Reason, locked)
+	_, err := os.Lstat(filepath.Join(root, "public/beta/old"))
+	assert.True(t, os.IsNotExist(err), "the transferred repository is cloned again")
+	loaded, err := store.Load()
+	require.NoError(t, err)
+	rec, ok := loaded.ByID(1)
+	require.True(t, ok)
+	assert.Equal(t, old, rec.Path, "the record keeps the old path")
 }

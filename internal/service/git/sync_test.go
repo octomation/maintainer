@@ -211,6 +211,50 @@ func TestSync_InspectAndUpdateRemotePreservePushURLs(t *testing.T) {
 	assert.Equal(t, []string{"no_push"}, info.PushURLs, "update_remote removed the push lock")
 }
 
+// go-git opens no checkout with a repository extension it does not
+// implement; Inspect reads the origin of a sparse checkout and of a partial
+// clone through Git, and reports one that Git refuses too. Fetch does not
+// refresh them and says so.
+func TestSync_InspectReadsCheckoutsWithExtensions(t *testing.T) {
+	const origin = "git@github.com:acme/old.git"
+	for name, args := range map[string][][]string{
+		"sparse checkout":      {{"sparse-checkout", "set", "--cone", "docs"}},
+		"partial clone":        {{"config", "extensions.partialClone", "origin"}},
+		"partial clone format": {{"config", "core.repositoryFormatVersion", "1"}, {"config", "extensions.partialClone", "origin"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			dir := filepath.Join(t.TempDir(), "checkout")
+			gitValue(t, t.TempDir(), "init", "-q", dir)
+			gitValue(t, dir, "remote", "add", "origin", origin)
+			gitValue(t, dir, "config", "remote.origin.pushurl", "no_push")
+			for _, argv := range args {
+				gitValue(t, dir, argv...)
+			}
+			_, err := gogit.PlainOpen(dir)
+			require.Error(t, err, "go-git opens the checkout: the fallback is not exercised")
+
+			info, err := gitsvc.NewSync().Inspect(dir)
+			require.NoError(t, err)
+			assert.Equal(t, []string{origin}, info.Origins)
+			assert.Equal(t, []string{"no_push"}, info.PushURLs)
+
+			err = gitsvc.NewSync().Fetch(t.Context(), dir, gitsvc.Auth{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "run git fetch in it")
+		})
+	}
+
+	dir := filepath.Join(t.TempDir(), "checkout")
+	gitValue(t, t.TempDir(), "init", "-q", dir)
+	gitValue(t, dir, "remote", "add", "origin", origin)
+	gitValue(t, dir, "config", "core.repositoryFormatVersion", "1")
+	gitValue(t, dir, "config", "extensions.unheardOf", "true")
+	_, err := gitsvc.NewSync().Inspect(dir)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), dir)
+	assert.Contains(t, strings.ToLower(err.Error()), "unheardof")
+}
+
 func TestSync_UpdateRemoteKeepsTheRestOfTheConfig(t *testing.T) {
 	// The insteadOf rule matches origin's URL, before and after the update.
 	dir, before := configured(t, `# a line comment

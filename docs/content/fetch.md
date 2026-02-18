@@ -537,6 +537,16 @@ re-cloned. A checkout found at the old path of a renamed repository is moved,
 and fetched, by the second apply. From then on, a re-run against unchanged
 repositories only fetches.
 
+Sparse checkouts (`git sparse-checkout`) and partial clones
+(`git clone --filter`) are recognised like any other checkout: they are
+adopted, and moved after a rename on GitHub. Fetch does not refresh their
+remote-tracking refs: that fetch is an error that names the checkout and asks
+to run `git fetch` in it. A checkout the scan cannot read, for example one with
+a repository extension that Git does not know, is a `conflict` at its path with
+the reason; when the state records it, the repository is neither cloned again
+nor moved, and its record keeps the path. A recorded checkout inside a
+directory the scan cannot read is a `conflict` of its repository the same way.
+
 ## Supported scope
 
 Fetch manages one workspace and GitHub repository clones. It does not perform
