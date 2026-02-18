@@ -56,16 +56,12 @@ is proven or moved into an issue; a release adds the checks it leaves open
 - [ ] **Tool pins**: `make update` would move goreleaser in `tools/go.mod`
   ahead of the version the workflows pin. Hold `make update` until the pins
   move together; `make tool-pins-check` catches a drift.
-- [ ] **The `review` skill moves into the package** (since 2026-11-26): its
-  reports carried v0.5.1 and v0.5.2, and the owner confirmed the benefit.
-  It ships as `maintainer:review` in v0.6.0: octomation/skills-action#2
-  lets a tool publish a second skill, octolab/skills#4 lets the catalog
-  accept it, [MAIN-188](issues/MAIN-188.md) ships it. Until that release,
-  reviews of this repository use the local copy in `.agents/skills/review`,
-  which is not tracked. After the release, a review made with the published
-  skill passes its `check`, the local copy is removed, and only then the
-  review genre goes away from the private `projects:maintainer` skill, in
-  its own repository.
+- [ ] **The `review` skill is published** (since v0.6.0): the catalog plugin
+  carries `maintainer:review`, `skill status --exact` passes with both skills
+  from the plugin, and the local copy is removed. Proven when the first
+  review of this repository made with the published skill passes its
+  `check`. Then the review genre goes away from the private
+  `projects:maintainer` skill, in its own repository.
 
 - [ ] **Local issues [MAIN-166](issues/MAIN-166.md),
   [MAIN-168](issues/MAIN-168.md), [MAIN-170](issues/MAIN-170.md),

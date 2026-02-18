@@ -22,8 +22,8 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2026-11-25T18:15:34Z
-updatedAt: 2026-11-26T15:14:36Z
-lastEditedAt: 2026-11-26T15:14:36Z
+updatedAt: 2026-11-26T17:10:40Z
+lastEditedAt: 2026-11-26T17:10:40Z
 closedAt: null
 ---
 
@@ -93,7 +93,7 @@ Shipping:
       Claude Code and Codex.
 - [x] `ci` installs both skills from the binary and checks them with
       `skill status --exact`.
-- [ ] `cd` publishes with the action of octomation/skills-action#2, then
+- [x] `cd` publishes with the action of octomation/skills-action#2, then
       reads the catalog at `maintainer--vX.Y.Z` and compares the exact set
       of skills and their digests with `skill info --json` of the release
       binary: a missing or extra skill fails.
