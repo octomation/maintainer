@@ -56,12 +56,6 @@ is proven or moved into an issue; a release adds the checks it leaves open
 - [ ] **Tool pins**: `make update` would move goreleaser in `tools/go.mod`
   ahead of the version the workflows pin. Hold `make update` until the pins
   move together; `make tool-pins-check` catches a drift.
-- [ ] **The `review` skill is published** (since v0.6.0): the catalog plugin
-  carries `maintainer:review`, `skill status --exact` passes with both skills
-  from the plugin, and the local copy is removed. Proven when the first
-  review of this repository made with the published skill passes its
-  `check`. Then the review genre goes away from the private
-  `projects:maintainer` skill, in its own repository.
 
 - [ ] **Local issues [MAIN-166](issues/MAIN-166.md),
   [MAIN-168](issues/MAIN-168.md), [MAIN-170](issues/MAIN-170.md),

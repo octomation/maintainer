@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-25T18:15:34Z
-updatedAt: 2026-11-26T17:10:40Z
-lastEditedAt: 2026-11-26T17:10:40Z
-closedAt: null
+updatedAt: 2026-11-26T17:26:35Z
+lastEditedAt: 2026-11-26T17:25:12Z
+closedAt: 2026-11-26T17:26:35Z
 ---
 
 # skills: review: ship the review skill with the agent plugin
@@ -98,7 +98,7 @@ Shipping:
       of skills and their digests with `skill info --json` of the release
       binary: a missing or extra skill fails.
 - [x] The guide on agents describes the second skill.
-- [ ] After the release a user who updates the plugin gets
+- [x] After the release a user who updates the plugin gets
       `maintainer:review`; a review of this repository made with the
       published skill passes `review.py check`, and the local copy in
       `.agents/skills/review` is removed.
@@ -108,3 +108,7 @@ Shipping:
 - New review modes.
 - Changes to the report form beyond what makes it independent of this
   repository.
+
+<!-- 2026-11-26T17:26Z https://github.com/octomation/maintainer/issues/549#issuecomment-7199023958
+Shipped in v0.6.0: the catalog plugin carries maintainer:review, skill status --exact passes with both skills from the plugin, and the first review made with the published skill (.github/reviews/20261126T172207Z.md) passes its check.
+-->
