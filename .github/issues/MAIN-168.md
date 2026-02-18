@@ -1,18 +1,18 @@
 ---
 code: MAIN-168
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABi07ocA
+databaseId: 6632171632
+number: 570
+url: https://github.com/octomation/maintainer/issues/570
 title: "github: contribution: fetch again a month cached while it was open"
 issueType: Bug
 labels:
+  - "effort: medium"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: medium"
-  - "effort: medium"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-26T17:41:55Z
+updatedAt: 2026-11-26T17:41:56Z
 lastEditedAt: null
 closedAt: null
 ---

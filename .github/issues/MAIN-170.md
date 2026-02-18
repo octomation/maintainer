@@ -1,19 +1,19 @@
 ---
 code: MAIN-170
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABi07sbA
+databaseId: 6632172652
+number: 571
+url: https://github.com/octomation/maintainer/issues/571
 title: "status: inspection: keep one slow checkout from holding the whole run"
 issueType: Bug
 labels:
-  - "scope: docs"
-  - "scope: code"
-  - "scope: test"
-  - "type: bug"
-  - "severity: minor"
-  - "impact: medium"
   - "effort: medium"
+  - "impact: medium"
+  - "scope: code"
+  - "scope: docs"
+  - "scope: test"
+  - "severity: minor"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -22,9 +22,9 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
-lastEditedAt: null
+createdAt: 2026-11-26T17:42:00Z
+updatedAt: 2026-11-26T18:59:48Z
+lastEditedAt: 2026-11-26T18:59:48Z
 closedAt: null
 ---
 
@@ -58,9 +58,11 @@ time maintainer status --format=plain >/dev/null
 
 - [ ] A test with a diff that does not return finishes within the bound, with
       the row present and its counts unknown.
-- [ ] On the workspace where the slow run was seen, `time maintainer status
-      --format=plain` drops from about 4 minutes to the time without that
-      checkout plus the bound.
+- [ ] With a checkout whose rename detection takes about 25 s in `git
+      status` and in `git diff`, such as one with 900 staged renames of large
+      files, `time maintainer status --format=plain` takes about the bound, not
+      their sum; on the owner's workspace, where the slow checkout of
+      2026-10-19 is gone, the run takes as long as before the change.
 - [ ] `docs/content/status.md` shows how a row with unknown counts looks.
 
 ## Out of scope

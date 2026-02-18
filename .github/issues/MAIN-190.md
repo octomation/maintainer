@@ -1,9 +1,9 @@
 ---
 code: MAIN-190
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABi075PA
+databaseId: 6632175932
+number: 574
+url: https://github.com/octomation/maintainer/issues/574
 title: "fetch: root: scan the folder of a working directory reached through a symlink"
 issueType: Bug
 labels:
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-26T17:42:13Z
+updatedAt: 2026-11-26T17:42:14Z
 lastEditedAt: null
 closedAt: null
 ---

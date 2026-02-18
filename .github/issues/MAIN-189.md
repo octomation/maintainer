@@ -1,9 +1,9 @@
 ---
 code: MAIN-189
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABi0700Q
+databaseId: 6632174801
+number: 573
+url: https://github.com/octomation/maintainer/issues/573
 title: "fetch: state: refuse an unknown profile in state prune"
 issueType: Bug
 labels:
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-26T17:42:09Z
+updatedAt: 2026-11-26T17:42:09Z
 lastEditedAt: null
 closedAt: null
 ---

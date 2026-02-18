@@ -1,18 +1,18 @@
 ---
 code: MAIN-166
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABi07keg
+databaseId: 6632170618
+number: 569
+url: https://github.com/octomation/maintainer/issues/569
 title: "fetch: scan: recognise sparse and partial checkouts of tracked repositories"
 issueType: Bug
 labels:
+  - "effort: medium"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: major"
-  - "impact: medium"
-  - "effort: medium"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,8 +21,8 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
+createdAt: 2026-11-26T17:41:51Z
+updatedAt: 2026-11-26T17:41:52Z
 lastEditedAt: null
 closedAt: null
 ---

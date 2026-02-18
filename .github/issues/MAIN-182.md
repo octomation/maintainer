@@ -1,18 +1,18 @@
 ---
 code: MAIN-182
-id: null
-databaseId: null
-number: null
-url: null
+id: I_kwDOE2M9Zc8AAAABi07wgQ
+databaseId: 6632173697
+number: 572
+url: https://github.com/octomation/maintainer/issues/572
 title: "service: hub: give every control a 44 px touch target below 600 px"
 issueType: Bug
 labels:
+  - "effort: medium"
+  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "type: bug"
   - "severity: minor"
-  - "impact: medium"
-  - "effort: medium"
+  - "type: bug"
 assignees:
   - kamilsk
 milestone: null
@@ -21,9 +21,9 @@ issueFields: {}
 state: OPEN
 stateReason: null
 duplicateOf: null
-createdAt: null
-updatedAt: null
-lastEditedAt: null
+createdAt: 2026-11-26T17:42:04Z
+updatedAt: 2026-11-26T18:48:05Z
+lastEditedAt: 2026-11-26T18:48:05Z
 closedAt: null
 ---
 
@@ -47,14 +47,16 @@ targets are 44 px below 600 px.
 
 Below 600 px every interactive control of the hub offers a target of at least
 44×44 px, as `web/DESIGN.md` states. The view switch has no empty tail. A
-control can look smaller than its target.
+control can look smaller than its target. A link in the text of an issue or a
+comment follows its line of text, as the inline exception of WCAG 2.5.8 allows.
 
 ## Acceptance criteria
 
 - [ ] In headless Chrome at 390 px, the three controls of the PoC have targets
       of at least 44×44 px.
 - [ ] A check over every interactive element of `/status`, `/inbox`, `/tablo`
-      and the issue page at 390 px finds no target under 44 px.
+      and the issue page at 390 px finds no target under 44 px, links in the
+      text of an issue or a comment aside.
 - [ ] `npx @google/design.md lint web/DESIGN.md` reports no errors, and `make
       web-check` passes.
 
