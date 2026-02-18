@@ -208,7 +208,9 @@ is absolute → used as-is; `~` → expanded from `$HOME`; otherwise joined with
 `root`. `workspace.path` and per-owner templates must stay **within `root`**;
 absolute/`~` paths are supported for per-repo overrides and workspace pins.
 Relative `workspace.root` is resolved from the current working directory,
-not the config directory. Relative pin paths are resolved from that root.
+not the config directory. Relative pin paths are resolved from that root. A
+current directory reached through a symlink is scanned as the folder the
+symlink names; a configured root that is itself a symlink is refused.
 
 ### Active checkouts outside the tree
 

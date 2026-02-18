@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/spf13/afero"
@@ -16,6 +15,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	"go.octolab.org/toolset/maintainer/internal/pkg/exit"
 	statussvc "go.octolab.org/toolset/maintainer/internal/service/status"
+	"go.octolab.org/toolset/maintainer/internal/service/workspace"
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
@@ -43,17 +43,9 @@ func New() *cobra.Command {
 			}
 			fs := afero.NewOsFs()
 			home, _ := os.UserHomeDir()
-			cwd, err := os.Getwd()
+			cwd, err := workspace.WorkDir()
 			if err != nil {
 				return err
-			}
-			// A working directory reached through a symlink is the folder the
-			// symlink names: the implicit root "." scans it. A root the user
-			// names as a symlink is still refused by the scan.
-			if info, err := os.Lstat(cwd); err == nil && info.Mode()&os.ModeSymlink != 0 {
-				if resolved, err := filepath.EvalSymlinks(cwd); err == nil {
-					cwd = resolved
-				}
 			}
 			path, notice, err := (config.FetchConfigLookup{Explicit: configPath, ExplicitSet: cmd.Flags().Changed("config"),
 				Getenv: os.Getenv, WorkDir: cwd, Home: home}).Find(fs)

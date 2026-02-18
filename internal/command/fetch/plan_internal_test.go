@@ -93,3 +93,59 @@ func TestPlanUsesUserConfigNotWorkingDirectory(t *testing.T) {
 	_, err := os.Stat(planted)
 	assert.True(t, os.IsNotExist(err))
 }
+
+// A run whose implicit root is a working directory reached through a symlink
+// plans as in the folder the symlink names; a root named as a symlink is
+// still refused.
+func TestImplicitRootThroughSymlink(t *testing.T) {
+	base, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	real := filepath.Join(base, "real")
+	link := filepath.Join(base, "link")
+	require.NoError(t, os.MkdirAll(real, 0o700))
+	require.NoError(t, os.Symlink("real", link))
+	t.Setenv("HOME", filepath.Join(base, "home"))
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(base, "config"))
+	t.Setenv("XDG_STATE_HOME", filepath.Join(base, "state"))
+	t.Setenv("MAINTAINER_FETCH_CONFIG", "")
+	t.Setenv("GITHUB_TOKEN", "token")
+
+	previous := newDiscoverer
+	t.Cleanup(func() { newDiscoverer = previous })
+	newDiscoverer = func() gitHub {
+		return fakeGitHub{snap: githubsvc.RepoSnapshot{
+			ID: 1, Owner: "acme", Name: "svc", Visibility: githubsvc.Public, DefaultBranch: "main",
+			HTTPSCloneURL: "https://github.com/acme/svc.git", SSHCloneURL: "git@github.com:acme/svc.git",
+		}}
+	}
+	run := func(dir string, args ...string) (string, error) {
+		t.Chdir(dir)
+		cmd := New(nil)
+		var out, errs bytes.Buffer
+		cmd.SetOut(&out)
+		cmd.SetErr(&errs)
+		cmd.SetArgs(append([]string{"--format=json"}, args...))
+		err := cmd.Execute()
+		var plan struct {
+			Actions json.RawMessage `json:"actions"`
+		}
+		if err == nil {
+			require.NoError(t, json.Unmarshal(out.Bytes(), &plan), out.String())
+		}
+		return string(plan.Actions), err
+	}
+
+	want, err := run(real, "--config=", "--owner", "acme")
+	require.NoError(t, err)
+	assert.Contains(t, want, filepath.Join(real, "public", "acme", "svc"))
+	got, err := run(link, "--config=", "--owner", "acme")
+	require.NoError(t, err)
+	assert.Equal(t, want, got)
+
+	cnf := filepath.Join(base, "fetch.toml")
+	require.NoError(t, os.WriteFile(cnf, []byte("[workspace]\nroot = '"+link+"'\n"+
+		"[profiles.user]\ntoken_env = 'GITHUB_TOKEN'\ninclude_owners = ['acme']\n"), 0o600))
+	_, err = run(base, "--config", cnf)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "symlink roots are not followed")
+}

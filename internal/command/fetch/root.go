@@ -17,6 +17,7 @@ import (
 	fetchsvc "go.octolab.org/toolset/maintainer/internal/service/fetch"
 	gitsvc "go.octolab.org/toolset/maintainer/internal/service/git"
 	githubsvc "go.octolab.org/toolset/maintainer/internal/service/github"
+	"go.octolab.org/toolset/maintainer/internal/service/workspace"
 	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
@@ -126,7 +127,7 @@ func run(cmd *cobra.Command, opts *options) error {
 	}
 
 	home, _ := os.UserHomeDir()
-	cwd, _ := os.Getwd()
+	cwd, _ := workspace.WorkDir()
 
 	discoverer := newDiscoverer()
 	reporter := fetchsvc.NewReporter(cmd.OutOrStdout(), cmd.ErrOrStderr(), opts.format, opts.verbose, opts.quiet)
@@ -153,7 +154,7 @@ func run(cmd *cobra.Command, opts *options) error {
 // config file.
 func configPath(cmd *cobra.Command, fs afero.Fs, opts *options) (string, error) {
 	home, _ := os.UserHomeDir()
-	cwd, _ := os.Getwd()
+	cwd, _ := workspace.WorkDir()
 	path, notice, err := config.FetchConfigLookup{
 		Explicit:    opts.config,
 		ExplicitSet: cmd.Flags().Changed("config"),
