@@ -48,6 +48,11 @@ func (c *Checkouts) run(ctx context.Context) {
 	for {
 		c.mu.Lock()
 		c.running, c.pending = true, false
+		// A request that woke the loop before this pass is served by it.
+		select {
+		case <-c.wake:
+		default:
+		}
 		c.mu.Unlock()
 		rows, err := c.collect(ctx)
 		c.mu.Lock()
@@ -66,10 +71,14 @@ func (c *Checkouts) run(ctx context.Context) {
 }
 
 // Refresh asks for a collection; during one, it asks for one more after it.
+// Only an idle loop is woken: a running one sees pending when it finishes.
 func (c *Checkouts) Refresh() {
 	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.pending = true
-	c.mu.Unlock()
+	if c.running {
+		return
+	}
 	select {
 	case c.wake <- struct{}{}:
 	default:
