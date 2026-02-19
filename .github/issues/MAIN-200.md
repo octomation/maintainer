@@ -49,9 +49,9 @@ comment of the code states the behavior that the code has.
 
 ## Acceptance criteria
 
-- [ ] A test of open and close from `/inbox` ends with no two equal adjacent
+- [x] A test of open and close from `/inbox` ends with no two equal adjacent
       history entries, and Back leaves `/inbox`.
-- [ ] `make web-check` passes, and `web/dist` equals a fresh build.
+- [x] `make web-check` passes, and `web/dist` equals a fresh build.
 
 ## Out of scope
 

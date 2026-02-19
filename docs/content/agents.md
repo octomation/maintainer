@@ -43,20 +43,20 @@ maintainer skill status
 
 It checks user and project copies of both skills for Claude Code and Codex, the `maintainer` plugins of both agents, and the legacy Codex skill directory. It reports for each copy whether it is compatible with your binary and whether its content matches the binary’s skill; for copies installed by maintainer, it also detects edits. It warns when one agent loads more than one copy of a skill, notes a plugin that lacks the review skill, and leaves a `review` folder of another tool unchecked.
 
-A binary built from an untagged commit, whose version is `dev` or a pseudo-version such as `v0.6.1-0.20261126121749-fbe59efd127f`, sometimes with `+dirty` at the end, names no release: `skill status` reports `compatibility unknown` for each copy and does not fail on it.
+A binary built from an untagged commit, whose version is `dev` or a pseudo-version such as `v0.6.2-0.20261126121749-fbe59efd127f`, sometimes with `+dirty` at the end, names no release: `skill status` reports `compatibility unknown` for each copy and does not fail on it.
 
 It exits with `1` when a copy is incompatible or was edited after maintainer installed it. `--exact` also fails on content that differs from the bundled skills and on a plugin that does not hold exactly the binary’s skills. Use `maintainer skill status --agent claude-code,codex --exact` to require a matching maintainer skill for both agents: without `--agent`, finding no copies is not an error. A missing review skill outside a plugin is a note; `--skill review` requires it too.
 
 ```text
 $ maintainer skill status --agent claude-code
-maintainer 0.6.0 ships the maintainer skill 0.6.0, sha256:…
-maintainer 0.6.0 ships the review skill 0.6.0, sha256:…
+maintainer 0.6.1 ships the maintainer skill 0.6.1, sha256:…
+maintainer 0.6.1 ships the review skill 0.6.1, sha256:…
 
-Claude Code plugin: maintainer@octolab ~/.claude/plugins/cache/octolab/maintainer/0.6.0/skills/maintainer
-  skill 0.6.0, compatible with this binary, same as this release, installed by another tool
+Claude Code plugin: maintainer@octolab ~/.claude/plugins/cache/octolab/maintainer/0.6.1/skills/maintainer
+  skill 0.6.1, compatible with this binary, same as this release, installed by another tool
 
-Claude Code plugin: maintainer@octolab ~/.claude/plugins/cache/octolab/maintainer/0.6.0/skills/review
-  skill 0.6.0, compatible with this binary, same as this release, installed by another tool
+Claude Code plugin: maintainer@octolab ~/.claude/plugins/cache/octolab/maintainer/0.6.1/skills/review
+  skill 0.6.1, compatible with this binary, same as this release, installed by another tool
 ```
 
 `maintainer skill show` prints the maintainer skill and `--skill review` the other one, `maintainer skill info` gives the version and digest of each, and `maintainer skill export -o <dir>` writes both to any other directory, as `<dir>/maintainer` and `<dir>/review`.
@@ -79,7 +79,7 @@ The [octolab/skills](https://github.com/octolab/skills) catalog holds the skills
 | Codex | `codex plugin marketplace add octolab/skills`, then `codex plugin add maintainer@octolab` | `codex plugin marketplace upgrade octolab`, then `codex plugin add maintainer@octolab` |
 | Any, with the [skills CLI](https://skills.sh/) | `npx skills add octolab/skills --skill maintainer -a claude-code -a codex -g` | `npx skills update` |
 
-The catalog follows the latest release, so an update can bring a skill newer than your binary. Each release is also tagged `maintainer--v0.6.0` in the catalog: `npx skills add 'octolab/skills#maintainer--v0.6.0' --skill maintainer` stays on that release. A `#maintainer--v0.6.0` suffix on `claude plugin marketplace add` pins the whole catalog.
+The catalog follows the latest release, so an update can bring a skill newer than your binary. Each release is also tagged `maintainer--v0.6.1` in the catalog: `npx skills add 'octolab/skills#maintainer--v0.6.1' --skill maintainer` stays on that release. A `#maintainer--v0.6.1` suffix on `claude plugin marketplace add` pins the whole catalog.
 
 ## When versions differ
 

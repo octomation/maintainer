@@ -55,11 +55,11 @@ installed or found in place as this binary's copies.
 
 ## Acceptance criteria
 
-- [ ] With a foreign `review` folder for Claude Code, the hint does not name
+- [x] With a foreign `review` folder for Claude Code, the hint does not name
       `/review` for Claude Code.
-- [ ] With `--agent codex`, the hint names Codex only; with
+- [x] With `--agent codex`, the hint names Codex only; with
       `--agent claude-code`, Claude Code only.
-- [ ] Tests in `internal/command` cover both cases.
+- [x] Tests in `internal/command` cover both cases.
 
 ## Out of scope
 

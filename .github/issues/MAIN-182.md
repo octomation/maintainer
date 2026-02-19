@@ -52,12 +52,12 @@ comment follows its line of text, as the inline exception of WCAG 2.5.8 allows.
 
 ## Acceptance criteria
 
-- [ ] In headless Chrome at 390 px, the three controls of the PoC have targets
+- [x] In headless Chrome at 390 px, the three controls of the PoC have targets
       of at least 44×44 px.
-- [ ] A check over every interactive element of `/status`, `/inbox`, `/tablo`
+- [x] A check over every interactive element of `/status`, `/inbox`, `/tablo`
       and the issue page at 390 px finds no target under 44 px, links in the
       text of an issue or a comment aside.
-- [ ] `npx @google/design.md lint web/DESIGN.md` reports no errors, and `make
+- [x] `npx @google/design.md lint web/DESIGN.md` reports no errors, and `make
       web-check` passes.
 
 ## Out of scope

@@ -17,9 +17,9 @@ compatibility: >-
   publication rule reads GitHub through a signed-in gh.
 metadata:
   author: octomation
-  version: "0.6.0"
+  version: "0.6.1"
   tool: maintainer
-  tool-version-range: ">=0.6.0 <0.7.0"
+  tool-version-range: ">=0.6.1 <0.7.0"
 ---
 
 # Review

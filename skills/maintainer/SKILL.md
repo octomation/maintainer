@@ -13,14 +13,14 @@ description: >-
   .github/.
 license: MIT
 compatibility: >-
-  Requires the maintainer binary >=0.6.0 <0.7.0 on macOS or Linux and Git on
+  Requires the maintainer binary >=0.6.1 <0.7.0 on macOS or Linux and Git on
   PATH. fetch and the contribution commands need network access and a GitHub
   token; status works offline.
 metadata:
   author: octomation
-  version: "0.6.0"
+  version: "0.6.1"
   tool: maintainer
-  tool-version-range: ">=0.6.0 <0.7.0"
+  tool-version-range: ">=0.6.1 <0.7.0"
 ---
 
 # maintainer
@@ -36,7 +36,7 @@ browser.
 
 ## 1. Check the binary first
 
-This skill describes maintainer `>=0.6.0 <0.7.0`. Before anything else:
+This skill describes maintainer `>=0.6.1 <0.7.0`. Before anything else:
 
 1. Run `maintainer version` and read the `version` line.
 2. Compare it with that range.
@@ -56,7 +56,7 @@ This skill describes maintainer `>=0.6.0 <0.7.0`. Before anything else:
 
      Never install a copy from the binary next to a plugin: the agent loads
      both.
-   - `dev`, a pseudo-version such as `v0.6.1-0.20261126121749-fbe59efd127f`,
+   - `dev`, a pseudo-version such as `v0.6.2-0.20261126121749-fbe59efd127f`,
      sometimes ending in `+dirty`, or unknown: treat compatibility as unknown
      and rely on `--help`.
    - `maintainer skill` missing: the binary predates it; rely on `--help` only.

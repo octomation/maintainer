@@ -54,9 +54,9 @@ it.
 
 ## Acceptance criteria
 
-- [ ] A test with an unreadable directory renders a conflict row that names
+- [x] A test with an unreadable directory renders a conflict row that names
       its path and contains no bare `/` as a name.
-- [ ] The JSON output of the same plan names the path of that conflict.
+- [x] The JSON output of the same plan names the path of that conflict.
 
 ## Out of scope
 

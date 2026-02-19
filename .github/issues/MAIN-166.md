@@ -56,10 +56,10 @@ maintainer fetch
 
 ## Acceptance criteria
 
-- [ ] A test with a sparse checkout of a renamed tracked repository plans
+- [x] A test with a sparse checkout of a renamed tracked repository plans
       `move`, not `clone`.
-- [ ] The same test with a partial clone plans `move`.
-- [ ] A test with a checkout that cannot be read reports a conflict with its
+- [x] The same test with a partial clone plans `move`.
+- [x] A test with a checkout that cannot be read reports a conflict with its
       path, and the state record keeps the old path.
 
 ## Out of scope

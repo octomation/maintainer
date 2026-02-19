@@ -56,14 +56,14 @@ time maintainer status --format=plain >/dev/null
 
 ## Acceptance criteria
 
-- [ ] A test with a diff that does not return finishes within the bound, with
+- [x] A test with a diff that does not return finishes within the bound, with
       the row present and its counts unknown.
-- [ ] With a checkout whose rename detection takes about 25 s in `git
+- [x] With a checkout whose rename detection takes about 25 s in `git
       status` and in `git diff`, such as one with 900 staged renames of large
       files, `time maintainer status --format=plain` takes about the bound, not
       their sum; on the owner's workspace, where the slow checkout of
       2026-10-19 is gone, the run takes as long as before the change.
-- [ ] `docs/content/status.md` shows how a row with unknown counts looks.
+- [x] `docs/content/status.md` shows how a row with unknown counts looks.
 
 ## Out of scope
 

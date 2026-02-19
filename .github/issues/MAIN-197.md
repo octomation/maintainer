@@ -52,9 +52,9 @@ and leaves the tracked file as it is.
 
 ## Acceptance criteria
 
-- [ ] Without `godownloader`, `make go-dist-installer` exits non-zero and
+- [x] Without `godownloader`, `make go-dist-installer` exits non-zero and
       `git diff --exit-code bin/install` passes.
-- [ ] With the tool, the target writes the script only after the tool
+- [x] With the tool, the target writes the script only after the tool
       succeeds, or the target is removed together with its mentions.
 
 ## Out of scope

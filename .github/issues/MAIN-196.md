@@ -54,11 +54,11 @@ private reports, as `review.py` does.
 
 ## Acceptance criteria
 
-- [ ] `docs/content/agents.md` and `skills/review/SKILL.md` name
+- [x] `docs/content/agents.md` and `skills/review/SKILL.md` name
       `.agents/reviews/`, not `.agents/`, for `.gitignore` and
       `.git/info/exclude`.
-- [ ] The message of `review.py` and the two texts name the same folder.
-- [ ] `go test ./skills` and the tests of `review.py` pass.
+- [x] The message of `review.py` and the two texts name the same folder.
+- [x] `go test ./skills` and the tests of `review.py` pass.
 
 ## Out of scope
 

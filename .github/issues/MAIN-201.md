@@ -48,12 +48,12 @@ report made by the skill follows it.
 
 ## Acceptance criteria
 
-- [ ] The skill states what to do when the named target is larger than one
+- [x] The skill states what to do when the named target is larger than one
       pass.
-- [ ] The skill states how the Tests lens counts test files under `testdata/`.
-- [ ] The skill states how `Excluded` tells the skill's own exclusions from
+- [x] The skill states how the Tests lens counts test files under `testdata/`.
+- [x] The skill states how `Excluded` tells the skill's own exclusions from
       those of the request, and `review.py check` accepts the form.
-- [ ] `go test ./skills` and the tests of `review.py` pass.
+- [x] `go test ./skills` and the tests of `review.py` pass.
 
 ## Out of scope
 

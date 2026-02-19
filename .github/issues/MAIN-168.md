@@ -53,9 +53,9 @@ result as for any closed month.
 
 ## Acceptance criteria
 
-- [ ] A test of the PoC steps fetches October on 2026-11-01 and counts the
+- [x] A test of the PoC steps fetches October on 2026-11-01 and counts the
       review on 2026-10-20.
-- [ ] A warm run over closed months that were cached after their close fetches
+- [x] A warm run over closed months that were cached after their close fetches
       no month.
 
 ## Out of scope

@@ -54,10 +54,10 @@ maintainer fetch --config= --owner <owner>
 
 ## Acceptance criteria
 
-- [ ] A test with the implicit root through a symlink plans as in the real
+- [x] A test with the implicit root through a symlink plans as in the real
       folder.
-- [ ] A test with an explicit symlinked root still gets the refusal.
-- [ ] `docs/content/fetch.md` states the rule as `docs/content/status.md` does.
+- [x] A test with an explicit symlinked root still gets the refusal.
+- [x] `docs/content/fetch.md` states the rule as `docs/content/status.md` does.
 
 ## Out of scope
 

@@ -50,9 +50,9 @@ collection after it, as the comment of the code states.
 
 ## Acceptance criteria
 
-- [ ] A test holds a collection, sends several refresh requests and counts
+- [x] A test holds a collection, sends several refresh requests and counts
       exactly one more collection.
-- [ ] A refresh request when no collection runs still starts one.
+- [x] A refresh request when no collection runs still starts one.
 
 ## Out of scope
 

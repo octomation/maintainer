@@ -52,9 +52,9 @@ file stays as it is.
 
 ## Acceptance criteria
 
-- [ ] A test runs `state prune --profile` with an unknown profile: exit `2`, the
+- [x] A test runs `state prune --profile` with an unknown profile: exit `2`, the
       message names the profile, the state file is unchanged.
-- [ ] `fetch --profile` and `state prune --profile` give the same error for the
+- [x] `fetch --profile` and `state prune --profile` give the same error for the
       same unknown profile.
 
 ## Out of scope
