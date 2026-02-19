@@ -20,6 +20,9 @@ import (
 
 var agentNames = map[string]string{skill.ClaudeCode: "Claude Code", skill.Codex: "Codex"}
 
+// agentSigils prefix a skill's name to invoke it in the agent.
+var agentSigils = map[string]string{skill.ClaudeCode: "/", skill.Codex: "$"}
+
 // bundle is a skill that ships with this binary.
 type bundle struct {
 	fsys    fs.FS
@@ -331,9 +334,11 @@ func skillInstallCommand(load func() ([]bundle, error)) *cobra.Command {
 				return err
 			}
 			out, named := cmd.OutOrStdout(), cmd.Flags().Changed("skill")
+			// loaded holds, per agent of the run, the skills it can load now.
 			var (
 				failed bool
-				loaded []string
+				order  []string
+				loaded = make(map[string][]string, len(agents))
 			)
 			for _, agent := range agents {
 				for _, b := range picked {
@@ -345,19 +350,26 @@ func skillInstallCommand(load func() ([]bundle, error)) *cobra.Command {
 						failed = true
 						continue
 					}
-					if ok && !contains(loaded, b.name) {
-						loaded = append(loaded, b.name)
+					if ok && !contains(loaded[agent], b.name) {
+						if len(loaded[agent]) == 0 {
+							order = append(order, agent)
+						}
+						loaded[agent] = append(loaded[agent], b.name)
 					}
 				}
 			}
 			if failed {
 				return errors.New("the skills were not installed everywhere")
 			}
-			if len(loaded) == 0 {
+			if len(order) == 0 {
 				return nil
 			}
-			_, err = fmt.Fprintf(out, "Start a new agent session to load the skills: /%s in Claude Code, $%s in Codex.\n",
-				strings.Join(loaded, " and /"), strings.Join(loaded, " and $"))
+			hints := make([]string, 0, len(order))
+			for _, agent := range order {
+				sigil := agentSigils[agent]
+				hints = append(hints, sigil+strings.Join(loaded[agent], " and "+sigil)+" in "+agentNames[agent])
+			}
+			_, err = fmt.Fprintf(out, "Start a new agent session to load the skills: %s.\n", strings.Join(hints, ", "))
 			return err
 		},
 	}

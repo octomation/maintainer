@@ -354,6 +354,36 @@ func TestSkill_foreignReview(t *testing.T) {
 	assert.Contains(t, out, "Claude Code has no copy of the review skill; add it: maintainer skill install --agent claude-code --skill review")
 }
 
+// The closing hint names, per agent of the run, only the skills it can load.
+func TestSkill_installHint(t *testing.T) {
+	const hint = "Start a new agent session to load the skills: "
+
+	home := sandbox(t)
+	out, err := run(t, "skill", "install", "--agent", "codex", "--project")
+	require.NoError(t, err)
+	assert.Contains(t, out, hint+"$maintainer and $review in Codex.\n")
+	assert.NotContains(t, out, "Claude Code")
+
+	out, err = run(t, "skill", "install", "--agent", "claude-code", "--project")
+	require.NoError(t, err)
+	assert.Contains(t, out, hint+"/maintainer and /review in Claude Code.\n")
+	assert.NotContains(t, out, "Codex")
+
+	foreign := filepath.Join(home, ".claude", "skills", "review")
+	require.NoError(t, os.MkdirAll(foreign, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(foreign, "SKILL.md"),
+		[]byte("---\nname: review\n---\n"), 0o644))
+	out, err = run(t, "skill", "install", "--agent", "claude-code,codex")
+	require.NoError(t, err)
+	assert.Contains(t, out, "left "+foreign+" alone")
+	assert.Contains(t, out, hint+"/maintainer in Claude Code, $maintainer and $review in Codex.\n")
+
+	out, err = run(t, "skill", "install", "--agent", "codex,claude-code", "--skill", "maintainer")
+	require.NoError(t, err, "copies found in place are named too")
+	assert.Contains(t, out, "already holds")
+	assert.Contains(t, out, hint+"$maintainer in Codex, /maintainer in Claude Code.\n")
+}
+
 func TestSkill_statusAmbiguousCodexPlugin(t *testing.T) {
 	home := sandbox(t)
 	codex := filepath.Join(home, ".codex")
