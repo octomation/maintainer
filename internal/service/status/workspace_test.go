@@ -25,6 +25,7 @@ func TestWorkspaceBroadPinDuplicatesAndExplicitSelection(t *testing.T) {
 	require.Len(t, rows, 2)
 	for _, row := range rows {
 		assert.Contains(t, row.Error, "multiple checkouts")
+		assert.Nil(t, row.Added, "the line counts of an error row are unknown")
 	}
 	cnf.Repos = []config.Repo{{Match: config.RepoMatch{ID: 1}, Path: pin}}
 	rows, err = Collect(context.Background(), cnf, state.New(), root, root, nil, 2)
@@ -89,7 +90,7 @@ func TestWorkspacePinStaleCopyIsNotDuplicate(t *testing.T) {
 	assert.Equal(t, "duplicate-pin", rows[1].OrphanReason)
 	assert.Equal(t, pin, rows[1].ActivePath)
 	assert.Equal(t, "synced", rows[1].Status)
-	assert.Equal(t, 1, rows[1].Added)
+	assert.Equal(t, new(1), rows[1].Added)
 	assert.Empty(t, rows[1].Error)
 }
 
@@ -254,4 +255,19 @@ func TestWorkspaceSummaryCountsOnlyCheckouts(t *testing.T) {
 	require.NoError(t, Plain(&out, rows))
 	assert.Equal(t, "Repository status · 1 checkout · 0 uncommitted · 0 ahead · 0 behind · 0 locked · 0 orphan · 1 error · local refs (no fetch)",
 		strings.SplitN(out.String(), "\n", 2)[0])
+}
+
+func TestWorkspaceIdentityMismatchLeavesLinesUnknown(t *testing.T) {
+	root := t.TempDir()
+	path := checkout(t, filepath.Join(root, "public/acme"))
+	st := state.New()
+	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "other", Path: path})
+	rows, err := Collect(context.Background(), &config.Fetch{Workspace: &config.Workspace{Root: root}}, st, root, root, nil, 1)
+	require.NoError(t, err)
+	require.Len(t, rows, 1)
+	assert.Contains(t, rows[0].Error, "origin is acme/tool; expected acme/other")
+	assert.Equal(t, "?", Cells(rows[0])[2])
+	assert.Nil(t, rows[0].Added)
+	assert.Nil(t, rows[0].Deleted)
+	assert.Nil(t, rows[0].Binary)
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -62,15 +63,15 @@ func Cells(row Row) []string {
 	if row.Branch != "" && row.Branch == row.DefaultBranch {
 		branch += "*"
 	}
-	changes := fmt.Sprintf("+%d/-%d", row.Added, row.Deleted)
+	changes := "+" + countCell(row.Added) + "/-" + countCell(row.Deleted)
 	if row.Changed > 0 {
 		changes += fmt.Sprintf(" · %df", row.Changed)
 	}
 	if row.Untracked > 0 {
 		changes += fmt.Sprintf(" · ?%d", row.Untracked)
 	}
-	if row.Binary > 0 {
-		changes += fmt.Sprintf(" · %d binary", row.Binary)
+	if count(row.Binary) > 0 {
+		changes += fmt.Sprintf(" · %d binary", *row.Binary)
 	}
 	if row.Conflicts > 0 {
 		changes += fmt.Sprintf(" · !%d", row.Conflicts)
@@ -137,9 +138,31 @@ func (t table) line(i int) string {
 	return out.String()
 }
 
+// linesKnown reports whether the line and binary counts of row were computed.
+func (row Row) linesKnown() bool {
+	return row.Added != nil && row.Deleted != nil && row.Binary != nil
+}
+
+// count is a count that may be unknown, zero for arithmetic only.
+func count(n *int) int {
+	if n == nil {
+		return 0
+	}
+	return *n
+}
+
+// countCell shows a count that was not computed as ?, never as zero.
+func countCell(n *int) string {
+	if n == nil {
+		return "?"
+	}
+	return strconv.Itoa(*n)
+}
+
 // Summary counts rows by category; a row can fall into several. An error row
 // counts only as an error, locked or orphan: its changes and divergence are
-// unknown, never clean. Checkouts excludes the placeholders.
+// unknown, never clean. A row whose line counts are unknown is uncommitted by
+// its other counts. Checkouts excludes the placeholders.
 type Summary struct {
 	Checkouts   int `json:"checkouts"`
 	Uncommitted int `json:"uncommitted"`
@@ -158,7 +181,7 @@ func Summarize(rows []Row) Summary {
 		if row.Error != "" {
 			s.Errors++
 		} else {
-			if row.Added+row.Deleted+row.Changed+row.Untracked+row.Binary+row.Conflicts > 0 {
+			if count(row.Added)+count(row.Deleted)+row.Changed+row.Untracked+count(row.Binary)+row.Conflicts > 0 {
 				s.Uncommitted++
 			}
 			if row.Ahead > 0 {

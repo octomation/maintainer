@@ -291,6 +291,7 @@ func (d *Discovery) finish(rows []Row) []Row {
 		if !selectedOwner(owners, owner) {
 			continue
 		}
+		row.forgetLines()
 		selected = append(selected, row)
 	}
 	for _, row := range d.extra {

@@ -1,15 +1,22 @@
 package status
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"go.octolab.org/toolset/maintainer/internal/config"
+	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
 // Inspect inherits the process environment, so fixtures and assertions
@@ -86,10 +93,10 @@ func TestInspectChangesAndDivergence(t *testing.T) {
 	assert.Equal(t, "diverged", row.Status)
 	assert.Equal(t, 1, row.Ahead)
 	assert.Equal(t, 1, row.Behind)
-	assert.Equal(t, 3, row.Added)
-	assert.Equal(t, 1, row.Deleted)
+	assert.Equal(t, new(3), row.Added)
+	assert.Equal(t, new(1), row.Deleted)
 	assert.Equal(t, 1, row.Untracked)
-	assert.Equal(t, 1, row.Binary)
+	assert.Equal(t, new(1), row.Binary)
 	assert.Equal(t, 2, row.Changed)
 	after, err := os.ReadFile(filepath.Join(path, ".git", "index"))
 	require.NoError(t, err)
@@ -219,7 +226,7 @@ func TestInspectUnbornAndWorktree(t *testing.T) {
 	row := Inspect(context.Background(), Row{Path: root})
 	assert.Empty(t, row.Error)
 	assert.Equal(t, "unborn", row.Status)
-	assert.Equal(t, 2, row.Added)
+	assert.Equal(t, new(2), row.Added)
 	assert.Equal(t, 1, row.Untracked)
 	assert.Empty(t, row.Commit)
 	path := checkout(t, t.TempDir())
@@ -237,8 +244,8 @@ func TestInspectRenameAndConflict(t *testing.T) {
 	row := Inspect(context.Background(), Row{Path: path})
 	assert.Empty(t, row.Error)
 	assert.Equal(t, 1, row.Changed)
-	assert.Zero(t, row.Added)
-	assert.Zero(t, row.Deleted)
+	assert.Equal(t, new(0), row.Added)
+	assert.Equal(t, new(0), row.Deleted)
 	runGit(t, path, "commit", "-m", "rename")
 	runGit(t, path, "checkout", "-b", "conflict")
 	write(t, filepath.Join(path, "renamed\nfile"), "other\n")
@@ -317,7 +324,8 @@ func TestInspectRenames(t *testing.T) {
 			}
 			row := Inspect(context.Background(), Row{Path: path})
 			require.Empty(t, row.Error)
-			assert.Equal(t, tc.want, counts{row.Changed, row.Added, row.Deleted, row.Binary, row.Untracked})
+			require.True(t, row.linesKnown())
+			assert.Equal(t, tc.want, counts{row.Changed, *row.Added, *row.Deleted, *row.Binary, row.Untracked})
 			assert.Zero(t, row.Conflicts)
 		})
 	}
@@ -337,9 +345,9 @@ func TestInspectRenamesIgnoreRenameConfig(t *testing.T) {
 				row := Inspect(context.Background(), Row{Path: path})
 				require.Empty(t, row.Error)
 				assert.Equal(t, 3, row.Changed)
-				assert.Equal(t, 2, row.Added)
-				assert.Zero(t, row.Deleted)
-				assert.Equal(t, 1, row.Binary)
+				assert.Equal(t, new(2), row.Added)
+				assert.Equal(t, new(0), row.Deleted)
+				assert.Equal(t, new(1), row.Binary)
 			})
 		}
 	}
@@ -405,7 +413,78 @@ func TestCountLines(t *testing.T) {
 				return
 			}
 			require.NoError(t, err)
-			assert.Equal(t, Row{Added: tc.added, Deleted: tc.deleted, Binary: tc.binary}, row)
+			assert.Equal(t, Row{Added: new(tc.added), Deleted: new(tc.deleted), Binary: new(tc.binary)}, row)
+		})
+	}
+}
+
+// Rename detection that does not return in the bound, in git status or in
+// the line count, leaves its row with the branch, divergence and push lock,
+// and its line counts unknown; the other checkouts are counted as usual.
+// Past the bound git status runs without renames: a staged rename is two files.
+func TestCollectBoundsRenameDetection(t *testing.T) {
+	real, err := exec.LookPath("git")
+	require.NoError(t, err)
+	for _, tc := range []struct {
+		hang    string
+		changed int
+	}{
+		{hang: "diff", changed: 2},
+		{hang: "status", changed: 3},
+	} {
+		t.Run(tc.hang, func(t *testing.T) {
+			bin := t.TempDir()
+			// Rename detection of the slow checkout leaves a child that holds the output.
+			write(t, filepath.Join(bin, "git"), "#!/bin/sh\nslow=0 hang=0 renames=0\nfor arg do\n"+
+				"  [ \"$arg\" = \"$STATUS_TEST_SLOW\" ] && slow=1\n  [ \"$arg\" = \"$STATUS_TEST_HANG\" ] && hang=1\n"+
+				"  [ \"$arg\" = --find-renames ] && renames=1\ndone\n"+
+				"[ $slow$hang$renames = 111 ] && sleep 30\nexec \"$STATUS_TEST_GIT\" \"$@\"\n")
+			require.NoError(t, os.Chmod(filepath.Join(bin, "git"), 0o755))
+			root := t.TempDir()
+			slow := checkout(t, filepath.Join(root, "public/acme"))
+			write(t, filepath.Join(slow, "local"), "local\n")
+			runGit(t, slow, "add", "local")
+			runGit(t, slow, "commit", "-m", "local")
+			write(t, filepath.Join(slow, "text"), "one\nchanged\n")
+			runGit(t, slow, "mv", "binary", "logo")
+			runGit(t, slow, "config", "remote.origin.pushurl", "no_push")
+			fast := checkout(t, filepath.Join(root, "public/other"))
+			runGit(t, fast, "remote", "set-url", "origin", "https://github.com/acme/lib.git")
+			write(t, filepath.Join(fast, "text"), "one\n")
+			t.Setenv("STATUS_TEST_GIT", real)
+			t.Setenv("STATUS_TEST_SLOW", slow)
+			t.Setenv("STATUS_TEST_HANG", tc.hang)
+			t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+			defer func(bound time.Duration) { renamesBound = bound }(renamesBound)
+			renamesBound = 2 * time.Second
+
+			start := time.Now()
+			rows, err := Collect(context.Background(), &config.Fetch{Workspace: &config.Workspace{Root: root}}, state.New(), root, root, nil, 2)
+			elapsed := time.Since(start)
+			require.NoError(t, err)
+			assert.Less(t, elapsed, 10*time.Second, "the run waits for the bound, not for rename detection")
+			require.Len(t, rows, 2)
+			assert.Equal(t, "acme/lib", rows[0].Repository)
+			require.True(t, rows[0].linesKnown(), "the other checkout is counted")
+			assert.Equal(t, [3]int{0, 1, 1}, [3]int{*rows[0].Added, *rows[0].Deleted, rows[0].Changed})
+			row := rows[1]
+			assert.Equal(t, "acme/tool", row.Repository)
+			assert.Empty(t, row.Error)
+			assert.Equal(t, "main", row.Branch)
+			assert.Equal(t, "ahead", row.Status)
+			assert.Equal(t, 1, row.Ahead)
+			assert.True(t, row.PushLocked)
+			assert.Equal(t, tc.changed, row.Changed)
+			assert.Nil(t, row.Added)
+			assert.Nil(t, row.Deleted)
+			assert.Nil(t, row.Binary)
+			assert.Equal(t, fmt.Sprintf("+?/-? · %df", tc.changed), Cells(row)[2])
+			raw, err := json.Marshal(row)
+			require.NoError(t, err)
+			assert.Contains(t, string(raw), fmt.Sprintf(`"added":null,"deleted":null,"changed_files":%d,"untracked":0,"binary":null`, tc.changed))
+			var out bytes.Buffer
+			require.NoError(t, Plain(&out, rows))
+			assert.Contains(t, out.String(), "Repository status · 2 checkouts · 2 uncommitted · 1 ahead · 0 behind · 1 locked")
 		})
 	}
 }
@@ -427,7 +506,7 @@ func TestInspectAgainRecomputes(t *testing.T) {
 	runGit(t, path, "config", "remote.origin.pushurl", "no_push")
 	first := Inspect(ctx, Row{ID: 1, Path: path, displayPath: "repo", Pinned: true})
 	require.Empty(t, first.Error)
-	assert.Equal(t, [6]int{1, 1, 1, 1, 1, 1}, [6]int{first.Changed, first.Untracked, first.Added, first.Deleted, first.Ahead, first.Behind})
+	assert.Equal(t, [6]int{1, 1, 1, 1, 1, 1}, [6]int{first.Changed, first.Untracked, *first.Added, *first.Deleted, first.Ahead, first.Behind})
 	assert.True(t, first.PushLocked)
 	assert.Equal(t, first, Inspect(ctx, first))
 	// A failed inspection carries nothing from the previous one, and a row

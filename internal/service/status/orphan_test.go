@@ -35,8 +35,8 @@ func TestOrphanKeepsDirtyStatusAndIsSearchable(t *testing.T) {
 	assert.False(t, row.Pinned)
 	assert.Equal(t, "synced", row.Status)
 	assert.Empty(t, row.Error)
-	assert.Equal(t, 1, row.Added)
-	assert.Equal(t, 2, row.Deleted)
+	assert.Equal(t, new(1), row.Added)
+	assert.Equal(t, new(2), row.Deleted)
 	assert.Equal(t, 1, row.Untracked)
 	var plain bytes.Buffer
 	require.NoError(t, Plain(&plain, rows))

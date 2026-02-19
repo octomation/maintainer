@@ -99,8 +99,8 @@ func Query(rows []Row, keys []SortKey, query string) []int {
 		for _, key := range keys {
 			// Unknown numeric values remain last in either direction.
 			if key.Column == ChangesColumn || key.Column == StatusColumn {
-				if (left.Error != "") != (right.Error != "") {
-					if left.Error != "" {
+				if l, r := left.unknown(key.Column), right.unknown(key.Column); l != r {
+					if l {
 						return 1
 					}
 					return -1
@@ -136,8 +136,8 @@ func compareColumn(a, b Row, column Column) int {
 	case BranchColumn:
 		return strings.Compare(strings.ToLower(a.Branch), strings.ToLower(b.Branch))
 	case ChangesColumn:
-		return compareNumbers([]int{a.Added + a.Deleted, a.Changed, a.Untracked, a.Binary, a.Conflicts},
-			[]int{b.Added + b.Deleted, b.Changed, b.Untracked, b.Binary, b.Conflicts})
+		return compareNumbers([]int{count(a.Added) + count(a.Deleted), a.Changed, a.Untracked, count(a.Binary), a.Conflicts},
+			[]int{count(b.Added) + count(b.Deleted), b.Changed, b.Untracked, count(b.Binary), b.Conflicts})
 	case StatusColumn:
 		if order := compareNumbers([]int{a.Ahead + a.Behind, a.Ahead, a.Behind}, []int{b.Ahead + b.Behind, b.Ahead, b.Behind}); order != 0 {
 			return order
@@ -156,6 +156,12 @@ func compareColumn(a, b Row, column Column) int {
 	default:
 		return 0
 	}
+}
+
+// unknown reports whether the numbers that column compares are unknown: an
+// error row, or, for the changes, line counts that were not computed.
+func (row Row) unknown(column Column) bool {
+	return row.Error != "" || column == ChangesColumn && !row.linesKnown()
 }
 
 func compareNumbers(a, b []int) int {

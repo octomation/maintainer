@@ -16,7 +16,9 @@ import (
 )
 
 // Row is shared by the JSON, printable and interactive views. Counts describe
-// local refs only; no network operation is performed.
+// local refs only; no network operation is performed. Added, Deleted and
+// Binary are nil until the line count of the checkout completes: unknown,
+// never zero.
 type Row struct {
 	ID            int64  `json:"id,omitempty"`
 	Repository    string `json:"repository"`
@@ -25,11 +27,11 @@ type Row struct {
 	DefaultBranch string `json:"default_branch,omitempty"`
 	Commit        string `json:"commit,omitempty"`
 	Upstream      string `json:"upstream,omitempty"`
-	Added         int    `json:"added"`
-	Deleted       int    `json:"deleted"`
+	Added         *int   `json:"added"`
+	Deleted       *int   `json:"deleted"`
 	Changed       int    `json:"changed_files"`
 	Untracked     int    `json:"untracked"`
-	Binary        int    `json:"binary"`
+	Binary        *int   `json:"binary"`
 	Conflicts     int    `json:"conflicts"`
 	Ahead         int    `json:"ahead"`
 	Behind        int    `json:"behind"`
@@ -50,6 +52,9 @@ type Row struct {
 func git(ctx context.Context, path string, args ...string) (string, error) {
 	argv := append([]string{"--no-optional-locks", "-C", path, "-c", "core.fsmonitor=false", "-c", "core.quotePath=false"}, args...)
 	cmd := exec.CommandContext(ctx, "git", argv...)
+	// A child of Git, such as a filter, may hold the output open after Git is
+	// killed: stop waiting for it soon after.
+	cmd.WaitDelay = time.Second
 	// A maintainer launched from a hook must still inspect the requested repo.
 	for _, env := range os.Environ() {
 		key, _, _ := strings.Cut(env, "=")
@@ -105,7 +110,8 @@ func Inspect(ctx context.Context, row Row) Row {
 	// Values derived from Git are recomputed rather than accumulated when a row
 	// is inspected again; metadata supplied by the caller is kept.
 	row.Branch, row.Commit, row.Upstream, row.Status, row.Error, row.PushLocked = "", "", "", "", "", false
-	row.Added, row.Deleted, row.Changed, row.Untracked, row.Binary, row.Conflicts, row.Ahead, row.Behind = 0, 0, 0, 0, 0, 0, 0, 0
+	row.Added, row.Deleted, row.Binary = nil, nil, nil
+	row.Changed, row.Untracked, row.Conflicts, row.Ahead, row.Behind = 0, 0, 0, 0, 0
 	if _, err := os.Stat(filepath.Join(row.Path, ".git")); err != nil {
 		row.Status, row.Error = "error", err.Error()
 		return row
@@ -122,13 +128,32 @@ func Inspect(ctx context.Context, row Row) Row {
 	case row.Error == "":
 		row.Status, row.Error = "error", err.Error()
 	}
+	row.forgetLines()
 	return row
+}
+
+// forgetLines drops the line counts of an error row: they are unknown, as
+// its cell shows them, whichever rule made it an error.
+func (row *Row) forgetLines() {
+	if row.Error != "" {
+		row.Added, row.Deleted, row.Binary = nil, nil, nil
+	}
 }
 
 func inspect(ctx context.Context, row *Row) error {
 	// Renames are detected explicitly, as in the line count below, so that
-	// status.renames and diff.renames cannot change a row.
-	raw, statusErr := git(ctx, row.Path, "status", "--porcelain=v2", "--branch", "-z", "--find-renames", "--untracked-files=all", "--ignore-submodules=none")
+	// status.renames and diff.renames cannot change a row. Rename detection
+	// in both shares one bound; past it, git status runs again without it, a
+	// rename counts as a deleted and an added file, and the lines stay unknown.
+	start := time.Now()
+	renames, cancel := context.WithTimeout(ctx, renamesBound)
+	defer cancel()
+	statusArgs := []string{"status", "--porcelain=v2", "--branch", "-z", "--untracked-files=all", "--ignore-submodules=none"}
+	raw, statusErr := git(renames, row.Path, append(statusArgs, "--find-renames")...)
+	spent := time.Since(start)
+	if statusErr != nil && ctx.Err() == nil && renames.Err() != nil {
+		raw, statusErr = git(ctx, row.Path, append(statusArgs, "--no-renames")...)
+	}
 	// Identity is best effort and remains available when git status fails.
 	if origin, err := git(ctx, row.Path, "remote", "get-url", "origin"); err == nil {
 		if name := RemoteName(origin); name != "" {
@@ -185,8 +210,15 @@ func inspect(ctx context.Context, row *Row) error {
 		args = append(args, "HEAD")
 	}
 	args = append(args, "--")
-	stats, err := git(ctx, row.Path, args...)
+	// The line count gets what git status left of the bound: nothing once
+	// git status passed it.
+	lines, cancel := context.WithTimeout(ctx, renamesBound-spent)
+	defer cancel()
+	stats, err := git(lines, row.Path, args...)
 	if err != nil {
+		if ctx.Err() == nil && lines.Err() != nil {
+			return nil // past the bound the line counts stay unknown
+		}
 		return err
 	}
 	if err := countLines(row, stats); err != nil {
@@ -219,10 +251,17 @@ func countStatus(row *Row, raw string) {
 	}
 }
 
-// countLines adds the records of git diff --numstat -z to row. A rename leaves
-// the path field empty and names the original and new paths in the next two
-// NUL fields; it counts as one record.
+// renamesBound limits rename detection in one checkout, in git status and the
+// line count together. Over a large change it can take minutes, and one
+// checkout must not hold the snapshot: past the bound its row keeps the rest
+// and its line counts stay unknown.
+var renamesBound = 10 * time.Second
+
+// countLines sets the line and binary counts of row from the records of git
+// diff --numstat -z. A rename leaves the path field empty and names the
+// original and new paths in the next two NUL fields; it counts as one record.
 func countLines(row *Row, raw string) error {
+	var added, deleted, binary int
 	records := strings.Split(raw, "\x00")
 	for i := 0; i < len(records); i++ {
 		if records[i] == "" {
@@ -239,7 +278,7 @@ func countLines(row *Row, raw string) error {
 			i += 2
 		}
 		if fields[0] == "-" {
-			row.Binary++
+			binary++
 			continue
 		}
 		add, e1 := strconv.Atoi(fields[0])
@@ -247,9 +286,10 @@ func countLines(row *Row, raw string) error {
 		if e1 != nil || e2 != nil {
 			return fmt.Errorf("invalid Git line counts")
 		}
-		row.Added += add
-		row.Deleted += del
+		added += add
+		deleted += del
 	}
+	row.Added, row.Deleted, row.Binary = &added, &deleted, &binary
 	return nil
 }
 

@@ -27,9 +27,9 @@ func TestSortCycleAndPriority(t *testing.T) {
 
 func TestSortUsesWholeSnapshotAndNumericValues(t *testing.T) {
 	rows := []Row{
-		{Repository: "z", Path: "/z", Branch: "main", Added: 12, Behind: 100},
-		{Repository: "a", Path: "/a", Branch: "dev", Added: 3, Ahead: 2},
-		{Repository: "b", Path: "/b", Branch: "main", Added: 2, Behind: 10},
+		{Repository: "z", Path: "/z", Branch: "main", Added: new(12), Deleted: new(0), Binary: new(0), Behind: 100},
+		{Repository: "a", Path: "/a", Branch: "dev", Added: new(3), Deleted: new(0), Binary: new(0), Ahead: 2},
+		{Repository: "b", Path: "/b", Branch: "main", Added: new(2), Deleted: new(0), Binary: new(0), Behind: 10},
 		{Repository: "error", Path: "/error", Error: "cannot inspect"},
 	}
 	before := slices.Clone(rows)

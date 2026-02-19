@@ -209,7 +209,7 @@ func TestLockColumnNavigationAndSorting(t *testing.T) {
 func TestMouseSortingAndSelectionAcrossResize(t *testing.T) {
 	var rows []Row
 	for i := 0; i < 80; i++ {
-		rows = append(rows, Row{Repository: fmt.Sprintf("repo-%02d", i), Path: fmt.Sprint(i), Added: 80 - i})
+		rows = append(rows, Row{Repository: fmt.Sprintf("repo-%02d", i), Path: fmt.Sprint(i), Added: new(80 - i)})
 	}
 	m := newScreen(rows)
 	m.Update(tea.WindowSizeMsg{Width: 120, Height: 24})

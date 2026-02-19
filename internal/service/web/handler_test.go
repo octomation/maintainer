@@ -411,8 +411,8 @@ func TestCheckoutsAPI(t *testing.T) {
 	assert.Equal(t, []string{}, env.Warnings)
 
 	f.collect <- []status.Row{
-		{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", DefaultBranch: "main", Added: 3, Status: "synced"},
-		{Repository: "acme/lib", Path: "/w/acme/lib", Branch: "feature", Ahead: 2, Status: "ahead", PushLocked: true},
+		{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", DefaultBranch: "main", Added: new(3), Status: "synced"},
+		{Repository: "acme/lib", Path: "/w/acme/lib", Branch: "feature", Added: new(0), Deleted: new(0), Binary: new(0), Ahead: 2, Status: "ahead", PushLocked: true},
 		{Repository: "zeta/app", Path: "/w/zeta/app", Status: "error", Error: "boom"},
 	}
 	require.Eventually(t, func() bool {

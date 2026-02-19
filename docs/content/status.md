@@ -82,6 +82,26 @@ the worktree, so a staged rename whose working copy is then rewritten that far
 stays one file in `f` but counts all of its lines as removed and added. Copies
 count as added files.
 
+Rename detection over a large change can take minutes, so status gives it 10
+seconds per checkout, in the file counts and the line count together. A
+checkout that takes longer keeps its row: the branch, the file counts, the
+divergence and the lock are shown as usual, and the line and binary counts are
+unknown, `+?/-?`, never zero. When the file counts themselves pass the bound,
+status counts them again without rename detection: a staged rename is then a
+deleted and an added file, two in `f`. The run does not wait for that checkout
+much longer than the 10 seconds:
+
+```text
+Repository status · 2 checkouts · 2 uncommitted · 1 ahead · 0 behind · 1 locked · 0 orphan · 0 errors · local refs (no fetch)
+
+REPOSITORY            │ BRANCH  │ UNCOMMITTED        │ STATUS  │ LOCK │ PATH
+kamilsk/dotfiles      │ main*   │ +39/-0 · 3f        │ synced  │      │ ~/.dotfiles
+octomation/maintainer │ release │ +?/-? · 1204f · ?2 │ ahead 1 │ 🔒   │ public/octomation/maintainer
+```
+
+Such a row counts as uncommitted by its file counts. JSON shows the unknown
+counts as `null`, and the hub shows the same `+?/-?` cell.
+
 `synced` means the current branch matches its upstream; it can still have
 uncommitted work. A branch can be both ahead and behind. Detached HEAD,
 unborn branches, missing upstream configuration and deleted upstream refs are
@@ -126,8 +146,9 @@ and branch compare case-insensitively. Path compares the displayed path text
 case-sensitively. Uncommitted compares `(added + deleted,
 changed files, untracked, binary, conflicts)` numerically; status compares
 `(ahead + behind, ahead, behind, status text)`. Lock sorts unmarked rows first
-ascending and marked rows first descending. Numeric error rows come last in
-both directions. Ties use repository/path for deterministic order. Clearing
+ascending and marked rows first descending. Rows whose numbers are unknown
+come last in both directions: error rows, and rows with `+?/-?` when sorting by
+Uncommitted. Ties use repository/path for deterministic order. Clearing
 sorting restores repository/path order, or fuzzy relevance while searching.
 
 Shift+Enter requires a terminal that reports modified keys. `S` works in legacy
@@ -248,7 +269,10 @@ JSON is an array, including `[]` for an empty collection, with `repository`,
 absolute `path` (an `unresolved pin` keeps the path of its rule as written),
 `branch`, `added`, `deleted`,
 `changed_files`, `untracked`, `binary`, `conflicts`, `ahead`, `behind`, `status`,
-`push_locked` (boolean), and `pinned`. `id`, `default_branch`, `commit`,
+`push_locked` (boolean), and `pinned`. `added`, `deleted` and `binary` are
+`null` when the lines were not counted: in an error row, in the row of a scan
+obstruction or an unresolved pin, and past the 10-second bound of rename
+detection. `id`, `default_branch`, `commit`,
 `upstream`, `visibility` (`public`, `private` or `internal`, as the fetch state
 recorded it), and `error` are omitted when unavailable or empty. Orphan rows also expose
 `orphan_reason`, optional `active_path`, and `remote_checked_at` for cached

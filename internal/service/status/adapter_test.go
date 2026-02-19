@@ -19,7 +19,7 @@ import (
 // Cells and the summary of Summarize are what Plain prints.
 func TestExportedAdapterMatchesPlain(t *testing.T) {
 	rows := []Row{
-		{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", DefaultBranch: "main", Added: 3, Deleted: 1, Changed: 2, Status: "synced", Upstream: "origin/main"},
+		{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", DefaultBranch: "main", Added: new(3), Deleted: new(1), Changed: 2, Status: "synced", Upstream: "origin/main"},
 		{Repository: "acme/lib", Path: "/w/acme/lib", Branch: "feature", DefaultBranch: "main", Ahead: 2, Status: "ahead", PushLocked: true},
 		{Repository: "zeta/app", Path: "/w/zeta/app", Status: "error", Error: "git status: boom"},
 		{Repository: "acme/old", Path: "/w/acme/old", Branch: "main", Status: "synced", OrphanReason: "duplicate-pin", ActivePath: "/w/acme/tool"},
