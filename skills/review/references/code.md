@@ -18,6 +18,7 @@ git ls-files --others --exclude-standard
 - For a path target, M counts each tracked file under the path, test files included, without generated files.
 - Leave out the issue mirror, `.github/reviews/`, and the folders that the project marks as not product, such as docs and tools.
 - Leave out generated files and test data: build output, mocks, lock files, fixtures under `testdata/`.
+- A file under `testdata/` that a test command of the project runs is a test, not a fixture. It is in M, and the Tests lens reads it.
 - Leave out documents (`*.md`, `LICENSE`). The Contract lens still reads the documents.
 - Add each left-out folder to the pathspec of the second command, such as `':!docs'`.
 - The pass size rule of `references/report.md` applies.
@@ -42,7 +43,7 @@ The gates are the checks of the project. See `SKILL.md`, Project.
 | 2 | Correctness | Behavior against the issue's acceptance criteria and the guides; edge cases; error paths; concurrency; timeouts and cancellation; unbounded growth of requests or memory. | The changed code; the criteria of its issues |
 | 3 | Data safety | Each write, move and delete of user files and state: atomic change, partial failure, repeat run. | The code that writes, moves or deletes files, and the code that saves state |
 | 4 | Contract | Flags, exit codes, output formats, configuration schema, state compatibility. `--help` and the guides agree with the behavior. For a user interface: the design rules of the project. | Command definitions, configuration schemas, the guides of the project |
-| 5 | Tests | A test fails when the behavior breaks. Paths of the Data safety lens have tests. | The tests of the changed packages |
+| 5 | Tests | A test fails when the behavior breaks. Paths of the Data safety lens have tests. | The tests of the changed packages, and the tests of the target under `testdata/` |
 | 6 | Simplicity | Dead code, duplication, needless abstraction, complexity that hides a defect. | The files of the target |
 
 Lens order for sorting: Gates, Correctness, Data safety, Contract, Tests, Simplicity.

@@ -75,7 +75,7 @@ A complete sample report of an example project with the issue prefix `ACME`:
 | Revision | `1848546` on `main`, clean tree |
 | Target | `v0.5.0..HEAD` |
 | Reviewed | 14 of 14 files |
-| Excluded | `docs/`, `tools/` |
+| Excluded | none |
 | Accepted | [[ACME-93]] |
 
 ## Findings
@@ -141,7 +141,8 @@ Five rows, in this order, in each mode. No value is empty.
 - `Revision`: N in `dirty tree: N files` is the line count of `git status --porcelain -- . ':!.github/reviews' | wc -l`.
 - `Reviewed`: N counts the items that you read in full. A search hit does not count.
 - If N < M, at least one lens is not `full`.
-- `Excluded`: a default target has `none`.
+- `Excluded` names only what the request leaves out. A default target has `none`.
+- Do not list the exclusions of the mode reference, such as docs, tools, documents and fixtures. They apply to each target.
 - `Accepted`: name the issue or the document path of each decision. Rule 5 of the admission bar defines a decision.
 
 ## Pass size
@@ -156,6 +157,9 @@ Five rows, in this order, in each mode. No value is empty.
 - `Reviewed` counts the files read in full. N < M follows from the files not read.
 - The `Evidence` of each lens that is not `full` names what is not read and the cause.
 - Lack of time is not a cause.
+- A target that the request names stays the target above the pass size. Do not narrow it.
+- Above the pass size, one request gives one pass and one report. Do not stop before the pass size.
+- Split the target into passes only on an order of a full review.
 
 ### Full review in passes
 
