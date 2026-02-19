@@ -532,6 +532,36 @@ describe('InboxPage', () => {
     await waitFor(() => expect(document.activeElement).toBe(rows()[0]));
   });
 
+  it('closes the full issue page back to the entry of the list, with no second copy of it', async () => {
+    history.replaceState(null, '', '/before');
+    history.pushState(null, '', '/inbox');
+    const length = history.length;
+    const api = mockApi();
+    render(<InboxPage client={new ApiClient('', api.fetch)} />);
+    await screen.findByRole('listbox', { name: 'Tasks' });
+    const id = rows()[0].dataset.id!;
+    fireEvent.click(rows()[0]);
+    const pane = await screen.findByRole('complementary', { name: 'Task' });
+    await within(pane).findByRole('heading', { level: 2 });
+    fireEvent.click(within(pane).getByRole('button', { name: 'Open as a page' }));
+    const issue = await screen.findByRole('region', { name: 'Issue' });
+    await within(issue).findByRole('heading', { level: 2 });
+    fireEvent.click(within(issue).getByRole('button', { name: 'Back to the inbox' }));
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Issue' })).toBeNull());
+    // The entries are /before, /inbox and the issue, each unlike its neighbor.
+    expect(`${location.pathname}${location.search}`).toBe('/inbox');
+    expect(history.length).toBe(length + 1);
+    history.forward();
+    await screen.findByRole('region', { name: 'Issue' });
+    expect(location.search).toBe(`?task=${id}`);
+    history.back();
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Issue' })).toBeNull());
+    expect(`${location.pathname}${location.search}`).toBe('/inbox');
+    // The browser's back leaves the inbox.
+    history.back();
+    await waitFor(() => expect(location.pathname).toBe('/before'));
+  });
+
   it('has no list/board switch and groups the rows from View, with the group in the URL and the arrows across groups', async () => {
     history.replaceState(null, '', '/inbox');
     const api = mockApi();
