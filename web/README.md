@@ -27,6 +27,7 @@ src/components/        Sidebar (+ RepositoryTree), CommandBar, TopBar (+ ViewSwi
 src/styles/            tokens.css (every token of DESIGN.md, both themes), fonts.css
                        (Inter), base.css (the shell and the shared components)
 DESIGN.md              the design guidelines: tokens, layout, components, states
+scripts/               touch-targets.mjs: the 44 px touch targets at 390 px in headless Chrome
 src/pages/props.ts     PageProps: what the shell hands a page
 src/pages/status/      /status, MAIN-156
 src/pages/inbox/       /inbox, MAIN-157 (grouping.tsx: the groups of View → Grouping)
@@ -46,6 +47,18 @@ npm run dev         # Vite on http://localhost:5173 against a running service
 npm run build       # rewrites dist/; commit the result
 make web-check      # from the repository root: all of the above and a diff with dist/
 ```
+
+The touch targets need a browser, so `make web-check` leaves them out: after
+a change of the narrow layout, build the binary with the new `dist/` and run
+the check, which starts that binary as a scratch hub on a free port with its
+own config, state and workspace and exits `1` on a target under 44×44 px:
+
+```sh
+t="$(mktemp -d)" && go build -o "$t/maintainer" .. && node scripts/touch-targets.mjs --binary "$t/maintainer"
+```
+
+`--chrome` names another Chrome than the one in `/Applications`, and
+`--shots <dir>` saves every page at 390 px in both themes.
 
 `npm run dev` proxies `/api` to `$MAINTAINER_SERVICE` and rewrites `Host`
 and `Origin` to that address, which the service requires. The service serves
@@ -165,3 +178,12 @@ typeface, `@fontsource-variable/inter` (OFL): `fonts.css` takes its latin,
 latin-ext and cyrillic files, which Vite copies into `dist/assets`. When a
 change needs a new token, change `DESIGN.md` first and check it with
 `npx --yes @google/design.md lint DESIGN.md`.
+
+Below 600 px every interactive control offers a target of at least 44×44 px
+(`--touch`), in the `max-width: 599px` block of `base.css`: a control grows
+to 44 px, or keeps its look and makes up the target with a transparent
+`::before` (`position: relative` on the control, and room around it so that
+no two targets overlap; an `overflow: hidden` control clips it, so such a
+control grows instead). A field inside its label takes the label as its
+target. A link in the Markdown of an issue or a comment follows its line of
+text, the inline exception of WCAG 2.5.8. Add a new control to that block and run the touch check above.

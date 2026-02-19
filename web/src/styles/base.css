@@ -2865,13 +2865,111 @@ a.menu-item {
     white-space: nowrap;
   }
 
+  /* Two 44 px segments and no tail. */
   .view-switch {
-    width: 84px;
+    width: auto;
     height: var(--touch);
   }
 
   .view-switch__item {
-    height: 40px;
+    width: var(--touch);
+    height: var(--touch);
+  }
+
+  .filter-button--icon {
+    min-width: var(--touch);
+    justify-content: center;
+  }
+
+  /* The chips have their own row: 44 px buttons inside the edge of the chip. */
+  .filter-chip {
+    height: auto;
+  }
+
+  .filter-chip__value,
+  .filter-chip__remove {
+    min-width: var(--touch);
+    min-height: var(--touch);
+    justify-content: center;
+  }
+
+  .sidebar__brand {
+    height: var(--touch);
+    margin: 5px 0;
+  }
+
+  .sidebar__brand-link {
+    height: var(--touch);
+  }
+
+  /* Inside the 4 px padding of the menu, so its scroll box does not clip the field. */
+  .menu-search {
+    height: auto;
+    margin-top: -4px;
+  }
+
+  .menu-search input {
+    height: var(--touch);
+  }
+
+  .command-item {
+    height: var(--touch);
+  }
+
+  .display-row,
+  .prop {
+    min-height: var(--touch);
+  }
+
+  .mini-select select {
+    height: var(--touch);
+  }
+
+  /*
+   * A control that keeps its look takes a 44 px target around it: a
+   * transparent ::before, which the hit test counts as the control.
+   */
+  .issue-header__crumb--back,
+  .prop__button,
+  .ordering__key,
+  .switch {
+    position: relative;
+  }
+
+  .issue-header__crumb--back::before,
+  .prop__button::before,
+  .ordering__key::before {
+    content: '';
+    position: absolute;
+    inset: calc((100% - var(--touch)) / 2) 0;
+  }
+
+  /* The targets of the keys stay inside their group: 10 px around, 20 px between the rows. */
+  .ordering {
+    padding: 10px 0;
+    row-gap: 20px;
+  }
+
+  .ordering__key {
+    min-width: var(--touch);
+    justify-content: center;
+  }
+
+  .switch::before {
+    content: '';
+    position: absolute;
+    inset: -14px -9px;
+  }
+
+  /* The time of a comment: a 44 px line box that takes the margins it adds. */
+  .activity__meta {
+    margin: -14px 0 -6px;
+  }
+
+  .activity__meta a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch);
   }
 
   .sidebar-item,
