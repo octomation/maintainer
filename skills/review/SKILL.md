@@ -124,7 +124,7 @@ python3 <skill-dir>/scripts/review.py check --published <report>
 - `new security` writes to `.agents/reviews/`. A security report is private from its first line.
 - `new security` refuses to write when Git does not ignore the new report in `.agents/reviews/`, or outside a Git repository.
 - `check` gives a `privacy` error for a report in `.agents/reviews/` that Git does not ignore.
-- If `new` refuses, tell the owner to add `.agents/` to `.gitignore` or `.git/info/exclude`. Do not add it yourself.
+- If `new` refuses, tell the owner to add `.agents/reviews/` to `.gitignore` or `.git/info/exclude`. Do not add it yourself.
 - A code or issue finding that an attacker can use makes the report private.
 - Before you write that finding, move the report to `.agents/reviews/` with the same file name.
 - A private report stays private until each of its findings is closed. See `references/report.md`, Publication.
