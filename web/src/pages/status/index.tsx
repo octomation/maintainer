@@ -9,7 +9,7 @@ import { Empty, ErrorState, Loading, ProgressLine } from '../../components/State
 import { Popover } from '../../components/Popover';
 import { TopBar, ViewSwitch } from '../../components/TopBar';
 import type { PageProps } from '../props';
-import { CHECKOUT_GROUP_TITLES, columnTemplate, cycleSort, formatTime, groupOf, groupRows, type Grouping, type Layout, layoutFromSearch, readColumns, sortParam, sortSummary, STATUS_COLUMNS, type StatusColumns, summaryLine, writeColumns } from './model';
+import { CHECKOUT_GROUP_TITLES, columnTemplate, cycleSort, formatTime, groupOf, groupRows, type Grouping, type Layout, layoutFromSearch, readColumns, sortParam, sortSummary, STATUS_COLUMNS, type StatusColumns, summaryLine, uncommitted, writeColumns } from './model';
 import './status.css';
 
 /** How often the page asks again while the service collects. */
@@ -473,7 +473,7 @@ function CheckoutCard({ row, onOpen }: { row: CheckoutRow; onOpen: () => void })
   const cell = (column: CheckoutColumn) => row.cells[CHECKOUT_COLUMNS.indexOf(column)] ?? '';
   const divergence = [row.ahead > 0 ? `↑${row.ahead}` : '', row.behind > 0 ? `↓${row.behind}` : ''].filter(Boolean).join(' ');
   // The counts only where something is uncommitted, or where they are unknown after an error.
-  const changed = row.error !== undefined || row.added + row.deleted + row.changed_files + row.untracked + row.binary + row.conflicts > 0;
+  const changed = row.error !== undefined || uncommitted(row);
   return (
     <li class="card-item">
       <button type="button" class={`card checkout-card ${rowClass(row)}`.trim()} onClick={onOpen}>
@@ -518,10 +518,10 @@ function CheckoutCard({ row, onOpen }: { row: CheckoutRow; onOpen: () => void })
 function CheckoutDetails({ row }: { row: CheckoutRow }) {
   const branch = row.branch || '—';
   const uncommitted = [
-    `+${row.added}/-${row.deleted} tracked lines`,
+    `+${row.added ?? '?'}/-${row.deleted ?? '?'} tracked lines`,
     row.changed_files > 0 ? `${row.changed_files} changed files` : '',
     row.untracked > 0 ? `${row.untracked} untracked` : '',
-    row.binary > 0 ? `${row.binary} binary` : '',
+    (row.binary ?? 0) > 0 ? `${row.binary} binary` : '',
     row.conflicts > 0 ? `${row.conflicts} conflicts` : '',
   ]
     .filter(Boolean)

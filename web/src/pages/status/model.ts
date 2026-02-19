@@ -72,11 +72,16 @@ export function formatTime(value: string | null | undefined): string {
 /** How the list groups the rows; the order inside a group stays the server's. */
 export type Grouping = 'state' | 'owner' | 'none';
 
+/** Whether a row has uncommitted work by the counts it knows, as the server's summary counts it. */
+export function uncommitted(row: CheckoutRow): boolean {
+  return (row.added ?? 0) + (row.deleted ?? 0) + row.changed_files + row.untracked + (row.binary ?? 0) + row.conflicts > 0;
+}
+
 /** The state of a checkout as the list groups it, worst first. */
 export function groupOf(row: CheckoutRow): CheckoutGroup {
   if (row.error) return 'error';
   if (row.orphan_reason || row.placeholder) return 'orphan';
-  if (row.added + row.deleted + row.changed_files + row.untracked + row.binary + row.conflicts > 0) return 'uncommitted';
+  if (uncommitted(row)) return 'uncommitted';
   if (row.ahead > 0 || row.behind > 0 || /ahead|behind|diverged|unborn/.test(row.status)) return 'diverged';
   return 'clean';
 }

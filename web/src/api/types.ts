@@ -174,11 +174,12 @@ export interface CheckoutRow {
   default_branch?: string;
   commit?: string;
   upstream?: string;
-  added: number;
-  deleted: number;
+  /** The line and binary counts are null when they were not computed: unknown, never zero. */
+  added: number | null;
+  deleted: number | null;
   changed_files: number;
   untracked: number;
-  binary: number;
+  binary: number | null;
   conflicts: number;
   ahead: number;
   behind: number;

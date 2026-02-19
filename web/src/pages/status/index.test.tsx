@@ -183,6 +183,20 @@ describe('StatusPage', () => {
     expect(tool.getAttribute('aria-selected')).toBe('false');
   });
 
+  it('shows the line counts that were not computed as unknown, never as zero', async () => {
+    // The server's row of a checkout whose line count passed the bound: the counts are null, the cell is the server's.
+    const slow = { ...checkouts.data.rows[0], added: null, deleted: null, binary: null, changed_files: 3, cells: checkouts.data.rows[0].cells.map((cell, i) => (i === 2 ? '+?/-? · 3f' : cell)) };
+    const unknown: Envelope<CheckoutsData> = { ...checkouts, data: { ...checkouts.data, rows: [slow], summary: { ...checkouts.data.summary, checkouts: 1 } } };
+    await renderPage(mockApi({ route: (call) => (call.url.pathname === '/api/v0/checkouts' ? json(unknown) : undefined) }));
+    expect(groupOf(slow)).toBe('uncommitted');
+    const row = bodyRows()[0];
+    expect(cellsOf(row)[2]).toBe('+?/-? · 3f');
+    fireEvent.click(row);
+    const dialog = await screen.findByRole('dialog', { name: slow.repository });
+    expect(dialog.textContent).toContain('+?/-? tracked lines · 3 changed files');
+    expect(dialog.textContent).not.toContain('null');
+  });
+
   it('opens the drawer with Enter on a focused row and shows orphan and error details', async () => {
     await renderPage();
     const dotfiles = bodyRows().find((row) => row.textContent?.includes('dotfiles')) as HTMLElement;
