@@ -20,8 +20,8 @@ state: OPEN
 stateReason: null
 duplicateOf: null
 createdAt: 2024-01-09T08:49:32Z
-updatedAt: 2026-09-25T05:10:59Z
-lastEditedAt: 2026-09-25T05:10:59Z
+updatedAt: 2026-11-27T14:37:58Z
+lastEditedAt: 2026-11-27T14:37:58Z
 closedAt: null
 ---
 
@@ -34,3 +34,16 @@ The scenario, illustrated: with a target of 50 contributions, an hour is left un
 The proposal is to choose the offset with the target in mind and to cap it from above. How the remaining contributions and the time until the boundary are taken into account has to be defined, as does what happens when no room is left. The resulting date must not go beyond the agreed working interval or the present moment.
 
 The original point of discussion is the [historical jitter call](https://github.com/octomation/maintainer/blob/020d048eebf8059814ca342b4ccd1e34a87784c1/internal/command/github/contribution/suggest.go#L50). Related: configuring hours [[MAIN-101]], a future HEAD [[MAIN-106]].
+
+## Acceptance criteria
+
+- [ ] The offset is at most `min(1 hour, available / remaining)`, where
+      `remaining` is the effective target minus the actual count of the day
+      and `available` is the time from the anchor to the earlier of now and
+      the end of the working interval.
+- [ ] With 50 contributions remaining and one hour available, the offset is
+      under 72 seconds; with no time available, there is no offset.
+- [ ] Tests cover 1, 5 and 50 remaining, a very large target, the bounds of
+      the interval and rounding to whole seconds; the suggestion never leaves
+      the interval or passes now, and stdout stays one timestamp.
+- [ ] `docs/content/contributions.md` says how the offset is chosen.
