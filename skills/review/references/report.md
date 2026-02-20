@@ -12,15 +12,15 @@ One form serves the three modes.
 
 | Mode | Location |
 | --- | --- |
-| `code`, `issue` | `.github/reviews/<UTC>Z.md` |
-| `security` | `.agents/reviews/<UTC>Z.md` |
+| `code`, `issue` | `.github/reports/<UTC>Z.md` |
+| `security` | `.agents/reports/<UTC>Z.md` |
 
-- A security report is in `.agents/reviews/` until its publication. A code or issue report is in `.github/reviews/` or, when private, in `.agents/reviews/`.
+- A security report is in `.agents/reports/` until its publication. A code or issue report is in `.github/reports/` or, when private, in `.agents/reports/`.
 - `<UTC>` is `date -u +%Y%m%dT%H%M%S`. `review.py new` makes the name.
-- Git must ignore `.agents/reviews/`. A security report is private from its first line.
+- Git must ignore `.agents/reports/`. A security report is private from its first line.
 - `new security` refuses to write outside a Git repository or to a folder that Git does not ignore.
-- A code or issue finding that an attacker can use makes the report private. Move the report to `.agents/reviews/` before you write that finding.
-- A private report moves to `.github/reviews/` only by the rule of Publication.
+- A code or issue finding that an attacker can use makes the report private. Move the report to `.agents/reports/` before you write that finding.
+- A private report moves to `.github/reports/` only by the rule of Publication.
 
 ## Front matter
 
@@ -138,7 +138,7 @@ Five rows, in this order, in each mode. No value is empty.
 | Excluded | What the request leaves out of the target, or `none`. |
 | Accepted | The accepted decisions that already hold a candidate, or `none`. |
 
-- `Revision`: N in `dirty tree: N files` is the line count of `git status --porcelain -- . ':!.github/reviews' | wc -l`.
+- `Revision`: N in `dirty tree: N files` is the line count of `git status --porcelain -- . ':!.github/reports' | wc -l`.
 - `Reviewed`: N counts the items that you read in full. A search hit does not count.
 - If N < M, at least one lens is not `full`.
 - `Excluded` names only what the request leaves out. A default target has `none`.
@@ -166,7 +166,7 @@ Five rows, in this order, in each mode. No value is empty.
 - A target above the pass size gets a full review as several passes. The owner orders it.
 - Split the target into parts, each within the pass size. One pass reviews one part and writes one pass report.
 - A pass report is a normal report. Its `Target` is the part.
-- A pass report lives in `.agents/reviews/`, in each mode.
+- A pass report lives in `.agents/reports/`, in each mode.
 - The merge writes one report from the pass reports.
 - The merge joins the findings of one cause, sorts and numbers them, and sums `Reviewed`.
 - In the merged report, each lens takes the weakest `Checked` value of its passes. Its `Evidence` names the passes.
@@ -304,13 +304,13 @@ The report does not change. It gets no status and no link to a later issue. The 
 An issue for a finding of a private report holds this line. The line lists the ID of each finding that the issue fixes:
 
 ```markdown
-Source: [<link text>](../reviews/<report file name>), F1, F3.
+Source: [<link text>](../reports/<report file name>), F1, F3.
 ```
 
-- The line starts at the first column and ends with the period. The link text is free. The link target is `../reviews/` and the file name of the report.
-- An example of a target: `../reviews/20261125T101500Z.md`. An example of a link text: `the security review of 2026-11-25`.
-- On GitHub, a relative link does not resolve. There the target can be the URL of the report, under `.github/reviews/` of a branch.
-- An example of a URL target: `https://github.com/acme/tool/blob/main/.github/reviews/20261125T101500Z.md`.
+- The line starts at the first column and ends with the period. The link text is free. The link target is `../reports/` and the file name of the report.
+- An example of a target: `../reports/20261125T101500Z.md`. An example of a link text: `the security review of 2026-11-25`.
+- On GitHub, a relative link does not resolve. There the target can be the URL of the report, under `.github/reports/` of a branch.
+- An example of a URL target: `https://github.com/acme/tool/blob/main/.github/reports/20261125T101500Z.md`.
 - The line names a finding by its ID. It does not quote the finding.
 - Only an issue of a private report uses this form. The rule applies to each report that an issue names in this form.
 - The link resolves after the publication.
@@ -333,26 +333,26 @@ The rule: each finding of the report is closed, and each issue that names the re
 
 | State | Folder | Meaning |
 | --- | --- | --- |
-| `private` | `.agents/reviews/` | The rule does not hold. `status` prints each blocker. |
-| `publishable` | `.agents/reviews/` | The rule holds. `status` prints the `Publish:` line. |
-| `published` | `.github/reviews/` | The rule holds. |
-| `refused` | `.github/reviews/` | The rule does not hold, or `check` fails. `status` exits 1. |
-| `duplicate` | `.agents/reviews/` | A private copy of a published report. Delete it. |
+| `private` | `.agents/reports/` | The rule does not hold. `status` prints each blocker. |
+| `publishable` | `.agents/reports/` | The rule holds. `status` prints the `Publish:` line. |
+| `published` | `.github/reports/` | The rule holds. |
+| `refused` | `.github/reports/` | The rule does not hold, or `check` fails. `status` exits 1. |
+| `duplicate` | `.agents/reports/` | A private copy of a published report. Delete it. |
 
 ```text
-.agents/reviews/20261201T090000Z.md: private, 1 of 2 findings closed.
+.agents/reports/20261201T090000Z.md: private, 1 of 2 findings closed.
 .github/issues/ACME-190.md:22: publication: ACME-190 holds F2 and is not closed as completed
 #191:1: publication: #191 holds F1 and is not closed as completed
-.agents/reviews/20261125T101500Z.md: publishable, 5 of 5 findings closed.
-Publish: python3 <skill-dir>/scripts/review.py check --published .agents/reviews/20261125T101500Z.md && mv .agents/reviews/20261125T101500Z.md .github/reviews/20261125T101500Z.md
+.agents/reports/20261125T101500Z.md: publishable, 5 of 5 findings closed.
+Publish: python3 <skill-dir>/scripts/review.py check --published .agents/reports/20261125T101500Z.md && mv .agents/reports/20261125T101500Z.md .github/reports/20261125T101500Z.md
 ```
 
-- `status` lists each file of `.agents/reviews/`.
-- In `.github/reviews/`, `status` lists each security report, each report with a private copy, and each report that an issue names by finding ID.
+- `status` lists each file of `.agents/reports/`.
+- In `.github/reports/`, `status` lists each security report, each report with a private copy, and each report that an issue names by finding ID.
 - The `Publish:` line tests the rule first. If the test fails, the file stays private.
 - The `Publish:` line moves the file. The public file equals the private file byte for byte.
 - `check --published` tests one report against the rule, in each of the two folders. A closed `Tracked` issue is valid there.
 - `check` without `--published` is the check of the review: it demands an open `Tracked` issue.
-- `check` without `--published` refuses a security report in `.github/reviews/`.
+- `check` without `--published` refuses a security report in `.github/reports/`.
 - If the two folders hold a file with the same name, the two files must be equal. The `Publish:` line does not replace a different file.
 - A blocker line has the form of a `check` error. It names the issue file or the report line to correct. Without a mirror, it names the issue as `#N`.

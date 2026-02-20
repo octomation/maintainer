@@ -67,7 +67,9 @@ The review skill writes one review report of a repository in a fixed form, in on
 
 Ask for a review report, such as “write a code review report”, or for `maintainer:review` with the catalog plugin. With the binary’s copy, ask for `/review` in Claude Code or `$review` in Codex. The skill needs `python3` and Git; without an issue mirror in `.github/issues/`, it reads the state of your GitHub issues with a signed-in `gh`.
 
-Code and issue reports go to `.github/reviews/`. A security report is private: it goes to `.agents/reviews/`, and the skill refuses to write it there unless Git ignores the folder, so add `.agents/reviews/` to `.gitignore` or `.git/info/exclude` first. You publish a private report yourself once each of its findings is closed: the skill prints the command that moves it to `.github/reviews/`.
+Code and issue reports go to `.github/reports/`. A security report is private: it goes to `.agents/reports/`, and the skill refuses to write it there unless Git ignores the folder, so add `.agents/reports/` to `.gitignore` or `.git/info/exclude` first. You publish a private report yourself once each of its findings is closed: the skill prints the command that moves it to `.github/reports/`.
+
+The skill reads only these two folders.
 
 ## Or get it from the OctoLab catalog
 

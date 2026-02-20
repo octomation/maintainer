@@ -229,17 +229,17 @@ class Base(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def run_check(self, text, folder=".github/reviews"):
+    def run_check(self, text, folder=".github/reports"):
         path = self.root / folder / NAME
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
         return review.check(path, self.root)
 
-    def rules(self, text, folder=".github/reviews"):
+    def rules(self, text, folder=".github/reports"):
         errors, _ = self.run_check(text, folder)
         return {e.split(": ")[1] for e in errors}
 
-    def assertRule(self, text, rule, folder=".github/reviews"):
+    def assertRule(self, text, rule, folder=".github/reports"):
         errors, _ = self.run_check(text, folder)
         self.assertIn(rule, {e.split(": ")[1] for e in errors}, errors)
 
@@ -250,7 +250,7 @@ class Valid(Base):
         self.assertEqual(errors, [])
         self.assertEqual(out, [
             "Code review: BLOCKED — Critical 1, High 0, Medium 1, Low 1.",
-            "Report: .github/reviews/" + NAME,
+            "Report: .github/reports/" + NAME,
             "First: F1 A failed save leaves an empty state file.",
             "Coverage: full."])
 
@@ -258,7 +258,7 @@ class Valid(Base):
         self.assertEqual(self.run_check(ISSUE)[0], [])
 
     def test_security(self):
-        errors, out = self.run_check(SECURITY, ".agents/reviews")
+        errors, out = self.run_check(SECURITY, ".agents/reports")
         self.assertEqual(errors, [])
         self.assertEqual(out[3], "Coverage: partial: Gates.")
         self.assertEqual(out[4], review.PRIVATE_LINE)
@@ -316,10 +316,10 @@ class Invalid(Base):
         self.assertEqual(self.run_check(text)[0], [])
 
     def test_security_under_github(self):
-        self.assertRule(SECURITY, "privacy", ".github/reviews")
+        self.assertRule(SECURITY, "privacy", ".github/reports")
 
     def test_security_published(self):
-        path = self.root / ".github/reviews" / NAME
+        path = self.root / ".github/reports" / NAME
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(SECURITY)
         errors, _ = review.check(path, self.root, published=True)
@@ -366,7 +366,7 @@ class Regressions(Base):
         errors, out = self.run_check(text)
         self.assertIn("findings", {e.split(": ")[1] for e in errors}, errors)
         with contextlib.redirect_stdout(io.StringIO()) as out:
-            code = review.main(["check", str(self.root / ".github/reviews" / NAME), "--root", str(self.root)])
+            code = review.main(["check", str(self.root / ".github/reports" / NAME), "--root", str(self.root)])
         self.assertEqual(code, 1)
         self.assertNotIn("CLEAR", out.getvalue())
 
@@ -378,7 +378,7 @@ class Regressions(Base):
         self.assertRule(CODE.replace("### F1.", "Some prose.\n\n### F1."), "findings")
 
     def test_private_code_report(self):
-        errors, out = self.run_check(CODE, ".agents/reviews")
+        errors, out = self.run_check(CODE, ".agents/reports")
         self.assertEqual(errors, [])
         self.assertEqual(out[-1], review.PRIVATE_LINE)
 
@@ -389,9 +389,9 @@ class Regressions(Base):
         self.assertRule(SECURITY, "privacy", "docs")
 
     def test_symlinked_folder(self):
-        (self.root / "outside/reviews").mkdir(parents=True)
+        (self.root / "outside/reports").mkdir(parents=True)
         (self.root / ".agents").symlink_to(self.root / "outside")
-        self.assertRule(SECURITY, "privacy", ".agents/reviews")
+        self.assertRule(SECURITY, "privacy", ".agents/reports")
 
     def test_blocked_names_first_three(self):
         rows = "\n".join("| F%d | High | Data safety | `a.go:%d` | A save loses file %d | — |" % (i, i, i)
@@ -441,7 +441,7 @@ class ClosedForm(Base):
 
 
 STEM = NAME[:-len(".md")]
-SOURCE = "Source: [the security review of 2026-11-25](../reviews/%s)" % NAME
+SOURCE = "Source: [the security review of 2026-11-25](../reports/%s)" % NAME
 TRACKED = SECURITY.replace("`Origin` check | — |", "`Origin` check | [[MAIN-131]] |").split("### F1.")[0] \
     + "## Coverage" + SECURITY.split("## Coverage")[1]
 NO_FINDING = SECURITY.split("| ID |")[0] + "None.\n\n## Coverage" + SECURITY.split("## Coverage")[1]
@@ -458,15 +458,15 @@ class Rule(Base):
         text = "---\nnumber: %d\nstate: %s\nstateReason: %s\n---\n\n# An issue\n\n%s\n" % (n, state, reason, tail)
         (self.root / ".github/issues" / ("MAIN-%d.md" % n)).write_text(text)
 
-    def put(self, text=SECURITY, folder=".agents/reviews", name=NAME):
+    def put(self, text=SECURITY, folder=".agents/reports", name=NAME):
         path = self.root / folder / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
         return path
 
     def blockers(self, text=SECURITY):
-        """The publication errors of a forced move: the report under .github/reviews/."""
-        errors, _ = review.check(self.put(text, ".github/reviews"), self.root, published=True)
+        """The publication errors of a forced move: the report under .github/reports/."""
+        errors, _ = review.check(self.put(text, ".github/reports"), self.root, published=True)
         self.assertEqual({e.split(": ")[1] for e in errors} - {"publication"}, set(), errors)
         return [e.split(": publication: ")[1] for e in errors]
 
@@ -478,7 +478,7 @@ class Rule(Base):
 
 
 class Publication(Rule):
-    """A report leaves .agents/reviews/ only when each finding has an issue
+    """A report leaves .agents/reports/ only when each finding has an issue
     and each issue that names the report is closed as completed."""
 
     def test_no_issue(self):
@@ -494,7 +494,7 @@ class Publication(Rule):
         self.assertEqual(out[4], review.publish_line(NAME, self.root.resolve()))
         self.assertTrue(out[4].startswith("Publish: python3 "), out[4])
         self.assertTrue(out[4].endswith(
-            " check --published .agents/reviews/%s && mv .agents/reviews/%s .github/reviews/%s" % (NAME, NAME, NAME)),
+            " check --published .agents/reports/%s && mv .agents/reports/%s .github/reports/%s" % (NAME, NAME, NAME)),
             out[4])
         self.assertEqual(self.blockers(), [])
 
@@ -509,37 +509,37 @@ class Publication(Rule):
 
     def test_publish_line_quotes_paths(self):
         line = review.publish_line("a b.md", self.root.resolve())
-        self.assertIn(" check --published '.agents/reviews/a b.md' && mv '.agents/reviews/a b.md' "
-                      "'.github/reviews/a b.md'", line)
+        self.assertIn(" check --published '.agents/reports/a b.md' && mv '.agents/reports/a b.md' "
+                      "'.github/reports/a b.md'", line)
 
     def test_publish_line_moves_the_report(self):
         self.issue(200, SOURCE + ", F1.")
         self.put()
-        (self.root / ".github/reviews").mkdir()
+        (self.root / ".github/reports").mkdir()
         done = self.publish()
         self.assertEqual(done.returncode, 0, done.stdout + done.stderr)
         self.assertNotIn("Publish:", done.stdout)
-        self.assertFalse((self.root / ".agents/reviews" / NAME).exists())
-        self.assertEqual((self.root / ".github/reviews" / NAME).read_text(), SECURITY)
+        self.assertFalse((self.root / ".agents/reports" / NAME).exists())
+        self.assertEqual((self.root / ".github/reports" / NAME).read_text(), SECURITY)
         self.assertEqual(self.run_main("status"),
-                         (0, [".github/reviews/%s: published, 1 of 1 findings closed." % NAME]))
+                         (0, [".github/reports/%s: published, 1 of 1 findings closed." % NAME]))
 
     def test_stale_publish_line_leaves_the_report_private(self):
         self.issue(200, SOURCE + ", F1.")
         self.put()
-        (self.root / ".github/reviews").mkdir()
+        (self.root / ".github/reports").mkdir()
         self.issue(200, SOURCE + ", F1.", "OPEN", "null")
         done = self.publish()
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
         self.assertIn("MAIN-200 holds F1 and is not closed as completed", done.stdout)
-        self.assertTrue((self.root / ".agents/reviews" / NAME).exists())
-        self.assertFalse((self.root / ".github/reviews" / NAME).exists())
+        self.assertTrue((self.root / ".agents/reports" / NAME).exists())
+        self.assertFalse((self.root / ".github/reports" / NAME).exists())
 
     def test_url_source(self):
-        url = SOURCE.replace("../reviews/", "https://github.com/octo/repo/blob/main/.github/reviews/")
+        url = SOURCE.replace("../reports/", "https://github.com/octo/repo/blob/main/.github/reports/")
         self.issue(200, url + ", F1.")
         self.assertEqual(self.blockers(), [])
-        self.issue(200, url.replace("/.github/reviews/", "/docs/") + ", F1.")
+        self.issue(200, url.replace("/.github/reports/", "/docs/") + ", F1.")
         self.assertIn("F1 has no issue", self.blockers())
 
     def test_repeated_state_key(self):
@@ -562,21 +562,21 @@ class Publication(Rule):
         (self.root / ".github/issues/MAIN-131.md").write_text(
             "---\nnumber: 131\nstate: CLOSED\nstateReason: COMPLETED\n---\n")
         self.issue(200, SOURCE + ", F1, F3.")
-        self.put(CODE, ".github/reviews")
+        self.put(CODE, ".github/reports")
         self.assertEqual(self.run_main("status"),
-                         (0, [".github/reviews/%s: published, 3 of 3 findings closed." % NAME]))
+                         (0, [".github/reports/%s: published, 3 of 3 findings closed." % NAME]))
         self.issue(200, SOURCE + ", F1, F3.", "OPEN", "null")
         code, out = self.run_main("status")
-        self.assertEqual((code, out[0]), (1, ".github/reviews/%s: refused, 1 of 3 findings closed." % NAME))
+        self.assertEqual((code, out[0]), (1, ".github/reports/%s: refused, 1 of 3 findings closed." % NAME))
         text = EMPTY.replace("2026-11-25T10:15:00Z", "2026-11-26T10:15:00Z")
-        code, out = self.run_main("check", str(self.put(text, ".github/reviews", "20261126T101500Z.md")))
-        self.assertEqual(out[4:], ["Refused: .github/reviews/%s breaks the publication rule; run status." % NAME])
+        code, out = self.run_main("check", str(self.put(text, ".github/reports", "20261126T101500Z.md")))
+        self.assertEqual(out[4:], ["Refused: .github/reports/%s breaks the publication rule; run status." % NAME])
 
     def test_published_hand_over(self):
         self.issue(200, SOURCE + ", F1.")
-        errors, out = review.check(self.put(folder=".github/reviews"), self.root, published=True)
+        errors, out = review.check(self.put(folder=".github/reports"), self.root, published=True)
         self.assertEqual(errors, [])
-        self.assertEqual(out[1], "Report: .github/reviews/" + NAME)
+        self.assertEqual(out[1], "Report: .github/reports/" + NAME)
         self.assertEqual(len(out), 4)
 
     def test_open_issue(self):
@@ -601,13 +601,13 @@ class Publication(Rule):
     def test_source_without_finding(self):
         self.issue(200, SOURCE + ".")
         self.assertEqual(self.blockers(), [
-            "the line must be: Source: [<text>](../reviews/%s), F<n>." % NAME, "F1 has no issue"])
+            "the line must be: Source: [<text>](../reports/%s), F<n>." % NAME, "F1 has no issue"])
 
     def test_source_forms(self):
         for tail in (", F1", ", F1 .", ", f1.", ",F1.", ", F1, .", ", F1. More text."):
             with self.subTest(tail=tail):
                 self.issue(200, SOURCE + tail)
-                self.assertIn("the line must be: Source: [<text>](../reviews/%s), F<n>." % NAME, self.blockers())
+                self.assertIn("the line must be: Source: [<text>](../reports/%s), F<n>." % NAME, self.blockers())
 
     def test_source_of_other_finding(self):
         self.issue(200, SOURCE + ", F1, F2.")
@@ -632,7 +632,7 @@ class Publication(Rule):
         self.assertEqual(self.blockers(TRACKED), ["MAIN-131 holds F1 and is not closed as completed"])
         self.issue(131)
         self.assertEqual(self.blockers(TRACKED), [])
-        self.assertRule(TRACKED, "tracked", ".agents/reviews")
+        self.assertRule(TRACKED, "tracked", ".agents/reports")
 
     def test_no_finding(self):
         errors, out = review.check(self.put(NO_FINDING), self.root)
@@ -647,28 +647,28 @@ class Publication(Rule):
         self.assertEqual(errors, [])
         self.assertEqual(len(out), 4)
         code, out = self.run_main("status")
-        self.assertEqual(out, [".agents/reviews/%s: publishable, 3 of 3 findings closed." % NAME,
+        self.assertEqual(out, [".agents/reports/%s: publishable, 3 of 3 findings closed." % NAME,
                                review.publish_line(NAME, self.root.resolve())])
 
     def test_private_copy_differs(self):
         self.issue(200, SOURCE + ", F1.")
         self.put(SECURITY.replace("Read the workflows", "Read each workflow"))
-        self.assertEqual(self.blockers(), ["the report differs from its copy in .agents/reviews/"])
+        self.assertEqual(self.blockers(), ["the report differs from its copy in .agents/reports/"])
 
     def test_stale_publish_line_keeps_a_differing_public_file(self):
         self.issue(200, SOURCE + ", F1.")
         self.put()
         other = SECURITY.replace("Read the workflows", "Read each workflow")
-        self.put(other, ".github/reviews")
+        self.put(other, ".github/reports")
         done = self.publish()
         self.assertEqual(done.returncode, 1, done.stdout + done.stderr)
-        self.assertIn("the report differs from its copy in .github/reviews/", done.stdout)
-        self.assertEqual((self.root / ".agents/reviews" / NAME).read_text(), SECURITY)
-        self.assertEqual((self.root / ".github/reviews" / NAME).read_text(), other)
+        self.assertIn("the report differs from its copy in .github/reports/", done.stdout)
+        self.assertEqual((self.root / ".agents/reports" / NAME).read_text(), SECURITY)
+        self.assertEqual((self.root / ".github/reports" / NAME).read_text(), other)
 
     def test_forced_move_fails(self):
         self.issue(200, SOURCE + ", F1.", "OPEN", "null")
-        path = self.put(folder=".github/reviews")
+        path = self.put(folder=".github/reports")
         code, out = self.run_main("check", str(path), "--published")
         self.assertEqual(code, 1)
         self.assertEqual(out, [".github/issues/MAIN-200.md:3: publication: "
@@ -681,67 +681,67 @@ class Publication(Rule):
         self.put()
         code, out = self.run_main("status")
         self.assertEqual(code, 0)
-        self.assertEqual(out, [".agents/reviews/%s: private, 0 of 1 findings closed." % NAME,
-                               ".agents/reviews/%s:31: publication: F1 has no issue" % NAME])
+        self.assertEqual(out, [".agents/reports/%s: private, 0 of 1 findings closed." % NAME,
+                               ".agents/reports/%s:31: publication: F1 has no issue" % NAME])
 
     def test_status_publishable(self):
         self.put()
         self.issue(200, SOURCE + ", F1.")
         code, out = self.run_main("status")
         self.assertEqual(code, 0)
-        self.assertEqual(out, [".agents/reviews/%s: publishable, 1 of 1 findings closed." % NAME,
+        self.assertEqual(out, [".agents/reports/%s: publishable, 1 of 1 findings closed." % NAME,
                                review.publish_line(NAME, self.root.resolve())])
 
     def test_status_published(self):
-        self.put(folder=".github/reviews")
+        self.put(folder=".github/reports")
         self.issue(200, SOURCE + ", F1.")
         self.assertEqual(self.run_main("status"),
-                         (0, [".github/reviews/%s: published, 1 of 1 findings closed." % NAME]))
+                         (0, [".github/reports/%s: published, 1 of 1 findings closed." % NAME]))
 
     def test_status_refused(self):
-        self.put(folder=".github/reviews")
+        self.put(folder=".github/reports")
         self.issue(200, SOURCE + ", F1.", "OPEN", "null")
         code, out = self.run_main("status")
         self.assertEqual(code, 1)
-        self.assertEqual(out[0], ".github/reviews/%s: refused, 0 of 1 findings closed." % NAME)
+        self.assertEqual(out[0], ".github/reports/%s: refused, 0 of 1 findings closed." % NAME)
         self.assertEqual(len(out), 2)
 
     def test_status_duplicate(self):
         self.put()
-        self.put(folder=".github/reviews")
+        self.put(folder=".github/reports")
         self.issue(200, SOURCE + ", F1.")
         self.assertEqual(self.run_main("status"), (0, [
-            ".agents/reviews/%s: duplicate of the published report; delete it." % NAME,
-            ".github/reviews/%s: published, 1 of 1 findings closed." % NAME]))
+            ".agents/reports/%s: duplicate of the published report; delete it." % NAME,
+            ".github/reports/%s: published, 1 of 1 findings closed." % NAME]))
 
     def test_status_draft(self):
         self.put(SECURITY.replace("| Target | full |", "| Target | <target> |"))
         self.issue(200, SOURCE + ", F1.")
         code, out = self.run_main("status")
         self.assertEqual(code, 0)
-        self.assertEqual(out, [".agents/reviews/%s: private, 1 of 1 findings closed." % NAME,
-                               ".agents/reviews/%s:1: publication: the report has 1 other errors; run check" % NAME])
+        self.assertEqual(out, [".agents/reports/%s: private, 1 of 1 findings closed." % NAME,
+                               ".agents/reports/%s:1: publication: the report has 1 other errors; run check" % NAME])
 
     def test_status_skips_public_code_report(self):
-        self.put(CODE, ".github/reviews")
+        self.put(CODE, ".github/reports")
         self.assertEqual(self.run_main("status"), (0, ["No private report and no published security report."]))
 
     def test_hand_over_proposes_other_report(self):
         self.put()
         self.issue(200, SOURCE + ", F1.")
         text = EMPTY.replace("2026-11-25T10:15:00Z", "2026-11-26T10:15:00Z")
-        code, out = self.run_main("check", str(self.put(text, ".github/reviews", "20261126T101500Z.md")))
+        code, out = self.run_main("check", str(self.put(text, ".github/reports", "20261126T101500Z.md")))
         self.assertEqual(code, 0)
         self.assertEqual(out[4:], [review.publish_line(NAME, self.root.resolve())])
-        code, out = self.run_main("check", str(self.root / ".agents/reviews" / NAME))
+        code, out = self.run_main("check", str(self.root / ".agents/reports" / NAME))
         self.assertEqual(out[4:], [review.publish_line(NAME, self.root.resolve())])
 
     def test_hand_over_names_refused_report(self):
-        self.put(folder=".github/reviews")
+        self.put(folder=".github/reports")
         text = EMPTY.replace("2026-11-25T10:15:00Z", "2026-11-26T10:15:00Z")
-        code, out = self.run_main("check", str(self.put(text, ".github/reviews", "20261126T101500Z.md")))
+        code, out = self.run_main("check", str(self.put(text, ".github/reports", "20261126T101500Z.md")))
         self.assertEqual(code, 0)
-        self.assertEqual(out[4:], ["Refused: .github/reviews/%s breaks the publication rule; run status." % NAME])
+        self.assertEqual(out[4:], ["Refused: .github/reports/%s breaks the publication rule; run status." % NAME])
 
 
 class Case20261125(Rule):
@@ -770,7 +770,7 @@ class Case20261125(Rule):
     def test_as_filed(self):
         self.issues(lambda fid: ".")
         got = self.blockers(self.report())
-        self.assertEqual(got.count("the line must be: Source: [<text>](../reviews/%s), F<n>." % NAME), 6)
+        self.assertEqual(got.count("the line must be: Source: [<text>](../reports/%s), F<n>." % NAME), 6)
         self.assertEqual(got[6:], ["F%d has no issue" % i for i in range(1, 6)])
         self.put(self.report())
         self.assertEqual(self.run_main("status")[0], 1)
@@ -778,18 +778,36 @@ class Case20261125(Rule):
     def test_with_finding_ids(self):
         self.issues(lambda fid: ", %s." % fid)
         self.assertEqual(self.blockers(self.report()), [])
-        (self.root / ".github/reviews" / NAME).unlink()
+        (self.root / ".github/reports" / NAME).unlink()
         self.put(self.report())
         code, out = self.run_main("status")
-        self.assertEqual((code, out[0]), (0, ".agents/reviews/%s: publishable, 5 of 5 findings closed." % NAME))
+        self.assertEqual((code, out[0]), (0, ".agents/reports/%s: publishable, 5 of 5 findings closed." % NAME))
 
     def test_reopened_issue(self):
         self.issues(lambda fid: ", %s." % fid)
         self.issue(187, SOURCE + ", F1.", "OPEN", "null")
         self.assertEqual(self.blockers(self.report()), ["MAIN-187 holds F1 and is not closed as completed"])
         code, out = self.run_main("status")
-        self.assertEqual((code, out[0]), (1, ".github/reviews/%s: refused, 4 of 5 findings closed." % NAME))
+        self.assertEqual((code, out[0]), (1, ".github/reports/%s: refused, 4 of 5 findings closed." % NAME))
 
+
+
+class OldFolders(Rule):
+    """The folders of v0.6.x are not read: a repository moves its reports once."""
+
+    def test_check_refuses(self):
+        for folder in (".github/reviews", ".agents/reviews"):
+            with self.subTest(folder=folder):
+                self.assertRule(CODE, "privacy", folder)
+
+    def test_status_skips(self):
+        self.put(folder=".agents/reviews")
+        self.put(folder=".github/reviews", name="20261124T101500Z.md")
+        self.assertEqual(self.run_main("status"), (0, ["No private report and no published security report."]))
+
+    def test_old_source_link(self):
+        self.issue(200, SOURCE.replace("../reports/", "../reviews/") + ", F1.")
+        self.assertIn("the line must be: Source: [<text>](../reports/%s), F<n>." % NAME, self.blockers())
 
 SKILL_PATHS = ("references/", "templates/", "scripts/")
 # The skill serves any project: the words of one project appear only in
@@ -911,7 +929,7 @@ class New(Base):
         (templates / "code.md").write_text(TEMPLATE)
         now = datetime.datetime(2026, 11, 25, 10, 15, tzinfo=datetime.timezone.utc)
         path = review.new("code", "claude-opus-5.5-medium", self.root, now, templates)
-        self.assertEqual(path, self.root / ".github/reviews" / NAME)
+        self.assertEqual(path, self.root / ".github/reports" / NAME)
         errors, _ = review.check(path, self.root)
         self.assertTrue(errors)
         self.assertEqual({e.split(": ")[1] for e in errors}, {"placeholder"}, errors)
@@ -928,18 +946,18 @@ class Ignored(Base):
         return review.new("security", "m", self.root, self.NOW, SKILL / "templates")
 
     def test_ignored(self):
-        for ignore in (".agents\n", ".agents/\n", "/.agents/reviews/\n", "*.md\n"):
+        for ignore in (".agents\n", ".agents/\n", "/.agents/reports/\n", "*.md\n"):
             with self.subTest(ignore=ignore):
                 git_init(self.root, ignore)
                 path = self.new()
-                self.assertEqual(path, self.root / ".agents/reviews" / NAME)
+                self.assertEqual(path, self.root / ".agents/reports" / NAME)
                 path.unlink()
 
     def test_not_ignored(self):
         git_init(self.root, "/dist/\n")
         with self.assertRaises(review.Refused) as e:
             self.new()
-        self.assertIn(".agents/reviews/%s is not ignored" % NAME, str(e.exception))
+        self.assertIn(".agents/reports/%s is not ignored" % NAME, str(e.exception))
         self.assertFalse((self.root / ".agents").exists())
 
     def test_negated_report_name(self):
@@ -964,22 +982,22 @@ class Ignored(Base):
 
     def test_check_not_ignored(self):
         git_init(self.root, "/dist/\n")
-        errors, out = self.run_check(SECURITY, ".agents/reviews")
-        self.assertIn("privacy: .agents/reviews/%s is not ignored by Git" % NAME, "\n".join(errors))
+        errors, out = self.run_check(SECURITY, ".agents/reports")
+        self.assertIn("privacy: .agents/reports/%s is not ignored by Git" % NAME, "\n".join(errors))
         self.assertEqual(len(errors), 1, errors)
         self.assertEqual(out[-1], review.PRIVATE_LINE)
 
     def test_check_outside_git(self):
         shutil.rmtree(self.root / ".git")
-        self.assertRule(CODE, "privacy", ".agents/reviews")
+        self.assertRule(CODE, "privacy", ".agents/reports")
         self.assertEqual(self.run_check(CODE)[0], [])
 
     def test_status_not_ignored(self):
         git_init(self.root, "")
-        self.run_check(SECURITY, ".agents/reviews")
+        self.run_check(SECURITY, ".agents/reports")
         with contextlib.redirect_stdout(io.StringIO()) as out:
             review.main(["status", "--root", str(self.root)])
-        self.assertEqual(out.getvalue().splitlines()[0], ".agents/reviews/%s: private, 0 of 1 findings closed." % NAME)
+        self.assertEqual(out.getvalue().splitlines()[0], ".agents/reports/%s: private, 0 of 1 findings closed." % NAME)
         self.assertIn("the report has 1 other errors; run check", out.getvalue())
 
     def test_code_needs_no_git(self):
@@ -1013,11 +1031,11 @@ class Prefix(Base):
     def test_publication(self):
         (self.root / ".github/issues/ACME-200.md").write_text(
             "---\nnumber: 200\nstate: CLOSED\nstateReason: COMPLETED\n---\n\n%s, F1.\n" % SOURCE)
-        path = self.root / ".agents/reviews" / NAME
+        path = self.root / ".agents/reports" / NAME
         path.parent.mkdir(parents=True)
         path.write_text(SECURITY)
         self.assertEqual(review.status(self.root)[0], [
-            ".agents/reviews/%s: publishable, 1 of 1 findings closed." % NAME,
+            ".agents/reports/%s: publishable, 1 of 1 findings closed." % NAME,
             review.publish_line(NAME, self.root.resolve())])
 
     def test_any_prefix(self):
@@ -1129,7 +1147,7 @@ class NoMirror(Rule):
         errors, out = review.check(self.put(), self.root)
         self.assertEqual(errors, [])
         self.assertEqual(out[4], review.PRIVATE_LINE)
-        code, out = self.run_main("check", str(self.put(EMPTY, ".github/reviews", "20261126T101500Z.md")))
+        code, out = self.run_main("check", str(self.put(EMPTY, ".github/reports", "20261126T101500Z.md")))
         self.assertEqual(code, 1)  # the timestamp differs from the name; only the call count matters
         self.assertEqual(self.calls(), [])
 
@@ -1137,16 +1155,16 @@ class NoMirror(Rule):
         self.gh({"#200": self.closed(SOURCE + ", F1.")})
         self.put()
         self.assertEqual(self.run_main("status"), (0, [
-            ".agents/reviews/%s: publishable, 1 of 1 findings closed." % NAME,
+            ".agents/reports/%s: publishable, 1 of 1 findings closed." % NAME,
             review.publish_line(NAME, self.root.resolve())]))
-        code, out = self.run_main("check", "--published", str(self.root / ".agents/reviews" / NAME))
+        code, out = self.run_main("check", "--published", str(self.root / ".agents/reports" / NAME))
         self.assertEqual(code, 0, out)
 
     def test_open_issue(self):
         self.gh({"#200": {"state": "OPEN", "stateReason": "", "body": SOURCE + ", F1."}})
         self.put()
         self.assertEqual(self.run_main("status"), (0, [
-            ".agents/reviews/%s: private, 0 of 1 findings closed." % NAME,
+            ".agents/reports/%s: private, 0 of 1 findings closed." % NAME,
             "#200:1: publication: #200 holds F1 and is not closed as completed"]))
 
     def test_not_planned(self):
@@ -1154,14 +1172,14 @@ class NoMirror(Rule):
         self.assertEqual(self.blockers(), ["#200 holds F1 and is not closed as completed"])
 
     def test_url_source(self):
-        url = SOURCE.replace("../reviews/", "https://github.com/octo/repo/blob/release/v1/.github/reviews/")
+        url = SOURCE.replace("../reports/", "https://github.com/octo/repo/blob/release/v1/.github/reports/")
         self.gh({"#200": self.closed(url + ", F1.")})
         self.assertEqual(self.blockers(), [])
 
     def test_one_listing(self):
         self.gh({"#131": self.closed(), "#200": self.closed(SOURCE + ", F1.")})
         self.put()
-        self.put(CODE.replace("[[MAIN-131]]", "#131"), ".github/reviews", "20261124T101500Z.md")
+        self.put(CODE.replace("[[MAIN-131]]", "#131"), ".github/reports", "20261124T101500Z.md")
         self.run_main("status")
         self.assertEqual(sum(1 for c in self.calls() if c.startswith("issue list")), 1, self.calls())
 
@@ -1184,10 +1202,10 @@ class NoMirror(Rule):
     def test_missing_gh(self):
         self.gh({}, installed=False)
         self.assertEqual(self.blockers(), ["cannot read the issues: gh is not on PATH"])
-        (self.root / ".github/reviews" / NAME).unlink()
+        (self.root / ".github/reports" / NAME).unlink()
         self.put()
         code, out = self.run_main("status")
-        self.assertEqual(out[0], ".agents/reviews/%s: private, 0 of 1 findings closed." % NAME)
+        self.assertEqual(out[0], ".agents/reports/%s: private, 0 of 1 findings closed." % NAME)
 
     def test_gh_error(self):
         self.gh({"#200": self.closed(SOURCE + ", F1.")},
@@ -1210,7 +1228,7 @@ class NoMirror(Rule):
         self.gh({}, fail="gh: no network")
         self.put()
         self.put(name="20261124T101500Z.md")
-        self.put(CODE.replace("[[MAIN-131]]", "#131"), ".github/reviews", "20261123T101500Z.md")
+        self.put(CODE.replace("[[MAIN-131]]", "#131"), ".github/reports", "20261123T101500Z.md")
         code, out = self.run_main("status")
         self.assertEqual(code, 1, out)
         self.assertEqual(len(self.calls()), 1, self.calls())
@@ -1225,19 +1243,19 @@ class NoMirror(Rule):
         self.assertEqual(self.blockers(), ["cannot read the issues: gh returns no JSON"])
 
     def test_status_public_reports(self):
-        self.put(CODE.replace("[[MAIN-131]]", "#131"), ".github/reviews")
+        self.put(CODE.replace("[[MAIN-131]]", "#131"), ".github/reports")
         self.gh({})
         self.assertEqual(self.run_main("status"), (0, ["No private report and no published security report."]))
         self.gh({}, fail="gh: no network")
         code, out = self.run_main("status")
         self.assertEqual((code, out), (1, [
-            ".github/reviews/%s:1: publication: cannot read the issues: gh exits 4: gh: no network" % NAME]))
+            ".github/reports/%s:1: publication: cannot read the issues: gh exits 4: gh: no network" % NAME]))
 
     def test_status_named_public_report(self):
-        self.put(CODE.replace("[[MAIN-131]]", "#131"), ".github/reviews")
+        self.put(CODE.replace("[[MAIN-131]]", "#131"), ".github/reports")
         self.gh({"#131": self.closed(), "#200": self.closed(SOURCE + ", F1, F3.")})
         self.assertEqual(self.run_main("status"),
-                         (0, [".github/reviews/%s: published, 3 of 3 findings closed." % NAME]))
+                         (0, [".github/reports/%s: published, 3 of 3 findings closed." % NAME]))
 
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ The first command is an example for Go; write its equivalent for each language o
 
 ## Private location
 
-- `review.py new security` writes to `.agents/reviews/`, which Git must ignore. `new` refuses a folder that Git does not ignore.
+- `review.py new security` writes to `.agents/reports/`, which Git must ignore. `new` refuses a folder that Git does not ignore.
 - Never move the report under `.github/` yourself. Only the owner publishes it.
 - The report stays private until each finding is closed. See `references/report.md`, Publication.
 - An issue for a finding states the behavior that must become true. It does not state the attack.

@@ -39,7 +39,7 @@ HTML_TAGS = {"a", "b", "i", "p", "br", "hr", "div", "span", "img", "code", "pre"
              "strong", "sub", "sup", "kbd", "details", "summary", "table", "tr", "td", "th",
              "ul", "ol", "li", "script", "style"}
 PRIVATE_LINE = "Private: do not publish this report before the fix ships."
-PUBLIC, PRIVATE = ".github/reviews", ".agents/reviews"
+PUBLIC, PRIVATE = ".github/reports", ".agents/reports"
 ISSUES, ROADMAP = ".github/issues", ".github/roadmap"
 
 ISSUE_FILE_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*)-\d+\.md$")
@@ -56,7 +56,7 @@ REVIEWED_RE = re.compile(r"^(\d+) of (\d+) (files|issues)$")
 BLOCK_TITLE_RE = re.compile(r"^### (F\d+)\. (.*)$")
 FIELD_RE = re.compile(r"^- \*\*([A-Za-z]+):\*\* ?(.*)$")
 SEPARATOR_CELL_RE = re.compile(r"^:?-+:?$")
-SOURCE_RE = re.compile(r"^Source: \[[^\]]+\]\((?:\.\./reviews/|https://github\.com/[^)\s]+/\.github/reviews/)"
+SOURCE_RE = re.compile(r"^Source: \[[^\]]+\]\((?:\.\./reports/|https://github\.com/[^)\s]+/\.github/reports/)"
                        r"([^)/]+)\)((?:, F\d+)+)\.$")
 SECURITY_H1_RE = re.compile(r"^# *security review *$", re.I | re.M)
 STATE_KEY_RE = re.compile(r"""^["']?(state|stateReason)["']?\s*:""")
@@ -523,7 +523,7 @@ def rule(name, findings, issues, add):
         for no, text in sources:
             m = SOURCE_RE.match(text)
             if not m or m.group(1) != name:
-                add(label, no, "the line must be: Source: [<text>](../reviews/%s), F<n>." % name)
+                add(label, no, "the line must be: Source: [<text>](../reports/%s), F<n>." % name)
                 continue
             for fid in m.group(2).split(", ")[1:]:
                 if fid in holders:
@@ -707,7 +707,7 @@ def check_verdict(lines, findings, not_full, err):
 def check(path, root, published=False):
     """Return (errors, hand-over lines) for the report at path. published
     applies the publication rule: it accepts a security report in
-    .github/reviews/ only if each of its findings is closed. Without a
+    .github/reports/ only if each of its findings is closed. Without a
     mirror, only published reads GitHub."""
     return examine(path, root, published)[:2]
 
@@ -733,9 +733,9 @@ def examine(path, root, published=False, label=None, issues=None):
     folder = folders.get(path.resolve().parent, "")
     private = folder == PRIVATE
     if mode == "security" and not private and not (published and folder):
-        err(1, "privacy", "a security report must be in .agents/reviews/ of the root")
+        err(1, "privacy", "a security report must be in .agents/reports/ of the root")
     elif not folder:
-        err(1, "privacy", "a report must be in .github/reviews/ or .agents/reviews/ of the root")
+        err(1, "privacy", "a report must be in .github/reports/ or .agents/reports/ of the root")
     if private:
         reason = not_ignored(root, PRIVATE, path.name)
         if reason:
@@ -796,7 +796,7 @@ def status(root):
     """Return (lines, failed): the state of each private report and of each
     published report that the rule applies to: a security report, a report
     with a private copy, a report that an issue names by finding ID. failed
-    means that a report in .github/reviews/ breaks the publication rule."""
+    means that a report in .github/reports/ breaks the publication rule."""
     root = Path(root).resolve()
     lines, failed, issues = [], False, project_issues(root)
     for path in sorted((root / PRIVATE).glob("*.md")):

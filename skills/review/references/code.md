@@ -10,13 +10,13 @@ Question: can the maintainer release this code, and what must he fix first?
 
 ```sh
 base="$(git describe --tags --abbrev=0 --exclude='*-rc*')"
-git diff --name-only "$base" -- . ':!.github/issues' ':!.github/roadmap' ':!.github/reviews'
+git diff --name-only "$base" -- . ':!.github/issues' ':!.github/roadmap' ':!.github/reports'
 git ls-files --others --exclude-standard
 ```
 
 - M is the number of files in the target. The second command lists the changed tracked files; add the new untracked files.
 - For a path target, M counts each tracked file under the path, test files included, without generated files.
-- Leave out the issue mirror, `.github/reviews/`, and the folders that the project marks as not product, such as docs and tools.
+- Leave out the issue mirror, `.github/reports/`, and the folders that the project marks as not product, such as docs and tools.
 - Leave out generated files and test data: build output, mocks, lock files, fixtures under `testdata/`.
 - A file under `testdata/` that a test command of the project runs is a test, not a fixture. It is in M, and the Tests lens reads it.
 - Leave out documents (`*.md`, `LICENSE`). The Contract lens still reads the documents.
