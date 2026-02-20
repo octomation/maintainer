@@ -77,3 +77,14 @@ jobs:
           owner: octolab
           repositories: vanity
           permission-contents: write
+      # checks the App installation on the installer catalog, which the install
+      # job of cd.yml publishes to
+      - name: Mint the installer token
+        if: (success() || failure()) && steps.preflight.outcome == 'success'
+        uses: actions/create-github-app-token@f418cff399f7aef4c2f0ad47e25ca7a6abbdd6fc # v3.4.0
+        with:
+          client-id: ${{ secrets.OCTOLAB_RELEASER_CLIENT_ID }}
+          private-key: ${{ secrets.OCTOLAB_RELEASER_KEY }}
+          owner: octolab
+          repositories: install
+          permission-contents: write

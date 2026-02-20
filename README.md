@@ -77,15 +77,15 @@ as the service guide shows.
 ### Binary
 
 ```bash
-$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh
+$ curl -sSf https://install.octolab.org/maintainer | sh
 # or
-$ wget -qO-  https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh
+$ wget -qO- https://install.octolab.org/maintainer | sh
 ```
 
 The script installs the latest release into `./bin`. Pass `-b` to choose another directory and a tag to pin the version:
 
 ```bash
-$ curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.6.1
+$ curl -sSf https://install.octolab.org/maintainer | sh -s -- -b ~/.local/bin v0.6.1
 ```
 
 > Don't forget about [security](https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/).

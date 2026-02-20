@@ -41,12 +41,12 @@ it to `https://install.octolab.org/maintainer`.
 
 ## Acceptance criteria
 
-- [ ] README and `docs/content/quickstart.md` name only
+- [x] README and `docs/content/quickstart.md` name only
       `https://install.octolab.org/maintainer`.
 - [ ] After the release, the header of `https://install.octolab.org/maintainer`
       names install-action, `sh -s -- -h` prints the usage and the platforms
       of the release, and the script installs the tag.
-- [ ] `doctor.yml` mints a token for `octolab/install`.
+- [x] `doctor.yml` mints a token for `octolab/install`.
 
 ## Out of scope
 

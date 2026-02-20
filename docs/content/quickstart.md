@@ -19,10 +19,10 @@ Installed the Cask before? [Switch to the Formula](/service/#move-from-the-cask)
 Without Homebrew, the install script puts the latest release into `./bin`; `-b` chooses another directory and a tag pins the version:
 
 ```sh
-curl -sSfL https://raw.githubusercontent.com/octomation/maintainer/main/bin/install | sh -s -- -b ~/.local/bin v0.6.1
+curl -sSf https://install.octolab.org/maintainer | sh -s -- -b ~/.local/bin v0.6.1
 ```
 
-`wget -qO-` works in place of `curl -sSfL`. Archives for macOS and Linux on amd64 and arm64 are also on [GitHub Releases](https://github.com/octomation/maintainer/releases). With Go 1.27 or newer, no checkout is needed:
+`wget -qO-` works in place of `curl -sSf`. Archives for macOS and Linux on amd64 and arm64 are also on [GitHub Releases](https://github.com/octomation/maintainer/releases). With Go 1.27 or newer, no checkout is needed:
 
 ```sh
 go install go.octolab.org/toolset/maintainer@latest

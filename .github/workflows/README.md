@@ -24,7 +24,7 @@ flowchart LR
   cron([schedule]) --> ci & docs & tools & doctor & caches & runs & stale & warmup & pulls
   caches -- completed --> warmup
   dev -- PR closed --> pulls
-  cd --> release[(GitHub release)] & tap[(Homebrew tap)] & catalog[(octolab/skills)] & modules[(octolab/vanity)]
+  cd --> release[(GitHub release)] & tap[(Homebrew tap)] & catalog[(octolab/skills)] & modules[(octolab/vanity)] & installer[(octolab/install)]
   docs --> pages[(GitHub Pages)]
 ```
 
@@ -49,7 +49,7 @@ flowchart LR
 
 | Secret | Used by | Purpose |
 | --- | --- | --- |
-| `OCTOLAB_RELEASER_CLIENT_ID` | cd, doctor | Client ID of the GitHub App "OctoLab Releaser" that pushes the Formula to the tap named in `.goreleaser.yml`, the skill to `octolab/skills` and the module entry to `octolab/vanity` |
+| `OCTOLAB_RELEASER_CLIENT_ID` | cd, doctor | Client ID of the GitHub App "OctoLab Releaser" that pushes the Formula to the tap named in `.goreleaser.yml`, the skill to `octolab/skills`, the module entry to `octolab/vanity` and the installer to `octolab/install` |
 | `OCTOLAB_RELEASER_KEY` | cd, doctor | Private key of that App |
 | `SLACK_WEBHOOK` | all but doctor and pulls | Notifications, optional |
 
@@ -63,7 +63,7 @@ Nothing here is stored in the repository, so a fresh repository or a fork needs 
 2. `OCTOLAB_RELEASER_CLIENT_ID` and `OCTOLAB_RELEASER_KEY`: the Client ID and a
    private key of the GitHub App "OctoLab Releaser", owned by `octolab`, with
    no webhook and Repository permissions → Contents: Read and write, installed
-   on `octolab/homebrew-tap`, `octolab/skills` and `octolab/vanity`. Save both as secrets of the
+   on `octolab/homebrew-tap`, `octolab/skills`, `octolab/vanity` and `octolab/install`. Save both as secrets of the
    `octomation` organization available to this repository. The release itself
    uses the workflow token. `octolab/skills` registers the tool in its
    `catalog.json`: the publish action refuses a tool it doesn't list.
@@ -206,6 +206,19 @@ flowchart TB
   the App credentials, the job warns and ends green. The job is separate so
   that a failed publication can be rerun alone
   (`gh run rerun <run-id> --failed`) while the release stays as it is.
+- **The installer goes to install.octolab.org.** For a stable tag, the
+  `install` job runs
+  [octomation/install-action](https://github.com/octomation/install-action),
+  pinned to a release tag: it reads `metadata.json` and `artifacts.json`,
+  which GoReleaser uploads with the archives (`release.include_meta`), renders
+  one POSIX shell script and writes it to `dist/maintainer` in
+  `octolab/install`, with a commit signed as the App, served at
+  `https://install.octolab.org/maintainer`. The catalog token is minted
+  separately, from the same App installed on `octolab/install`. Without the
+  App credentials, the job warns and ends green. The job is separate so that
+  a failed publication can be rerun alone (`gh run rerun <run-id> --failed`)
+  while the release stays as it is. `bin/install` is the frozen godownloader
+  script that published notes up to v0.6.1 link; nothing regenerates it.
 - The binary is neither signed nor notarized. Homebrew does not quarantine
   what a Formula downloads, so the Formula needs no step to clear it.
 - A manual run on a branch builds a snapshot and publishes nothing, but still
@@ -266,7 +279,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  doctor[compare with GitHub: default branch, workflows, Pages, site smoke test, go.octolab.org imports, secrets, tool pins, goreleaser config] --> preflight[check release secrets] --> token[mint the tap token] & catalog[mint the catalog token] & vanity[mint the vanity token]
+  doctor[compare with GitHub: default branch, workflows, Pages, site smoke test, go.octolab.org imports, secrets, tool pins, goreleaser config] --> preflight[check release secrets] --> token[mint the tap token] & catalog[mint the catalog token] & vanity[mint the vanity token] & installer[mint the installer token]
 ```
 
 - Daily and manual: a Pages domain change triggers no workflow, so a site
@@ -280,7 +293,8 @@ flowchart LR
 - The workflow token cannot list secrets, so they show as `unverified` there;
   the preflight step checks the ones a release needs, and minting the tap and
   catalog tokens proves the App is still installed on the tap, on
-  `octolab/skills` and on `octolab/vanity` with write access.
+  `octolab/skills`, on `octolab/vanity` and on `octolab/install` with write
+  access.
   Locally, `gh` sees the organization secrets shared with the repository.
 
 ## caches

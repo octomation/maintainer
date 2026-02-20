@@ -132,8 +132,9 @@ make web-check
 - `tools` is green, or fails only on govulncheck advisories in `tools/` that
   have no fixed version (`Fixed in: N/A`): `cd` installs the tools but doesn't
   scan them.
-- `doctor` is green: it mints the tap and catalog tokens from the OctoLab
-  Releaser App, which proves the App can publish to both. If the App, its
+- `doctor` is green: it mints the tap, skill, module and installer catalog
+  tokens from the OctoLab Releaser App, which proves the App can publish to
+  each. If the App, its
   installations, the `OCTOLAB_RELEASER_*` secrets or `doctor.yml` changed
   since its last run, run it again:
   `make workflow-doctor REASON="before vX.Y.Z"` dispatches it on `main` and
@@ -387,7 +388,10 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
 - Every channel delivers vX.Y.Z, checked by `maintainer version`,
   `maintainer fetch --help`, `maintainer status --help` and
   `maintainer service run --help`, not by a successful download alone: the
-  archives, `bin/install` with the tag,
+  archives, the installer
+  `curl -sSf https://install.octolab.org/maintainer | sh -s -- -b <dir> vX.Y.Z`
+  (for a stable release the `install` job has rewritten it: its first lines
+  name install-action, not godownloader),
   `go install go.octolab.org/toolset/maintainer@vX.Y.Z` (and `@latest` for a
   stable release) outside a checkout, and Homebrew:
   `brew update && brew upgrade --formula octolab/tap/maintainer && maintainer version`.
