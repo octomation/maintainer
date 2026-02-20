@@ -49,6 +49,7 @@ A process that already runs as the user is outside the model: it has the user's 
 
 - The dependency audit of each ecosystem of the project, such as `govulncheck ./...`, `npm audit --omit=dev`, `pip-audit` or `cargo audit`.
 - `actionlint` if the project has GitHub workflows.
+- The alerts of GitHub, if the project is on GitHub. See GitHub alerts.
 - The secret scan of tracked files:
 
 ```sh
@@ -60,6 +61,36 @@ git ls-files | grep -E '\.env$|\.pem$|\.key$|id_(rsa|ed25519)$'
 - The project can pin its audit tools. Then use the pinned tool.
 - The audits need the network. An absent tool or no network gives `partial`.
 
+## GitHub alerts
+
+`review.py alerts` reads the security alerts of the repository on GitHub. It uses only `gh api` reads and changes no alert.
+
+```sh
+python3 <skill-dir>/scripts/review.py alerts
+```
+
+- It reads the open and the dismissed Dependabot alerts.
+- It reads the open code scanning alerts, the open secret scanning alerts and the draft and triage security advisories.
+- GitHub shows draft advisories only to an admin of the repository. Without admin access, `alerts` gives an error for them.
+- It prints one line for each alert and one summary line for each source.
+- A source that the repository does not use prints `off`. That is not a failure.
+- It takes the repository from the Git remote. For another repository, add `--repo <owner/repo>`.
+- It exits 1 when it cannot read the repository or a source that is not `off`.
+
+| Alert | Result |
+| --- | --- |
+| Open | A candidate of the Supply chain lens. |
+| Dismissed, with a reason and a comment that still apply | A decision of the owner: `Accepted`, not a finding. |
+| Dismissed without a reason, or with a reason that no longer applies | A candidate of the Supply chain lens. |
+
+- Verify an alert candidate as each other candidate. Find out if the product ships, runs or builds with the vulnerable code.
+- A vulnerable package that the product does not ship and that has no attack path is not a finding.
+- Compare the reason and the comment of a dismissal with the code at `HEAD`. If the exposure changed, the alert is a candidate.
+- In `Accepted`, name a dismissed alert by its source and number, such as `dependabot #12`.
+- The `Evidence` of the Gates lens names the counts of each source by state.
+- It also names each dismissed alert and each source that is `off`.
+- If `gh` is absent, has no access or finds no GitHub remote, the Gates lens is `partial`.
+
 ## Lenses
 
 | # | Lens | What it checks | Where to look |
@@ -69,7 +100,7 @@ git ls-files | grep -E '\.env$|\.pem$|\.key$|id_(rsa|ed25519)$'
 | 3 | Processes | Calls of `git` and other programs: option injection; hostile repository content, such as hooks, filters and configuration. | The code that starts processes |
 | 4 | Secrets | Tokens: load, storage, transit; logs, errors, URLs, process arguments, file modes. | The code that reads, stores or sends tokens |
 | 5 | Service | A service of the product that accepts requests: bind address, `Host` and `Origin` checks. Requests that change state, output escaping, resource exhaustion, exposure of private data. | The listeners, the handlers and the pages that they serve |
-| 6 | Supply chain | Pins of dependencies and actions, workflow permissions, secrets in CI, code from fork pull requests, signatures, checksums, the install script, the release channel. | The dependency manifests and lock files, the CI workflows, the release configuration, the install scripts |
+| 6 | Supply chain | Pins of dependencies and actions, workflow permissions, secrets in CI, code from fork pull requests, signatures, checksums, the install script, the release channel. | The dependency manifests and lock files, the GitHub alerts, the CI workflows, the release configuration, the install scripts |
 
 - Name the weakness class with its usual name, such as path traversal or DNS rebinding. No CWE number is required.
 - Reproduce against the built program as `references/code.md` says. Use scratch repositories and scratch servers as A1 content.

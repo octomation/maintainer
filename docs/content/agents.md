@@ -67,6 +67,8 @@ The review skill writes one review report of a repository in a fixed form, in on
 
 Ask for a review report, such as “write a code review report”, or for `maintainer:review` with the catalog plugin. With the binary’s copy, ask for `/review` in Claude Code or `$review` in Codex. The skill needs `python3` and Git; without an issue mirror in `.github/issues/`, it reads the state of your GitHub issues with a signed-in `gh`.
 
+A security review also reads what GitHub already found in the repository: open Dependabot, code scanning and secret scanning alerts, and draft security advisories. It checks whether your product ships the vulnerable code, and a dismissed alert counts as your decision while its reason holds. Without a signed-in `gh` with access to these alerts, the report marks its gates `partial`; draft advisories need admin access to the repository.
+
 Code and issue reports go to `.github/reports/`. A security report is private: it goes to `.agents/reports/`, and the skill refuses to write it there unless Git ignores the folder, so add `.agents/reports/` to `.gitignore` or `.git/info/exclude` first. You publish a private report yourself once each of its findings is closed: the skill prints the command that moves it to `.github/reports/`.
 
 The skill reads only these two folders.

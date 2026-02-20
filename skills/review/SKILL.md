@@ -14,7 +14,8 @@ description: >-
 license: MIT
 compatibility: >-
   Requires python3 and Git. Without an issue mirror in .github/issues/, the
-  publication rule reads GitHub through a signed-in gh.
+  publication rule reads GitHub through a signed-in gh. Security mode reads
+  the GitHub alerts through gh.
 metadata:
   author: octomation
   version: "0.6.1"
@@ -104,6 +105,7 @@ python3 <skill-dir>/scripts/review.py new <code|issue|security> --model <model>
 python3 <skill-dir>/scripts/review.py check <report>
 python3 <skill-dir>/scripts/review.py status
 python3 <skill-dir>/scripts/review.py check --published <report>
+python3 <skill-dir>/scripts/review.py alerts
 ```
 
 - Tree digest: the first command. Run it in step 2 and in step 9. The two results must be equal.
@@ -118,6 +120,7 @@ python3 <skill-dir>/scripts/review.py check --published <report>
 - `status` exits 1 when a report in `.github/reports/` breaks the publication rule or when it cannot read the issues.
 - `check --published` applies the publication rule to one report. It refuses a report with a finding that is not closed.
 - `check` without `--published` is the check of step 9. After the hand-over, test a private report only with `status` or `check --published`.
+- `alerts` reads the security alerts of the repository on GitHub with `gh api`. Security mode runs it in step 3. See `references/security.md`, GitHub alerts.
 
 ## Private reports
 

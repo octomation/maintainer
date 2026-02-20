@@ -51,13 +51,13 @@ alert, such as the zod one of the docs site, has no place in the report.
 
 ## Acceptance criteria
 
-- [ ] `review.py alerts` prints one line per open or dismissed alert and one
+- [x] `review.py alerts` prints one line per open or dismissed alert and one
       summary line per source, uses only `gh api` reads, and exits non-zero
       when it cannot read a source that is on.
-- [ ] A disabled scanner prints as `off`, not as an error.
-- [ ] `references/security.md` says how an alert becomes a candidate, an
+- [x] A disabled scanner prints as `off`, not as an error.
+- [x] `references/security.md` says how an alert becomes a candidate, an
       `Accepted` decision or nothing, and how the Gates lens reports them.
-- [ ] The tests of `review.py` cover `alerts` with a fake `gh`.
+- [x] The tests of `review.py` cover `alerts` with a fake `gh`.
 - [ ] A security review of this repository names the dismissed zod alert in
       the evidence of the Gates lens.
 

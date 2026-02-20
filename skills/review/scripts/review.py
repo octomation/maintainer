@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Create and check review reports: `review.py new`, `check` and `status`."""
+"""Create and check review reports: `review.py new`, `check` and `status`.
+Read the security alerts of the repository on GitHub: `review.py alerts`."""
 
 import argparse
 import datetime
@@ -63,6 +64,10 @@ STATE_KEY_RE = re.compile(r"""^["']?(state|stateReason)["']?\s*:""")
 STATE_LINE_RE = re.compile(r"^(?:state|stateReason): ([A-Za-z_]+)$")
 SPAN_LIMIT = 90
 HR_RE = re.compile(r"^ {0,3}([-*_])( *\1){2,} *$")
+REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+HTTP_RE = re.compile(r"\(HTTP (\d{3})\)")
+# The message of a scanner that is off: GitHub answers 403 or 404 with it.
+OFF_RE = re.compile(r"disabled|not enabled|must be enabled|no analysis found", re.I)
 
 
 # Text helpers
@@ -872,6 +877,141 @@ class Refused(Exception):
     """`new` does not write the report."""
 
 
+# Alerts
+
+class ScannerOff(Exception):
+    """GitHub says that the scanner of a source is off for the repository."""
+
+
+def gh_api(root, path, jq=None):
+    """The answer of `gh api` for the path: each page of a list joined into
+    one list. Raise ScannerOff for a scanner that is off and GhError for each
+    other failure."""
+    if not shutil.which("gh"):
+        raise GhError("gh is not on PATH")
+    args = ["gh", "api", path] + (["--jq", jq] if jq else ["--paginate"])
+    try:
+        done = subprocess.run(args, cwd=root, capture_output=True, text=True, timeout=GH_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        raise GhError("gh does not answer in %g seconds" % GH_TIMEOUT)
+    except OSError as e:
+        raise GhError("gh does not run: %s" % e)
+    if done.returncode:
+        lines = [t.strip() for t in done.stderr.splitlines() if t.strip()]
+        message = lines[0] if lines else "no message"
+        http = HTTP_RE.search(message)
+        if http and http.group(1) in ("403", "404") and OFF_RE.search(message):
+            raise ScannerOff(re.sub(r"^gh: | \(HTTP \d+\)$", "", message))
+        raise GhError("gh exits %d: %s" % (done.returncode, message))
+    if jq:
+        return done.stdout.strip()
+    # --paginate prints one JSON array for each page.
+    found, text, at, decoder = [], done.stdout.strip(), 0, json.JSONDecoder()
+    try:
+        while at < len(text):
+            page, at = decoder.raw_decode(text, at)
+            if not isinstance(page, list):
+                raise ValueError
+            found += page
+            while at < len(text) and text[at].isspace():
+                at += 1
+    except ValueError:
+        raise GhError("gh returns no JSON list")
+    return found
+
+
+def field(item, *keys):
+    """The value at the keys of nested dicts, or "" if one is absent."""
+    for key in keys:
+        item = item.get(key) if isinstance(item, dict) else None
+    return item if item not in (None, "") else ""
+
+
+def one_line(text):
+    return " ".join(str(text).split())
+
+
+def dependabot(a):
+    pkg = field(a, "dependency", "package")
+    line = ["#%s" % field(a, "number"),
+            field(a, "security_advisory", "severity") or field(a, "security_vulnerability", "severity"),
+            "%s:%s" % (field(pkg, "ecosystem"), field(pkg, "name")),
+            field(a, "dependency", "manifest_path"), field(a, "state")]
+    if field(a, "state") == "dismissed":
+        line[-1] += ": %s — %s" % (field(a, "dismissed_reason") or "no reason",
+                                   one_line(field(a, "dismissed_comment")) or "no comment")
+    return line
+
+
+def code_scanning(a):
+    where = field(a, "most_recent_instance", "location", "path")
+    start = field(a, "most_recent_instance", "location", "start_line")
+    return ["#%s" % field(a, "number"),
+            field(a, "rule", "security_severity_level") or field(a, "rule", "severity"),
+            field(a, "rule", "id"), "%s:%s" % (where, start) if start else where, field(a, "state")]
+
+
+def secret_scanning(a):
+    return ["#%s" % field(a, "number"), "—",
+            field(a, "secret_type_display_name") or field(a, "secret_type"), "—", field(a, "state")]
+
+
+def advisory(a):
+    names = ", ".join("%s:%s" % (field(v, "package", "ecosystem"), field(v, "package", "name"))
+                      for v in a.get("vulnerabilities") or [] if isinstance(v, dict))
+    return [field(a, "ghsa_id"), field(a, "severity"), names, "—", field(a, "state")]
+
+
+# Each source: name, the path under the repository, the states that it
+# lists, the form of one alert.
+ALERT_SOURCES = [
+    ("dependabot", "dependabot/alerts?state=open,dismissed&per_page=100", ["open", "dismissed"], dependabot),
+    ("code-scanning", "code-scanning/alerts?state=open&per_page=100", ["open"], code_scanning),
+    ("secret-scanning", "secret-scanning/alerts?state=open&per_page=100", ["open"], secret_scanning),
+    ("advisories", "security-advisories?per_page=100", ["draft", "triage"], advisory),
+]
+
+
+def alerts(root, repo=None):
+    """Return (lines, failed): one line for each alert of each source and one
+    summary line for each source. A scanner that is off is `off`. failed
+    means that a source that is on, or the repository, is not readable."""
+    try:
+        repo = repo or gh_api(root, "repos/{owner}/{repo}", ".full_name")
+    except (GhError, ScannerOff) as e:
+        return ["repository: error: %s" % e], True
+    if not REPO_RE.match(repo):
+        return ["repository: error: %r is not owner/repo" % repo], True
+    lines, failed = ["Repository: %s." % repo], False
+    for name, path, states, form in ALERT_SOURCES:
+        if name == "advisories":
+            # GitHub lists draft advisories only to an admin of the repository,
+            # and answers an empty list to anyone else: no list is no proof.
+            try:
+                admin = gh_api(root, "repos/%s" % repo, ".permissions.admin")
+            except (GhError, ScannerOff) as e:
+                admin = "error: %s" % e
+            if admin != "true":
+                lines.append("%s: error: draft advisories need admin access to %s" % (name, repo))
+                failed = True
+                continue
+        try:
+            found = gh_api(root, "repos/%s/%s" % (repo, path))
+        except ScannerOff as e:
+            lines.append("%s: off — %s" % (name, e))
+            continue
+        except GhError as e:
+            lines.append("%s: error: %s" % (name, e))
+            failed = True
+            continue
+        found = [a for a in found if isinstance(a, dict) and a.get("state") in states]
+        for cells in map(form, found):
+            lines.append("%s %s: %s" % (name, cells[0], ", ".join(str(c) or "—" for c in cells[1:])))
+        lines.append("%s: %s." % (name, ", ".join(
+            "%d %s" % (sum(1 for a in found if a["state"] == st), st) for st in states)))
+    return lines, failed
+
+
 def not_ignored(root, folder, name):
     """Why Git can commit the file name in the folder of the root, or None
     when Git ignores it. Offline: `git check-ignore` reads local rules only."""
@@ -919,7 +1059,16 @@ def main(argv=None):
     p_check.add_argument("--published", action="store_true")
     p_status = verbs.add_parser("status")
     p_status.add_argument("--root")
+    p_alerts = verbs.add_parser("alerts")
+    p_alerts.add_argument("--repo", help="owner/repo; default: the GitHub repository of the root")
+    p_alerts.add_argument("--root")
     args = parser.parse_args(argv)
+    if args.verb == "alerts":
+        if args.repo and not REPO_RE.match(args.repo):
+            parser.error("--repo must be owner/repo")
+        lines, failed = alerts(args.root or (os.getcwd() if args.repo else find_root(os.getcwd())), args.repo)
+        print("\n".join(lines))
+        return 1 if failed else 0
     if args.verb == "status":
         lines, failed = status(args.root or find_root(os.getcwd()))
         print("\n".join(lines or ["No private report and no published security report."]))

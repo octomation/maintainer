@@ -1258,5 +1258,164 @@ class NoMirror(Rule):
                          (0, [".github/reports/%s: published, 3 of 3 findings closed." % NAME]))
 
 
+FAKE_GH_API = """#!%s
+import json, os, sys
+data = json.load(open(os.environ["FAKE_GH"]))
+open(os.environ["FAKE_GH"] + ".log", "a").write(" ".join(sys.argv[1:]) + "\\n")
+args = sys.argv[1:]
+if args[0] != "api":
+    sys.exit(2)
+answer = data.get(args[1], {"status": 404, "message": "Not Found"})
+if "status" in answer:
+    print(json.dumps({"message": answer["message"], "status": str(answer["status"])}))
+    sys.stderr.write("gh: %%s (HTTP %%d)\\n" %% (answer["message"], answer["status"]))
+    sys.exit(1)
+if "--jq" in args:
+    print(answer["jq"])
+else:
+    sys.stdout.write("".join(json.dumps(page) for page in answer["pages"]))
+""" % sys.executable
+
+REPO = "repos/octo/repo/"
+DEPENDABOT = REPO + "dependabot/alerts?state=open,dismissed&per_page=100"
+CODE_SCANNING = REPO + "code-scanning/alerts?state=open&per_page=100"
+SECRET_SCANNING = REPO + "secret-scanning/alerts?state=open&per_page=100"
+ADVISORIES = REPO + "security-advisories?per_page=100"
+
+
+def dependabot_alert(n, state, severity="high", reason=None, comment=None):
+    return {"number": n, "state": state, "dismissed_reason": reason, "dismissed_comment": comment,
+            "security_advisory": {"severity": severity},
+            "dependency": {"package": {"ecosystem": "npm", "name": "zod"}, "manifest_path": "docs/package-lock.json"}}
+
+
+class Alerts(unittest.TestCase):
+    """`alerts` reads the security alerts of the repository with `gh api`."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.bin = self.root / "bin"
+        self.bin.mkdir()
+        self.data = self.root / "gh.json"
+        (self.bin / "gh").write_text(FAKE_GH_API)
+        (self.bin / "gh").chmod(0o755)
+        env = mock.patch.dict(os.environ, {"PATH": str(self.bin), "FAKE_GH": str(self.data)})
+        env.start()
+        self.addCleanup(env.stop)
+
+    def answers(self, **changes):
+        answers = {
+            "repos/{owner}/{repo}": {"jq": "octo/repo"},
+            "repos/octo/repo": {"jq": "true"},
+            DEPENDABOT: {"pages": [
+                [dependabot_alert(97, "dismissed", reason="tolerable_risk", comment="Docs site only.\nNot shipped."),
+                 dependabot_alert(98, "open", "medium")],
+                [dependabot_alert(99, "dismissed"), dependabot_alert(12, "fixed")]]},
+            CODE_SCANNING: {"pages": [[{"number": 3, "state": "open",
+                                        "rule": {"id": "go/path-injection", "security_severity_level": "high"},
+                                        "most_recent_instance": {"location": {"path": "cmd/x.go", "start_line": 7}}}]]},
+            SECRET_SCANNING: {"pages": [[{"number": 1, "state": "open",
+                                          "secret_type_display_name": "GitHub Personal Access Token"}]]},
+            ADVISORIES: {"pages": [[{"ghsa_id": "GHSA-aaaa-bbbb-cccc", "state": "draft", "severity": "critical",
+                                     "vulnerabilities": [{"package": {"ecosystem": "go", "name": "go.acme/tool"}}]},
+                                    {"ghsa_id": "GHSA-dddd-eeee-ffff", "state": "published", "severity": "low"}]]},
+        }
+        answers.update(changes)
+        self.data.write_text(json.dumps(answers))
+
+    def run_main(self, *argv):
+        with contextlib.redirect_stdout(io.StringIO()) as out:
+            code = review.main(["alerts", "--root", str(self.root)] + list(argv))
+        return code, out.getvalue().splitlines()
+
+    def calls(self):
+        log = Path(str(self.data) + ".log")
+        return log.read_text().splitlines() if log.exists() else []
+
+    def test_lines(self):
+        self.answers()
+        self.assertEqual(self.run_main(), (0, [
+            "Repository: octo/repo.",
+            "dependabot #97: high, npm:zod, docs/package-lock.json, dismissed: tolerable_risk — Docs site only. Not shipped.",
+            "dependabot #98: medium, npm:zod, docs/package-lock.json, open",
+            "dependabot #99: high, npm:zod, docs/package-lock.json, dismissed: no reason — no comment",
+            "dependabot: 1 open, 2 dismissed.",
+            "code-scanning #3: high, go/path-injection, cmd/x.go:7, open",
+            "code-scanning: 1 open.",
+            "secret-scanning #1: —, GitHub Personal Access Token, —, open",
+            "secret-scanning: 1 open.",
+            "advisories GHSA-aaaa-bbbb-cccc: critical, go:go.acme/tool, —, draft",
+            "advisories: 1 draft, 0 triage.",
+        ]))
+
+    def test_advisories_need_admin(self):
+        self.answers(**{"repos/octo/repo": {"jq": "false"}})
+        code, out = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("advisories: error: draft advisories need admin access to octo/repo", out)
+        self.assertIn("dependabot: 1 open, 2 dismissed.", out)
+        self.assertNotIn("api " + ADVISORIES, self.calls())
+
+    def test_only_api_reads(self):
+        self.answers()
+        self.run_main()
+        calls = self.calls()
+        self.assertEqual(len(calls), 6, calls)
+        for call in calls:
+            self.assertTrue(call.startswith("api "), call)
+            self.assertFalse(re.search(r"(^| )(-X|--method|-f|-F|--field|--raw-field|--input)( |$)", call), call)
+
+    def test_off(self):
+        self.answers(**{
+            DEPENDABOT: {"status": 403, "message": "Dependabot alerts are disabled for this repository."},
+            CODE_SCANNING: {"status": 404, "message": "no analysis found"},
+            SECRET_SCANNING: {"status": 404, "message": "Secret scanning is disabled on this repository."}})
+        code, out = self.run_main()
+        self.assertEqual((code, out[1:4]), (0, [
+            "dependabot: off — Dependabot alerts are disabled for this repository.",
+            "code-scanning: off — no analysis found",
+            "secret-scanning: off — Secret scanning is disabled on this repository."]))
+
+    def test_no_access(self):
+        self.answers(**{CODE_SCANNING: {"status": 403, "message": "You are not authorized to read code scanning alerts."},
+                        SECRET_SCANNING: {"status": 404, "message": "Not Found"}})
+        code, out = self.run_main()
+        self.assertEqual(code, 1)
+        self.assertIn("code-scanning: error: gh exits 1: gh: You are not authorized to read code scanning alerts. "
+                      "(HTTP 403)", out)
+        self.assertIn("secret-scanning: error: gh exits 1: gh: Not Found (HTTP 404)", out)
+        self.assertIn("dependabot: 1 open, 2 dismissed.", out)
+
+    def test_no_gh(self):
+        self.answers()
+        (self.bin / "gh").unlink()
+        self.assertEqual(self.run_main(), (1, ["repository: error: gh is not on PATH"]))
+        self.assertEqual(self.run_main("--repo", "octo/repo")[0], 1)
+
+    def test_no_github_remote(self):
+        self.answers(**{"repos/{owner}/{repo}": {"status": 404, "message": "Not Found"}})
+        self.assertEqual(self.run_main(), (1, ["repository: error: gh exits 1: gh: Not Found (HTTP 404)"]))
+
+    def test_repo_flag(self):
+        self.answers()
+        code, out = self.run_main("--repo", "octo/repo")
+        self.assertEqual((code, out[0]), (0, "Repository: octo/repo."))
+        self.assertNotIn("api repos/{owner}/{repo} --jq .full_name", self.calls())
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+            self.run_main("--repo", "octo/repo/../x")
+
+    def test_bad_json(self):
+        self.answers(**{ADVISORIES: {"pages": [{"message": "a dict"}]}})
+        code, out = self.run_main()
+        self.assertEqual((code, out[-1]), (1, "advisories: error: gh returns no JSON list"))
+
+    def test_timeout(self):
+        self.answers()
+        (self.bin / "gh").write_text("#!%s\nimport time\ntime.sleep(5)\n" % sys.executable)
+        with mock.patch.object(review, "GH_TIMEOUT", 0.5):
+            self.assertEqual(self.run_main(), (1, ["repository: error: gh does not answer in 0.5 seconds"]))
+
 if __name__ == "__main__":
     unittest.main()
