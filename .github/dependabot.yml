@@ -4,7 +4,8 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+      day: monday
       time: '05:00'
       timezone: UTC
     labels:
@@ -14,12 +15,12 @@ updates:
     commit-message:
       prefix: 'ci/cd'
       include: 'scope'
-    open-pull-requests-limit: 30
 
   - package-ecosystem: gomod
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
+      day: monday
       time: '05:00'
       timezone: UTC
     labels:
@@ -29,12 +30,12 @@ updates:
     commit-message:
       prefix: 'feat'
       include: 'scope'
-    open-pull-requests-limit: 30
 
   - package-ecosystem: npm
     directory: /docs/
     schedule:
-      interval: daily
+      interval: weekly
+      day: monday
       time: '05:00'
       timezone: UTC
     labels:
@@ -44,7 +45,6 @@ updates:
     commit-message:
       prefix: 'docs'
       include: 'scope'
-    open-pull-requests-limit: 30
 
   # the go tool directive requires tool modules as // indirect, which version
   # updates skip, so this entry only raises security updates; a native fix is
@@ -53,7 +53,8 @@ updates:
   - package-ecosystem: gomod
     directory: /tools/
     schedule:
-      interval: daily
+      interval: weekly
+      day: monday
       time: '05:00'
       timezone: UTC
     labels:
