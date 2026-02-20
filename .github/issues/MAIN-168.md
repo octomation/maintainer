@@ -7,24 +7,24 @@ url: https://github.com/octomation/maintainer/issues/570
 title: "github: contribution: fetch again a month cached while it was open"
 issueType: Bug
 labels:
-  - "effort: medium"
-  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: medium"
+  - "effort: medium"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:41:55Z
-updatedAt: 2026-11-26T17:41:56Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:01:38Z
+lastEditedAt: 2026-11-26T20:01:38Z
+closedAt: 2026-11-26T19:43:12Z
 ---
 
 # github: contribution: fetch again a month cached while it was open

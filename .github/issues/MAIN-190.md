@@ -7,24 +7,24 @@ url: https://github.com/octomation/maintainer/issues/574
 title: "fetch: root: scan the folder of a working directory reached through a symlink"
 issueType: Bug
 labels:
-  - "effort: easy"
-  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "severity: major"
   - "type: bug"
+  - "severity: major"
+  - "impact: medium"
+  - "effort: easy"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:13Z
-updatedAt: 2026-11-26T17:42:14Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:01:48Z
+lastEditedAt: 2026-11-26T20:01:48Z
+closedAt: 2026-11-26T19:37:46Z
 ---
 
 # fetch: root: scan the folder of a working directory reached through a symlink

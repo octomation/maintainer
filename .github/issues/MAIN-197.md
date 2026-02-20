@@ -7,23 +7,23 @@ url: https://github.com/octomation/maintainer/issues/575
 title: "build: dist: keep bin/install when godownloader is missing"
 issueType: Bug
 labels:
-  - "effort: easy"
-  - "impact: low"
   - "scope: code"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: low"
+  - "effort: easy"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:18Z
-updatedAt: 2026-11-26T17:42:18Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:01:55Z
+lastEditedAt: 2026-11-26T20:01:55Z
+closedAt: 2026-11-26T19:46:38Z
 ---
 
 # build: dist: keep bin/install when godownloader is missing

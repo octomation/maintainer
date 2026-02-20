@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:23:32Z
-updatedAt: 2026-11-26T17:23:32Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:01:50Z
+lastEditedAt: 2026-11-26T20:01:50Z
+closedAt: 2026-11-26T19:44:39Z
 ---
 
 # skills: install: name only the skills and agents that the run set up

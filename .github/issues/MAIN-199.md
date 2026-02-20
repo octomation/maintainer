@@ -7,24 +7,24 @@ url: https://github.com/octomation/maintainer/issues/577
 title: "service: checkouts: run one more collection for refreshes during a collection"
 issueType: Bug
 labels:
-  - "effort: easy"
-  - "impact: low"
   - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: low"
+  - "effort: easy"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:26Z
-updatedAt: 2026-11-26T17:43:07Z
-lastEditedAt: 2026-11-26T17:43:07Z
-closedAt: null
+updatedAt: 2026-11-26T20:02:01Z
+lastEditedAt: 2026-11-26T20:02:01Z
+closedAt: 2026-11-26T19:50:40Z
 ---
 
 # service: checkouts: run one more collection for refreshes during a collection

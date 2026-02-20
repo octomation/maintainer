@@ -7,22 +7,22 @@ url: https://github.com/octomation/maintainer/issues/579
 title: "skills: review: say how to treat a large target, test fixtures and Excluded"
 issueType: Task
 labels:
-  - "effort: easy"
-  - "impact: low"
   - "scope: docs"
   - "scope: test"
+  - "impact: low"
+  - "effort: easy"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:35Z
-updatedAt: 2026-11-26T17:42:35Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:02:06Z
+lastEditedAt: 2026-11-26T20:02:06Z
+closedAt: 2026-11-26T19:45:57Z
 ---
 
 # skills: review: say how to treat a large target, test fixtures and Excluded

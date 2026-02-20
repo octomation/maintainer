@@ -18,13 +18,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:23:37Z
-updatedAt: 2026-11-26T17:23:37Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:01:53Z
+lastEditedAt: 2026-11-26T20:01:53Z
+closedAt: 2026-11-26T19:44:13Z
 ---
 
 # skills: review: ignore only the folder of private reports, not .agents/

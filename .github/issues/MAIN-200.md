@@ -7,24 +7,24 @@ url: https://github.com/octomation/maintainer/issues/578
 title: "service: hub: close the issue page without a duplicate history entry"
 issueType: Bug
 labels:
-  - "effort: easy"
-  - "impact: low"
   - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: low"
+  - "effort: easy"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:30Z
-updatedAt: 2026-11-26T17:42:31Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:02:03Z
+lastEditedAt: 2026-11-26T20:02:03Z
+closedAt: 2026-11-26T19:47:33Z
 ---
 
 # service: hub: close the issue page without a duplicate history entry

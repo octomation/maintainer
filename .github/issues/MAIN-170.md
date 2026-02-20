@@ -7,25 +7,25 @@ url: https://github.com/octomation/maintainer/issues/571
 title: "status: inspection: keep one slow checkout from holding the whole run"
 issueType: Bug
 labels:
-  - "effort: medium"
-  - "impact: medium"
-  - "scope: code"
   - "scope: docs"
+  - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: medium"
+  - "effort: medium"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:00Z
-updatedAt: 2026-11-26T18:59:48Z
-lastEditedAt: 2026-11-26T18:59:48Z
-closedAt: null
+updatedAt: 2026-11-26T20:01:40Z
+lastEditedAt: 2026-11-26T20:01:40Z
+closedAt: 2026-11-26T19:51:41Z
 ---
 
 # status: inspection: keep one slow checkout from holding the whole run

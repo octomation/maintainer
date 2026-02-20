@@ -7,24 +7,24 @@ url: https://github.com/octomation/maintainer/issues/569
 title: "fetch: scan: recognise sparse and partial checkouts of tracked repositories"
 issueType: Bug
 labels:
-  - "effort: medium"
-  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "severity: major"
   - "type: bug"
+  - "severity: major"
+  - "impact: medium"
+  - "effort: medium"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:41:51Z
-updatedAt: 2026-11-26T17:41:52Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:01:35Z
+lastEditedAt: 2026-11-26T20:01:35Z
+closedAt: 2026-11-26T19:42:37Z
 ---
 
 # fetch: scan: recognise sparse and partial checkouts of tracked repositories

@@ -7,24 +7,24 @@ url: https://github.com/octomation/maintainer/issues/573
 title: "fetch: state: refuse an unknown profile in state prune"
 issueType: Bug
 labels:
-  - "effort: easy"
-  - "impact: low"
   - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: low"
+  - "effort: easy"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:09Z
-updatedAt: 2026-11-26T17:42:09Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-26T20:01:45Z
+lastEditedAt: 2026-11-26T20:01:45Z
+closedAt: 2026-11-26T19:37:45Z
 ---
 
 # fetch: state: refuse an unknown profile in state prune

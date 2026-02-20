@@ -7,24 +7,24 @@ url: https://github.com/octomation/maintainer/issues/576
 title: "fetch: plan: name the path of a scan conflict that has no repository"
 issueType: Bug
 labels:
-  - "effort: easy"
-  - "impact: low"
   - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: low"
+  - "effort: easy"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:22Z
-updatedAt: 2026-11-26T17:43:05Z
-lastEditedAt: 2026-11-26T17:43:05Z
-closedAt: null
+updatedAt: 2026-11-26T20:01:58Z
+lastEditedAt: 2026-11-26T20:01:58Z
+closedAt: 2026-11-26T19:39:03Z
 ---
 
 # fetch: plan: name the path of a scan conflict that has no repository

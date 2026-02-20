@@ -7,24 +7,24 @@ url: https://github.com/octomation/maintainer/issues/572
 title: "service: hub: give every control a 44 px touch target below 600 px"
 issueType: Bug
 labels:
-  - "effort: medium"
-  - "impact: medium"
   - "scope: code"
   - "scope: test"
-  - "severity: minor"
   - "type: bug"
+  - "severity: minor"
+  - "impact: medium"
+  - "effort: medium"
 assignees:
   - kamilsk
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-26T17:42:04Z
-updatedAt: 2026-11-26T18:48:05Z
-lastEditedAt: 2026-11-26T18:48:05Z
-closedAt: null
+updatedAt: 2026-11-26T20:01:43Z
+lastEditedAt: 2026-11-26T20:01:43Z
+closedAt: 2026-11-26T19:48:08Z
 ---
 
 # service: hub: give every control a 44 px touch target below 600 px
