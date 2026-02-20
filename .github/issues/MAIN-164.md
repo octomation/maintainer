@@ -66,4 +66,4 @@ writes the template in that format, or it refuses the path as a usage error
 The content of the template. The refusal to overwrite an existing file without
 `--force`.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "`fetch config init` writes the TOML template into a `.yaml` path".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "`fetch config init` writes the TOML template into a `.yaml` path".

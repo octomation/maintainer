@@ -68,4 +68,4 @@ states the break and the replacement.
 - Published notes of earlier releases stay as they are.
 - Reading a `.env` file of the working directory: [[MAIN-177]].
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F3.
+Source: [the security review of 2026-11-25](../reports/20261125T152238Z.md), F3.

@@ -59,4 +59,4 @@ keeps its table on stderr.
 
 The output of `histogram`.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "`lookup` prints its calendar table to stderr, so stdout stays empty".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "`lookup` prints its calendar table to stderr, so stdout stays empty".

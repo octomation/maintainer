@@ -64,4 +64,4 @@ comment follows its line of text, as the inline exception of WCAG 2.5.8 allows.
 
 The desktop layout.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "Below 600 px several controls stay under the 44 px touch size".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "Below 600 px several controls stay under the 44 px touch size".

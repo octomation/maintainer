@@ -138,4 +138,4 @@ name is the credential; nothing is stored in the browser.
   `maintainer.localhost`, and only with JavaScript on: the user opens any
   other plain address once; the theme resets at each start.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F4.
+Source: [the security review of 2026-11-25](../reports/20261125T152238Z.md), F4.

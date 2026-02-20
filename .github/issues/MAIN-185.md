@@ -60,4 +60,4 @@ fixed to a reviewed commit.
 - Pinning `octomation/*` actions by SHA.
 - No changelog entry: this changes the release pipeline, not the product.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F5.
+Source: [the security review of 2026-11-25](../reports/20261125T152238Z.md), F5.

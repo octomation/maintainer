@@ -57,4 +57,4 @@ only, and the value must not appear in any process argument.
 - No changelog entry: this is a tool of the maintainer, not a part of the
   product.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F2.
+Source: [the security review of 2026-11-25](../reports/20261125T152238Z.md), F2.

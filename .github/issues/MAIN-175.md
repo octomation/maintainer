@@ -60,4 +60,4 @@ prunes every missing record, as today.
 
 Which records count as missing: [[MAIN-137]] decides it.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "`state prune` ignores `--owner` and `--profile` and forgets records of other owners".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "`state prune` ignores `--owner` and `--profile` and forgets records of other owners".

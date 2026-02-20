@@ -65,4 +65,4 @@ version.
 
 The repair of the file. The text of the refusal.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "A refused triage on a malformed file drops the issue instead of keeping it stale".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "A refused triage on a malformed file drops the issue instead of keeping it stale".

@@ -65,4 +65,4 @@ installed or found in place as this binary's copies.
 
 What `install` writes and skips: it already leaves a foreign folder alone.
 
-Found by the code review `.github/reviews/20261126T172207Z.md` (F1).
+Found by the code review `.github/reports/20261126T172207Z.md` (F1).

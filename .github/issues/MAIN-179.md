@@ -60,4 +60,4 @@ not offered.
 
 `-q` and the format of the lines.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "The `-vv` and `-vvv` levels print nothing beyond `-v`".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "The `-vv` and `-vvv` levels print nothing beyond `-v`".

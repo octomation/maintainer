@@ -93,4 +93,4 @@ directory must not be a source of configuration.
 Related: [[MAIN-177]] holds the same rule for the token: the contribution
 commands no longer read a `.env` file of the working directory.
 
-Source: [the security review of 2026-11-25](../reviews/20261125T152238Z.md), F1.
+Source: [the security review of 2026-11-25](../reports/20261125T152238Z.md), F1.

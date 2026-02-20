@@ -69,4 +69,4 @@ time maintainer status --format=plain >/dev/null
 
 How renames are counted: [[MAIN-130]].
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "Rename detection in one checkout holds the whole `status` run for minutes".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "Rename detection in one checkout holds the whole `status` run for minutes".

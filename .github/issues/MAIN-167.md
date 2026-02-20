@@ -66,4 +66,4 @@ and the exit code treats this conflict as any other conflict.
 Failures that are not about the pinned repository, such as a network error or a
 rate limit: they keep their current handling.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "A pin that GitHub does not confirm stops the whole fetch run".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "A pin that GitHub does not confirm stops the whole fetch run".

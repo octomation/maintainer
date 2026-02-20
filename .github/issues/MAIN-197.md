@@ -61,4 +61,4 @@ and leaves the tracked file as it is.
 
 The content of the install script.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "`make go-dist-installer` empties the tracked `bin/install`".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "`make go-dist-installer` empties the tracked `bin/install`".

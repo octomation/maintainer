@@ -59,4 +59,4 @@ report made by the skill follows it.
 
 The lenses, severities and verdicts of the skill.
 
-Source: [the code review of v0.6.0](../reviews/20261126T172207Z.md).
+Source: [the code review of v0.6.0](../reports/20261126T172207Z.md).

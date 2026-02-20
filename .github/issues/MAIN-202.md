@@ -51,18 +51,18 @@ calls its output a report: the folders should say so too.
 
 ## Acceptance criteria
 
-- [ ] `review.py new code|issue` prints a path in `.github/reports/`, `new
+- [x] `review.py new code|issue` prints a path in `.github/reports/`, `new
       security` one in `.agents/reports/`.
-- [ ] `status` and `check --published` read `.github/reports/` and
+- [x] `status` and `check --published` read `.github/reports/` and
       `.agents/reports/`, and a `Source:` link to `../reports/`.
-- [ ] `check` refuses a security report in `.github/reports/` before
+- [x] `check` refuses a security report in `.github/reports/` before
       publication, and a report outside the two folders.
-- [ ] The `Publish:` line moves a private report from `.agents/reports/` to
+- [x] The `Publish:` line moves a private report from `.agents/reports/` to
       `.github/reports/`.
-- [ ] The tests of `review.py` cover the new folders; `go test ./skills`
+- [x] The tests of `review.py` cover the new folders; `go test ./skills`
       passes.
-- [ ] `docs/content/agents.md` asks to ignore `.agents/reports/`.
-- [ ] `.github/reviews/` of this repository is gone: its reports are in
+- [x] `docs/content/agents.md` asks to ignore `.agents/reports/`.
+- [x] `.github/reviews/` of this repository is gone: its reports are in
       `.github/reports/`, the mirror links `../reports/`, and `review.py
       status` reports no error.
 

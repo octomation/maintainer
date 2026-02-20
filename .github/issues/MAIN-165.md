@@ -62,4 +62,4 @@ folder that the symlink names and prints the same rows as in that folder.
 
 The rule for explicit roots. Symlinks inside the workspace during the scan.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "The implicit root fails in a working directory reached through a symlink".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "The implicit root fails in a working directory reached through a symlink".

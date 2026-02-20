@@ -69,4 +69,4 @@ checkouts.
 
 Related: [[MAIN-150]].
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "A sparse or partial checkout is invisible to the scan, so a rename re-clones it".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "A sparse or partial checkout is invisible to the scan, so a rename re-clones it".

@@ -59,4 +59,4 @@ issues the page has loaded.
 
 The board `/tablo`, whose columns are the statuses.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "Inbox group counts ignore the Status filter of the list".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "Inbox group counts ignore the Status filter of the list".

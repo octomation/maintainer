@@ -54,4 +54,4 @@ without a page reload.
       fails until **Try again**: afterwards the Repositories tree is present.
 - [x] `make web-check` passes.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "The sidebar repository tree never retries a failed catalog request".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "The sidebar repository tree never retries a failed catalog request".

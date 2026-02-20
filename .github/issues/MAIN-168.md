@@ -63,4 +63,4 @@ result as for any closed month.
 Months with contributions that still have no date after the close: they keep the
 rule of [[MAIN-159]]. The edges of the monthly slices: [[MAIN-160]].
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "A month cached with the API calendar while open keeps it after it closes".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "A month cached with the API calendar while open keeps it after it closes".

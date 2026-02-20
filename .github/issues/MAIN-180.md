@@ -63,4 +63,4 @@ The meaning of a list without `*`.
 
 Related: [[MAIN-133]].
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "An owner listed next to the wildcard in `include_owners` is silently dropped".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "An owner listed next to the wildcard in `include_owners` is silently dropped".

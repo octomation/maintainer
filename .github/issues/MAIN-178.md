@@ -59,4 +59,4 @@ service with an error that names the file, the rule and the key.
 - [x] A test feeds the same valid and invalid matches to the loader and to the
       schema, and both give the same verdict for each.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "The service loader accepts repos match ids that service.cue rejects".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "The service loader accepts repos match ids that service.cue rejects".

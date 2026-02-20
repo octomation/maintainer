@@ -64,4 +64,4 @@ private reports, as `review.py` does.
 
 This repository's own `.gitignore`: its `.agents/` holds no project skills.
 
-Found by the code review `.github/reviews/20261126T172207Z.md` (F2).
+Found by the code review `.github/reports/20261126T172207Z.md` (F2).

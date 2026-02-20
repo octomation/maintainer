@@ -62,4 +62,4 @@ it.
 
 Which directories the scan reads: [[MAIN-166]].
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "A scan obstruction conflict prints `/` as its repository name".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "A scan obstruction conflict prints `/` as its repository name".

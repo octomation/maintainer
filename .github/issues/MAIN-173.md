@@ -54,4 +54,4 @@ and Escape act as they do when F was not pressed.
 - [x] On a list page F still opens the Filter menu.
 - [x] `make web-check` passes.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "F on the full issue page opens a hidden filter menu".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "F on the full issue page opens a hidden filter menu".

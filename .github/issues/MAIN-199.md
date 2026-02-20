@@ -58,4 +58,4 @@ collection after it, as the comment of the code states.
 
 How long one collection takes: [[MAIN-170]].
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "A refresh during a collection runs two more collections instead of one".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "A refresh during a collection runs two more collections instead of one".

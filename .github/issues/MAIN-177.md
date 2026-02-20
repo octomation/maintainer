@@ -60,4 +60,4 @@ and send no request.
 
 Related: [[MAIN-187]], the same rule for the fetch configuration.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "Contribution commands take a token from a `.env` file in the working directory".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "Contribution commands take a token from a `.env` file in the working directory".

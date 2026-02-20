@@ -57,4 +57,4 @@ comment of the code states the behavior that the code has.
 
 The layout of the issue page.
 
-Source: [20261125T152232Z](../reviews/20261125T152232Z.md), "Closing the issue page leaves a duplicate list entry in the history".
+Source: [20261125T152232Z](../reports/20261125T152232Z.md), "Closing the issue page leaves a duplicate list entry in the history".
