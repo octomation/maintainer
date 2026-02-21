@@ -43,16 +43,16 @@ on.
 
 ## Acceptance criteria
 
-- [ ] A test with a `git status` that never returns finishes in about twice
+- [x] A test with a `git status` that never returns finishes in about twice
       the bound.
-- [ ] Past the bound, the row keeps repository, default branch, branch,
+- [x] Past the bound, the row keeps repository, default branch, branch,
       divergence and push lock, read by commands that do not walk the tree.
-- [ ] Past the bound, the file counts and the line counts of the row show `?`
+- [x] Past the bound, the file counts and the line counts of the row show `?`
       in the plain output; the JSON gives `null` for the changed, untracked
       and conflicted counts and for the line counts; the row counts as
       uncommitted work and does not make the run exit 1.
-- [ ] Plain output, JSON and the hub `/status` show the same row.
-- [ ] `docs/content/status.md` and `skills/maintainer/references/output.md`
+- [x] Plain output, JSON and the hub `/status` show the same row.
+- [x] `docs/content/status.md` and `skills/maintainer/references/output.md`
       state the bound and how the row shows it.
 
 ## Out of scope

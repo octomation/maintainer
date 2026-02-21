@@ -174,13 +174,16 @@ export interface CheckoutRow {
   default_branch?: string;
   commit?: string;
   upstream?: string;
-  /** The line and binary counts are null when they were not computed: unknown, never zero. */
+  /**
+   * The counts are null when they were not computed: unknown, never zero. The line and binary counts
+   * past the bound of rename detection, all six past the bound of git status as well.
+   */
   added: number | null;
   deleted: number | null;
-  changed_files: number;
-  untracked: number;
+  changed_files: number | null;
+  untracked: number | null;
   binary: number | null;
-  conflicts: number;
+  conflicts: number | null;
   ahead: number;
   behind: number;
   status: string;

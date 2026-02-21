@@ -9,7 +9,7 @@ import { Empty, ErrorState, Loading, ProgressLine } from '../../components/State
 import { Popover } from '../../components/Popover';
 import { TopBar, ViewSwitch } from '../../components/TopBar';
 import type { PageProps } from '../props';
-import { CHECKOUT_GROUP_TITLES, columnTemplate, cycleSort, formatTime, groupOf, groupRows, type Grouping, type Layout, layoutFromSearch, readColumns, sortParam, sortSummary, STATUS_COLUMNS, type StatusColumns, summaryLine, uncommitted, writeColumns } from './model';
+import { CHECKOUT_GROUP_TITLES, columnTemplate, cycleSort, filesUnknown, formatTime, groupOf, groupRows, type Grouping, type Layout, layoutFromSearch, readColumns, sortParam, sortSummary, STATUS_COLUMNS, type StatusColumns, summaryLine, uncommitted, writeColumns } from './model';
 import './status.css';
 
 /** How often the page asks again while the service collects. */
@@ -517,15 +517,18 @@ function CheckoutCard({ row, onOpen }: { row: CheckoutRow; onOpen: () => void })
 /** The peek panel: everything the row carries, as the TUI footer shows it. */
 function CheckoutDetails({ row }: { row: CheckoutRow }) {
   const branch = row.branch || '—';
-  const uncommitted = [
-    `+${row.added ?? '?'}/-${row.deleted ?? '?'} tracked lines`,
-    row.changed_files > 0 ? `${row.changed_files} changed files` : '',
-    row.untracked > 0 ? `${row.untracked} untracked` : '',
-    (row.binary ?? 0) > 0 ? `${row.binary} binary` : '',
-    row.conflicts > 0 ? `${row.conflicts} conflicts` : '',
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  // Files that were not counted leave every count unknown, as the server's cell shows them.
+  const uncommitted = filesUnknown(row)
+    ? '?'
+    : [
+        `+${row.added ?? '?'}/-${row.deleted ?? '?'} tracked lines`,
+        (row.changed_files ?? 0) > 0 ? `${row.changed_files} changed files` : '',
+        (row.untracked ?? 0) > 0 ? `${row.untracked} untracked` : '',
+        (row.binary ?? 0) > 0 ? `${row.binary} binary` : '',
+        (row.conflicts ?? 0) > 0 ? `${row.conflicts} conflicts` : '',
+      ]
+        .filter(Boolean)
+        .join(' · ');
   const divergence = [row.ahead > 0 ? `ahead ${row.ahead}` : '', row.behind > 0 ? `behind ${row.behind}` : ''].filter(Boolean).join(' · ');
   const group = groupOf(row);
   return (

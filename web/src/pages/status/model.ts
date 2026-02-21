@@ -72,9 +72,18 @@ export function formatTime(value: string | null | undefined): string {
 /** How the list groups the rows; the order inside a group stays the server's. */
 export type Grouping = 'state' | 'owner' | 'none';
 
-/** Whether a row has uncommitted work by the counts it knows, as the server's summary counts it. */
+/** Whether the files of a checkout were not counted, though nothing failed: its git status passed its bound. */
+export function filesUnknown(row: CheckoutRow): boolean {
+  return !row.error && !row.placeholder && (row.changed_files === null || row.untracked === null || row.conflicts === null);
+}
+
+/**
+ * Whether a row has uncommitted work by the counts it knows, as the server's summary counts it; a row whose
+ * files were not counted may have it.
+ */
 export function uncommitted(row: CheckoutRow): boolean {
-  return (row.added ?? 0) + (row.deleted ?? 0) + row.changed_files + row.untracked + (row.binary ?? 0) + row.conflicts > 0;
+  if (filesUnknown(row)) return true;
+  return (row.added ?? 0) + (row.deleted ?? 0) + (row.changed_files ?? 0) + (row.untracked ?? 0) + (row.binary ?? 0) + (row.conflicts ?? 0) > 0;
 }
 
 /** The state of a checkout as the list groups it, worst first. */

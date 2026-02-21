@@ -197,6 +197,30 @@ describe('StatusPage', () => {
     expect(dialog.textContent).not.toContain('null');
   });
 
+  it('shows a checkout whose git status passed its bound as uncommitted with every count unknown', async () => {
+    // The server's row past the bound of git status: all six counts are null, no error, the cell is the server's.
+    const slow = {
+      ...checkouts.data.rows[0],
+      added: null,
+      deleted: null,
+      binary: null,
+      changed_files: null,
+      untracked: null,
+      conflicts: null,
+      cells: checkouts.data.rows[0].cells.map((cell, i) => (i === 2 ? '?' : cell)),
+    };
+    const unknown: Envelope<CheckoutsData> = { ...checkouts, data: { ...checkouts.data, rows: [slow], summary: { ...checkouts.data.summary, checkouts: 1 } } };
+    await renderPage(mockApi({ route: (call) => (call.url.pathname === '/api/v0/checkouts' ? json(unknown) : undefined) }));
+    expect(groupOf(slow)).toBe('uncommitted');
+    const row = bodyRows()[0];
+    expect(cellsOf(row)[2]).toBe('?');
+    fireEvent.click(row);
+    const dialog = await screen.findByRole('dialog', { name: slow.repository });
+    expect(within(dialog).getByText('?')).toBeTruthy();
+    expect(dialog.textContent).not.toContain('tracked lines');
+    expect(dialog.textContent).not.toContain('null');
+  });
+
   it('opens the drawer with Enter on a focused row and shows orphan and error details', async () => {
     await renderPage();
     const dotfiles = bodyRows().find((row) => row.textContent?.includes('dotfiles')) as HTMLElement;
