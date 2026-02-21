@@ -37,13 +37,13 @@ The original point of discussion is the [historical jitter call](https://github.
 
 ## Acceptance criteria
 
-- [ ] The offset is at most `min(1 hour, available / remaining)`, where
+- [x] The offset is at most `min(1 hour, available / remaining)`, where
       `remaining` is the effective target minus the actual count of the day
       and `available` is the time from the anchor to the earlier of now and
       the end of the working interval.
-- [ ] With 50 contributions remaining and one hour available, the offset is
+- [x] With 50 contributions remaining and one hour available, the offset is
       under 72 seconds; with no time available, there is no offset.
-- [ ] Tests cover 1, 5 and 50 remaining, a very large target, the bounds of
+- [x] Tests cover 1, 5 and 50 remaining, a very large target, the bounds of
       the interval and rounding to whole seconds; the suggestion never leaves
       the interval or passes now, and stdout stays one timestamp.
-- [ ] `docs/content/contributions.md` says how the offset is chosen.
+- [x] `docs/content/contributions.md` says how the offset is chosen.

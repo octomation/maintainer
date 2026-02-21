@@ -191,42 +191,110 @@ func TestJitter(t *testing.T) {
 
 	tests := map[string]struct {
 		time, now time.Time
+		remaining uint
 		limit     time.Time // the latest jitter is right before it
 	}{
 		"within an hour": {
-			time:  day.Hour(10).Time(),
-			now:   day.Hour(23).Time(),
-			limit: day.Hour(11).Time(),
+			time:      day.Hour(10).Time(),
+			now:       day.Hour(23).Time(),
+			remaining: 1,
+			limit:     day.Hour(11).Time(),
 		},
 		"up to now": {
-			time:  day.Hour(10).Time(),
-			now:   day.Hour(10).Minute(20).Time(),
-			limit: day.Hour(10).Minute(20).Time(),
+			time:      day.Hour(10).Time(),
+			now:       day.Hour(10).Minute(20).Time(),
+			remaining: 1,
+			limit:     day.Hour(10).Minute(20).Time(),
 		},
 		"up to the end of the schedule": {
-			time:  day.Hour(18).Minute(50).Time(),
-			now:   day.Day(26).Hour(12).Time(),
-			limit: day.Hour(19).Time(),
+			time:      day.Hour(18).Minute(50).Time(),
+			now:       day.Day(26).Hour(12).Time(),
+			remaining: 1,
+			limit:     day.Hour(19).Time(),
 		},
 		"no room before now": {
-			time:  day.Hour(10).Time(),
-			now:   day.Hour(10).Time(),
-			limit: day.Hour(10).Time(),
+			time:      day.Hour(10).Time(),
+			now:       day.Hour(10).Time(),
+			remaining: 1,
+			limit:     day.Hour(10).Time(),
 		},
 		"no room in the schedule": {
-			time:  day.Hour(19).Time(),
-			now:   day.Hour(23).Time(),
-			limit: day.Hour(19).Time(),
+			time:      day.Hour(19).Time(),
+			now:       day.Hour(23).Time(),
+			remaining: 1,
+			limit:     day.Hour(19).Time(),
 		},
 		"outside the schedule": {
-			time:  day.Hour(20).Time(),
-			now:   day.Hour(23).Time(),
-			limit: day.Hour(20).Time(),
+			time:      day.Hour(20).Time(),
+			now:       day.Hour(23).Time(),
+			remaining: 1,
+			limit:     day.Hour(20).Time(),
 		},
 		"after now": {
-			time:  day.Hour(10).Time(),
-			now:   day.Hour(9).Time(),
-			limit: day.Hour(10).Time(),
+			time:      day.Hour(10).Time(),
+			now:       day.Hour(9).Time(),
+			remaining: 1,
+			limit:     day.Hour(10).Time(),
+		},
+		"5 remaining in an hour": {
+			time:      day.Hour(18).Time(),
+			now:       day.Hour(23).Time(),
+			remaining: 5,
+			limit:     day.Hour(18).Minute(12).Time(),
+		},
+		"50 remaining in an hour": {
+			time:      day.Hour(18).Time(),
+			now:       day.Hour(23).Time(),
+			remaining: 50,
+			limit:     day.Hour(18).Minute(1).Second(12).Time(),
+		},
+		"50 remaining in the hour before now": {
+			time:      day.Hour(10).Time(),
+			now:       day.Hour(11).Time(),
+			remaining: 50,
+			limit:     day.Hour(10).Minute(1).Second(12).Time(),
+		},
+		"5 remaining in a day": {
+			time:      day.Hour(5).Time(),
+			now:       day.Day(26).Hour(12).Time(),
+			remaining: 5,
+			limit:     day.Hour(6).Time(),
+		},
+		"5 remaining up to now": {
+			time:      day.Hour(10).Time(),
+			now:       day.Hour(10).Minute(20).Time(),
+			remaining: 5,
+			limit:     day.Hour(10).Minute(4).Time(),
+		},
+		"50 remaining up to the end of the schedule": {
+			time:      day.Hour(18).Minute(50).Time(),
+			now:       day.Day(26).Hour(12).Time(),
+			remaining: 50,
+			limit:     day.Hour(18).Minute(50).Second(12).Time(),
+		},
+		"50 remaining without room": {
+			time:      day.Hour(19).Time(),
+			now:       day.Hour(23).Time(),
+			remaining: 50,
+			limit:     day.Hour(19).Time(),
+		},
+		"a share shorter than a nanosecond": {
+			time:      day.Hour(18).Time(),
+			now:       day.Hour(18).Add(time.Microsecond).Time(),
+			remaining: 1001,
+			limit:     day.Hour(18).Time(),
+		},
+		"a very large target": {
+			time:      day.Hour(5).Time(),
+			now:       day.Day(26).Hour(12).Time(),
+			remaining: ^uint(0),
+			limit:     day.Hour(5).Time(),
+		},
+		"nothing remaining is one": {
+			time:      day.Hour(10).Time(),
+			now:       day.Hour(23).Time(),
+			remaining: 0,
+			limit:     day.Hour(11).Time(),
 		},
 	}
 	for name, test := range tests {
@@ -235,10 +303,10 @@ func TestJitter(t *testing.T) {
 			if test.limit.After(test.time) {
 				expected = test.limit.Add(-time.Nanosecond)
 			}
-			assert.Equal(t, expected, Jitter(test.time, test.now, hours, upmost))
+			assert.Equal(t, expected, Jitter(test.time, test.now, hours, test.remaining, upmost))
 
 			for range 1000 {
-				moment := Jitter(test.time, test.now, hours, random)
+				moment := Jitter(test.time, test.now, hours, test.remaining, random)
 				assert.False(t, moment.Before(test.time), "before the suggestion")
 				assert.False(t, moment.After(expected), "after the limit")
 			}
@@ -250,9 +318,43 @@ func TestJitter(t *testing.T) {
 			t.Fatal("random is not needed")
 			return 0
 		})
-		assert.Equal(t, day.Hour(10).Time(), Jitter(day.Hour(10).Time(), day.Hour(10).Time(), hours, broken))
-		assert.Equal(t, day.Hour(19).Time(), Jitter(day.Hour(19).Time(), day.Hour(23).Time(), hours, broken))
+		assert.Equal(t, day.Hour(10).Time(), Jitter(day.Hour(10).Time(), day.Hour(10).Time(), hours, 1, broken))
+		assert.Equal(t, day.Hour(19).Time(), Jitter(day.Hour(19).Time(), day.Hour(23).Time(), hours, 1, broken))
+		assert.Equal(t, day.Hour(5).Time(), Jitter(day.Hour(5).Time(), day.Hour(23).Time(), hours, ^uint(0), broken))
 	})
+}
+
+// The offset is rounded down to whole seconds with the moment: it stays
+// below the share of each remaining contribution, and a share shorter than
+// a second leaves no offset.
+func TestMoment_Share(t *testing.T) {
+	day := xtime.UTC().Year(2026).Month(time.September).Day(25)
+	hours := xtime.Everyday(xtime.Hours(5, 19, 0))
+	upmost := jitter.Transformation(func(d time.Duration) time.Duration { return d - 1 })
+	random := jitter.FullCustom(rand.New(rand.NewSource(1)))
+	suggested, now := day.Hour(18).Time(), day.Hour(23).Time()
+
+	tests := map[uint]time.Duration{ // the latest offset by the remaining contributions
+		1:        time.Hour - time.Second,
+		5:        12*time.Minute - time.Second,
+		50:       71 * time.Second,
+		3599:     time.Second,
+		3600:     0,
+		7200:     0,
+		1000000:  0,
+		^uint(0): 0,
+	}
+	for remaining, latest := range tests {
+		t.Run(fmt.Sprint(remaining), func(t *testing.T) {
+			assert.Equal(t, suggested.Add(latest), Moment(suggested, now, hours, remaining, upmost))
+			for range 1000 {
+				moment := Moment(suggested, now, hours, remaining, random)
+				require.Equal(t, moment, moment.Truncate(time.Second), "fractional seconds")
+				assert.False(t, moment.Before(suggested), "before the suggestion")
+				assert.False(t, moment.After(suggested.Add(latest)), "after the latest")
+			}
+		})
+	}
 }
 
 // A moment is printed to the second, so fractional seconds of the anchor
@@ -303,7 +405,7 @@ func TestSuggest_Printed(t *testing.T) {
 			}
 			random := jitter.FullCustom(rand.New(rand.NewSource(1)))
 			for range 1000 {
-				moment := Moment(suggestion.Time, now, schedule, random)
+				moment := Moment(suggestion.Time, now, schedule, suggestion.Target-suggestion.Actual, random)
 				printed, err := time.Parse(time.RFC3339, moment.UTC().Format(time.RFC3339))
 				require.NoError(t, err)
 
@@ -335,7 +437,7 @@ func TestMoment_Delta(t *testing.T) {
 	for _, suggested := range []time.Time{day.Day(13).Hour(10).Time(), day.Day(14).Hour(11).Minute(50).Time()} {
 		for _, tf := range []jitter.Transformation{fraction, random} {
 			for range 100 {
-				moment := Moment(suggested, now, schedule, tf)
+				moment := Moment(suggested, now, schedule, 1, tf)
 				require.Equal(t, moment, moment.Truncate(time.Second), "fractional seconds")
 				assert.False(t, moment.Before(suggested), "before the suggestion")
 				assert.False(t, moment.After(now), "after now")

@@ -34,9 +34,11 @@ func Suggest(cmd *cobra.Command, cnf *config.Tool) *cobra.Command {
 	cmd.Long = `Suggests the first moment between the anchor and now, both inclusive,
 on a day with fewer contributions than its week requires: the most a day
 of the week has, but not less than --target. A moment is within the
-schedule, 05:00-19:00 UTC every day, and a random jitter of less than an
-hour moves it neither after now nor after the schedule. The table of the
-weeks around the suggestion marks its day with brackets in stderr, and stdout
+schedule, 05:00-19:00 UTC every day. A random jitter moves it by less than
+an hour and less than the time left until now or the end of the schedule,
+whichever is earlier, divided by the contributions the day still needs, so
+the rest of them fit; without time left, it stays. The table of the weeks
+around the suggestion marks its day with brackets in stderr, and stdout
 gets only the timestamp, in UTC, e.g., to pass it to git commit --date:
 the commit keeps the chosen day in any time zone.
 
@@ -94,7 +96,7 @@ or if there is no suitable moment up to now.
 		if suggestion.Time.IsZero() {
 			return Missed(cmd, args, chm, opts, now, schedule, target, short)
 		}
-		suggestion.Time = Moment(suggestion.Time, now, schedule, jitter.FullRandom())
+		suggestion.Time = Moment(suggestion.Time, now, schedule, suggestion.Target-suggestion.Actual, jitter.FullRandom())
 
 		// data presentation
 		if !short {
@@ -156,14 +158,23 @@ func SuggestScope(
 }
 
 // Jitter shifts the suggested time by a random duration, which is less than
-// the jitter limit and keeps the time neither after now nor after the end
-// of the schedule interval the time lies in.
-func Jitter(t, now time.Time, hours xtime.Schedule, random jitter.Transformation) time.Time {
+// the jitter limit and less than the share of each remaining contribution
+// in the time available from the suggested time to the earlier of now
+// and the end of the schedule interval the time lies in, so the remaining
+// contributions still fit there. No time available or a share shorter
+// than a nanosecond means no shift.
+func Jitter(t, now time.Time, hours xtime.Schedule, remaining uint, random jitter.Transformation) time.Time {
 	end := hours.End(t)
 	if end.IsZero() {
 		return t
 	}
-	if margin := min(jitterLimit, now.Sub(t), end.Sub(t)); margin > 0 {
+	available := min(now.Sub(t), end.Sub(t))
+	// the share is zero when it is shorter than a nanosecond,
+	// which also keeps a huge count from overflowing the duration
+	if available <= 0 || uint64(remaining) >= uint64(available) {
+		return t
+	}
+	if margin := min(jitterLimit, available/time.Duration(max(remaining, 1))); margin > 0 {
 		return t.Add(random.Apply(margin))
 	}
 	return t
@@ -172,8 +183,8 @@ func Jitter(t, now time.Time, hours xtime.Schedule, random jitter.Transformation
 // Moment jitters the suggested time and drops fractional seconds:
 // the moment is printed to the second, and its delta from now must agree.
 // It stays within the window, because the anchor and now are whole seconds.
-func Moment(t, now time.Time, hours xtime.Schedule, random jitter.Transformation) time.Time {
-	return Jitter(t, now, hours, random).Truncate(time.Second)
+func Moment(t, now time.Time, hours xtime.Schedule, remaining uint, random jitter.Transformation) time.Time {
+	return Jitter(t, now, hours, remaining, random).Truncate(time.Second)
 }
 
 // Missed explains in stderr why there is nothing to suggest: the table

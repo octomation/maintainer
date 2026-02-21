@@ -174,3 +174,40 @@ func TestCommandsPrintTablesWhereTheirResultGoes(t *testing.T) {
 	require.Contains(t, diagnostic, "Day / Week")
 	require.Contains(t, diagnostic, "Suggestion is ")
 }
+
+// The jitter of suggest shrinks with the contributions the day still needs,
+// and stdout gets one timestamp whatever the target: January 3 has 14,
+// and an hour of its schedule is left after the anchor.
+func TestSuggestJitterFollowsTheTarget(t *testing.T) {
+	t.Setenv("XDG_CACHE_HOME", t.TempDir())
+	ctx := context.WithValue(context.Background(), oauth2.HTTPClient, &http.Client{Transport: calendarTransport{}})
+	anchor := time.Date(2025, time.January, 3, 18, 0, 0, 0, time.UTC)
+
+	tests := map[string]struct {
+		target string
+		limit  time.Duration // the offset is less
+	}{
+		"1 remaining":         {target: "15", limit: time.Hour},
+		"50 remaining":        {target: "64", limit: 72 * time.Second},
+		"a very large target": {target: "18446744073709551615", limit: time.Nanosecond},
+	}
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			for range 20 {
+				var out, diagnostic bytes.Buffer
+				cmd := Suggest(&cobra.Command{Use: "test"}, &config.Tool{Token: "test-token"})
+				cmd.SetArgs([]string{"--short", "--target=" + test.target, anchor.Format(time.RFC3339) + "/+0"})
+				cmd.SetOut(&out)
+				cmd.SetErr(&diagnostic)
+				require.NoError(t, cmd.ExecuteContext(ctx))
+
+				moment, err := time.Parse(time.RFC3339, out.String())
+				require.NoError(t, err, "stdout is one timestamp: %q", out.String())
+				require.Equal(t, moment.UTC().Format(time.RFC3339), out.String())
+				require.False(t, moment.Before(anchor), out.String())
+				require.Less(t, moment.Sub(anchor), test.limit, out.String())
+				require.Contains(t, diagnostic.String(), ", 14 → ")
+			}
+		})
+	}
+}

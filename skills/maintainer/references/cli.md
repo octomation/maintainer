@@ -263,9 +263,11 @@ maintainer github contribution snapshot 2013 | tee /tmp/snap.2013.json | jq
 Suggests the first moment between the anchor and now, both inclusive,
 on a day with fewer contributions than its week requires: the most a day
 of the week has, but not less than --target. A moment is within the
-schedule, 05:00-19:00 UTC every day, and a random jitter of less than an
-hour moves it neither after now nor after the schedule. The table of the
-weeks around the suggestion marks its day with brackets in stderr, and stdout
+schedule, 05:00-19:00 UTC every day. A random jitter moves it by less than
+an hour and less than the time left until now or the end of the schedule,
+whichever is earlier, divided by the contributions the day still needs, so
+the rest of them fit; without time left, it stays. The table of the weeks
+around the suggestion marks its day with brackets in stderr, and stdout
 gets only the timestamp, in UTC, e.g., to pass it to git commit --date:
 the commit keeps the chosen day in any time zone.
 
