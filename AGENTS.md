@@ -452,8 +452,21 @@ gh run list -R octolab/skills -w ci.install.yml -b maintainer--vX.Y.Z -L 1
 
 Add a row for "Latest contributions" in the
 [kamilsk/kamilsk](https://github.com/kamilsk/kamilsk) profile README, in the
-checkout `~/Development/public/kamilsk/kamilsk`, stage it with the message
-`chore: add new contribution log entry` and hand over its `git contrib`:
+checkout `~/Development/public/kamilsk/kamilsk`, stage it and hand over its
+`git contrib` with a message that tells the release:
+
+```text
+chore: add maintainer vX.Y.Z to contribution log
+
+Announce vX.Y.Z, "Slogan.": what the user gets from the release, in one
+or two sentences of the note's scope, wrapped at 72 columns.
+
+Other changes of the table, if any, such as a row grouped under its date.
+
+Release notes: https://github.com/octomation/maintainer/releases/tag/vX.Y.Z
+```
+
+The row:
 
 ```md
 | 2026-09-25   | 👨‍🔧 [maintainer][]           | [v0.1.0][om010]                   | Contribution calendar planning in CLI     |
@@ -461,7 +474,9 @@ checkout `~/Development/public/kamilsk/kamilsk`, stage it with the message
 [om010]:  https://github.com/octomation/maintainer/releases/tag/v0.1.0
 ```
 
-Newest first, one row per release day; a prerelease gets no row. The
+Newest first, one row per release day; a prerelease gets no row. Another
+project released the same day keeps its row under the date's first one, with
+`↳` in place of the date. The
 reference label is `o` + project initials + version digits. Notes is a short
 phrase, no longer than the existing ones, saying what the user gets.
 
