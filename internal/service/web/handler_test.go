@@ -411,8 +411,8 @@ func TestCheckoutsAPI(t *testing.T) {
 	assert.Equal(t, []string{}, env.Warnings)
 
 	f.collect <- []status.Row{
-		{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", DefaultBranch: "main", Added: new(3), Status: "synced"},
-		{Repository: "acme/lib", Path: "/w/acme/lib", Branch: "feature", Added: new(0), Deleted: new(0), Binary: new(0), Ahead: 2, Status: "ahead", PushLocked: true},
+		{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", DefaultBranch: "main", Added: new(3), Status: "synced", Changed: new(0), Untracked: new(0), Conflicts: new(0)},
+		{Repository: "acme/lib", Path: "/w/acme/lib", Branch: "feature", Added: new(0), Deleted: new(0), Binary: new(0), Ahead: 2, Status: "ahead", Changed: new(0), Untracked: new(0), Conflicts: new(0), PushLocked: true},
 		{Repository: "zeta/app", Path: "/w/zeta/app", Status: "error", Error: "boom"},
 	}
 	require.Eventually(t, func() bool {
@@ -447,7 +447,7 @@ func TestCheckoutsAPI(t *testing.T) {
 	assert.Equal(t, http.StatusOK, during.StatusCode, "the cached rows stay during a refresh")
 	env, _ = during.envelope(t)
 	assert.True(t, env.Refreshing)
-	f.collect <- []status.Row{{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", Status: "synced"}}
+	f.collect <- []status.Row{{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", Status: "synced", Changed: new(0), Untracked: new(0), Conflicts: new(0)}}
 	require.Eventually(t, func() bool {
 		env, _ := f.do(t, http.MethodGet, "/api/v0/checkouts", nil).envelope(t)
 		return !env.Refreshing

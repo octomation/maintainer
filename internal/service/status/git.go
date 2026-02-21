@@ -17,8 +17,8 @@ import (
 
 // Row is shared by the JSON, printable and interactive views. Counts describe
 // local refs only; no network operation is performed. Added, Deleted and
-// Binary are nil until the line count of the checkout completes: unknown,
-// never zero.
+// Binary are nil until the line count of the checkout completes, and Changed,
+// Untracked and Conflicts until its git status does: unknown, never zero.
 type Row struct {
 	ID            int64  `json:"id,omitempty"`
 	Repository    string `json:"repository"`
@@ -29,10 +29,10 @@ type Row struct {
 	Upstream      string `json:"upstream,omitempty"`
 	Added         *int   `json:"added"`
 	Deleted       *int   `json:"deleted"`
-	Changed       int    `json:"changed_files"`
-	Untracked     int    `json:"untracked"`
+	Changed       *int   `json:"changed_files"`
+	Untracked     *int   `json:"untracked"`
 	Binary        *int   `json:"binary"`
-	Conflicts     int    `json:"conflicts"`
+	Conflicts     *int   `json:"conflicts"`
 	Ahead         int    `json:"ahead"`
 	Behind        int    `json:"behind"`
 	Status        string `json:"status"`
@@ -110,8 +110,8 @@ func Inspect(ctx context.Context, row Row) Row {
 	// Values derived from Git are recomputed rather than accumulated when a row
 	// is inspected again; metadata supplied by the caller is kept.
 	row.Branch, row.Commit, row.Upstream, row.Status, row.Error, row.PushLocked = "", "", "", "", "", false
-	row.Added, row.Deleted, row.Binary = nil, nil, nil
-	row.Changed, row.Untracked, row.Conflicts, row.Ahead, row.Behind = 0, 0, 0, 0, 0
+	row.Added, row.Deleted, row.Binary, row.Changed, row.Untracked, row.Conflicts = nil, nil, nil, nil, nil, nil
+	row.Ahead, row.Behind = 0, 0
 	if _, err := os.Stat(filepath.Join(row.Path, ".git")); err != nil {
 		row.Status, row.Error = "error", err.Error()
 		return row
@@ -128,15 +128,15 @@ func Inspect(ctx context.Context, row Row) Row {
 	case row.Error == "":
 		row.Status, row.Error = "error", err.Error()
 	}
-	row.forgetLines()
+	row.forgetCounts()
 	return row
 }
 
-// forgetLines drops the line counts of an error row: they are unknown, as
-// its cell shows them, whichever rule made it an error.
-func (row *Row) forgetLines() {
+// forgetCounts drops the file and line counts of an error row: they are
+// unknown, as its cell shows them, whichever rule made it an error.
+func (row *Row) forgetCounts() {
 	if row.Error != "" {
-		row.Added, row.Deleted, row.Binary = nil, nil, nil
+		row.Added, row.Deleted, row.Binary, row.Changed, row.Untracked, row.Conflicts = nil, nil, nil, nil, nil, nil
 	}
 }
 
@@ -145,14 +145,22 @@ func inspect(ctx context.Context, row *Row) error {
 	// status.renames and diff.renames cannot change a row. Rename detection
 	// in both shares one bound; past it, git status runs again without it, a
 	// rename counts as a deleted and an added file, and the lines stay unknown.
+	// That run has a bound of its own: past it, the branch and the commit come
+	// from HEAD, which walks no tree, and the file counts stay unknown too.
 	start := time.Now()
 	renames, cancel := context.WithTimeout(ctx, renamesBound)
 	defer cancel()
 	statusArgs := []string{"status", "--porcelain=v2", "--branch", "-z", "--untracked-files=all", "--ignore-submodules=none"}
 	raw, statusErr := git(renames, row.Path, append(statusArgs, "--find-renames")...)
 	spent := time.Since(start)
+	counted := true
 	if statusErr != nil && ctx.Err() == nil && renames.Err() != nil {
-		raw, statusErr = git(ctx, row.Path, append(statusArgs, "--no-renames")...)
+		plain, cancel := context.WithTimeout(ctx, statusBound)
+		defer cancel()
+		raw, statusErr = git(plain, row.Path, append(statusArgs, "--no-renames")...)
+		if statusErr != nil && ctx.Err() == nil && plain.Err() != nil {
+			counted, statusErr = false, readHead(ctx, row)
+		}
 	}
 	// Identity is best effort and remains available when git status fails.
 	if origin, err := git(ctx, row.Path, "remote", "get-url", "origin"); err == nil {
@@ -166,7 +174,9 @@ func inspect(ctx context.Context, row *Row) error {
 	if statusErr != nil {
 		return statusErr
 	}
-	countStatus(row, raw)
+	if counted {
+		countStatus(row, raw)
+	}
 	row.Status = "no upstream"
 	unborn := row.Commit == "(initial)"
 	switch {
@@ -203,6 +213,9 @@ func inspect(ctx context.Context, row *Row) error {
 			}
 		}
 	}
+	if !counted {
+		return nil // past the bound of git status the counts stay unknown
+	}
 	args := []string{"diff", "--no-ext-diff", "--no-textconv", "--find-renames", "--numstat", "-z", "--ignore-submodules=none"}
 	if unborn {
 		args = append(args, "--cached")
@@ -227,8 +240,43 @@ func inspect(ctx context.Context, row *Row) error {
 	return nil
 }
 
-// countStatus adds the entries of git status --porcelain=v2 --branch -z to row.
+// readHead sets the branch and the commit of row as git status --branch names
+// them, (detached) and (initial) included, from HEAD alone: it walks no tree.
+func readHead(ctx context.Context, row *Row) error {
+	ref, err := git(ctx, row.Path, "symbolic-ref", "--quiet", "HEAD")
+	switch {
+	case err == nil:
+		row.Branch = strings.TrimPrefix(strings.TrimSpace(ref), "refs/heads/")
+	case exitCode(err) == 1:
+		row.Branch = "(detached)"
+	default:
+		return err
+	}
+	oid, err := git(ctx, row.Path, "rev-parse", "--verify", "--quiet", "HEAD")
+	switch {
+	case err == nil:
+		row.Commit = strings.TrimSpace(oid)
+	case exitCode(err) == 1:
+		row.Commit = "(initial)" // an unborn branch
+	default:
+		return err
+	}
+	return nil
+}
+
+// exitCode is the exit status of a Git command that ran and failed, -1 otherwise.
+func exitCode(err error) int {
+	var exitErr *exec.ExitError
+	if errors.As(err, &exitErr) {
+		return exitErr.ExitCode()
+	}
+	return -1
+}
+
+// countStatus sets the file counts of row, its branch and its commit from the
+// entries of git status --porcelain=v2 --branch -z.
 func countStatus(row *Row, raw string) {
+	var changed, untracked, conflicts int
 	entries := strings.Split(raw, "\x00")
 	for i := 0; i < len(entries); i++ {
 		entry := entries[i]
@@ -238,17 +286,18 @@ func countStatus(row *Row, raw string) {
 		case strings.HasPrefix(entry, "# branch.head "):
 			row.Branch = strings.TrimPrefix(entry, "# branch.head ")
 		case strings.HasPrefix(entry, "? "):
-			row.Untracked++
+			untracked++
 		case strings.HasPrefix(entry, "u "):
-			row.Conflicts++
-			row.Changed++
+			conflicts++
+			changed++
 		case strings.HasPrefix(entry, "1 "), strings.HasPrefix(entry, "2 "):
-			row.Changed++
+			changed++
 			if entry[0] == '2' {
 				i++
 			} // rename's original pathname is another NUL field
 		}
 	}
+	row.Changed, row.Untracked, row.Conflicts = &changed, &untracked, &conflicts
 }
 
 // renamesBound limits rename detection in one checkout, in git status and the
@@ -256,6 +305,11 @@ func countStatus(row *Row, raw string) {
 // checkout must not hold the snapshot: past the bound its row keeps the rest
 // and its line counts stay unknown.
 var renamesBound = 10 * time.Second
+
+// statusBound limits git status without rename detection in one checkout. In
+// a very large tree it takes minutes too: past the bound the row keeps what
+// HEAD, the refs and the configuration give, and its file counts stay unknown.
+var statusBound = 10 * time.Second
 
 // countLines sets the line and binary counts of row from the records of git
 // diff --numstat -z. A rename leaves the path field empty and names the
@@ -300,8 +354,7 @@ func pushLocked(ctx context.Context, path string) (bool, error) {
 	if err == nil {
 		return true, nil
 	}
-	var exitErr *exec.ExitError
-	if errors.As(err, &exitErr) && exitErr.ExitCode() == 1 {
+	if exitCode(err) == 1 {
 		return false, nil // no matching configuration entry
 	}
 	return false, err

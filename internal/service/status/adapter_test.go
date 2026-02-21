@@ -19,10 +19,10 @@ import (
 // Cells and the summary of Summarize are what Plain prints.
 func TestExportedAdapterMatchesPlain(t *testing.T) {
 	rows := []Row{
-		{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", DefaultBranch: "main", Added: new(3), Deleted: new(1), Changed: 2, Status: "synced", Upstream: "origin/main"},
-		{Repository: "acme/lib", Path: "/w/acme/lib", Branch: "feature", DefaultBranch: "main", Ahead: 2, Status: "ahead", PushLocked: true},
+		{Repository: "acme/tool", Path: "/w/acme/tool", Branch: "main", DefaultBranch: "main", Added: new(3), Deleted: new(1), Changed: new(2), Status: "synced", Untracked: new(0), Conflicts: new(0), Upstream: "origin/main"},
+		{Repository: "acme/lib", Path: "/w/acme/lib", Branch: "feature", DefaultBranch: "main", Ahead: 2, Status: "ahead", Changed: new(0), Untracked: new(0), Conflicts: new(0), PushLocked: true},
 		{Repository: "zeta/app", Path: "/w/zeta/app", Status: "error", Error: "git status: boom"},
-		{Repository: "acme/old", Path: "/w/acme/old", Branch: "main", Status: "synced", OrphanReason: "duplicate-pin", ActivePath: "/w/acme/tool"},
+		{Repository: "acme/old", Path: "/w/acme/old", Branch: "main", Status: "synced", Changed: new(0), Untracked: new(0), Conflicts: new(0), OrphanReason: "duplicate-pin", ActivePath: "/w/acme/tool"},
 		{Repository: "ghost", Path: "/w/ghost", Status: StatusUnresolvedPin, placeholder: true},
 	}
 	for _, tc := range []struct {

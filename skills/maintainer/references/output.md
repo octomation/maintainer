@@ -56,7 +56,7 @@ An array of rows, `[]` when there are none:
 | `id` | the GitHub repository id, from the fetch state or a `[[repos]]` rule |
 | `repository`, `path` | `owner/name` from the origin or the state, and the checkout's directory |
 | `branch`, `default_branch`, `commit`, `upstream` | the current branch and what it tracks |
-| `added`, `deleted`, `changed_files`, `untracked`, `binary`, `conflicts` | uncommitted work against HEAD; `added`, `deleted` and `binary` are `null`, shown as `+?/-?`, when the lines were not counted: an error row, a scan obstruction, an unresolved pin, or rename detection past its 10-second bound |
+| `added`, `deleted`, `changed_files`, `untracked`, `binary`, `conflicts` | uncommitted work against HEAD; `null` when not counted, never zero: all six in an error row, a scan obstruction or an unresolved pin; `added`, `deleted` and `binary`, shown as `+?/-?`, when rename detection passes its 10-second bound; all six, shown as `?`, when `git status` without rename detection then passes its own 10-second bound: such a row is no error, keeps its branch, divergence and lock, and counts as uncommitted |
 | `ahead`, `behind`, `status` | divergence from the local upstream ref, and its text such as `synced` |
 | `push_locked` | a remote has the push URL `no_push` |
 | `pinned` | kept in place by a pin |

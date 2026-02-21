@@ -88,8 +88,7 @@ checkout that takes longer keeps its row: the branch, the file counts, the
 divergence and the lock are shown as usual, and the line and binary counts are
 unknown, `+?/-?`, never zero. When the file counts themselves pass the bound,
 status counts them again without rename detection: a staged rename is then a
-deleted and an added file, two in `f`. The run does not wait for that checkout
-much longer than the 10 seconds:
+deleted and an added file, two in `f`:
 
 ```text
 Repository status · 2 checkouts · 2 uncommitted · 1 ahead · 0 behind · 1 locked · 0 orphan · 0 errors · local refs (no fetch)
@@ -101,6 +100,25 @@ octomation/maintainer │ release │ +?/-? · 1204f · ?2 │ ahead 1 │ 🔒 
 
 Such a row counts as uncommitted by its file counts. JSON shows the unknown
 counts as `null`, and the hub shows the same `+?/-?` cell.
+
+In a very large tree `git status` itself can take minutes, so the count
+without rename detection has a bound of its own, 10 seconds more. Past it, the
+row keeps the repository, the branch, the divergence and the lock, which status
+reads without walking the tree, and its file and line counts are unknown: the
+Uncommitted cell shows `?`. Such a row is not an error, and it counts as
+uncommitted, since its changes may be there. The run waits for one checkout at
+most about 20 seconds:
+
+```text
+Repository status · 2 checkouts · 2 uncommitted · 0 ahead · 0 behind · 0 locked · 0 orphan · 0 errors · local refs (no fetch)
+
+REPOSITORY       │ BRANCH │ UNCOMMITTED │ STATUS │ LOCK │ PATH
+acme/changelog   │ main*  │ ?           │ synced │      │ public/acme/changelog
+kamilsk/dotfiles │ main*  │ +39/-0 · 3f │ synced │      │ ~/.dotfiles
+```
+
+JSON shows `null` for all six counts of that row, and the hub shows the same
+`?` cell.
 
 `synced` means the current branch matches its upstream; it can still have
 uncommitted work. A branch can be both ahead and behind. Detached HEAD,
@@ -147,8 +165,8 @@ case-sensitively. Uncommitted compares `(added + deleted,
 changed files, untracked, binary, conflicts)` numerically; status compares
 `(ahead + behind, ahead, behind, status text)`. Lock sorts unmarked rows first
 ascending and marked rows first descending. Rows whose numbers are unknown
-come last in both directions: error rows, and rows with `+?/-?` when sorting by
-Uncommitted. Ties use repository/path for deterministic order. Clearing
+come last in both directions: error rows, and rows with `?` or `+?/-?` when
+sorting by Uncommitted. Ties use repository/path for deterministic order. Clearing
 sorting restores repository/path order, or fuzzy relevance while searching.
 
 Shift+Enter requires a terminal that reports modified keys. `S` works in legacy
@@ -272,7 +290,10 @@ absolute `path` (an `unresolved pin` keeps the path of its rule as written),
 `push_locked` (boolean), and `pinned`. `added`, `deleted` and `binary` are
 `null` when the lines were not counted: in an error row, in the row of a scan
 obstruction or an unresolved pin, and past the 10-second bound of rename
-detection. `id`, `default_branch`, `commit`,
+detection. `changed_files`, `untracked` and `conflicts` are `null` when the
+files were not counted: in an error row, in the row of a scan obstruction or
+an unresolved pin, and past the second 10-second bound of `git status`.
+`id`, `default_branch`, `commit`,
 `upstream`, `visibility` (`public`, `private` or `internal`, as the fetch state
 recorded it), and `error` are omitted when unavailable or empty. Orphan rows also expose
 `orphan_reason`, optional `active_path`, and `remote_checked_at` for cached

@@ -29,7 +29,7 @@ func TestPushLockViews(t *testing.T) {
 }
 
 func TestViews(t *testing.T) {
-	rows := []Row{{Repository: "acme/tool", Path: "/work/public/acme/tool", displayPath: "public/acme/tool", Branch: "main", DefaultBranch: "main", Added: new(12), Deleted: new(1), Untracked: 3, Ahead: 1, Behind: 2, Status: "diverged"},
+	rows := []Row{{Repository: "acme/tool", Path: "/work/public/acme/tool", displayPath: "public/acme/tool", Branch: "main", DefaultBranch: "main", Added: new(12), Deleted: new(1), Untracked: new(3), Ahead: 1, Behind: 2, Status: "diverged", Changed: new(0), Conflicts: new(0)},
 		{Repository: "evil\x1b[2J\nname", Path: "path\x1b", Error: "failure\r\n"}}
 	var out bytes.Buffer
 	require.NoError(t, Plain(&out, rows))
@@ -83,12 +83,12 @@ func TestSelectionAndKeys(t *testing.T) {
 
 func TestSummary(t *testing.T) {
 	rows := []Row{
-		{Repository: "acme/clean", Path: "/clean", Status: "synced"},
-		{Repository: "acme/dirty", Path: "/dirty", Status: "diverged", Added: new(2), Changed: 1, Ahead: 1, Behind: 3, PushLocked: true},
-		{Repository: "acme/new", Path: "/new", Status: "unborn", Untracked: 1},
-		{Repository: "acme/binary", Path: "/binary", Status: "ahead", Binary: new(1), Changed: 1, Ahead: 2, OrphanReason: "duplicate-pin"},
+		{Repository: "acme/clean", Path: "/clean", Status: "synced", Changed: new(0), Untracked: new(0), Conflicts: new(0)},
+		{Repository: "acme/dirty", Path: "/dirty", Status: "diverged", Untracked: new(0), Conflicts: new(0), Added: new(2), Changed: new(1), Ahead: 1, Behind: 3, PushLocked: true},
+		{Repository: "acme/new", Path: "/new", Status: "unborn", Changed: new(0), Conflicts: new(0), Untracked: new(1)},
+		{Repository: "acme/binary", Path: "/binary", Status: "ahead", Untracked: new(0), Conflicts: new(0), Binary: new(1), Changed: new(1), Ahead: 2, OrphanReason: "duplicate-pin"},
 		// Counts read before a failure are unknown, not clean or dirty.
-		{Repository: "acme/broken", Path: "/broken", Status: "error", Error: "git diff: failure", Changed: 4, Ahead: 1, PushLocked: true, OrphanReason: "out-of-scope"},
+		{Repository: "acme/broken", Path: "/broken", Status: "error", Error: "git diff: failure", Changed: new(4), Ahead: 1, PushLocked: true, OrphanReason: "out-of-scope"},
 	}
 	var out bytes.Buffer
 	require.NoError(t, Plain(&out, rows))

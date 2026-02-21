@@ -63,7 +63,7 @@ func TestFuzzyFilterAndSortComposition(t *testing.T) {
 }
 
 func TestSortTiesAndNonLineChanges(t *testing.T) {
-	rows := []Row{{Repository: "same", Path: "/b", Untracked: 12}, {Repository: "same", Path: "/a", Untracked: 2}}
+	rows := []Row{{Repository: "same", Path: "/b", Untracked: new(12)}, {Repository: "same", Path: "/a", Untracked: new(2)}}
 	assert.Equal(t, []int{1, 0}, Query(rows, []SortKey{{Column: ChangesColumn}}, ""))
 	assert.Equal(t, []int{0, 1}, Query(rows, []SortKey{{Column: ChangesColumn, Desc: true}}, ""))
 	assert.Equal(t, []int{1, 0}, Query(rows, []SortKey{{Column: RepositoryColumn}}, ""))

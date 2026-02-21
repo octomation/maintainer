@@ -64,20 +64,20 @@ func Cells(row Row) []string {
 		branch += "*"
 	}
 	changes := "+" + countCell(row.Added) + "/-" + countCell(row.Deleted)
-	if row.Changed > 0 {
-		changes += fmt.Sprintf(" · %df", row.Changed)
+	if count(row.Changed) > 0 {
+		changes += fmt.Sprintf(" · %df", *row.Changed)
 	}
-	if row.Untracked > 0 {
-		changes += fmt.Sprintf(" · ?%d", row.Untracked)
+	if count(row.Untracked) > 0 {
+		changes += fmt.Sprintf(" · ?%d", *row.Untracked)
 	}
 	if count(row.Binary) > 0 {
 		changes += fmt.Sprintf(" · %d binary", *row.Binary)
 	}
-	if row.Conflicts > 0 {
-		changes += fmt.Sprintf(" · !%d", row.Conflicts)
+	if count(row.Conflicts) > 0 {
+		changes += fmt.Sprintf(" · !%d", *row.Conflicts)
 	}
 	status := row.Status
-	if row.Status == StatusUnresolvedPin {
+	if row.Status == StatusUnresolvedPin || !row.filesKnown() {
 		changes = "?"
 	}
 	if row.Error != "" {
@@ -143,6 +143,17 @@ func (row Row) linesKnown() bool {
 	return row.Added != nil && row.Deleted != nil && row.Binary != nil
 }
 
+// filesKnown reports whether git status counted the files of row.
+func (row Row) filesKnown() bool {
+	return row.Changed != nil && row.Untracked != nil && row.Conflicts != nil
+}
+
+// statusUnknown reports a checkout whose git status passed its bound: the
+// files were not counted, though nothing failed and there is a checkout.
+func (row Row) statusUnknown() bool {
+	return row.Error == "" && !row.placeholder && !row.filesKnown()
+}
+
 // count is a count that may be unknown, zero for arithmetic only.
 func count(n *int) int {
 	if n == nil {
@@ -162,7 +173,8 @@ func countCell(n *int) string {
 // Summary counts rows by category; a row can fall into several. An error row
 // counts only as an error, locked or orphan: its changes and divergence are
 // unknown, never clean. A row whose line counts are unknown is uncommitted by
-// its other counts. Checkouts excludes the placeholders.
+// its other counts, and a row whose git status passed its bound is
+// uncommitted: its changes may be there. Checkouts excludes the placeholders.
 type Summary struct {
 	Checkouts   int `json:"checkouts"`
 	Uncommitted int `json:"uncommitted"`
@@ -181,7 +193,7 @@ func Summarize(rows []Row) Summary {
 		if row.Error != "" {
 			s.Errors++
 		} else {
-			if count(row.Added)+count(row.Deleted)+row.Changed+row.Untracked+count(row.Binary)+row.Conflicts > 0 {
+			if row.statusUnknown() || count(row.Added)+count(row.Deleted)+count(row.Changed)+count(row.Untracked)+count(row.Binary)+count(row.Conflicts) > 0 {
 				s.Uncommitted++
 			}
 			if row.Ahead > 0 {

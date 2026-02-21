@@ -136,8 +136,8 @@ func compareColumn(a, b Row, column Column) int {
 	case BranchColumn:
 		return strings.Compare(strings.ToLower(a.Branch), strings.ToLower(b.Branch))
 	case ChangesColumn:
-		return compareNumbers([]int{count(a.Added) + count(a.Deleted), a.Changed, a.Untracked, count(a.Binary), a.Conflicts},
-			[]int{count(b.Added) + count(b.Deleted), b.Changed, b.Untracked, count(b.Binary), b.Conflicts})
+		return compareNumbers([]int{count(a.Added) + count(a.Deleted), count(a.Changed), count(a.Untracked), count(a.Binary), count(a.Conflicts)},
+			[]int{count(b.Added) + count(b.Deleted), count(b.Changed), count(b.Untracked), count(b.Binary), count(b.Conflicts)})
 	case StatusColumn:
 		if order := compareNumbers([]int{a.Ahead + a.Behind, a.Ahead, a.Behind}, []int{b.Ahead + b.Behind, b.Ahead, b.Behind}); order != 0 {
 			return order

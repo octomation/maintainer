@@ -47,9 +47,9 @@ func TestFrontendFixtures(t *testing.T) {
 	require.NoError(t, index.Scan(context.Background()))
 	collected := make(chan []status.Row, 1)
 	collected <- []status.Row{
-		{ID: 1, Repository: "octomation/maintainer", Path: "/home/me/Development/public/octomation/maintainer", Branch: "main", DefaultBranch: "main", Commit: "ce2936a0000000000000000000000000000000000", Upstream: "origin/main", Added: new(12), Deleted: new(3), Binary: new(0), Changed: 2, Untracked: 1, Status: "ahead", Ahead: 1},
-		{ID: 2, Repository: "octomation/tool", Path: "/home/me/Development/private/octomation/tool", Branch: "feature", DefaultBranch: "main", Commit: "abc1234000000000000000000000000000000000", Upstream: "origin/feature", Added: new(0), Deleted: new(0), Binary: new(0), Status: "diverged", Ahead: 2, Behind: 1, PushLocked: true, Pinned: true, Visibility: "private"},
-		{Repository: "kamilsk/dotfiles", Path: "/home/me/.dotfiles", Branch: "main", DefaultBranch: "main", Added: new(0), Deleted: new(0), Binary: new(0), Status: "synced", OrphanReason: "duplicate-pin", ActivePath: "/home/me/Development/public/kamilsk/dotfiles"},
+		{ID: 1, Repository: "octomation/maintainer", Path: "/home/me/Development/public/octomation/maintainer", Branch: "main", DefaultBranch: "main", Commit: "ce2936a0000000000000000000000000000000000", Upstream: "origin/main", Added: new(12), Deleted: new(3), Binary: new(0), Changed: new(2), Untracked: new(1), Status: "ahead", Conflicts: new(0), Ahead: 1},
+		{ID: 2, Repository: "octomation/tool", Path: "/home/me/Development/private/octomation/tool", Branch: "feature", DefaultBranch: "main", Commit: "abc1234000000000000000000000000000000000", Upstream: "origin/feature", Added: new(0), Deleted: new(0), Binary: new(0), Status: "diverged", Changed: new(0), Untracked: new(0), Conflicts: new(0), Ahead: 2, Behind: 1, PushLocked: true, Pinned: true, Visibility: "private"},
+		{Repository: "kamilsk/dotfiles", Path: "/home/me/.dotfiles", Branch: "main", DefaultBranch: "main", Added: new(0), Deleted: new(0), Binary: new(0), Status: "synced", Changed: new(0), Untracked: new(0), Conflicts: new(0), OrphanReason: "duplicate-pin", ActivePath: "/home/me/Development/public/kamilsk/dotfiles"},
 		{Repository: "broken", Path: "/home/me/Development/broken", Status: "error", Error: "git status: not a git repository"},
 	}
 	checkouts := web.NewCheckouts(func(context.Context) ([]status.Row, error) { return <-collected, nil })
