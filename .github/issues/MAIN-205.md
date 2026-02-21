@@ -15,13 +15,13 @@ assignees:
 milestone: null
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2026-11-27T14:36:40Z
-updatedAt: 2026-11-27T14:36:40Z
-lastEditedAt: null
-closedAt: null
+updatedAt: 2026-11-27T18:39:20Z
+lastEditedAt: 2026-11-27T18:39:20Z
+closedAt: 2026-11-27T18:14:35Z
 ---
 
 # status: bound git status of a slow checkout and show its counts as unknown

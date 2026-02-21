@@ -16,13 +16,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2024-01-09T08:49:32Z
-updatedAt: 2026-11-27T14:37:58Z
-lastEditedAt: 2026-11-27T14:37:58Z
-closedAt: null
+updatedAt: 2026-11-27T18:40:23Z
+lastEditedAt: 2026-11-27T18:40:23Z
+closedAt: 2026-11-27T18:16:05Z
 ---
 
 # github: suggestion: reduce jitter

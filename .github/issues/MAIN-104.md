@@ -17,13 +17,13 @@ assignees:
 milestone: "[[MAIN-M1]]"
 parent: null
 issueFields: {}
-state: OPEN
-stateReason: null
+state: CLOSED
+stateReason: COMPLETED
 duplicateOf: null
 createdAt: 2023-04-06T11:06:57Z
-updatedAt: 2026-11-27T14:37:55Z
-lastEditedAt: 2026-11-27T14:37:55Z
-closedAt: null
+updatedAt: 2026-11-27T18:40:20Z
+lastEditedAt: 2026-11-27T18:40:20Z
+closedAt: 2026-11-27T18:15:20Z
 ---
 
 # github: contribution: refactor histogram command
