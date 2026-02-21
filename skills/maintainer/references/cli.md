@@ -159,7 +159,9 @@ maintainer github contribution diff /tmp/snap.2013.json 2013
 ## maintainer github contribution histogram
 
 Shows a histogram of the contributions of the token owner: a row per
-count of contributions, with a "#" per day that has it.
+count of contributions, with the number of days that have it and a bar of
+"#", one per day. Bars longer than 40 characters are scaled down so that
+the longest is 40, and a row with days keeps at least one "#".
 
 The argument is YYYY for the year, YYYY-MM for the month, or YYYY-MM-DD for
 the week of the day, from Sunday to Saturday; without it, the current week.

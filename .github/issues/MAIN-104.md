@@ -51,12 +51,12 @@ This is a presentation improvement for an existing command ([[MAIN-29]]), not a 
 
 ## Acceptance criteria
 
-- [ ] `histogram` prints a header `Contributions  Days  Distribution`, the
+- [x] `histogram` prints a header `Contributions  Days  Distribution`, the
       exact number of days in each row, and a bar scaled to at most 40
       characters, with at least one `#` for a row with days.
-- [ ] The order of rows and `--with-zero` stay as they are; empty data,
+- [x] The order of rows and `--with-zero` stay as they are; empty data,
       zero-only data and a skewed distribution have tests.
-- [ ] The output is the same in a terminal and in a file, and goes through
+- [x] The output is the same in a terminal and in a file, and goes through
       the writer of the command.
-- [ ] `docs/content/contributions.md` shows an example of the output, and
+- [x] `docs/content/contributions.md` shows an example of the output, and
       `go test ./skills` passes with the generated reference.

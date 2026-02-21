@@ -83,7 +83,18 @@ maintainer github contribution histogram 2026-09
 maintainer github contribution histogram --with-zero 2026-09-25
 ```
 
-`histogram` groups days by their contribution count and draws one `#` per day. Pass a year, month, or day; a day selects its week. Zero-count days are hidden by default, and `--with-zero` includes them.
+`histogram` groups days by their contribution count, a row per count from the lowest, with the exact number of days and a bar of `#`, one per day:
+
+```text
+Contributions  Days  Distribution
+4                 1  #
+15               95  ####################
+18                3  #
+25              191  ########################################
+50               22  #####
+```
+
+When the most frequent count has more than 40 days, the bars are scaled so that its bar is 40 characters, and a row with days keeps at least one `#`; the Days column stays exact. The output does not depend on the terminal: a narrow one and a file get the same lines. Pass a year, month, or day; a day selects its week. Zero-count days are hidden by default, and `--with-zero` includes them.
 
 ## Fast repeat runs
 
