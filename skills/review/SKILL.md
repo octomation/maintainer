@@ -18,9 +18,9 @@ compatibility: >-
   the GitHub alerts through gh.
 metadata:
   author: octomation
-  version: "0.6.1"
+  version: "0.6.2"
   tool: maintainer
-  tool-version-range: ">=0.6.1 <0.7.0"
+  tool-version-range: ">=0.6.2 <0.7.0"
 ---
 
 # Review

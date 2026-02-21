@@ -85,7 +85,7 @@ $ wget -qO- https://install.octolab.org/maintainer | sh
 The script installs the latest release into `./bin`. Pass `-b` to choose another directory and a tag to pin the version:
 
 ```bash
-$ curl -sSf https://install.octolab.org/maintainer | sh -s -- -b ~/.local/bin v0.6.1
+$ curl -sSf https://install.octolab.org/maintainer | sh -s -- -b ~/.local/bin v0.6.2
 ```
 
 > Don't forget about [security](https://www.idontplaydarts.com/2016/04/detecting-curl-pipe-bash-server-side/).

@@ -53,6 +53,16 @@ Overrides in `docs/package.json`:
   headless Chrome only: a browser that does not open the label address goes
   into an issue with its name and version.
 
+- [ ] **After the push of v0.6.2** ([MAIN-204](issues/MAIN-204.md)): the
+  `install` job of `cd` is green, the header of
+  `https://install.octolab.org/maintainer` names install-action, `sh -s -- -h`
+  prints the usage and the platforms of the release, and the script installs
+  v0.6.2 into a scratch folder. Then tick the last criterion of
+  MAIN-204 and close it; a red job goes into an issue with its log.
+- [ ] **On the next security review** ([MAIN-203](issues/MAIN-203.md)): the
+  report names the dismissed zod alert (#97) in the evidence of its Gates
+  lens. Then tick the last criterion of MAIN-203 and close it.
+
 ## Waiting for a decision
 
 - [ ] **`cleanup.stale` is disabled** on purpose: `workflows` in
