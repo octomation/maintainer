@@ -53,12 +53,16 @@ Overrides in `docs/package.json`:
   headless Chrome only: a browser that does not open the label address goes
   into an issue with its name and version.
 
-- [ ] **After the push of v0.6.2** ([MAIN-204](issues/MAIN-204.md)): the
-  `install` job of `cd` is green, the header of
+- [ ] **After the push of the next stable release** ([MAIN-204](issues/MAIN-204.md)):
+  the `install` job of `cd` is green, the header of
   `https://install.octolab.org/maintainer` names install-action, `sh -s -- -h`
   prints the usage and the platforms of the release, and the script installs
-  v0.6.2 into a scratch folder. Then tick the last criterion of
-  MAIN-204 and close it; a red job goes into an issue with its log.
+  the tag into a scratch folder. The job failed on v0.6.2: GoReleaser writes
+  `artifacts.json` after it publishes the release, so `release.include_meta`
+  uploaded `metadata.json` alone, and the immutable release refused the file
+  afterwards. The job now takes both from the workflow artifact
+  `release-meta` of the release job. Then tick the last criterion of MAIN-204
+  and close it; a red job goes into an issue with its log.
 - [ ] **On the next security review** ([MAIN-203](issues/MAIN-203.md)): the
   report names the dismissed zod alert (#97) in the evidence of its Gates
   lens. Then tick the last criterion of MAIN-203 and close it.

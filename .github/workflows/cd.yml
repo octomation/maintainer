@@ -121,6 +121,20 @@ jobs:
           # four cold cross-compiles in parallel are the peak of the run; a warm
           # cache needs a fraction of that — see BUILD_FLAGS
           args: ${{ startsWith(github.ref, 'refs/tags/v') && format('release --clean {0} {1}', env.BUILD_FLAGS, env.RELEASE_NOTES) || format('release --snapshot --clean --skip=publish {0}', env.BUILD_FLAGS) }}
+      # the install job renders the installer from metadata.json and
+      # artifacts.json: GoReleaser writes artifacts.json after it publishes, so
+      # include_meta cannot upload it, and an immutable release takes no file
+      # afterwards; a rerun of the install job reads them from this run
+      - name: Keep the release metadata for the installer
+        if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-meta
+          path: |
+            dist/metadata.json
+            dist/artifacts.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Check the skill in the archives
         run: node .github/scripts/release.mjs skill
 
@@ -251,11 +265,18 @@ jobs:
           owner: octolab
           repositories: install
           permission-contents: write
+      - name: Download the release metadata
+        if: steps.preflight.outputs.ready == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-meta
+          path: dist
       - name: Publish the installer to install.octolab.org
         if: steps.preflight.outputs.ready == 'true'
         uses: octomation/install-action@v0.1.0
         with:
           token: ${{ steps.catalog.outputs.token }}
+          dist: dist
 
   notify:
     name: Notifying

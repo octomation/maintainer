@@ -68,9 +68,6 @@ builds:
 checksum: { name_template: checksums.txt }
 
 release:
-  # metadata.json and artifacts.json beside the archives: octomation/install-action
-  # renders the installer at install.octolab.org from them
-  include_meta: true
   # the repository comes from the git remote; the title from the release note,
   # see .github/scripts/release.mjs render
   name_template: '{{ envOrDefault "RELEASE_TITLE" .Tag }}'

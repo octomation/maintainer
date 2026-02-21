@@ -210,7 +210,9 @@ flowchart TB
   `install` job runs
   [octomation/install-action](https://github.com/octomation/install-action),
   pinned to a release tag: it reads `metadata.json` and `artifacts.json`,
-  which GoReleaser uploads with the archives (`release.include_meta`), renders
+  which the release job keeps as the workflow artifact `release-meta` for 30
+  days (GoReleaser writes `artifacts.json` after it publishes, and an
+  immutable release takes no file afterwards), renders
   one POSIX shell script and writes it to `dist/maintainer` in
   `octolab/install`, with a commit signed as the App, served at
   `https://install.octolab.org/maintainer`. The catalog token is minted
