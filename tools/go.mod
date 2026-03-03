@@ -6,7 +6,7 @@ toolchain go1.24.2
 
 require (
 	github.com/golang/mock v1.6.0
-	github.com/marwan-at-work/mod v0.9.0
+	github.com/marwan-at-work/mod v0.10.0
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96
 	golang.org/x/tools v0.42.0
 	golang.org/x/tools/cmd/gorename v0.1.0-deprecated
