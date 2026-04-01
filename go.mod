@@ -6,7 +6,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.12.0
 	github.com/alexeyco/simpletable v1.0.0
 	github.com/fatih/color v1.19.0
-	github.com/go-git/go-git/v5 v5.17.0
+	github.com/go-git/go-git/v5 v5.17.2
 	github.com/golang/mock v1.6.0
 	github.com/google/go-github/v84 v84.0.0
 	github.com/spf13/afero v1.15.0
