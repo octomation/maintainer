@@ -5,10 +5,13 @@
 package git_test
 
 import (
+	context "context"
 	reflect "reflect"
 
-	git "github.com/go-git/go-git/v5"
+	v5 "github.com/go-git/go-git/v5"
 	gomock "github.com/golang/mock/gomock"
+
+	git "go.octolab.org/toolset/maintainer/internal/service/git"
 )
 
 // MockRepository is a mock of Repository interface.
@@ -35,10 +38,10 @@ func (m *MockRepository) EXPECT() *MockRepositoryMockRecorder {
 }
 
 // Remotes mocks base method.
-func (m *MockRepository) Remotes() ([]*git.Remote, error) {
+func (m *MockRepository) Remotes() ([]*v5.Remote, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Remotes")
-	ret0, _ := ret[0].([]*git.Remote)
+	ret0, _ := ret[0].([]*v5.Remote)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -47,4 +50,98 @@ func (m *MockRepository) Remotes() ([]*git.Remote, error) {
 func (mr *MockRepositoryMockRecorder) Remotes() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Remotes", reflect.TypeOf((*MockRepository)(nil).Remotes))
+}
+
+// MockGitSync is a mock of GitSync interface.
+type MockGitSync struct {
+	ctrl     *gomock.Controller
+	recorder *MockGitSyncMockRecorder
+}
+
+// MockGitSyncMockRecorder is the mock recorder for MockGitSync.
+type MockGitSyncMockRecorder struct {
+	mock *MockGitSync
+}
+
+// NewMockGitSync creates a new mock instance.
+func NewMockGitSync(ctrl *gomock.Controller) *MockGitSync {
+	mock := &MockGitSync{ctrl: ctrl}
+	mock.recorder = &MockGitSyncMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockGitSync) EXPECT() *MockGitSyncMockRecorder {
+	return m.recorder
+}
+
+// Clone mocks base method.
+func (m *MockGitSync) Clone(ctx context.Context, opt git.CloneOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Clone", ctx, opt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Clone indicates an expected call of Clone.
+func (mr *MockGitSyncMockRecorder) Clone(ctx, opt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Clone", reflect.TypeOf((*MockGitSync)(nil).Clone), ctx, opt)
+}
+
+// Fetch mocks base method.
+func (m *MockGitSync) Fetch(ctx context.Context, path string, auth git.Auth) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Fetch", ctx, path, auth)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Fetch indicates an expected call of Fetch.
+func (mr *MockGitSyncMockRecorder) Fetch(ctx, path, auth interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fetch", reflect.TypeOf((*MockGitSync)(nil).Fetch), ctx, path, auth)
+}
+
+// Inspect mocks base method.
+func (m *MockGitSync) Inspect(path string) (git.CloneInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Inspect", path)
+	ret0, _ := ret[0].(git.CloneInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Inspect indicates an expected call of Inspect.
+func (mr *MockGitSyncMockRecorder) Inspect(path interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Inspect", reflect.TypeOf((*MockGitSync)(nil).Inspect), path)
+}
+
+// Move mocks base method.
+func (m *MockGitSync) Move(from, to string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Move", from, to)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Move indicates an expected call of Move.
+func (mr *MockGitSyncMockRecorder) Move(from, to interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Move", reflect.TypeOf((*MockGitSync)(nil).Move), from, to)
+}
+
+// UpdateRemote mocks base method.
+func (m *MockGitSync) UpdateRemote(path, url string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateRemote", path, url)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateRemote indicates an expected call of UpdateRemote.
+func (mr *MockGitSyncMockRecorder) UpdateRemote(path, url interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRemote", reflect.TypeOf((*MockGitSync)(nil).UpdateRemote), path, url)
 }

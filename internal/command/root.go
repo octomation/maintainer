@@ -4,6 +4,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
+	"go.octolab.org/toolset/maintainer/internal/command/fetch"
 	"go.octolab.org/toolset/maintainer/internal/command/github"
 	"go.octolab.org/toolset/maintainer/internal/command/golang"
 	"go.octolab.org/toolset/maintainer/internal/command/makefile"
@@ -31,6 +32,7 @@ func New() *cobra.Command {
 	}
 
 	command.AddCommand(
+		fetch.New(&cnf),
 		github.New(&cnf),
 		golang.New(),
 		makefile.New(),
