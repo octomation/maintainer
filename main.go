@@ -14,6 +14,7 @@ import (
 
 	"go.octolab.org/toolset/maintainer/internal/command"
 	"go.octolab.org/toolset/maintainer/internal/config"
+	exitcode "go.octolab.org/toolset/maintainer/internal/pkg/exit"
 )
 
 const unknown = "unknown"
@@ -55,5 +56,13 @@ func shutdown(err error) {
 		unsafe.DoSilent(fmt.Fprintln(stderr, "---"))
 		unsafe.DoSilent(fmt.Fprintf(stderr, "%+v\n", err))
 	}
-	exit(1)
+
+	// Map a typed error to a process exit code (fetch plan §3.3);
+	// every error without an explicit code collapses to 1 as before.
+	code := exitcode.Transport
+	var coder exitcode.Coder
+	if errors.As(err, &coder) {
+		code = coder.ExitCode()
+	}
+	exit(code)
 }

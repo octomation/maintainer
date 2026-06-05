@@ -23,6 +23,55 @@ $ maintainer go vanity build
 
 ...
 
+## 🛰️ `maintainer fetch`
+
+`maintainer fetch` discovers GitHub repositories across several owners and
+reconciles a local checkout tree, in the spirit of `terraform plan` /
+`terraform apply`. A local state file (keyed by the stable numeric repo `id`)
+remembers what was materialised, so a rename or transfer on GitHub is detected
+as a **move**, not as a delete-and-reclone.
+
+It is **plan-only by default** and **safe-by-default on disk**: `--apply`
+performs only non-destructive actions (clone, fetch refs, move, update remote,
+adopt). A repository that disappears from GitHub is reported as an `orphan`
+(404-confirmed) and the local clone is **retained, never deleted**.
+
+```bash
+# scaffold a documented config, then check it
+$ maintainer fetch config init           # writes ./fetch.toml
+$ maintainer fetch config validate
+
+# render a plan (no disk writes), then apply non-destructive actions
+$ maintainer fetch                       # plan only
+$ maintainer fetch --apply               # clone / fetch / move / update-remote / adopt
+
+# machine-readable plan for a wrapping tool (lists every action incl. fetches)
+$ maintainer fetch --format=json | jq .
+
+# scope a run; inspect or tidy state
+$ maintainer fetch --profile=primary --owner=acme
+$ maintainer fetch state show            # dump state.json
+$ maintainer fetch state prune           # forget records whose path is gone
+
+# single-run mode without a config file (a token is required)
+$ GITHUB_TOKEN=ghp_… maintainer fetch --owner=acme --apply
+```
+
+Configuration lives in `fetch.{toml,yaml}` (`defaults`, `filters`,
+`[profiles.<name>]`, `[[owners]]`, `[[repos]]`); see the template written by
+`fetch config init`. Per-profile tokens make a bot account's private repos
+reachable (`clone_url = "https"` + its own `token_env`). The state file
+defaults to `$XDG_STATE_HOME/maintainer/fetch/state.json` (`0600`).
+
+Exit codes: `0` clean (incl. "no drift"), `1` transport/Git/state error,
+`2` user input error (bad config/flags, missing token), `3` apply finished with
+at least one per-repo failure (the summary lists which).
+
+Full reference: [`docs/fetch.md`](docs/fetch.md).
+
+> The PoC ships REST discovery only; a GraphQL discoverer is a deferred
+> experiment. See [the PoC plan](.github/notes/) for the full design.
+
 ## 🧩 Installation
 
 ### Homebrew
