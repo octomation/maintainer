@@ -24,6 +24,16 @@ func makeClone(t *testing.T, dir, originURL string) {
 	require.NoError(t, err)
 }
 
+func setPushURL(t *testing.T, dir, pushURL string) {
+	t.Helper()
+	repo, err := gogit.PlainOpen(dir)
+	require.NoError(t, err)
+	cfg, err := repo.Config()
+	require.NoError(t, err)
+	cfg.Raw.Section("remote").Subsection("origin").SetOption("pushurl", pushURL)
+	require.NoError(t, repo.SetConfig(cfg))
+}
+
 type fakeResolver struct{ ids map[string]int64 }
 
 func (r fakeResolver) ResolveByName(_ context.Context, owner, name string) (int64, error) {
@@ -65,4 +75,20 @@ func TestAdopter_Scan(t *testing.T) {
 	// resolved via the rename-redirect resolver.
 	renamed := byPath[filepath.Join(root, "public/acme/renamed")]
 	assert.Equal(t, int64(5), renamed.ID)
+}
+
+func TestAdopter_ScanTreatsPushURLAsOrthogonalToIdentity(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "private/acme/locked")
+	makeClone(t, dir, "git@github.com:acme/locked.git")
+	setPushURL(t, dir, "no_push")
+
+	a := NewAdopter(gitsvc.NewSync(), fakeResolver{})
+	clones, err := a.Scan(context.Background(), root, []github.RepoSnapshot{{
+		ID: 42, Owner: "acme", Name: "locked",
+	}}, nil)
+	require.NoError(t, err)
+	require.Len(t, clones, 1)
+	assert.Equal(t, int64(42), clones[0].ID)
+	assert.Equal(t, 1, clones[0].Origins)
 }

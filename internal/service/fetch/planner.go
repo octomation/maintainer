@@ -18,7 +18,7 @@ type DiskClone struct {
 	Owner     string
 	Name      string
 	ID        int64
-	Origins   int // number of origin URLs (>1 ⇒ conflict)
+	Origins   int // number of origin fetch URLs (>1 ⇒ conflict)
 }
 
 // Occupancy classifies what occupies a would-be target path (§7.5).
@@ -26,8 +26,8 @@ type Occupancy int
 
 // Occupancy values.
 const (
-	OccupancyClear   Occupancy = iota // absent or empty directory
-	OccupancyForeign                  // file / non-empty non-git dir / bare / .git file
+	OccupancyClear   Occupancy = iota // path is absent
+	OccupancyForeign                  // any existing path not verified as the expected clone
 )
 
 // ConfirmStatus is the outcome of a GET /repositories/{id} re-verification (§10).
@@ -167,19 +167,8 @@ func (p *Planner) planPresent(
 			a.Record = recordFromSnapshot(snapCopy, c.Path, c.RemoteURL, c.Transport)
 			return &a, nil
 		default:
-			if other, ok := clonesByPath[target]; ok && other.ID != snap.ID {
-				a := base
-				a.Kind = KindConflict
-				a.Path = target
-				a.Reason = "rendered path holds a different repository (remote mismatch)"
-				return &a, nil
-			}
-			if occupancy[target] == OccupancyForeign {
-				a := base
-				a.Kind = KindConflict
-				a.Path = target
-				a.Reason = "rendered path is occupied by a file or non-Git directory"
-				return &a, nil
+			if a := conflictAtTarget(base, target, snap.ID, clonesByPath, occupancy); a != nil {
+				return a, nil
 			}
 			if filtered {
 				return nil, nil // a new repo excluded by a filter is simply skipped (§4.2)
@@ -201,7 +190,7 @@ func (p *Planner) planPresent(
 		a.Transport = transport
 	}
 
-	recPresent := cloneAt(clones, rec.Path)
+	diskClone, recPresent := cloneAt(clones, rec.Path)
 	if !recPresent {
 		elsewhere := uniquePathsExcept(clones, rec.Path)
 		switch len(elsewhere) {
@@ -218,6 +207,9 @@ func (p *Planner) planPresent(
 				a.Path = rec.Path
 				return &a, nil
 			}
+			if conflict := conflictAtTarget(base, target, snap.ID, clonesByPath, occupancy); conflict != nil {
+				return conflict, nil
+			}
 			a.Kind = KindClone
 			a.Path = target
 			a.RemoteURL = canonicalURL(transport, snap.Owner, snap.Name)
@@ -233,27 +225,25 @@ func (p *Planner) planPresent(
 			return &a, nil
 		}
 	}
+	if diskClone.Transport != "" {
+		a.Transport = diskClone.Transport
+	}
 
 	nameChanged := snap.Owner != rec.OwnerLogin || snap.Name != rec.Name
 	external := p.paths.External(snap)
 	pathDiffers := target != rec.Path
 	canonical := canonicalURL(a.Transport, snap.Owner, snap.Name)
-	remoteDrift := canonical != rec.RemoteURL
+	actualRemote := rec.RemoteURL
+	if diskClone.RemoteURL != "" {
+		actualRemote = diskClone.RemoteURL
+	}
+	remoteDrift := canonical != actualRemote
 
 	switch {
 	case pathDiffers && !external:
 		// Move; the target must be clear (§7.5).
-		if other, ok := clonesByPath[target]; ok && other.ID != snap.ID {
-			a.Kind = KindConflict
-			a.Path = target
-			a.Reason = "move target holds a different repository"
-			return &a, nil
-		}
-		if occupancy[target] == OccupancyForeign {
-			a.Kind = KindConflict
-			a.Path = target
-			a.Reason = "move target is occupied by a file or non-Git directory"
-			return &a, nil
+		if conflict := conflictAtTarget(base, target, snap.ID, clonesByPath, occupancy); conflict != nil {
+			return conflict, nil
 		}
 		a.Kind = KindMove
 		a.FromPath = rec.Path
@@ -277,6 +267,34 @@ func (p *Planner) planPresent(
 		a.Filtered = filtered
 		return &a, nil
 	}
+}
+
+func conflictAtTarget(
+	base Action,
+	target string,
+	expectedID int64,
+	clonesByPath map[string]DiskClone,
+	occupancy map[string]Occupancy,
+) *Action {
+	if other, ok := clonesByPath[target]; ok && other.ID != expectedID {
+		a := base
+		a.Kind = KindConflict
+		a.Path = target
+		if other.ID == 0 {
+			a.Reason = "target contains a Git repository whose fetch origin cannot be matched unambiguously"
+		} else {
+			a.Reason = "target contains a different Git repository"
+		}
+		return &a
+	}
+	if occupancy[target] == OccupancyForeign {
+		a := base
+		a.Kind = KindConflict
+		a.Path = target
+		a.Reason = "target path already exists and is not the expected repository; refusing to overwrite it"
+		return &a
+	}
+	return nil
 }
 
 // planMissing handles the API-absent rows of the drift table (§10): a tracked
@@ -376,13 +394,13 @@ func bestName(snap github.RepoSnapshot, hasSnap bool, rec *state.Record, hasRec 
 	return "", ""
 }
 
-func cloneAt(clones []DiskClone, path string) bool {
+func cloneAt(clones []DiskClone, path string) (DiskClone, bool) {
 	for _, c := range clones {
 		if c.Path == path {
-			return true
+			return c, true
 		}
 	}
-	return false
+	return DiskClone{}, false
 }
 
 func uniquePaths(clones []DiskClone) []string {

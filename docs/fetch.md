@@ -117,7 +117,7 @@ profile's credentials/transport are used and recorded.
 
 | Action          | Trigger                                                                 |
 | --------------- | ----------------------------------------------------------------------- |
-| `clone`         | on the API, no state, target path clear                                 |
+| `clone`         | on the API, no matching checkout, target path absent                    |
 | `fetch`         | tracked & present — `git fetch --prune` (remote-tracking refs only)     |
 | `move`          | rendered path differs from state (e.g. a rename) — same-volume rename   |
 | `relocate`      | state path missing, the same `id` found at exactly one other location   |
@@ -131,6 +131,18 @@ Apply order: `adopt`/`relocate` → `update_remote` → `move` → `clone` → `
 fetches into the summary and prints lines only for drift; `--format=json` lists
 every action. Two actions resolving to the same target path are a conflict for
 both, decided up front.
+
+Target handling is fail-closed. Any existing clone or move target must first be
+identified as the expected repository; otherwise the plan reports a `conflict`
+with its path. Apply repeats the existence check immediately before clone/move,
+so a path created after plan review is never overwritten. Clone reserves an
+absent path atomically and never recursively cleans that final path on failure;
+an unexpected partial checkout is retained with an error for manual inspection.
+
+Repository identity comes only from `remote.origin.url` (the fetch endpoint).
+`remote.origin.pushurl` is orthogonal: push locks such as a deliberately invalid
+push URL neither create an ambiguous checkout nor get removed by
+`update_remote`.
 
 ## State file
 
@@ -154,7 +166,8 @@ records whose path is already gone — it never deletes a clone.
 
 - `0` clean (incl. "no drift") · `1` transport/Git/state error ·
   `2` user input error (bad config/flags, missing token, lock contention) ·
-  `3` apply finished with at least one per-repo failure (the summary lists which).
+  `3` apply finished with at least one per-repo failure or unresolved conflict
+  (the summary lists which).
 
 ## Onboarding an existing tree
 

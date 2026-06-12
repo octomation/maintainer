@@ -3,6 +3,7 @@ package fetch_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"go.octolab.org/toolset/maintainer/internal/config"
+	exitpkg "go.octolab.org/toolset/maintainer/internal/pkg/exit"
 	. "go.octolab.org/toolset/maintainer/internal/service/fetch"
 	gitsvc "go.octolab.org/toolset/maintainer/internal/service/git"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
@@ -29,6 +31,16 @@ func (f fakeDiscoverer) List(_ context.Context, p github.Profile) (github.Discov
 		Endpoints: []github.EndpointStat{{Endpoint: "/user/repos", Count: len(f.snaps)}},
 		Snapshots: f.snaps,
 	}, nil
+}
+
+type fakeGitHubNameResolver struct{}
+
+func (fakeGitHubNameResolver) ResolveByName(
+	_ context.Context,
+	_ github.Profile,
+	owner, name string,
+) (github.RepoSnapshot, error) {
+	return github.RepoSnapshot{Owner: owner, Name: name}, nil
 }
 
 func originWithCommit(t *testing.T) string {
@@ -102,4 +114,85 @@ func TestService_PlanThenApply(t *testing.T) {
 	info, err = os.Stat(statePath)
 	require.NoError(t, err)
 	assert.Equal(t, "-rw-------", info.Mode().String())
+}
+
+func TestService_PlanRecognisesCheckoutWithPushLock(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "acme/svc")
+	makeClone(t, target, "git@github.com:acme/svc.git")
+	setPushURL(t, target, "no_push")
+
+	statePath := filepath.Join(t.TempDir(), "state.json")
+	store := state.NewStore(afero.NewOsFs(), statePath, nil)
+	st := state.New()
+	st.Upsert(state.Record{
+		ID: 1, OwnerLogin: "acme", Name: "svc", Path: target,
+		RemoteURL: "git@github.com:acme/svc.git", CloneURL: "ssh", SourceProfile: "p",
+	})
+	require.NoError(t, store.Save(st))
+
+	cnf := &config.Fetch{Defaults: config.Defaults{
+		Root: root, Path: "{{.Owner}}/{{.Repo}}", CloneURL: "ssh", Concurrency: 1,
+	}, Profiles: map[string]config.Profile{}}
+	require.NoError(t, cnf.Validate())
+	snap := github.RepoSnapshot{
+		ID: 1, Owner: "acme", Name: "svc", Visibility: github.Public,
+		SSHCloneURL: "git@github.com:acme/svc.git", SourceProfile: "p",
+	}
+
+	var out, errw bytes.Buffer
+	svc, err := NewService(cnf, []ResolvedProfile{{Name: "p", Owners: []string{"acme"}}}, "/home/op", root, 1, Deps{
+		Store: store, Discoverer: fakeDiscoverer{snaps: []github.RepoSnapshot{snap}},
+		Resolver: fakeGitHubNameResolver{}, GitSync: gitsvc.NewSync(),
+		Reporter: NewReporter(&out, &errw, FormatHuman, 0, false),
+	})
+	require.NoError(t, err)
+	require.NoError(t, svc.Run(context.Background(), false))
+	assert.Contains(t, out.String(), "summary: clone=0 fetch=1")
+	assert.NotContains(t, out.String(), "+ clone")
+
+	info, err := gitsvc.NewSync().Inspect(target)
+	require.NoError(t, err)
+	assert.Equal(t, []string{"no_push"}, info.PushURLs)
+}
+
+func TestService_PlanReportsOccupiedCloneTargetAsConflict(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "acme/svc")
+	require.NoError(t, os.MkdirAll(target, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(target, "local-only.txt"), []byte("keep"), 0o644))
+
+	cnf := &config.Fetch{Defaults: config.Defaults{
+		Root: root, Path: "{{.Owner}}/{{.Repo}}", CloneURL: "https", Concurrency: 1,
+	}, Profiles: map[string]config.Profile{}}
+	require.NoError(t, cnf.Validate())
+	store := state.NewStore(afero.NewOsFs(), filepath.Join(t.TempDir(), "state.json"), nil)
+	snap := github.RepoSnapshot{ID: 1, Owner: "acme", Name: "svc", Visibility: github.Public, SourceProfile: "p"}
+
+	var out, errw bytes.Buffer
+	svc, err := NewService(cnf, []ResolvedProfile{{Name: "p", Owners: []string{"acme"}}}, "/home/op", root, 1, Deps{
+		Store: store, Discoverer: fakeDiscoverer{snaps: []github.RepoSnapshot{snap}},
+		Resolver: fakeGitHubNameResolver{}, GitSync: gitsvc.NewSync(),
+		Reporter: NewReporter(&out, &errw, FormatHuman, 0, false),
+	})
+	require.NoError(t, err)
+	require.NoError(t, svc.Run(context.Background(), false))
+	assert.Contains(t, out.String(), "conflict")
+	assert.Contains(t, out.String(), "refusing to overwrite")
+	assert.Contains(t, out.String(), "summary: clone=0 fetch=0")
+	assert.Contains(t, out.String(), "resolve 1 conflict(s) before applying")
+	content, readErr := os.ReadFile(filepath.Join(target, "local-only.txt"))
+	require.NoError(t, readErr)
+	assert.Equal(t, "keep", string(content))
+
+	out.Reset()
+	err = svc.Run(context.Background(), true)
+	require.Error(t, err)
+	var coded exitpkg.Coder
+	require.True(t, errors.As(err, &coded))
+	assert.Equal(t, exitpkg.Partial, coded.ExitCode())
+	assert.Contains(t, out.String(), "1 unresolved conflict(s)")
+	content, readErr = os.ReadFile(filepath.Join(target, "local-only.txt"))
+	require.NoError(t, readErr)
+	assert.Equal(t, "keep", string(content))
 }
