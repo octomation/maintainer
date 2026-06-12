@@ -35,6 +35,8 @@ It is **plan-only by default** and **safe-by-default on disk**: `--apply`
 performs only non-destructive actions (clone, fetch refs, move, update remote,
 adopt). A repository that disappears from GitHub is reported as an `orphan`
 (404-confirmed) and the local clone is **retained, never deleted**.
+Occupied or unverifiable targets are reported as conflicts and rechecked during
+apply; push-only URLs used by repository locks do not affect checkout identity.
 
 ```bash
 # scaffold a documented config, then check it
@@ -65,7 +67,7 @@ defaults to `$XDG_STATE_HOME/maintainer/fetch/state.json` (`0600`).
 
 Exit codes: `0` clean (incl. "no drift"), `1` transport/Git/state error,
 `2` user input error (bad config/flags, missing token), `3` apply finished with
-at least one per-repo failure (the summary lists which).
+at least one per-repo failure or unresolved conflict (the summary lists which).
 
 Full reference: [`docs/fetch.md`](docs/fetch.md).
 

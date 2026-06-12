@@ -29,7 +29,8 @@ type CloneOptions struct {
 
 // CloneInfo is the on-disk view of a clone the Adopter and Planner need (§4.4).
 type CloneInfo struct {
-	Origins   []string // origin remote URLs (usually exactly one)
+	Origins   []string // remote.origin.url fetch endpoints (usually exactly one)
+	PushURLs  []string // remote.origin.pushurl endpoints; never used as repository identity
 	HeadShort string   // short HEAD sha, for the fetch display line
 }
 

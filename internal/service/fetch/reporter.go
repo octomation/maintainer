@@ -137,10 +137,16 @@ func (r *Reporter) renderHuman(p Plan, applied bool) error {
 	b.WriteByte('\n')
 	fmt.Fprintf(&b, "summary: %s\n", summaryLine(s))
 	switch {
-	case applied && s.Errors > 0:
-		fmt.Fprintf(&b, "%s\n", paint(r.colorOut, "1;31", fmt.Sprintf("applied with %d error(s)", s.Errors)))
+	case applied && (s.Errors > 0 || s.Conflict > 0):
+		fmt.Fprintf(&b, "%s\n", paint(r.colorOut, "1;31", fmt.Sprintf(
+			"applied with %d error(s) and %d unresolved conflict(s)", s.Errors, s.Conflict,
+		)))
 	case applied:
 		b.WriteString(paint(r.colorOut, "32", "applied") + "\n")
+	case s.Conflict > 0:
+		fmt.Fprintf(&b, "%s\n", paint(r.colorOut, "1;31", fmt.Sprintf(
+			"resolve %d conflict(s) before applying", s.Conflict,
+		)))
 	case actionable(s):
 		b.WriteString(paint(r.colorOut, "36", "run with --apply to execute") + "\n")
 	default:
@@ -173,6 +179,9 @@ func (r *Reporter) writeAction(b *strings.Builder, p Plan, a Action) {
 		fmt.Fprintf(b, "               at %s\n", r.short(p, a.Path))
 	case KindConflict:
 		fmt.Fprintf(b, "  %s conflict   %-28s → %s\n", sym, name, a.Reason)
+		if a.Path != "" {
+			fmt.Fprintf(b, "               at %s\n", r.short(p, a.Path))
+		}
 	case KindNoop:
 		fmt.Fprintf(b, "  %s %-10s %-28s → %s\n", sym, string(a.Kind), name, a.Reason)
 	default:

@@ -116,6 +116,10 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 			return err
 		}
 	}
+	occupancy, err := s.scanOccupancy(snapshots)
+	if err != nil {
+		return err
+	}
 
 	confirmations := s.confirm(ctx, st, snapshots)
 
@@ -124,6 +128,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		State:         st,
 		Clones:        clones,
 		Confirmations: confirmations,
+		Occupancy:     occupancy,
 	})
 	if err != nil {
 		return exit.WithUser(err)
@@ -153,8 +158,12 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	if rerr := s.deps.Reporter.Render(plan, true); rerr != nil {
 		return rerr
 	}
-	if failed > 0 {
-		return exit.WithPartial(fmt.Errorf("%d action(s) failed during apply", failed))
+	conflicts := plan.Summary().Conflict
+	if failed > 0 || conflicts > 0 {
+		return exit.WithPartial(fmt.Errorf(
+			"apply incomplete: %d action(s) failed, %d conflict(s) unresolved",
+			failed, conflicts,
+		))
 	}
 	return nil
 }
