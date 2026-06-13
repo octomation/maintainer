@@ -58,10 +58,10 @@ func TestReporter_Human(t *testing.T) {
 func TestReporter_ErrorfPlainWhenNotTTY(t *testing.T) {
 	var out, errw bytes.Buffer
 	r := NewReporter(&out, &errw, FormatHuman, 0, false)
-	r.Errorf("clone %s: %v", "withsparkle/vscode", "remote repository is empty")
+	r.Errorf("fetch %s: %v", "acme/service", "network unavailable")
 
 	got := errw.String()
-	assert.Equal(t, "error: clone withsparkle/vscode: remote repository is empty\n", got)
+	assert.Equal(t, "error: fetch acme/service: network unavailable\n", got)
 	assert.NotContains(t, got, "\x1b[") // a buffer is not a terminal → no ANSI
 }
 
