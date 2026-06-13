@@ -113,7 +113,11 @@ func (s *Sync) Fetch(ctx context.Context, path string, auth Auth) error {
 		RefSpecs: []config.RefSpec{defaultRefSpec},
 		Prune:    true,
 	})
-	if err != nil && !errors.Is(err, git.NoErrAlreadyUpToDate) {
+	// A reachable zero-ref upstream is a valid no-op. Retry it on every run so
+	// the first branch created later is discovered without persistent flags.
+	if err != nil &&
+		!errors.Is(err, git.NoErrAlreadyUpToDate) &&
+		!errors.Is(err, transport.ErrEmptyRemoteRepository) {
 		return fmt.Errorf("fetch %s: %w", path, err)
 	}
 	return nil

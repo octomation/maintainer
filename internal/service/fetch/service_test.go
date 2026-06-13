@@ -43,6 +43,25 @@ func (fakeGitHubNameResolver) ResolveByName(
 	return github.RepoSnapshot{Owner: owner, Name: name}, nil
 }
 
+type localOriginSync struct {
+	*gitsvc.Sync
+	localURL     string
+	canonicalURL string
+}
+
+func (s localOriginSync) Inspect(path string) (gitsvc.CloneInfo, error) {
+	info, err := s.Sync.Inspect(path)
+	if err != nil {
+		return info, err
+	}
+	for i, origin := range info.Origins {
+		if origin == s.localURL {
+			info.Origins[i] = s.canonicalURL
+		}
+	}
+	return info, nil
+}
+
 func originWithCommit(t *testing.T) string {
 	t.Helper()
 	dir := filepath.Join(t.TempDir(), "origin")
@@ -114,6 +133,60 @@ func TestService_PlanThenApply(t *testing.T) {
 	info, err = os.Stat(statePath)
 	require.NoError(t, err)
 	assert.Equal(t, "-rw-------", info.Mode().String())
+}
+
+func TestService_ReconcilesEmptyRemoteAcrossApplyRuns(t *testing.T) {
+	origin := filepath.Join(t.TempDir(), "empty.git")
+	_, err := gogit.PlainInit(origin, true)
+	require.NoError(t, err)
+	root := t.TempDir()
+	target := filepath.Join(root, "acme/empty")
+	store := state.NewStore(afero.NewOsFs(), filepath.Join(t.TempDir(), "state.json"), nil)
+
+	cnf := &config.Fetch{Defaults: config.Defaults{
+		Root: root, Path: "{{.Owner}}/{{.Repo}}", CloneURL: "https", Concurrency: 1,
+	}, Profiles: map[string]config.Profile{}}
+	require.NoError(t, cnf.Validate())
+	snap := github.RepoSnapshot{
+		ID: 1, Owner: "acme", Name: "empty", Visibility: github.Private,
+		HTTPSCloneURL: origin, SourceProfile: "p",
+	}
+	now := time.Unix(1000, 0).UTC()
+	var out, errw bytes.Buffer
+	gitSync := localOriginSync{
+		Sync: gitsvc.NewSync(), localURL: origin,
+		canonicalURL: "https://github.com/acme/empty.git",
+	}
+	deps := Deps{
+		Store: store, Discoverer: fakeDiscoverer{snaps: []github.RepoSnapshot{snap}},
+		Resolver: fakeGitHubNameResolver{}, GitSync: gitSync,
+		Reporter: NewReporter(&out, &errw, FormatHuman, 0, false),
+		Clock:    func() time.Time { return now }, IDGen: func() string { return "EMPTY" },
+	}
+	profiles := []ResolvedProfile{{Name: "p", Owners: []string{"acme"}}}
+
+	// First apply materialises the empty checkout and records it.
+	svc, err := NewService(cnf, profiles, "/home/op", root, 1, deps)
+	require.NoError(t, err)
+	require.NoError(t, svc.Run(context.Background(), true), out.String())
+	_, err = os.Stat(filepath.Join(target, ".git"))
+	require.NoError(t, err)
+
+	// A later apply fetches the still-empty upstream without becoming partial.
+	now = time.Unix(2000, 0).UTC()
+	out.Reset()
+	errw.Reset()
+	svc, err = NewService(cnf, profiles, "/home/op", root, 1, deps)
+	require.NoError(t, err)
+	require.NoError(t, svc.Run(context.Background(), true), out.String())
+	assert.Contains(t, out.String(), "summary: clone=0 fetch=1")
+	assert.Contains(t, out.String(), "errors=0")
+	assert.NotContains(t, errw.String(), "error:")
+
+	loaded, err := store.Load()
+	require.NoError(t, err)
+	require.Len(t, loaded.Repos, 1)
+	assert.Equal(t, now, loaded.Repos[0].LastApply)
 }
 
 func TestService_PlanRecognisesCheckoutWithPushLock(t *testing.T) {

@@ -7,7 +7,7 @@ title: "fetch: prevent destructive clone reconciliation for occupied targets"
 labels: ["scope: code","scope: test","type: bug","severity: critical","impact: high","effort: medium"]
 url: https://github.com/octomation/maintainer/issues/445
 created_at: 2026-08-13T15:21:42Z
-updated_at: 2026-08-13T15:21:42Z
+updated_at: 2026-08-13T15:28:43Z
 ---
 
 # fetch: prevent destructive clone reconciliation for occupied targets

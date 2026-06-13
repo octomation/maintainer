@@ -144,6 +144,10 @@ Repository identity comes only from `remote.origin.url` (the fetch endpoint).
 push URL neither create an ambiguous checkout nor get removed by
 `update_remote`.
 
+An accessible upstream with no refs is a valid fetch no-op. It is retried on
+every run, so the first ref created later is discovered automatically.
+Authentication, authorization, not-found and transport failures remain errors.
+
 ## State file
 
 A single JSON document at `$XDG_STATE_HOME/maintainer/fetch/state.json`

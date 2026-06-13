@@ -9,6 +9,7 @@ import (
 
 	gogit "github.com/go-git/go-git/v5"
 	gitconfig "github.com/go-git/go-git/v5/config"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -69,7 +70,7 @@ func TestSync_CloneInspectMoveUpdateFetch(t *testing.T) {
 	assert.Equal(t, canonical, info.Origins[0])
 }
 
-func TestSync_CloneEmptyRepo(t *testing.T) {
+func TestSync_EmptyRemoteLifecycle(t *testing.T) {
 	// An origin with no commits (created but never pushed).
 	origin := filepath.Join(t.TempDir(), "empty")
 	_, err := gogit.PlainInit(origin, true) // bare, zero refs
@@ -88,6 +89,50 @@ func TestSync_CloneEmptyRepo(t *testing.T) {
 	require.Len(t, info.Origins, 1)
 	assert.Equal(t, origin, info.Origins[0])
 	assert.Empty(t, info.HeadShort) // no commits yet
+
+	// Repeated reconciliation of the still-empty upstream is a successful no-op.
+	require.NoError(t, sync.Fetch(context.Background(), work, gitsvc.Auth{Transport: "https"}))
+	info, err = sync.Inspect(work)
+	require.NoError(t, err)
+	assert.Empty(t, info.HeadShort)
+
+	// Once the first branch appears upstream, the next fetch discovers it.
+	local, err := gogit.PlainOpen(work)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(filepath.Join(work, "README.md"), []byte("first push"), 0o644))
+	wt, err := local.Worktree()
+	require.NoError(t, err)
+	_, err = wt.Add("README.md")
+	require.NoError(t, err)
+	hash, err := wt.Commit("first commit", &gogit.CommitOptions{
+		Author: &object.Signature{Name: "t", Email: "t@e", When: time.Unix(2, 0)},
+	})
+	require.NoError(t, err)
+	head, err := local.Head()
+	require.NoError(t, err)
+	require.NoError(t, local.Push(&gogit.PushOptions{RefSpecs: []gitconfig.RefSpec{
+		gitconfig.RefSpec(head.Name().String() + ":" + head.Name().String()),
+	}}))
+
+	remoteRef := plumbing.NewRemoteReferenceName("origin", head.Name().Short())
+	_ = local.Storer.RemoveReference(remoteRef)
+	require.NoError(t, sync.Fetch(context.Background(), work, gitsvc.Auth{Transport: "https"}))
+	fetched, err := local.Reference(remoteRef, true)
+	require.NoError(t, err)
+	assert.Equal(t, hash, fetched.Hash())
+}
+
+func TestSync_FetchKeepsRepositoryErrors(t *testing.T) {
+	work := filepath.Join(t.TempDir(), "checkout")
+	repo, err := gogit.PlainInit(work, false)
+	require.NoError(t, err)
+	missing := filepath.Join(t.TempDir(), "missing-upstream.git")
+	_, err = repo.CreateRemote(&gitconfig.RemoteConfig{Name: "origin", URLs: []string{missing}})
+	require.NoError(t, err)
+
+	err = gitsvc.NewSync().Fetch(context.Background(), work, gitsvc.Auth{Transport: "https"})
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "fetch "+work)
 }
 
 func TestSync_InspectAndUpdateRemotePreservePushURLs(t *testing.T) {

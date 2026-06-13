@@ -37,6 +37,7 @@ adopt). A repository that disappears from GitHub is reported as an `orphan`
 (404-confirmed) and the local clone is **retained, never deleted**.
 Occupied or unverifiable targets are reported as conflicts and rechecked during
 apply; push-only URLs used by repository locks do not affect checkout identity.
+Accessible upstreams with no refs are valid no-ops and are retried every run.
 
 ```bash
 # scaffold a documented config, then check it
