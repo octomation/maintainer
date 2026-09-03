@@ -19,6 +19,16 @@
   $ maintainer github --token=secret ...
   ```
 
+- Read the Contributions Calendar through the GraphQL API
+
+  The profile HTML was served from caches of different ages, so the same
+  request could report different counts for the same day between two calls,
+  and a fresh value only appeared after retrying the command a few times.
+  The [GraphQL][graphql] `contributionsCollection` has the same caches behind
+  a repeated query, so the current year is requested up to the present second:
+  a range nobody asked for before is always resolved from the source, and one
+  call is enough. It needs `GITHUB_TOKEN` even for public profiles.
+
 - Add commands to work with GitHub Contributions Calendar
 
   * Shows contributions histogram
@@ -105,4 +115,5 @@
     $ maintainer github contribution suggest --short 2013/-10
     ```
 
+[graphql]:  https://docs.github.com/en/graphql/reference/objects#contributionscalendar
 [calendar]: https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/managing-contribution-graphs-on-your-profile/viewing-contributions-on-your-profile#contributions-calendar

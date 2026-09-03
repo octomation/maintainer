@@ -1,11 +1,11 @@
 package contribution_test
 
 import (
+	"encoding/json"
 	"os"
 	"testing"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.octolab.org/safe"
@@ -16,18 +16,9 @@ import (
 )
 
 func TestLookupRange(t *testing.T) {
-	const name = "testdata/kamilsk.2021.html"
+	chm := load(t, "testdata/kamilsk.2021.json")
 
-	f, err := os.Open(name)
-	require.NoError(t, err)
-	defer safe.Close(f, unsafe.Ignore)
-
-	doc, err := goquery.NewDocumentFromReader(f)
-	require.NoError(t, err)
-
-	chm := BuildHeatMap(doc)
-
-	t.Run("issue#124: correct centering", func(t *testing.T) {
+	t.Run("MAIN-99 (issue#124): correct centering", func(t *testing.T) {
 		opts := DateOptions{
 			Value: xtime.UTC().Year(2021).Month(time.January).Day(30).Time(),
 			Weeks: 3, Half: true,
@@ -43,28 +34,14 @@ func TestLookupRange(t *testing.T) {
 	})
 }
 
-func TestYearRange(t *testing.T) {
-	const name = "testdata/kamilsk.1986.html"
-
+// load reads a heat map snapshot, the same format the snapshot command writes.
+func load(t testing.TB, name string) HeatMap {
 	f, err := os.Open(name)
 	require.NoError(t, err)
 	defer safe.Close(f, unsafe.Ignore)
 
-	doc, err := goquery.NewDocumentFromReader(f)
-	require.NoError(t, err)
+	chm := make(HeatMap)
+	require.NoError(t, json.NewDecoder(f).Decode(&chm))
 
-	min, max := YearRange(doc)
-	assert.Equal(t, 2011, min)
-	assert.Equal(t, 2025, max)
-}
-
-func load(t testing.TB, name string) *goquery.Document {
-	f, err := os.Open(name)
-	require.NoError(t, err)
-	defer safe.Close(f, unsafe.Ignore)
-
-	doc, err := goquery.NewDocumentFromReader(f)
-	require.NoError(t, err)
-
-	return doc
+	return chm
 }

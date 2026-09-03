@@ -34,7 +34,7 @@ func TestSuggest(t *testing.T) {
 			},
 		},
 		"empty week": {
-			heats: BuildHeatMap(load(t, "testdata/kamilsk.2019.html")),
+			heats: load(t, "testdata/kamilsk.2019.json"),
 			scope: xtime.NewRange(
 				xtime.UTC().Year(2019).Month(time.October).Day(7).Time(),
 				time.Now(),
@@ -48,7 +48,7 @@ func TestSuggest(t *testing.T) {
 			},
 		},
 		"full week": {
-			heats: BuildHeatMap(load(t, "testdata/kamilsk.2021.html")),
+			heats: load(t, "testdata/kamilsk.2021.json"),
 			scope: xtime.NewRange(
 				xtime.UTC().Year(2021).Month(time.April).Day(28).Time(),
 				time.Now(),
@@ -62,7 +62,7 @@ func TestSuggest(t *testing.T) {
 			},
 		},
 		"week with gaps": {
-			heats: BuildHeatMap(load(t, "testdata/kamilsk.2019.html")),
+			heats: load(t, "testdata/kamilsk.2019.json"),
 			scope: xtime.NewRange(
 				xtime.UTC().Year(2019).Month(time.December).Day(17).Time(),
 				time.Now(),
@@ -75,9 +75,9 @@ func TestSuggest(t *testing.T) {
 				Target: 5,
 			},
 		},
-		"issue#68: missed Saturday": {
+		"MAIN-68 (issue#68): missed Saturday": {
 			heats: func() HeatMap {
-				chm := BuildHeatMap(load(t, "testdata/kamilsk.2021.html"))
+				chm := load(t, "testdata/kamilsk.2021.json")
 				delete(chm, xtime.UTC().Year(2021).Month(time.December).Day(2).Time())
 				return chm
 			}(),
@@ -93,8 +93,8 @@ func TestSuggest(t *testing.T) {
 				Target: 15,
 			},
 		},
-		"issue#119: max Saturday": {
-			heats: BuildHeatMap(load(t, "testdata/kamilsk.2021.html")),
+		"MAIN-94 (issue#119): max Saturday": {
+			heats: load(t, "testdata/kamilsk.2021.json"),
 			scope: xtime.NewRange(
 				xtime.UTC().Year(2021).Month(time.April).Day(3).Time(),
 				time.Now(),
