@@ -20,4 +20,4 @@ Add commands to fetch Linear issues.
 
 ## Issues
 
-- [ ] #132 — linear: generate client ([[issue-132]])
+- [ ] #132 — linear: generate client ([[MAIN-105]])

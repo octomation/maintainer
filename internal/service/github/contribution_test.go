@@ -4,7 +4,6 @@ package github_test
 
 import (
 	"context"
-	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -33,16 +32,32 @@ func TestService_FetchContributions(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	selectors := []string{
-		"svg.js-calendar-graph-svg rect.ContributionCalendar-day",
-		"svg.js-calendar-graph-svg .ContributionCalendar-day",
-		".js-calendar-graph-svg rect.ContributionCalendar-day",
-		".js-calendar-graph-svg .ContributionCalendar-day",
-	}
-	service := github.New(http.DefaultClient)
-	doc, err := service.FetchContributions(ctx, "kamilsk", 2013)
+	service := github.New(xhttp.TokenSourcedClient(ctx, config.Secret(os.Getenv("GITHUB_TOKEN"))))
+	chm, err := service.FetchContributions(ctx, "kamilsk", 2013)
 	require.NoError(t, err)
-	for _, selector := range selectors {
-		assert.Equal(t, 365, doc.Find(selector).Length())
+	assert.Len(t, chm, 365)
+	assert.Equal(t, uint(7), chm.Count(xtime.UTC().Year(2013).Month(time.December).Day(12).Time()))
+}
+
+// TestService_FetchContributions_Consistency covers MAIN-126: the profile HTML
+// was served from caches of different ages, so a day's count walked backwards
+// between two calls; a consistent source never does that.
+func TestService_FetchContributions_Consistency(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	year := time.Now().UTC().Year()
+	service := github.New(xhttp.TokenSourcedClient(ctx, config.Secret(os.Getenv("GITHUB_TOKEN"))))
+	seen, err := service.FetchContributions(ctx, "kamilsk", year)
+	require.NoError(t, err)
+
+	for attempt := 1; attempt <= 5; attempt++ {
+		actual, err := service.FetchContributions(ctx, "kamilsk", year)
+		require.NoError(t, err)
+		for ts, count := range seen {
+			require.GreaterOrEqual(t, actual.Count(ts), count,
+				"attempt %d, %s", attempt, ts.Format(xtime.DateOnly))
+		}
+		seen = actual
 	}
 }

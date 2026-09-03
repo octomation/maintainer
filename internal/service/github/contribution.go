@@ -4,20 +4,31 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
-	"github.com/PuerkitoBio/goquery"
-	"go.octolab.org/safe"
-	"go.octolab.org/unsafe"
 	"golang.org/x/sync/errgroup"
 
 	"go.octolab.org/toolset/maintainer/internal/model/github/contribution"
-	xhttp "go.octolab.org/toolset/maintainer/internal/pkg/http"
-	xheader "go.octolab.org/toolset/maintainer/internal/pkg/http/header"
 	xtime "go.octolab.org/toolset/maintainer/internal/pkg/time"
-	"go.octolab.org/toolset/maintainer/internal/pkg/url"
 )
 
-var overview = url.MustParse("https://github.com?controller=profiles&action=show&tab=contributions")
+// contributionCalendar requests the daily contribution counts of a user.
+// GitHub caps the span of a single collection at one year, which is why
+// ContributionHeatMap fans out per calendar year.
+const contributionCalendar = `query ($login: String!, $from: DateTime!, $to: DateTime!) {
+  user(login: $login) {
+    contributionsCollection(from: $from, to: $to) {
+      contributionCalendar {
+        weeks {
+          contributionDays {
+            date
+            contributionCount
+          }
+        }
+      }
+    }
+  }
+}`
 
 func (srv *Service) ContributionHeatMap(
 	ctx context.Context,
@@ -29,15 +40,15 @@ func (srv *Service) ContributionHeatMap(
 	}
 
 	chm := make(contribution.HeatMap)
-	merge := func() func(*goquery.Document, error) error {
+	merge := func() func(contribution.HeatMap, error) error {
 		var mu sync.Mutex
-		return func(doc *goquery.Document, err error) error {
+		return func(src contribution.HeatMap, err error) error {
 			if err != nil {
 				return err
 			}
 
 			mu.Lock()
-			for ts, count := range contribution.BuildHeatMap(doc) {
+			for ts, count := range src {
 				chm.SetCount(ts, count)
 			}
 			mu.Unlock()
@@ -56,25 +67,56 @@ func (srv *Service) ContributionHeatMap(
 	return chm.Subset(scope), err
 }
 
+// FetchContributions returns the contribution heat map of the user for the
+// whole year, including the days with no contributions at all.
 func (srv *Service) FetchContributions(
 	ctx context.Context,
 	user string, year int,
-) (*goquery.Document, error) {
-	src := overview.
-		SetPath(user).
-		AddQueryParam("from", xtime.UTC().Year(year).Format(xtime.DateOnly)).
-		String()
-	req, err := xhttp.NewGetRequestWithContext(ctx, src)
-	if err != nil {
-		return nil, fmt.Errorf("build contributions request: %w", err)
+) (contribution.HeatMap, error) {
+	var response struct {
+		User struct {
+			Contributions struct {
+				Calendar struct {
+					Weeks []struct {
+						Days []struct {
+							Date  string `json:"date"`
+							Count uint   `json:"contributionCount"`
+						} `json:"contributionDays"`
+					} `json:"weeks"`
+				} `json:"contributionCalendar"`
+			} `json:"contributionsCollection"`
+		} `json:"user"`
 	}
-	xheader.Set(req.Header).NoCache()
 
-	resp, err := srv.client.Client().Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("send contributions request: %w", err)
+	from := xtime.UTC().Year(year).Time()
+	to := xtime.UTC().Year(year).Month(time.December).Day(31).Hour(23).Minute(59).Second(59).Time()
+	// GitHub serves a repeated query from several caches of different ages
+	// (MAIN-126), so the current year is bounded by this very second: a range
+	// no cache has seen yet is always resolved from the source. Past years
+	// are immutable, and a cached answer is as good as a fresh one.
+	if now := srv.now().UTC(); now.After(from) && now.Before(to) {
+		to = now.Truncate(time.Second)
 	}
-	defer safe.Close(resp.Body, unsafe.Ignore)
+	vars := map[string]any{
+		"login": user,
+		"from":  from.Format(time.RFC3339),
+		"to":    to.Format(time.RFC3339),
+	}
+	if err := srv.queryGraphQL(ctx, contributionCalendar, vars, &response); err != nil {
+		return nil, fmt.Errorf("fetch contributions of %q for %d: %w", user, year, err)
+	}
 
-	return goquery.NewDocumentFromReader(resp.Body)
+	chm := make(contribution.HeatMap, 366)
+	for _, week := range response.User.Contributions.Calendar.Weeks {
+		for _, day := range week.Days {
+			// An expected format is date-only, so the parsed value is
+			// midnight UTC, as the heat map requires.
+			ts, err := time.Parse(xtime.DateOnly, day.Date)
+			if err != nil {
+				return nil, fmt.Errorf("parse contribution date %q: %w", day.Date, err)
+			}
+			chm.SetCount(ts, day.Count)
+		}
+	}
+	return chm, nil
 }

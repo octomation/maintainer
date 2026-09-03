@@ -1,4 +1,0 @@
-GET https://github.com/kamilsk?controller=profiles&action=show&tab=contributions&from=2024-03-01
-X-Requested-With: XMLHttpRequest
-
-###
