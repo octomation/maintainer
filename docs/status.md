@@ -90,7 +90,7 @@ overrides the config's inspection cap; `--timeout 30s` bounds the whole command.
 The released macOS and Linux targets support the terminal view.
 
 Per-repo paths select the active clone for mutation, while stale duplicates
-remain visible as `orphan [duplicate-pin]`. Their own branch, changes and
+remain visible as `orphan`. Their own branch, changes and
 divergence are retained; plain output and TUI details identify the active path.
 Orphan is a management warning, not a replacement for Git status or a read error.
 Without a specific per-repo pin, duplicates remain separate error rows; broad
@@ -104,7 +104,7 @@ Ignore rules are respected; archived/fork filters do not hide local work.
 Config discovery follows fetch, including `MAINTAINER_FETCH_CONFIG`, the current
 directory and XDG paths. `--config=""` disables configuration discovery, not
 state loading. `--root` changes the workspace root and rebases relative pins.
-State paths outside the current layout are report-only `orphan [out-of-scope]`,
+State paths outside the current layout are report-only `orphan` rows,
 not recursive scan roots; legacy explicit
 per-repo pins remain supported. The default layout excludes `research` and
 other unrelated branches without exclusion lists. No recursive submodule scan
@@ -118,5 +118,7 @@ array, including `[]` for an empty collection, with `repository`, `path`,
 `changed_files`, `untracked`, `binary`, `conflicts`, `ahead`, `behind`, `status`,
 `pinned`, optional `id`, and optional `error` fields. Orphan rows also expose
 `orphan_reason`, optional `active_path`, and `remote_checked_at` for cached
-`remote-gone` observations saved by fetch apply. Status never probes GitHub or
+`remote-gone` observations saved by fetch apply. Text/TUI shows only `orphan`,
+without bracketed reason codes; the reason remains in JSON and searchable.
+Status never probes GitHub or
 infers remote deletion from stale local refs. Search for `orphan` to find them.

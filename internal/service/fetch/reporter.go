@@ -183,11 +183,7 @@ func (r *Reporter) writeAction(b *strings.Builder, p Plan, a Action) {
 	case KindUpdateRemote:
 		fmt.Fprintf(b, "  %s update     %-28s → %s\n", sym, name, a.RemoteURL)
 	case KindOrphan:
-		reason := a.Reason
-		if a.OrphanReason != "" {
-			reason = "[" + a.OrphanReason + "] " + reason
-		}
-		fmt.Fprintf(b, "  %s orphan     %-28s → %s\n", sym, name, reason)
+		fmt.Fprintf(b, "  %s orphan     %-28s → %s\n", sym, name, a.Reason)
 		fmt.Fprintf(b, "               at %s\n", r.short(p, a.Path))
 	case KindConflict:
 		fmt.Fprintf(b, "  %s conflict   %-28s → %s\n", sym, name, a.Reason)

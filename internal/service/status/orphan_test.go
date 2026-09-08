@@ -40,21 +40,23 @@ func TestOrphanKeepsDirtyStatusAndIsSearchable(t *testing.T) {
 	assert.Equal(t, 1, row.Untracked)
 	var plain bytes.Buffer
 	require.NoError(t, Plain(&plain, rows))
-	assert.Contains(t, plain.String(), "orphan [duplicate-pin] · synced")
+	assert.Contains(t, plain.String(), "orphan · synced")
+	assert.NotContains(t, plain.String(), "duplicate-pin")
 	assert.Contains(t, plain.String(), "path: "+old)
 	assert.Contains(t, plain.String(), "active: "+pin)
 	assert.Contains(t, plain.String(), "+1/-2")
 	m := newScreen([]Row{row})
 	m.Update(tea.WindowSizeMsg{Width: 240, Height: 16})
 	view := ansi.Strip(m.View().Content)
-	assert.Contains(t, view, "orphan [duplicate-pin]")
+	assert.Contains(t, view, "orphan · synced")
+	assert.NotContains(t, view, "duplicate-pin")
 	assert.Contains(t, view, "active: "+pin)
 }
 
 func TestCachedRemoteOrphanRetainsTrackingStatus(t *testing.T) {
 	now := time.Date(2026, 9, 8, 12, 0, 0, 0, time.UTC)
 	row := Row{Repository: "acme/tool", Path: "/work/tool", Status: "behind", Behind: 12, OrphanReason: "remote-gone", RemoteCheckedAt: &now}
-	assert.Equal(t, "orphan [remote-gone] · behind 12", cells(row)[3])
+	assert.Equal(t, "orphan · behind 12", cells(row)[3])
 	var out bytes.Buffer
 	require.NoError(t, Plain(&out, []Row{row}))
 	assert.Contains(t, out.String(), "GitHub check (cached): 2026-09-08T12:00:00Z")

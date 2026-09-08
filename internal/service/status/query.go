@@ -62,7 +62,7 @@ func queryRows(rows []Row, keys []sortKey, query string) []int {
 	terms := strings.Fields(query)
 	for i, row := range rows {
 		score, matches := 0, true
-		fields := append(cells(row), safeText(row.Path), safeText(row.Upstream), safeText(row.Commit), safeText(row.ActivePath))
+		fields := append(cells(row), safeText(row.Path), safeText(row.Upstream), safeText(row.Commit), safeText(row.ActivePath), safeText(row.OrphanReason))
 		for _, term := range terms {
 			found := fuzzy.Find(term, fields)
 			if len(found) == 0 {

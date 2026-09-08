@@ -121,7 +121,7 @@ func (m *screen) View() tea.View {
 		lines = append(lines, clip(accent.Render(fmt.Sprintf("%d/%d  %s%s", m.selection.Index+1, len(m.visible), safeText(row.Path), pin))))
 		detail := fmt.Sprintf("HEAD %.12s · upstream %s", safeText(row.Commit), safeText(row.Upstream))
 		if row.OrphanReason != "" {
-			detail = "orphan [" + safeText(row.OrphanReason) + "] · " + detail
+			detail = "orphan · " + detail
 		}
 		if row.ActivePath != "" {
 			detail = "active: " + safeText(row.ActivePath)

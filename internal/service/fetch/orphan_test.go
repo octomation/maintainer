@@ -136,7 +136,8 @@ func TestOrphanReporterCountsIdentitiesAndShowsPaths(t *testing.T) {
 	var out bytes.Buffer
 	require.NoError(t, NewReporter(&out, &out, FormatHuman, 0, false).Render(plan, false))
 	assert.Contains(t, out.String(), "plan: 1 repos total")
-	assert.Contains(t, out.String(), "[duplicate-pin]")
+	assert.Contains(t, out.String(), "orphan")
+	assert.NotContains(t, out.String(), "duplicate-pin")
 	assert.Contains(t, out.String(), "at /old")
 	assert.Contains(t, out.String(), "/active")
 	assert.Equal(t, 1, plan.Summary().Orphan)
