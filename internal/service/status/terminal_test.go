@@ -81,6 +81,16 @@ func TestMouseSortingAndSelectionAcrossResize(t *testing.T) {
 		assert.LessOrEqual(t, ansi.StringWidth(line), 35)
 	}
 	assert.LessOrEqual(t, len(strings.Split(m.View().Content, "\n")), 12)
+	lines := strings.Split(ansi.Strip(m.View().Content), "\n")
+	assert.True(t, strings.HasPrefix(lines[5], "│─"), "separator stays immediately below the header")
+	assert.Contains(t, lines[8], "/80", "wrapping must not push the selected-path footer off screen")
+	assert.Contains(t, lines[9], "HEAD", "metadata remains visible after resize")
+	m.keys = nil
+	m.selection.Left = 10
+	m.search.Focus()
+	m.Update(tea.MouseClickMsg{X: m.widths[0] + 4 - 10, Y: 4, Button: tea.MouseLeft})
+	assert.Equal(t, []sortKey{{Column: BranchColumn}}, m.keys, "header hit testing accounts for horizontal scroll")
+	assert.False(t, m.search.Focused(), "header activation returns focus to the table")
 }
 
 func TestScreenStylesEmptyAndControlCharacters(t *testing.T) {
@@ -98,6 +108,10 @@ func TestScreenStylesEmptyAndControlCharacters(t *testing.T) {
 	m.search.SetValue("does-not-match")
 	m.rebuild()
 	assert.Contains(t, ansi.Strip(m.View().Content), "No matches")
+	m.resize(62, 16)
+	lines := strings.Split(ansi.Strip(m.View().Content), "\n")
+	assert.Contains(t, lines[6], "No matches", "empty message has the same row coordinate as table data")
+	assert.Contains(t, lines[12], "No repository selected")
 	m.resize(1, 1)
 	assert.LessOrEqual(t, ansi.StringWidth(m.View().Content), 1)
 }
