@@ -5,6 +5,7 @@ import (
 	"os"
 	"slices"
 	"strings"
+	"time"
 
 	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
@@ -28,6 +29,18 @@ type screen struct {
 	width, height int
 	widths        []int
 	dark          bool
+	quitting      bool
+}
+
+// Keep the input reader alive briefly after rendering mouse reporting off.
+// Bubble Tea stops its reader before restoring terminal modes on Quit, so an
+// immediate quit can leave in-flight mouse reports for the parent shell.
+const exitDrainTime = 150 * time.Millisecond
+
+func (m *screen) quit() (tea.Model, tea.Cmd) {
+	m.quitting = true
+	m.search.Blur()
+	return m, tea.Tick(exitDrainTime, func(time.Time) tea.Msg { return tea.QuitMsg{} })
 }
 
 func newScreen(rows []Row) *screen {
@@ -97,6 +110,11 @@ func (m *screen) focusColumn(delta int) {
 }
 
 func (m *screen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.quitting {
+		// Consume trailing keys, paste and mouse reports without changing the
+		// snapshot or scheduling more commands during the drain window.
+		return m, nil
+	}
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		m.resize(msg.Width, msg.Height)
@@ -106,7 +124,7 @@ func (m *screen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		key := msg.String()
 		if key == "ctrl+c" {
-			return m, tea.Quit
+			return m.quit()
 		}
 		if m.search.Focused() {
 			switch key {
@@ -132,13 +150,13 @@ func (m *screen) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		switch key {
 		case "q", "ctrl+d":
-			return m, tea.Quit
+			return m.quit()
 		case "esc":
 			if m.search.Value() != "" {
 				m.search.SetValue("")
 				m.rebuild()
 			} else {
-				return m, tea.Quit
+				return m.quit()
 			}
 		case "/":
 			return m, m.search.Focus()
