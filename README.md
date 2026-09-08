@@ -85,6 +85,10 @@ maintainer status --format=json           # structured counts and paths
 maintainer status --owner kamilsk
 ```
 
+Tab selects a column; `s` sorts, Shift+s adds a sort key, and `0` resets sorting.
+`/` opens fuzzy filtering. The Charmbracelet terminal view also supports header
+clicks, Shift+click, and selection that survives sorting.
+
 Counts use local upstream refs. Full reference: [`docs/status.md`](docs/status.md).
 
 > The PoC ships REST discovery only; a GraphQL discoverer is a deferred

@@ -29,7 +29,8 @@ func New() *cobra.Command {
 		Use:          "status", Short: "inspect local repository branches, changes and divergence",
 		Long: "Inspect local checkouts using fetch configuration and state. No network\n" +
 			"access or fetch is performed; divergence uses cached upstream refs.\n" +
-			"In a terminal: arrows/jk select, PgUp/PgDn scroll, g/G first/last, q quit.",
+			"In a terminal: arrows/jk select rows, Tab selects a column, s sorts,\n" +
+			"Shift+s appends sorting, 0 resets sorting, / filters, q quits.",
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			if format != "auto" && format != "plain" && format != "json" && format != "tui" {

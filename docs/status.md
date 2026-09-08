@@ -39,11 +39,49 @@ uncommitted work. A branch can be both ahead and behind. Detached HEAD,
 unborn branches, missing upstream configuration and deleted upstream refs are
 reported distinctly. Failures produce error rows, not zero/clean results.
 
-In a terminal, use arrows or `j/k` to highlight a row, Page Up/Down to scroll,
-`g/G` or Home/End for first/last, and left/right or `h/l` to scroll horizontally.
-The footer shows the selected path, HEAD commit and upstream. Exit with `q`,
-Escape or Ctrl-C. The terminal is restored on exit and resize adjusts the
-viewport. Enter is reserved for future detail navigation.
+The terminal screen uses [Bubble Tea](https://github.com/charmbracelet/bubbletea),
+Lip Gloss styling and the Bubbles text input. The selected row and active column
+have separate highlights; the footer shows the path, HEAD commit and upstream.
+Use up/down or `j/k` for rows, Page Up/Down to scroll, `g/G` or Home/End for
+first/last, and `h/l` to scroll horizontally. Resize adjusts the viewport.
+
+### Sorting
+
+Select a column with Tab/Shift+Tab or left/right. Press `s` or Enter to sort by
+that column, replacing the whole sort chain. Shift+s (`S`) or Shift+Enter adds
+the column after the existing keys. Header clicks work the same way; Shift+click
+adds a key. Repeated activation cycles **ascending → descending → removed**.
+In additive mode, toggling a key keeps its priority; removing and re-adding it
+moves it to the end. `0` clears all sort keys, retaining the current filter.
+
+Headers show direction and precedence (`Branch ↑1`, `Status ↓2`). Sorting covers
+the entire filtered collection, including rows outside the viewport. Repository
+and branch compare case-insensitively. Uncommitted compares `(added + deleted,
+changed files, untracked, binary, conflicts)` numerically; status compares
+`(ahead + behind, ahead, behind, status text)`. Numeric error rows come last in
+both directions. Ties use repository/path for deterministic order. Clearing
+sorting restores repository/path order, or fuzzy relevance while searching.
+
+Shift+Enter requires a terminal that reports modified keys. `S` works in legacy
+terminals too. Some terminals reserve Shift+mouse for native text selection;
+use `S` if Shift+click is intercepted.
+
+### Fuzzy filtering
+
+Press `/` or click the search line and start typing. Matches update immediately;
+characters may be non-contiguous and matching ignores case (`dtf` finds
+`dotfiles`). Space-separated terms must all match, and can match different
+fields: repository, branch, uncommitted/status text, path, upstream, or commit.
+With no explicit sort, results use fuzzy relevance; explicit keys take precedence.
+The header shows matched/total counts, and an empty result is shown explicitly.
+
+Enter or Escape leaves the input while keeping the filter. Ctrl+u clears the
+input. Outside the input, Escape clears an active filter; otherwise it exits.
+`q` and Ctrl-C exit from the table; Ctrl-C also exits from the input, where `q`
+is ordinary text. Sorting preserves the selected checkout. If filtering hides
+it, clearing the filter restores it unless a different row was selected.
+All sort/filter state is in memory. Plain/JSON output retains the original
+complete inventory; no repository or fetch state is changed.
 
 Redirected output automatically uses the plain table. `--format=tui` forces
 interactive mode and requires terminal input and output. `--concurrency N`
