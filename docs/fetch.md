@@ -38,9 +38,12 @@ wins; a missing file is not an error):
 4. `$XDG_CONFIG_HOME/maintainer/fetch.{toml,yaml}` (fallback `~/.config/maintainer/`).
 
 ```toml
-[defaults]
+[workspace]
 root         = "."        # checkout root; defaults to the current directory
 path         = "{{.Visibility}}/{{.Owner}}/{{.Repo}}"
+pins         = []         # existing checkout trees to keep in place
+
+[defaults]
 clone_url    = "ssh"      # "ssh" | "https"
 concurrency  = 4
 # state_file = "/path/to/state.json"   # default: $XDG_STATE_HOME/maintainer/fetch/state.json
@@ -91,11 +94,20 @@ over a `["*"]` config processes only `acme`.
 
 ### Path templates
 
-`path` is a Go `text/template` with: `.Root .Owner .Repo .Visibility`
-`.DefaultBranch .IsFork .IsTemplate .IsArchived` (plus `lower`/`upper` funcs).
-Precedence high→low: per-repo → per-owner → `defaults.path`. The rendered path
+The [workspace](workspace.md) is shared with status. `workspace.path` is both
+the target layout and the discovery boundary: the default only scans
+`{public,private,internal}/<owner>/<repo>`, not arbitrary root descendants.
+Legacy `defaults.root/path` remain supported, but cannot be mixed with
+`[workspace]`. `workspace.pins` explicitly includes additional existing checkout
+trees without permitting moves. Adding a new root child does not expand scope.
+
+Managed templates support scalar `.Owner .Repo .Visibility .DefaultBranch
+.IsFork .IsTemplate .IsArchived`, literals, and `lower`/`upper`; conditionals and
+other non-reversible expressions are rejected. Each scalar stays within one
+path component. Per-repo pins retain the full rendering context including `.Root`.
+Precedence high→low: per-repo → per-owner → `workspace.path`. The rendered path
 is absolute → used as-is; `~` → expanded from `$HOME`; otherwise joined with
-`root`. `defaults.path` and per-owner templates must stay **within `root`**;
+`root`. `workspace.path` and per-owner templates must stay **within `root`**;
 absolute/`~` are allowed only for per-repo overrides.
 
 ### Active checkouts outside the tree
@@ -110,14 +122,17 @@ path = "~/.dotfiles"
 
 Fetch verifies its GitHub identity and selects it even if an old duplicate
 exists at `Development/public/kamilsk/dotfiles`. Apply adopts the selected path
-into state; the duplicate stays untouched. Rename/transfer updates origin at
+into state; the duplicate stays untouched and appears as a report-only
+`orphan [duplicate-pin]` with the active path. Rename/transfer updates origin at
 `~/.dotfiles`, without moving the folder. Missing or foreign pinned paths are
 conflicts; fetch never clones into a pin or falls back to a duplicate.
 
 Use numeric IDs so rules survive renames. Applied pins are also retained as
 `pinned_path` in state, protecting name-based rules on later runs. Removing a
 rule alone does not unpin: deliberately remove its state `pinned_path` too to
-return to template-managed moves. Changing a pin selects another verified
+return to template-managed moves, provided the checkout belongs to the current
+workspace layout. Removing a workspace tree pin instead suspends its remembered
+checkouts; it does not enable moves. Changing a per-repo pin selects another verified
 existing checkout. Adoption/remote update fetch refs on the next invocation.
 
 Use [`maintainer status`](status.md) to inspect local branches and divergence.

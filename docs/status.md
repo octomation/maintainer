@@ -3,8 +3,9 @@
 > `maintainer status` — inspect local repository work.
 
 Status reads the same `fetch.toml` / `fetch.yaml` and state as
-[`maintainer fetch`](fetch.md), scans the checkout root, and includes remembered
-paths and explicitly pinned checkouts such as `~/.dotfiles`. It needs Git on
+[`maintainer fetch`](fetch.md), using the same [workspace](workspace.md) layout
+and pins. It includes eligible remembered paths and explicitly pinned checkouts
+such as `~/.dotfiles`. It needs Git on
 PATH, but no token or network. It never fetches, modifies the index/worktree,
 or writes state. Ahead/behind counts describe **local upstream refs**; run
 `maintainer fetch --apply` separately to refresh them.
@@ -88,9 +89,13 @@ interactive mode and requires terminal input and output. `--concurrency N`
 overrides the config's inspection cap; `--timeout 30s` bounds the whole command.
 The released macOS and Linux targets support the terminal view.
 
-Per-repo paths select the active clone and suppress its stale duplicates.
-Without a pin, duplicates remain separate rows; use JSON or the selected-path
-footer to distinguish them. ID-only pins without state can only use their
+Per-repo paths select the active clone for mutation, while stale duplicates
+remain visible as `orphan [duplicate-pin]`. Their own branch, changes and
+divergence are retained; plain output and TUI details identify the active path.
+Orphan is a management warning, not a replacement for Git status or a read error.
+Without a specific per-repo pin, duplicates remain separate error rows; broad
+workspace pins do not choose a winner. Use JSON or the selected-path footer to
+distinguish them. ID-only pins without state can only use their
 local origin for display identity: status cannot verify a GitHub ID offline.
 Fetch performs that verification. If origin contradicts known state, status
 reports the mismatch and suggests fetch. Missing pins remain error rows.
@@ -98,8 +103,12 @@ Ignore rules are respected; archived/fork filters do not hide local work.
 
 Config discovery follows fetch, including `MAINTAINER_FETCH_CONFIG`, the current
 directory and XDG paths. `--config=""` disables configuration discovery, not
-state loading. `--root` changes the scan root; remembered state paths and pins
-are still included. No recursive submodule scan or API discovery is performed.
+state loading. `--root` changes the workspace root and rebases relative pins.
+State paths outside the current layout are report-only `orphan [out-of-scope]`,
+not recursive scan roots; legacy explicit
+per-repo pins remain supported. The default layout excludes `research` and
+other unrelated branches without exclusion lists. No recursive submodule scan
+or API discovery is performed.
 
 Exit codes: `0` for a successful snapshot (including dirty/diverged rows), `1`
 for inspection/state failures, `2` for invalid configuration/options. Other
@@ -107,4 +116,7 @@ repositories are still rendered when an individual checkout fails. JSON is an
 array, including `[]` for an empty collection, with `repository`, `path`,
 `branch`, `default_branch`, `commit`, `upstream`, `added`, `deleted`,
 `changed_files`, `untracked`, `binary`, `conflicts`, `ahead`, `behind`, `status`,
-`pinned`, optional `id`, and optional `error` fields.
+`pinned`, optional `id`, and optional `error` fields. Orphan rows also expose
+`orphan_reason`, optional `active_path`, and `remote_checked_at` for cached
+`remote-gone` observations saved by fetch apply. Status never probes GitHub or
+infers remote deletion from stale local refs. Search for `orphan` to find them.
