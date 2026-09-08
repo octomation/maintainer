@@ -109,9 +109,26 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		return err
 	}
 
+	confirmations := s.confirm(ctx, st, snapshots)
+	for _, c := range confirmations {
+		if c.Status == ConfirmFound && c.Snapshot != nil {
+			snapshots = append(snapshots, *c.Snapshot)
+		}
+	}
+	var extraPaths []string
+	for _, snap := range snapshots {
+		rec, _ := st.ByID(snap.ID)
+		path, err := s.planner.paths.PinnedPath(snap, rec)
+		if err != nil {
+			return exit.WithUser(err)
+		}
+		if path != "" {
+			extraPaths = append(extraPaths, path)
+		}
+	}
 	var clones []DiskClone
 	if s.adopter != nil {
-		clones, err = s.adopter.Scan(ctx, s.root, snapshots, s.cnf)
+		clones, err = s.adopter.Scan(ctx, s.root, snapshots, s.cnf, extraPaths...)
 		if err != nil {
 			return err
 		}
@@ -120,8 +137,6 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	if err != nil {
 		return err
 	}
-
-	confirmations := s.confirm(ctx, st, snapshots)
 
 	actions, err := s.planner.Plan(PlanInput{
 		Snapshots:     snapshots,
