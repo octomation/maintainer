@@ -3,8 +3,6 @@ package status
 import (
 	"context"
 	"fmt"
-	"io/fs"
-	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -23,15 +21,21 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 	if concurrency < 1 {
 		return nil, fmt.Errorf("concurrency must be positive")
 	}
-	renderer, err := fetchsvc.NewPathRenderer(cnf.Defaults.Root, home, cwd)
+	renderer, err := fetchsvc.NewPathRenderer(cnf.WorkspaceConfig().Root, home, cwd)
 	if err != nil {
 		return nil, err
 	}
 	paths := fetchsvc.NewPathResolver(cnf, renderer)
+	scope, err := paths.Scope()
+	if err != nil {
+		return nil, err
+	}
 	byPath := map[string]Row{}
 	byName := map[string]state.Record{}
 	pins := map[string]string{}
 	pinnedPaths := map[string]bool{}
+	explicitPaths := map[string]bool{}
+	suspended := map[string]bool{}
 	add := func(path string, rec state.Record) {
 		path = filepath.Clean(path)
 		if _, exists := byPath[path]; exists && rec.ID == 0 {
@@ -49,13 +53,20 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 			continue
 		}
 		snap := snapshot(rec)
+		if !paths.Authorised(rec, snap) {
+			suspended[filepath.Clean(rec.Path)] = true
+			continue
+		}
 		pin, err := paths.PinnedPath(snap, &rec)
 		if err != nil {
 			return nil, err
 		}
 		if pin != "" {
 			pinnedPaths[pin] = true
-			pins[strings.ToLower(rec.OwnerLogin+"/"+rec.Name)] = pin
+			if !paths.WorkspacePin(snap, &rec) {
+				pins[strings.ToLower(rec.OwnerLogin+"/"+rec.Name)] = pin
+				explicitPaths[pin] = true
+			}
 			add(pin, rec)
 		} else if rec.Path != "" {
 			add(rec.Path, rec)
@@ -76,23 +87,18 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 		}
 		add(pin, rec)
 		pinnedPaths[pin] = true
+		explicitPaths[pin] = true
 		if rec.OwnerLogin != "" {
 			pins[strings.ToLower(rec.OwnerLogin+"/"+rec.Name)] = pin
 		}
 	}
-	err = filepath.WalkDir(renderer.Root(), func(path string, entry fs.DirEntry, walkErr error) error {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		if walkErr != nil {
-			return walkErr
-		}
-		if !entry.IsDir() {
+	err = scope.Walk(ctx, func(path string, pinned bool) error {
+		if suspended[path] {
 			return nil
 		}
-		if _, err := os.Stat(filepath.Join(path, ".git")); err == nil {
-			add(path, state.Record{})
-			return filepath.SkipDir
+		add(path, state.Record{})
+		if pinned {
+			pinnedPaths[path] = true
 		}
 		return nil
 	})
@@ -123,9 +129,14 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 	}
 	// A literal ID-only pin can learn its display identity from its origin.
 	for _, row := range rows {
-		if row.Pinned {
+		if explicitPaths[row.Path] {
 			pins[strings.ToLower(row.Repository)] = row.Path
 		}
+	}
+	// Broad workspace pins do not silently pick one of several checkouts.
+	duplicates := map[string]int{}
+	for _, row := range rows {
+		duplicates[strings.ToLower(row.Repository)]++
 	}
 	selected := make([]Row, 0, len(rows))
 	for _, row := range rows {
@@ -145,6 +156,9 @@ func Collect(ctx context.Context, cnf *config.Fetch, st *state.State, home, cwd 
 				continue
 			}
 			row.Pinned = true
+		}
+		if duplicates[key] > 1 && pins[key] == "" {
+			row.Status, row.Error = "error", "multiple checkouts for this repository; select one with a per-repo path"
 		}
 		if len(owners) > 0 {
 			match := false

@@ -52,7 +52,11 @@ func New() *cobra.Command {
 				return exit.WithUser(err)
 			}
 			if cmd.Flags().Changed("root") {
-				cnf.Defaults.Root = root
+				if cnf.Workspace != nil {
+					cnf.Workspace.Root = root
+				} else {
+					cnf.Defaults.Root = root
+				}
 			}
 			if err := cnf.Validate(); err != nil {
 				return exit.WithUser(err)

@@ -17,7 +17,7 @@ func newPlanner(t *testing.T, cnf *config.Fetch) *Planner {
 	if cnf == nil {
 		cnf = &config.Fetch{Defaults: config.Defaults{Root: "/work", Path: config.DefaultPath, CloneURL: "ssh", Concurrency: 1}}
 	}
-	r, err := NewPathRenderer(cnf.Defaults.Root, home, cwd)
+	r, err := NewPathRenderer(cnf.WorkspaceConfig().Root, home, cwd)
 	require.NoError(t, err)
 	return NewPlanner(cnf, NewPathResolver(cnf, r))
 }
@@ -171,7 +171,7 @@ func TestPlanner_Relocate(t *testing.T) {
 	p := newPlanner(t, nil)
 	st := state.New()
 	st.Upsert(state.Record{
-		ID: 1, OwnerLogin: "acme", Name: "service", Path: "/work/old/acme/service",
+		ID: 1, OwnerLogin: "acme", Name: "service", Path: "/work/private/acme/service",
 		RemoteURL: "git@github.com:acme/service.git", CloneURL: "ssh",
 	})
 	in := PlanInput{
@@ -184,7 +184,7 @@ func TestPlanner_Relocate(t *testing.T) {
 	require.Len(t, actions, 1)
 	a := actions[0]
 	assert.Equal(t, KindRelocate, a.Kind)
-	assert.Equal(t, "/work/old/acme/service", a.FromPath)
+	assert.Equal(t, "/work/private/acme/service", a.FromPath)
 	assert.Equal(t, "/work/public/acme/service", a.ToPath)
 }
 

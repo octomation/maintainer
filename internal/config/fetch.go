@@ -10,6 +10,8 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v2"
+
+	"go.octolab.org/toolset/maintainer/internal/pkg/pathpattern"
 )
 
 // Transport enumerates the supported Git clone transports (§4.2).
@@ -30,14 +32,39 @@ const (
 // Fetch is the dedicated fetch.{toml,yaml} configuration (§4.2). It layers on
 // top of the viper-managed Tool config but owns the owner/repo-level rules.
 type Fetch struct {
-	Defaults Defaults           `toml:"defaults" yaml:"defaults"`
-	Filters  Filters            `toml:"filters" yaml:"filters"`
-	Profiles map[string]Profile `toml:"profiles" yaml:"profiles"`
-	Owners   []Owner            `toml:"owners" yaml:"owners"`
-	Repos    []Repo             `toml:"repos" yaml:"repos"`
+	Workspace  *Workspace         `toml:"workspace" yaml:"workspace"`
+	Workspaces any                `toml:"workspaces" yaml:"workspaces"` // reserved; never silently ignored
+	Defaults   Defaults           `toml:"defaults" yaml:"defaults"`
+	Filters    Filters            `toml:"filters" yaml:"filters"`
+	Profiles   map[string]Profile `toml:"profiles" yaml:"profiles"`
+	Owners     []Owner            `toml:"owners" yaml:"owners"`
+	Repos      []Repo             `toml:"repos" yaml:"repos"`
 
 	// Source is the path the config was loaded from; empty in single-run mode.
 	Source string `toml:"-" yaml:"-"`
+}
+
+// Workspace defines both the managed layout and explicitly pinned checkouts.
+type Workspace struct {
+	Root string   `toml:"root" yaml:"root"`
+	Path string   `toml:"path" yaml:"path"`
+	Pins []string `toml:"pins" yaml:"pins"`
+}
+
+// WorkspaceConfig normalises the legacy defaults.root/path spelling without
+// rewriting the user's config or creating another discovery policy.
+func (f *Fetch) WorkspaceConfig() Workspace {
+	w := Workspace{Root: f.Defaults.Root, Path: f.Defaults.Path}
+	if f.Workspace != nil {
+		w = *f.Workspace
+	}
+	if w.Root == "" {
+		w.Root = DefaultRoot
+	}
+	if w.Path == "" {
+		w.Path = DefaultPath
+	}
+	return w
 }
 
 // Defaults holds the global knobs (§4.2 [defaults]).
@@ -103,17 +130,29 @@ func LoadFetch(fs afero.Fs, path string) (*Fetch, error) {
 		if err != nil {
 			return nil, fmt.Errorf("read fetch config %q: %w", path, err)
 		}
+		// Decode table presence as well: some decoders leave an empty reserved
+		// [workspaces] table nil in the typed struct, silently accepting it.
+		var tables map[string]any
 		switch ext := strings.ToLower(filepath.Ext(path)); ext {
 		case ".toml":
 			if err := toml.Unmarshal(raw, cnf); err != nil {
 				return nil, fmt.Errorf("parse TOML fetch config %q: %w", path, err)
 			}
+			if err := toml.Unmarshal(raw, &tables); err != nil {
+				return nil, err
+			}
 		case ".yaml", ".yml":
 			if err := yaml.Unmarshal(raw, cnf); err != nil {
 				return nil, fmt.Errorf("parse YAML fetch config %q: %w", path, err)
 			}
+			if err := yaml.Unmarshal(raw, &tables); err != nil {
+				return nil, err
+			}
 		default:
 			return nil, fmt.Errorf("unsupported fetch config extension %q (want .toml/.yaml)", ext)
+		}
+		if _, exists := tables["workspaces"]; exists {
+			return nil, fmt.Errorf("multiple workspaces are not supported yet; use [workspace]")
 		}
 		cnf.Source = path
 	}
@@ -122,10 +161,10 @@ func LoadFetch(fs afero.Fs, path string) (*Fetch, error) {
 }
 
 func (f *Fetch) applyDefaults() {
-	if f.Defaults.Root == "" {
+	if f.Workspace == nil && f.Defaults.Root == "" {
 		f.Defaults.Root = DefaultRoot
 	}
-	if f.Defaults.Path == "" {
+	if f.Workspace == nil && f.Defaults.Path == "" {
 		f.Defaults.Path = DefaultPath
 	}
 	if f.Defaults.CloneURL == "" {
@@ -143,6 +182,21 @@ func (f *Fetch) applyDefaults() {
 // and before every run). It enforces the path-containment rule (§4.3) and
 // the transport enum (§4.2).
 func (f *Fetch) Validate() error {
+	if f.Workspaces != nil {
+		return fmt.Errorf("multiple workspaces are not supported yet; use [workspace]")
+	}
+	if f.Workspace != nil && (f.Defaults.Root != "" || f.Defaults.Path != "") {
+		return fmt.Errorf("use either [workspace] or legacy defaults.root/path, not both")
+	}
+	w := f.WorkspaceConfig()
+	for _, pin := range w.Pins {
+		if strings.TrimSpace(pin) == "" || strings.ContainsAny(pin, "\x00\r\n") || strings.Contains(pin, "{{") {
+			return fmt.Errorf("workspace.pins must contain nonempty literal paths")
+		}
+		if strings.HasPrefix(pin, "~") && pin != "~" && !strings.HasPrefix(pin, "~/") {
+			return fmt.Errorf("workspace.pins does not support ~user paths: %q", pin)
+		}
+	}
 	if err := validTransport("defaults.clone_url", f.Defaults.CloneURL); err != nil {
 		return err
 	}
@@ -150,7 +204,10 @@ func (f *Fetch) Validate() error {
 		return fmt.Errorf("defaults.concurrency must be >= 1, got %d", f.Defaults.Concurrency)
 	}
 	// defaults.path and per-owner templates must stay within root (§4.3).
-	if err := withinRoot("defaults.path", f.Defaults.Path); err != nil {
+	if err := withinRoot("workspace.path", w.Path); err != nil {
+		return err
+	}
+	if _, err := pathpattern.Compile(w.Path, ""); err != nil {
 		return err
 	}
 	for i := range f.Owners {
@@ -160,6 +217,9 @@ func (f *Fetch) Validate() error {
 		}
 		if o.Path != "" {
 			if err := withinRoot(fmt.Sprintf("owners[%q].path", o.Name), o.Path); err != nil {
+				return err
+			}
+			if _, err := pathpattern.Compile(o.Path, o.Name); err != nil {
 				return err
 			}
 		}

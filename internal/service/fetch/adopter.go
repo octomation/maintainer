@@ -3,7 +3,6 @@ package fetch
 import (
 	"context"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,6 +12,7 @@ import (
 	"go.octolab.org/toolset/maintainer/internal/config"
 	gitsvc "go.octolab.org/toolset/maintainer/internal/service/git"
 	"go.octolab.org/toolset/maintainer/internal/service/github"
+	"go.octolab.org/toolset/maintainer/internal/service/workspace"
 )
 
 const githubHost = "github.com"
@@ -40,6 +40,19 @@ func NewAdopter(git gitsvc.GitSync, resolver NameResolver) *Adopter {
 // resolves each to a stable id. Snapshots are consulted first to avoid an API
 // round trip; only an (owner,name) miss falls back to the redirect resolver.
 func (a *Adopter) Scan(ctx context.Context, root string, snapshots []github.RepoSnapshot, cnf *config.Fetch, extraPaths ...string) ([]DiskClone, error) {
+	if cnf == nil {
+		cnf = &config.Fetch{}
+	}
+	home, _ := os.UserHomeDir()
+	scope, err := workspace.New(cnf, root, home)
+	if err != nil {
+		return nil, err
+	}
+	return a.ScanScoped(ctx, scope, snapshots, append(externalPaths(cnf), extraPaths...)...)
+}
+
+// ScanScoped consumes the same bounded local inventory as status.
+func (a *Adopter) ScanScoped(ctx context.Context, scope *workspace.Scope, snapshots []github.RepoSnapshot, extraPaths ...string) ([]DiskClone, error) {
 	byName := make(map[string]int64, len(snapshots))
 	for _, s := range snapshots {
 		byName[s.Owner+"/"+s.Name] = s.ID
@@ -48,7 +61,7 @@ func (a *Adopter) Scan(ctx context.Context, root string, snapshots []github.Repo
 	seen := make(map[string]bool)
 	var clones []DiskClone
 
-	add := func(dir string) error {
+	add := func(dir string, pinned bool) error {
 		if seen[dir] {
 			return nil
 		}
@@ -58,47 +71,26 @@ func (a *Adopter) Scan(ctx context.Context, root string, snapshots []github.Repo
 			return err
 		}
 		if ok {
+			clone.Pinned = pinned
+			if pinned && clone.ID == 0 {
+				clone.Error = "pinned checkout identity could not be verified"
+			}
 			clones = append(clones, clone)
+		} else if pinned {
+			clones = append(clones, DiskClone{Path: dir, Pinned: true, Error: "pinned path is missing or is not a supported GitHub checkout"})
 		}
 		return nil
 	}
 
-	if root != "" {
-		if err := a.walk(root, add); err != nil {
+	if err := scope.Walk(ctx, add); err != nil {
+		return nil, err
+	}
+	for _, ext := range extraPaths {
+		if err := add(ext, true); err != nil {
 			return nil, err
 		}
 	}
-	for _, ext := range append(externalPaths(cnf), extraPaths...) {
-		if info, err := os.Stat(ext); err == nil && info.IsDir() {
-			if err := add(ext); err != nil {
-				return nil, err
-			}
-		}
-	}
 	return clones, nil
-}
-
-// walk descends root, treating any directory that contains a .git entry as a
-// clone and not descending into it.
-func (a *Adopter) walk(root string, add func(string) error) error {
-	return filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			if os.IsNotExist(err) {
-				return nil
-			}
-			return err
-		}
-		if !d.IsDir() {
-			return nil
-		}
-		if _, statErr := os.Stat(filepath.Join(path, ".git")); statErr == nil {
-			if aerr := add(path); aerr != nil {
-				return aerr
-			}
-			return filepath.SkipDir
-		}
-		return nil
-	})
 }
 
 func (a *Adopter) inspect(ctx context.Context, dir string, byName map[string]int64) (DiskClone, bool, error) {

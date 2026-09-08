@@ -16,9 +16,39 @@ func (pr *PathResolver) PinnedPath(snap github.RepoSnapshot, rec *state.Record) 
 		return pr.renderer.Render(rule.Path, snap, true)
 	}
 	if rec != nil {
-		return rec.PinnedPath, nil
+		if rec.PinSource != "workspace" && rec.PinnedPath != "" {
+			return rec.PinnedPath, nil
+		}
+		if pr.scope != nil && pr.scope.Pinned(rec.Path) {
+			return rec.Path, nil
+		}
 	}
 	return "", nil
+}
+
+// Authorised refuses to turn remembered paths into additional scan roots.
+func (pr *PathResolver) Authorised(rec state.Record, snap github.RepoSnapshot) bool {
+	if snap.ID == 0 {
+		snap = github.RepoSnapshot{ID: rec.ID, Owner: rec.OwnerLogin, Name: rec.Name}
+	}
+	if pin, err := pr.PinnedPath(snap, &rec); err == nil && pin != "" {
+		return true
+	}
+	if rec.PinSource == "workspace" {
+		return false
+	} // removing a pin never enables moves
+	return pr.scope != nil && pr.scope.Contains(rec.Path)
+}
+
+func (pr *PathResolver) WorkspacePin(snap github.RepoSnapshot, rec *state.Record) bool {
+	rule, ok := pr.cnf.RepoOverride(snap.ID, snap.Owner, snap.Name)
+	if !ok && rec != nil {
+		rule, ok = pr.cnf.RepoOverride(rec.ID, rec.OwnerLogin, rec.Name)
+	}
+	if ok && rule.Path != "" {
+		return false
+	}
+	return rec != nil && (rec.PinSource == "workspace" || rec.PinnedPath == "") && pr.scope.Pinned(rec.Path)
 }
 
 // An explicit path selects the active clone even when an old duplicate exists.
