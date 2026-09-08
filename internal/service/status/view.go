@@ -54,6 +54,9 @@ func cells(row Row) []string {
 		}
 		status = strings.Join(parts, " · ")
 	}
+	if row.OrphanReason != "" {
+		status = "orphan [" + row.OrphanReason + "] · " + status
+	}
 	return []string{safeText(row.Repository), safeText(branch), safeText(changes), safeText(status)}
 }
 
@@ -96,6 +99,22 @@ func Plain(w io.Writer, rows []Row) error {
 	for i := range t.rows {
 		if _, err := fmt.Fprintln(w, t.line(i)); err != nil {
 			return err
+		}
+		if i > 0 && rows[i-1].OrphanReason != "" {
+			row := rows[i-1]
+			if _, err := fmt.Fprintf(w, "  path: %s\n", safeText(row.Path)); err != nil {
+				return err
+			}
+			if row.ActivePath != "" {
+				if _, err := fmt.Fprintf(w, "  active: %s\n", safeText(row.ActivePath)); err != nil {
+					return err
+				}
+			}
+			if row.RemoteCheckedAt != nil {
+				if _, err := fmt.Fprintf(w, "  GitHub check (cached): %s\n", row.RemoteCheckedAt.UTC().Format("2006-01-02T15:04:05Z")); err != nil {
+					return err
+				}
+			}
 		}
 		if i == 0 {
 			if _, err := fmt.Fprintln(w, strings.Repeat("─", runewidth.StringWidth(t.line(0)))); err != nil {

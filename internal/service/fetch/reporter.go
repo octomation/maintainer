@@ -125,7 +125,13 @@ func (r *Reporter) renderHuman(p Plan, applied bool) error {
 	}
 	b.WriteByte('\n')
 
-	fmt.Fprintf(&b, "plan: %d repos total\n", len(p.Actions))
+	ids := map[int64]bool{}
+	for _, a := range p.Actions {
+		if a.ID != 0 {
+			ids[a.ID] = true
+		}
+	}
+	fmt.Fprintf(&b, "plan: %d repos total\n", len(ids))
 	for _, a := range p.Actions {
 		if !drift(a) {
 			continue
@@ -149,6 +155,8 @@ func (r *Reporter) renderHuman(p Plan, applied bool) error {
 		)))
 	case actionable(s):
 		b.WriteString(paint(r.colorOut, "36", "run with --apply to execute") + "\n")
+	case s.Orphan > 0:
+		b.WriteString("orphan checkouts retained; no automatic cleanup\n")
 	default:
 		b.WriteString(paint(r.colorOut, "32", "no drift") + "\n")
 	}
@@ -175,7 +183,11 @@ func (r *Reporter) writeAction(b *strings.Builder, p Plan, a Action) {
 	case KindUpdateRemote:
 		fmt.Fprintf(b, "  %s update     %-28s → %s\n", sym, name, a.RemoteURL)
 	case KindOrphan:
-		fmt.Fprintf(b, "  %s orphan     %-28s → %s\n", sym, name, a.Reason)
+		reason := a.Reason
+		if a.OrphanReason != "" {
+			reason = "[" + a.OrphanReason + "] " + reason
+		}
+		fmt.Fprintf(b, "  %s orphan     %-28s → %s\n", sym, name, reason)
 		fmt.Fprintf(b, "               at %s\n", r.short(p, a.Path))
 	case KindConflict:
 		fmt.Fprintf(b, "  %s conflict   %-28s → %s\n", sym, name, a.Reason)
@@ -272,21 +284,24 @@ type jsonPlan struct {
 }
 
 type jsonAction struct {
-	Kind     string `json:"kind"`
-	ID       int64  `json:"id"`
-	Owner    string `json:"owner,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Path     string `json:"path,omitempty"`
-	From     string `json:"from,omitempty"`
-	To       string `json:"to,omitempty"`
-	FromPath string `json:"from_path,omitempty"`
-	ToPath   string `json:"to_path,omitempty"`
-	Flag     string `json:"flag,omitempty"`
-	Reason   string `json:"reason,omitempty"`
+	OrphanReason string `json:"orphan_reason,omitempty"`
+	ActivePath   string `json:"active_path,omitempty"`
+	Kind         string `json:"kind"`
+	ID           int64  `json:"id"`
+	Owner        string `json:"owner,omitempty"`
+	Name         string `json:"name,omitempty"`
+	Path         string `json:"path,omitempty"`
+	From         string `json:"from,omitempty"`
+	To           string `json:"to,omitempty"`
+	FromPath     string `json:"from_path,omitempty"`
+	ToPath       string `json:"to_path,omitempty"`
+	Flag         string `json:"flag,omitempty"`
+	Reason       string `json:"reason,omitempty"`
 }
 
 func toJSONAction(a Action) jsonAction {
 	out := jsonAction{
+		OrphanReason: a.OrphanReason, ActivePath: a.ActivePath,
 		Kind: string(a.Kind), ID: a.ID, Owner: a.Owner, Name: a.Name,
 		Path: a.Path, Flag: a.Flag, Reason: a.Reason,
 	}

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	giturls "github.com/whilp/git-urls"
 )
@@ -16,24 +17,27 @@ import (
 // Row is shared by the JSON, printable and interactive views. Counts describe
 // local refs only; no network operation is performed.
 type Row struct {
-	ID            int64  `json:"id,omitempty"`
-	Repository    string `json:"repository"`
-	Path          string `json:"path"`
-	Branch        string `json:"branch"`
-	DefaultBranch string `json:"default_branch,omitempty"`
-	Commit        string `json:"commit,omitempty"`
-	Upstream      string `json:"upstream,omitempty"`
-	Added         int    `json:"added"`
-	Deleted       int    `json:"deleted"`
-	Changed       int    `json:"changed_files"`
-	Untracked     int    `json:"untracked"`
-	Binary        int    `json:"binary"`
-	Conflicts     int    `json:"conflicts"`
-	Ahead         int    `json:"ahead"`
-	Behind        int    `json:"behind"`
-	Status        string `json:"status"`
-	Pinned        bool   `json:"pinned"`
-	Error         string `json:"error,omitempty"`
+	ID              int64      `json:"id,omitempty"`
+	Repository      string     `json:"repository"`
+	Path            string     `json:"path"`
+	Branch          string     `json:"branch"`
+	DefaultBranch   string     `json:"default_branch,omitempty"`
+	Commit          string     `json:"commit,omitempty"`
+	Upstream        string     `json:"upstream,omitempty"`
+	Added           int        `json:"added"`
+	Deleted         int        `json:"deleted"`
+	Changed         int        `json:"changed_files"`
+	Untracked       int        `json:"untracked"`
+	Binary          int        `json:"binary"`
+	Conflicts       int        `json:"conflicts"`
+	Ahead           int        `json:"ahead"`
+	Behind          int        `json:"behind"`
+	Status          string     `json:"status"`
+	Pinned          bool       `json:"pinned"`
+	OrphanReason    string     `json:"orphan_reason,omitempty"`
+	ActivePath      string     `json:"active_path,omitempty"`
+	RemoteCheckedAt *time.Time `json:"remote_checked_at,omitempty"`
+	Error           string     `json:"error,omitempty"`
 }
 
 func git(ctx context.Context, path string, args ...string) (string, error) {

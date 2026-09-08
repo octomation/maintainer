@@ -82,7 +82,9 @@ func TestPinnedRenameOnDisk(t *testing.T) {
 	acts, err := newPlanner(t, cnf).Plan(PlanInput{State: st, Clones: clones,
 		Snapshots: []github.RepoSnapshot{{ID: 1, Owner: "other", Name: "super-dotfiles"}}})
 	require.NoError(t, err)
-	require.Len(t, acts, 1)
+	require.Len(t, acts, 2)
+	assert.Equal(t, KindOrphan, acts[1].Kind)
+	assert.False(t, acts[1].Executable())
 	require.NoError(t, NewApplier(sync, nil, clock).Execute(context.Background(), acts[0], st))
 	info, err := sync.Inspect(pin)
 	require.NoError(t, err)
@@ -119,7 +121,9 @@ func TestPinnedCheckoutLifecycle(t *testing.T) {
 		}
 		acts, err := newPlanner(t, cnf).Plan(in)
 		require.NoError(t, err)
-		require.Len(t, acts, 1)
+		require.Len(t, acts, 2)
+		assert.Equal(t, KindOrphan, acts[1].Kind)
+		assert.Equal(t, duplicate, acts[1].Path)
 		assert.Equal(t, kind, acts[0].Kind)
 		assert.Equal(t, pin, acts[0].Path)
 		require.NoError(t, apply.Execute(context.Background(), acts[0], st))
@@ -154,16 +158,25 @@ func TestPinnedSelection(t *testing.T) {
 			acts, err := newPlanner(t, cnf).Plan(PlanInput{State: state.New(), Clones: tc.clones,
 				Snapshots: []github.RepoSnapshot{{ID: 1, Owner: "acme", Name: "dotfiles"}}})
 			require.NoError(t, err)
-			require.Len(t, acts, 1)
-			assert.Equal(t, tc.kind, acts[0].Kind)
-			assert.Equal(t, "/work/special", acts[0].Path)
+			var selected []Action
+			for _, act := range acts {
+				if act.Kind == KindOrphan {
+					assert.Equal(t, "duplicate-pin", act.OrphanReason)
+					assert.False(t, act.Executable())
+				} else {
+					selected = append(selected, act)
+				}
+			}
+			require.Len(t, selected, 1)
+			assert.Equal(t, tc.kind, selected[0].Kind)
+			assert.Equal(t, "/work/special", selected[0].Path)
 		})
 	}
 }
 
 func TestConfirmationWithoutRenameRemainsNoop(t *testing.T) {
 	st := state.New()
-	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "tool", Path: "/work/acme/tool"})
+	st.Upsert(state.Record{ID: 1, OwnerLogin: "acme", Name: "tool", Path: "/work/public/acme/tool"})
 	acts, err := newPlanner(t, nil).Plan(PlanInput{State: st,
 		Confirmations: map[int64]Confirmation{1: {Status: ConfirmFound,
 			Snapshot: &github.RepoSnapshot{ID: 1, Owner: "acme", Name: "tool"}}}})

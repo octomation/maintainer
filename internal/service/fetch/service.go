@@ -3,6 +3,8 @@ package fetch
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"sync"
 	"time"
@@ -150,6 +152,21 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 			return err
 		}
 	}
+	// A verified 404 is an orphan observation, not a missing-pin identity
+	// conflict. Do not infer this from an absent API listing alone.
+	for i := range clones {
+		c := &clones[i]
+		if c.ID != 0 || c.Owner == "" || c.Origins > 1 {
+			continue
+		}
+		for _, rec := range st.Repos {
+			confirmation, ok := confirmations[rec.ID]
+			if ok && confirmation.Status == ConfirmGone && c.Owner == rec.OwnerLogin && c.Name == rec.Name {
+				c.ID, c.Error = rec.ID, ""
+				break
+			}
+		}
+	}
 	// Existing workspace checkouts (especially pins) are explicit local scope,
 	// even when their owners are absent from remote discovery for new clones.
 	known := make(map[int64]bool)
@@ -162,6 +179,9 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 			continue
 		}
 		if rec, ok := st.ByID(c.ID); ok && !s.planner.paths.Authorised(*rec, github.RepoSnapshot{}) {
+			continue
+		}
+		if confirmation, ok := confirmations[c.ID]; ok && confirmation.Status != ConfirmFound {
 			continue
 		}
 		if s.deps.Confirmer == nil {
@@ -191,12 +211,24 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		return err
 	}
 
+	knownPaths := map[string]bool{}
+	for _, rec := range st.Repos {
+		for _, path := range append(append([]string(nil), rec.PreviousPaths...), rec.Path) {
+			if path == "" {
+				continue
+			}
+			if _, err := os.Stat(filepath.Join(path, ".git")); !os.IsNotExist(err) {
+				knownPaths[path] = true
+			}
+		}
+	}
 	actions, err := s.planner.Plan(PlanInput{
-		Snapshots:     snapshots,
-		State:         st,
-		Clones:        clones,
-		Confirmations: confirmations,
-		Occupancy:     occupancy,
+		KnownCheckouts: knownPaths,
+		Snapshots:      snapshots,
+		State:          st,
+		Clones:         clones,
+		Confirmations:  confirmations,
+		Occupancy:      occupancy,
 	})
 	if err != nil {
 		return exit.WithUser(err)
@@ -219,6 +251,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	}
 
 	failed := s.apply(ctx, &plan, st)
+	s.cacheRemoteObservations(st, snapshots, confirmations)
 	s.touchDiscovery(st)
 	if err := s.deps.Store.Save(st); err != nil {
 		return err
@@ -234,6 +267,28 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 		))
 	}
 	return nil
+}
+
+// Only apply persists remote observations. Offline status labels this cache
+// explicitly; a plan never writes it and a missing listing is not a 404.
+func (s *Service) cacheRemoteObservations(st *state.State, snapshots []github.RepoSnapshot, confirmations map[int64]Confirmation) {
+	now := s.deps.Clock().UTC()
+	for id, c := range confirmations {
+		if c.Status == ConfirmTransient {
+			continue
+		}
+		if rec, ok := st.ByID(id); ok {
+			rec.RemoteStatus, rec.RemoteCheckedAt = "", &now
+			if c.Status == ConfirmGone {
+				rec.RemoteStatus = "gone"
+			}
+		}
+	}
+	for _, snap := range snapshots {
+		if rec, ok := st.ByID(snap.ID); ok {
+			rec.RemoteStatus, rec.RemoteCheckedAt = "", &now
+		}
+	}
 }
 
 // explicitSnapshots resolves per-repo pins outside discovery, so an explicit

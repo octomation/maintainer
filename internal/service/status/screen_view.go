@@ -98,6 +98,8 @@ func (m *screen) View() tea.View {
 			text = selected.Render(text)
 		} else if row.Error != "" {
 			text = lipgloss.NewStyle().Foreground(lipgloss.Color("#EF4444")).Render(text)
+		} else if row.OrphanReason != "" {
+			text = lipgloss.NewStyle().Foreground(lipgloss.Color("#F59E0B")).Render(text)
 		}
 		content = append(content, text)
 	}
@@ -117,7 +119,17 @@ func (m *screen) View() tea.View {
 			pin = " · pinned"
 		}
 		lines = append(lines, clip(accent.Render(fmt.Sprintf("%d/%d  %s%s", m.selection.Index+1, len(m.visible), safeText(row.Path), pin))))
-		lines = append(lines, clip(muted.Render(fmt.Sprintf("HEAD %.12s · upstream %s", safeText(row.Commit), safeText(row.Upstream)))))
+		detail := fmt.Sprintf("HEAD %.12s · upstream %s", safeText(row.Commit), safeText(row.Upstream))
+		if row.OrphanReason != "" {
+			detail = "orphan [" + safeText(row.OrphanReason) + "] · " + detail
+		}
+		if row.ActivePath != "" {
+			detail = "active: " + safeText(row.ActivePath)
+		}
+		if row.RemoteCheckedAt != nil && row.OrphanReason != "" {
+			detail += " · GitHub cached " + row.RemoteCheckedAt.UTC().Format("2006-01-02T15:04Z")
+		}
+		lines = append(lines, clip(muted.Render(detail)))
 	} else {
 		lines = append(lines, clip("No repository selected"), "")
 	}
