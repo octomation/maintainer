@@ -72,6 +72,21 @@ at least one per-repo failure or unresolved conflict (the summary lists which).
 
 Full reference: [`docs/fetch.md`](docs/fetch.md).
 
+## 🧭 `maintainer status`
+
+Inspect all local checkouts: current/default branch, uncommitted lines and
+files, commits ahead/behind upstream. Reads fetch configuration and pinned
+paths such as `~/.dotfiles`; no token, network or repository writes.
+
+```bash
+maintainer status                         # arrows/jk select a row; q exits
+maintainer status --format=plain          # printable full table
+maintainer status --format=json           # structured counts and paths
+maintainer status --owner kamilsk
+```
+
+Counts use local upstream refs. Full reference: [`docs/status.md`](docs/status.md).
+
 > The PoC ships REST discovery only; a GraphQL discoverer is a deferred
 > experiment. See [the PoC plan](.github/notes/) for the full design.
 
