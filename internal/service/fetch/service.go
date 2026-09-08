@@ -110,11 +110,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 	}
 
 	confirmations := s.confirm(ctx, st, snapshots)
-	for _, c := range confirmations {
-		if c.Status == ConfirmFound && c.Snapshot != nil {
-			snapshots = append(snapshots, *c.Snapshot)
-		}
-	}
+	snapshots = append(snapshots, confirmedRenames(st, confirmations)...)
 	var extraPaths []string
 	for _, snap := range snapshots {
 		rec, _ := st.ByID(snap.ID)
@@ -133,7 +129,7 @@ func (s *Service) Run(ctx context.Context, apply bool) error {
 			return err
 		}
 	}
-	occupancy, err := s.scanOccupancy(snapshots)
+	occupancy, err := s.scanOccupancy(snapshots, st)
 	if err != nil {
 		return err
 	}

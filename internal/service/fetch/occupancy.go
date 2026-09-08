@@ -5,14 +5,23 @@ import (
 	"os"
 
 	"go.octolab.org/toolset/maintainer/internal/service/github"
+	"go.octolab.org/toolset/maintainer/internal/state"
 )
 
 // scanOccupancy snapshots every rendered target immediately before planning.
 // Existing paths are fail-closed: the Planner may proceed only when the
 // Adopter has independently verified the path as the expected repository.
-func (s *Service) scanOccupancy(snapshots []github.RepoSnapshot) (map[string]Occupancy, error) {
+func (s *Service) scanOccupancy(snapshots []github.RepoSnapshot, st *state.State) (map[string]Occupancy, error) {
 	result := make(map[string]Occupancy, len(snapshots))
 	for _, snap := range snapshots {
+		rec, _ := st.ByID(snap.ID)
+		pin, err := s.planner.paths.PinnedPath(snap, rec)
+		if err != nil {
+			return nil, err
+		}
+		if pin != "" {
+			continue // pins are verified from disk identity and never materialised
+		}
 		path, err := s.planner.paths.Resolve(snap)
 		if err != nil {
 			return nil, fmt.Errorf("resolve path for %s (id=%d): %w", snap.FullName(), snap.ID, err)
