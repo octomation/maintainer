@@ -69,3 +69,14 @@ func TestSortTiesAndNonLineChanges(t *testing.T) {
 	assert.Equal(t, []int{1, 0}, queryRows(rows, []sortKey{{Column: RepositoryColumn}}, ""))
 	assert.Equal(t, []int{1, 0}, queryRows(rows, nil, ""))
 }
+
+func TestSortAndFilterDisplayedPath(t *testing.T) {
+	rows := []Row{
+		{Repository: "a", Path: "/home/me/.dotfiles", displayPath: "~/.dotfiles"},
+		{Repository: "z", Path: "/home/me/work/public/acme/tool", displayPath: "public/acme/tool"},
+	}
+	assert.Equal(t, []int{1, 0}, queryRows(rows, []sortKey{{Column: PathColumn}}, ""))
+	assert.Equal(t, []int{0, 1}, queryRows(rows, []sortKey{{Column: PathColumn, Desc: true}}, ""))
+	assert.Equal(t, []int{0}, queryRows(rows, nil, "~/.dotfiles"))
+	assert.Equal(t, []int{0}, queryRows(rows, nil, "/home/me/.dotfiles"))
+}

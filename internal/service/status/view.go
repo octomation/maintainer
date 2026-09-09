@@ -3,11 +3,32 @@ package status
 import (
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 	"unicode"
 
 	"github.com/mattn/go-runewidth"
 )
+
+func relativePath(path, root, home string) string {
+	for _, base := range []struct{ path, prefix string }{{root, ""}, {home, "~"}} {
+		if base.path == "" {
+			continue
+		}
+		rel, err := filepath.Rel(base.path, path)
+		if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return filepath.Join(base.prefix, rel)
+		}
+	}
+	return path
+}
+
+func (row Row) pathCell() string {
+	if row.displayPath != "" {
+		return safeText(row.displayPath)
+	}
+	return safeText(row.Path)
+}
 
 func safeText(s string) string {
 	return strings.Map(func(r rune) rune {
@@ -57,7 +78,7 @@ func cells(row Row) []string {
 	if row.OrphanReason != "" {
 		status = "orphan · " + status
 	}
-	return []string{safeText(row.Repository), safeText(branch), safeText(changes), safeText(status)}
+	return []string{safeText(row.Repository), safeText(branch), safeText(changes), safeText(status), row.pathCell()}
 }
 
 type table struct {
@@ -66,7 +87,11 @@ type table struct {
 }
 
 func newTable(rows []Row) table {
-	t := table{widths: make([]int, 4), rows: [][]string{{"REPOSITORY", "BRANCH", "UNCOMMITTED", "STATUS"}}}
+	headers := make([]string, len(columnNames))
+	for i, name := range columnNames {
+		headers[i] = strings.ToUpper(name)
+	}
+	t := table{widths: make([]int, len(headers)), rows: [][]string{headers}}
 	for _, row := range rows {
 		t.rows = append(t.rows, cells(row))
 	}

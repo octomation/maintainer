@@ -38,6 +38,7 @@ type Row struct {
 	ActivePath      string     `json:"active_path,omitempty"`
 	RemoteCheckedAt *time.Time `json:"remote_checked_at,omitempty"`
 	Error           string     `json:"error,omitempty"`
+	displayPath     string     // relative to workspace root, or home for external paths
 }
 
 func git(ctx context.Context, path string, args ...string) (string, error) {
