@@ -1,6 +1,19 @@
 > # 👨‍🔧 maintainer
 >
-> Upcoming changes. Full changelog is [here](changelog.md).
+> Command documentation and upcoming changes.
+
+## Root commands
+
+| Command | Purpose |
+| --- | --- |
+| [`maintainer status`](status.md) | Inspect local branches, uncommitted work, divergence and checkout paths |
+| [`maintainer fetch`](fetch.md) | Discover GitHub repositories, review a reconciliation plan and apply it |
+
+Both commands share the [workspace configuration](workspace.md). Start with
+`status` to inspect local work offline, or `fetch` to review synchronization
+actions. See the [changelog](changelog.md) for released changes.
+
+## Upcoming changes
 
 ## [GitHub Contributions Calendar][calendar]
 

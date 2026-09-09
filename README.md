@@ -68,7 +68,8 @@ defaults to `$XDG_STATE_HOME/maintainer/fetch/state.json` (`0600`).
 The shared [workspace](docs/workspace.md) defines `root`, the managed `path`
 layout, and optional `pins` for additional checkout trees kept in place.
 
-Exit codes: `0` clean (incl. "no drift"), `1` transport/Git/state error,
+Exit codes: `0` successful plan or apply (a plan can still contain conflicts),
+`1` transport/Git/state error,
 `2` user input error (bad config/flags, missing token), `3` apply finished with
 at least one per-repo failure or unresolved conflict (the summary lists which).
 
@@ -77,7 +78,9 @@ Full reference: [`docs/fetch.md`](docs/fetch.md).
 ## 🧭 `maintainer status`
 
 Inspect all local checkouts: current/default branch, uncommitted lines and
-files, commits ahead/behind upstream. Reads fetch configuration and pinned
+files, commits ahead/behind upstream, and checkout paths in the last column.
+Paths are relative to the workspace root, or use `~/…` for external checkouts
+under home. Reads fetch configuration and pinned
 paths such as `~/.dotfiles`; no token, network or repository writes.
 
 ```bash
