@@ -29,10 +29,10 @@ another root. This still reads the default fetch state file.
 ## Table columns
 
 ```text
-REPOSITORY             │ BRANCH  │ UNCOMMITTED       │ STATUS     │ PATH
-kamilsk/dotfiles        │ main*   │ +39/-0 · 3f       │ synced     │ ~/.dotfiles
-kamilsk/mindset         │ main*   │ +0/-0             │ behind 409 │ public/kamilsk/mindset
-octomation/maintainer   │ fetcher │ +12/-1 · 2f · ?1  │ ahead 1    │ public/octomation/maintainer
+REPOSITORY             │ BRANCH  │ UNCOMMITTED       │ STATUS     │ LOCK │ PATH
+kamilsk/dotfiles        │ main*   │ +39/-0 · 3f       │ synced     │      │ ~/.dotfiles
+kamilsk/mindset         │ main*   │ +0/-0             │ behind 409 │      │ public/kamilsk/mindset
+octomation/maintainer   │ fetcher │ +12/-1 · 2f · ?1  │ ahead 1    │ 🔒   │ public/octomation/maintainer
 ```
 
 `Path` is the last column in both plain and terminal tables. Checkouts inside
@@ -57,6 +57,14 @@ uncommitted work. A branch can be both ahead and behind. Detached HEAD,
 unborn branches, missing upstream configuration and deleted upstream refs are
 reported distinctly. Failures produce error rows, not zero/clean results.
 
+`Lock` shows `🔒` when any remote has a push URL exactly equal to `no_push`,
+the marker set by the dotfiles helper `git lock [remote]` (`origin` by default).
+Otherwise the cell is empty. It includes other remotes and multiple push URLs;
+the marker does not imply that every push destination is blocked. Custom push
+URLs, server permissions and hooks are not checked. After `git unlock [remote]`,
+run status again to refresh the indicator. Fetch and branch status are independent
+of this marker.
+
 ## Interactive controls
 
 The selected row and active column have separate highlights; the footer shows
@@ -79,7 +87,8 @@ the entire filtered collection, including rows outside the viewport. Repository
 and branch compare case-insensitively. Path compares the displayed path text
 case-sensitively. Uncommitted compares `(added + deleted,
 changed files, untracked, binary, conflicts)` numerically; status compares
-`(ahead + behind, ahead, behind, status text)`. Numeric error rows come last in
+`(ahead + behind, ahead, behind, status text)`. Lock sorts unmarked rows first
+ascending and marked rows first descending. Numeric error rows come last in
 both directions. Ties use repository/path for deterministic order. Clearing
 sorting restores repository/path order, or fuzzy relevance while searching.
 
@@ -92,8 +101,8 @@ use `S` if Shift+click is intercepted.
 Press `/` or click the search line and start typing. Matches update immediately;
 characters may be non-contiguous and matching ignores case (`dtf` finds
 `dotfiles`). Space-separated terms must all match, and can match different
-fields: repository, branch, uncommitted/status text, displayed or full path,
-upstream, or commit.
+fields: repository, branch, uncommitted/status text, lock icon (`🔒`), displayed
+or full path, upstream, or commit.
 With no explicit sort, results use fuzzy relevance; explicit keys take precedence.
 The header shows matched/total counts, and an empty result is shown explicitly.
 
@@ -171,8 +180,8 @@ or API discovery is performed.
 JSON is an array, including `[]` for an empty collection, with `repository`,
 absolute `path`, `branch`, `added`, `deleted`,
 `changed_files`, `untracked`, `binary`, `conflicts`, `ahead`, `behind`, `status`,
-and `pinned`. `id`, `default_branch`, `commit`, `upstream`, and `error` are omitted
-when unavailable or empty. Orphan rows also expose
+`push_locked` (boolean), and `pinned`. `id`, `default_branch`, `commit`,
+`upstream`, and `error` are omitted when unavailable or empty. Orphan rows also expose
 `orphan_reason`, optional `active_path`, and `remote_checked_at` for cached
 `remote-gone` observations saved by fetch apply. Text/TUI shows only `orphan`,
 without bracketed reason codes; the reason remains in JSON and searchable.
@@ -181,6 +190,13 @@ For example, list changed checkouts with their full paths:
 
 ```bash
 maintainer status --format=json | jq '.[] | select(.changed_files > 0 or .untracked > 0) | {repository, path}'
+```
+
+List checkouts marked by `git lock`:
+
+```bash
+maintainer status --owner octomation --format=json | jq -c '.[] | select(.push_locked) | {repository, path}'
+# {"repository":"octomation/maintainer","path":"/Users/kamilsk/Development/public/octomation/maintainer"}
 ```
 
 | Code | Meaning |
