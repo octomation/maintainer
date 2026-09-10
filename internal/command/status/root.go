@@ -26,9 +26,10 @@ func New() *cobra.Command {
 	var timeout time.Duration
 	cmd := &cobra.Command{
 		SilenceUsage: true,
-		Use:          "status", Short: "inspect local repository branches, changes and divergence",
+		Use:          "status", Short: "inspect local repository branches, changes, divergence and push locks",
 		Long: "Inspect local checkouts using fetch configuration and state. No network\n" +
 			"access or fetch is performed; divergence uses cached upstream refs.\n" +
+			"Lock marks remotes with a no_push push URL (the git lock marker).\n" +
 			"In a terminal: arrows/jk select rows, Tab selects a column, s sorts,\n" +
 			"Shift+s appends sorting, 0 resets sorting, / filters, q quits.",
 		Args: cobra.NoArgs,

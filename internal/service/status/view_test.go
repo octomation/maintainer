@@ -2,12 +2,31 @@ package status
 
 import (
 	"bytes"
+	"encoding/json"
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/x/ansi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestPushLockViews(t *testing.T) {
+	rows := []Row{{Repository: "acme/locked", Path: "/locked", PushLocked: true}, {Repository: "acme/open", Path: "/open"}}
+	var out bytes.Buffer
+	require.NoError(t, Plain(&out, rows))
+	lines := strings.Split(out.String(), "\n")
+	assert.Contains(t, lines[2], "│ LOCK │ PATH")
+	assert.Contains(t, lines[4], "│ 🔒   │ /locked")
+	assert.Contains(t, lines[5], "│      │ /open")
+	assert.Equal(t, ansi.StringWidth(lines[4]), ansi.StringWidth(lines[5]))
+	raw, err := json.Marshal(rows)
+	require.NoError(t, err)
+	var decoded []map[string]any
+	require.NoError(t, json.Unmarshal(raw, &decoded))
+	assert.Equal(t, true, decoded[0]["push_locked"])
+	assert.Equal(t, false, decoded[1]["push_locked"])
+}
 
 func TestViews(t *testing.T) {
 	rows := []Row{{Repository: "acme/tool", Path: "/work/public/acme/tool", displayPath: "public/acme/tool", Branch: "main", DefaultBranch: "main", Added: 12, Deleted: 1, Untracked: 3, Ahead: 1, Behind: 2, Status: "diverged"},

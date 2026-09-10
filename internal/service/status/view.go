@@ -78,7 +78,11 @@ func cells(row Row) []string {
 	if row.OrphanReason != "" {
 		status = "orphan · " + status
 	}
-	return []string{safeText(row.Repository), safeText(branch), safeText(changes), safeText(status), row.pathCell()}
+	lock := ""
+	if row.PushLocked {
+		lock = "🔒"
+	}
+	return []string{safeText(row.Repository), safeText(branch), safeText(changes), safeText(status), lock, row.pathCell()}
 }
 
 type table struct {
@@ -147,7 +151,7 @@ func Plain(w io.Writer, rows []Row) error {
 			}
 		}
 	}
-	_, err := fmt.Fprintln(w, "\n* default branch · +/- tracked lines · f changed files · ? untracked · ! conflicts")
+	_, err := fmt.Fprintln(w, "\n* default branch · +/- tracked lines · f changed files · ? untracked · ! conflicts · 🔒 push locked")
 	return err
 }
 

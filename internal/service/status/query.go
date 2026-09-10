@@ -16,10 +16,11 @@ const (
 	BranchColumn
 	ChangesColumn
 	StatusColumn
+	LockColumn
 	PathColumn
 )
 
-var columnNames = []string{"Repository", "Branch", "Uncommitted", "Status", "Path"}
+var columnNames = []string{"Repository", "Branch", "Uncommitted", "Status", "Lock", "Path"}
 
 type sortKey struct {
 	Column Column
@@ -125,6 +126,14 @@ func compareColumn(a, b Row, column Column) int {
 			return order
 		}
 		return strings.Compare(a.Status, b.Status)
+	case LockColumn:
+		if a.PushLocked == b.PushLocked {
+			return 0
+		}
+		if a.PushLocked {
+			return 1
+		}
+		return -1
 	case PathColumn:
 		return strings.Compare(a.pathCell(), b.pathCell())
 	default:

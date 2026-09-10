@@ -100,6 +100,85 @@ func TestInspectBranchStates(t *testing.T) {
 	assert.NotEmpty(t, row.Error)
 }
 
+func TestInspectPushLock(t *testing.T) {
+	t.Setenv("GIT_CONFIG_GLOBAL", os.DevNull)
+	t.Setenv("GIT_CONFIG_NOSYSTEM", "1")
+	for _, tc := range []struct {
+		name, remote string
+		urls         []string
+		locked       bool
+	}{
+		{name: "no pushurl", remote: "origin"},
+		{name: "origin locked", remote: "origin", urls: []string{"no_push"}, locked: true},
+		{name: "other remote locked", remote: "backup", urls: []string{"no_push"}, locked: true},
+		{name: "multiple pushurls", remote: "origin", urls: []string{"no_push", "https://github.com/acme/tool.git"}, locked: true},
+		{name: "custom pushurl", remote: "origin", urls: []string{"https://github.com/acme/tool.git"}},
+		{name: "exact marker only", remote: "origin", urls: []string{"no_push_extra", "/tmp/no_push", "NO_PUSH", "no_push\n"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			path := checkout(t, t.TempDir())
+			if tc.remote != "origin" {
+				runGit(t, path, "remote", "add", tc.remote, "https://github.com/acme/backup.git")
+			}
+			for _, url := range tc.urls {
+				runGit(t, path, "config", "--add", "remote."+tc.remote+".pushurl", url)
+			}
+			before, err := os.ReadFile(filepath.Join(path, ".git", "config"))
+			require.NoError(t, err)
+			row := Inspect(context.Background(), Row{Path: path})
+			assert.Empty(t, row.Error)
+			assert.Equal(t, tc.locked, row.PushLocked)
+			assert.Equal(t, "synced", row.Status)
+			assert.Equal(t, "acme/tool", row.Repository)
+			after, err := os.ReadFile(filepath.Join(path, ".git", "config"))
+			require.NoError(t, err)
+			assert.Equal(t, before, after, "inspection must not change push configuration")
+			if tc.locked {
+				runGit(t, path, "config", "--unset-all", "remote."+tc.remote+".pushurl")
+				row = Inspect(context.Background(), Row{Path: path})
+				assert.Empty(t, row.Error)
+				assert.False(t, row.PushLocked)
+			}
+		})
+	}
+}
+
+func TestInspectPushLockIncludesAndWorktree(t *testing.T) {
+	path := checkout(t, t.TempDir())
+	include := filepath.Join(t.TempDir(), "lock.config")
+	write(t, include, "[remote \"origin\"]\n\tpushurl = no_push\n")
+	runGit(t, path, "config", "include.path", include)
+	row := Inspect(context.Background(), Row{Path: path})
+	assert.Empty(t, row.Error)
+	assert.True(t, row.PushLocked)
+	worktree := filepath.Join(t.TempDir(), "linked")
+	runGit(t, path, "worktree", "add", "-b", "feature", worktree)
+	row = Inspect(context.Background(), Row{Path: worktree})
+	assert.Empty(t, row.Error)
+	assert.True(t, row.PushLocked)
+	runGit(t, path, "config", "--unset", "include.path")
+	runGit(t, path, "config", "extensions.worktreeConfig", "true")
+	runGit(t, worktree, "config", "--worktree", "remote.origin.pushurl", "no_push")
+	row = Inspect(context.Background(), Row{Path: worktree})
+	assert.Empty(t, row.Error)
+	assert.True(t, row.PushLocked)
+	assert.False(t, Inspect(context.Background(), Row{Path: path}).PushLocked)
+	// A later Git failure must retain a lock that was successfully read.
+	write(t, filepath.Join(path, ".git", "index"), "invalid index")
+	runGit(t, path, "config", "remote.origin.pushurl", "no_push")
+	row = Inspect(context.Background(), Row{Path: path})
+	assert.NotEmpty(t, row.Error)
+	assert.True(t, row.PushLocked)
+}
+
+func TestInspectPushLockConfigError(t *testing.T) {
+	path := checkout(t, t.TempDir())
+	write(t, filepath.Join(path, ".git", "config"), "[invalid config")
+	row := Inspect(context.Background(), Row{Path: path})
+	assert.Equal(t, "error", row.Status)
+	assert.Contains(t, row.Error, "git config:")
+}
+
 func TestInspectUnbornAndWorktree(t *testing.T) {
 	root := t.TempDir()
 	runGit(t, root, "init", "-b", "main")
