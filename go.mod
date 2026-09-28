@@ -21,7 +21,7 @@ require (
 	github.com/google/go-github/v91 v91.0.0
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mattn/go-runewidth v0.0.27
-	github.com/pelletier/go-toml/v2 v2.2.4
+	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/sahilm/fuzzy v0.1.3
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.2
