@@ -80,7 +80,7 @@ jobs:
 
       - name: Set up Go environment
         id: go
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@v7.1.0
         with:
           go-version: 1.27.x
           cache: false
@@ -189,7 +189,7 @@ jobs:
         with: { persist-credentials: false }
       - name: Set up Go environment
         if: steps.preflight.outputs.ready == 'true'
-        uses: actions/setup-go@v7.0.0
+        uses: actions/setup-go@v7.1.0
         with: { go-version: 1.27.4, cache: false }
       - name: Mint the catalog token
         if: steps.preflight.outputs.ready == 'true'
