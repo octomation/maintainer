@@ -32,7 +32,7 @@ require (
 	go.octolab.org/toolkit/cli v0.6.4
 	go.octolab.org/toolkit/config v0.0.5
 	golang.org/x/oauth2 v0.38.0
-	golang.org/x/sync v0.24.0
+	golang.org/x/sync v0.25.0
 	golang.org/x/term v0.48.0
 	gopkg.in/yaml.v2 v2.4.0
 )
